@@ -1,0 +1,14 @@
+# Local environment configuration must never be committed.
+.env
+.env.*.local
+
+# Local database data, if a bind mount is ever used instead of the named Docker volume.
+postgres-data/
+
+# Generated locally or in CI; uploaded as a workflow artifact when needed.
+artifacts/
+
+# Local third-party private keys must remain outside version control.
+/backend/secrets/
+
+.DS_Store
