@@ -88,8 +88,9 @@ export function DashboardShell() {
         </header>
 
         <main id="dashboard-content" className="mx-auto max-w-[1500px] px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-10">
+          {activeItem === "Overview" ? <>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div><p className="text-sm font-medium text-primary">Thursday, 22 October</p><h1 className="mt-1 text-2xl font-bold tracking-[-0.03em] sm:text-[28px]">Network overview</h1><p className="mt-1 text-sm text-text-secondary">Your personal network is protected and running normally.</p></div>
+            <div><p className="flex items-center gap-2 text-sm font-medium text-primary">Thursday, 22 October <span className="rounded-full bg-surface-rose px-2 py-0.5 text-[10px] font-bold text-secondary">Preview data</span></p><h1 className="mt-1 text-2xl font-bold tracking-[-0.03em] sm:text-[28px]">Network overview</h1><p className="mt-1 text-sm text-text-secondary">Your personal network is protected and running normally.</p></div>
             <button onClick={startScan} disabled={scanning} className="inline-flex h-11 items-center justify-center gap-2 rounded-[10px] bg-primary px-4 text-sm font-semibold text-white shadow-[0_8px_22px_rgba(128,101,143,.2)] transition hover:bg-primary-hover disabled:cursor-wait disabled:opacity-70"><Radar className={`size-[18px] ${scanning ? "animate-spin" : ""}`} />{scanning ? "Scanning network…" : "Scan devices"}</button>
           </div>
 
@@ -129,6 +130,7 @@ export function DashboardShell() {
               <div className="relative"><span className="grid size-10 place-items-center rounded-xl bg-white/15"><Sparkles className="size-5" /></span><h2 className="mt-5 text-lg font-semibold">A calmer digital week</h2><p className="mt-2 text-sm leading-6 text-white/75">Evening usage is down 14%. Your most active window is now between 7 PM and 9 PM.</p><button className="mt-6 rounded-[10px] bg-white px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-surface-lavender">Explore insights</button></div>
             </Card>
           </section>
+          </> : <SectionPlaceholder title={activeItem} onReturn={() => setActiveItem("Overview")} />}
         </main>
       </div>
 
@@ -141,6 +143,10 @@ export function DashboardShell() {
 
 function Brand() {
   return <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-[13px] bg-primary text-white shadow-[0_8px_18px_rgba(128,101,143,.24)]"><ShieldCheck className="size-[22px]" strokeWidth={2} /></span><div><p className="font-heading text-base font-bold tracking-[-0.03em]">NetSentry</p><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-secondary">Personal</p></div></div>;
+}
+
+function SectionPlaceholder({ title, onReturn }: { title: string; onReturn: () => void }) {
+  return <div className="grid min-h-[calc(100dvh-12rem)] place-items-center"><div className="max-w-md text-center"><span className="mx-auto grid size-16 place-items-center rounded-2xl bg-surface-lavender text-primary"><Shield className="size-8" /></span><h1 className="mt-5 text-2xl font-bold">{title}</h1><p className="mt-2 text-sm leading-6 text-text-secondary">This section is ready for verified monitoring data from the NetSentry API. The overview remains available while this module is connected.</p><button onClick={onReturn} className="mt-5 rounded-[10px] bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover">Return to overview</button></div></div>;
 }
 
 function Navigation({ activeItem, onSelect, className = "" }: { activeItem: string; onSelect: (label: string) => void; className?: string }) {
