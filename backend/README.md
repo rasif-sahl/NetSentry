@@ -1,3 +1,15 @@
+# NetSentry API
+
+NestJS and PostgreSQL API for NetSentry. The first foundation includes secure
+access/refresh sessions, Personal/Family/Business workspaces, memberships, and
+registered monitoring devices.
+
+Copy `.env.example` to `.env`, replace both JWT secrets, create the PostgreSQL
+database from `DATABASE_URL`, and run `npm run start:dev`. The API is served
+from `/api/v1`. `DB_SYNCHRONIZE=true` is only for local development.
+
+---
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
