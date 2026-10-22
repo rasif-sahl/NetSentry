@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { CreateWorkspaceDto, RegisterDeviceDto } from './dto/workspace.dto';
@@ -68,6 +72,15 @@ export class WorkspaceService {
     const existing = await this.devices.findOneBy({
       installationId: input.installationId,
     });
+    if (
+      existing &&
+      (existing.workspaceId !== input.workspaceId ||
+        existing.registeredById !== userId)
+    ) {
+      throw new ConflictException(
+        'This device installation is already registered elsewhere.',
+      );
+    }
     const values = {
       installationId: input.installationId,
       workspaceId: input.workspaceId,
