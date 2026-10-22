@@ -1,4 +1,15 @@
-# mobile
+# NetSentry mobile
+
+Flutter client for authenticated device registration and capability-first
+network monitoring. Run against a local API with:
+
+```sh
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1
+```
+
+The Android platform channel intentionally reports restricted hotspot client
+and per-client traffic APIs as unavailable until a supported router or gateway
+integration provides verified measurements.
 
 A new Flutter project.
 
