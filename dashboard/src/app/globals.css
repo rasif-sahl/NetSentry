@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --font-inter: Arial, Helvetica;
+  --font-jakarta: Arial, Helvetica;
   --background: #f8f7fa;
   --surface: #ffffff;
   --surface-lavender: #f0eaf3;
