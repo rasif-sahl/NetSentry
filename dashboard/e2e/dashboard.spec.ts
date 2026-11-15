@@ -343,14 +343,12 @@ test("team invitations bind a recipient and management changes take effect", asy
     .click();
   await page.getByRole("button", { name: "Overview", exact: true }).click();
   await page.getByRole("button", { name: "Team", exact: true }).click();
-  const members = page
-    .locator("section")
-    .filter({
-      has: page.getByRole("heading", {
-        name: "Workspace members",
-        exact: true,
-      }),
-    });
+  const members = page.locator("section").filter({
+    has: page.getByRole("heading", {
+      name: "Workspace members",
+      exact: true,
+    }),
+  });
   const member = members
     .getByRole("listitem")
     .filter({ hasText: data.accounts.recovery.email });
@@ -401,4 +399,258 @@ test("a verified user can create and switch to a new workspace", async ({
     page.getByText("Asia/Colombo", { exact: true }).first(),
   ).toBeVisible();
   await page.getByLabel("Active workspace").selectOption(data.workspaceId);
+});
+
+test("profile, appearance, retention, sessions and personal export use the backend", async ({
+  page,
+}) => {
+  const data = await login(page);
+  await page
+    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Your profile", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("Fixture owner updated");
+  await page
+    .getByRole("button", { name: "Update profile", exact: true })
+    .click();
+  await expect(page.locator(".sidebar-profile")).toContainText(
+    "Fixture owner updated",
+  );
+  await page.getByLabel("Color theme").selectOption("DARK");
+  await page.getByLabel("Reduce motion", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "Save display preferences", exact: true })
+    .click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-reduced-motion",
+    "true",
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Settings & privacy", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByLabel("Raw observations (days)", { exact: true }).fill("20");
+  await page
+    .getByLabel("Aggregates and gaps (days)", { exact: true })
+    .fill("300");
+  await page
+    .getByLabel(
+      "I understand shorter retention can permanently remove existing data.",
+    )
+    .check();
+  await page
+    .getByRole("button", { name: "Update retention policy", exact: true })
+    .click();
+  await expect(page.getByText(/Retention policy updated/)).toBeVisible();
+  const policy = await page.request.get(
+    `/api/backend/workspaces/${data.workspaceId}/monitoring/retention`,
+  );
+  expect((await policy.json()).rawDays).toBe(20);
+  await page.getByLabel("Current password for export").fill(data.password);
+  const downloading = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Download personal data", exact: true })
+    .click();
+  const downloaded = await downloading;
+  const exported = JSON.parse(
+    await readFile((await downloaded.path())!, "utf8"),
+  );
+  expect(exported.user.id).toBe(data.accounts.owner.id);
+  expect(exported.monitoring.measurements.length).toBeGreaterThan(0);
+  expect(JSON.stringify(exported)).not.toMatch(
+    /credentialHash|payloadHash|refreshToken/,
+  );
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Sign out other sessions", exact: true })
+    .click();
+  const sessions = await page.request.get("/api/backend/auth/sessions");
+  expect(
+    (await sessions.json()).some(
+      (session: { revokedAt: string | null }) => !!session.revokedAt,
+    ),
+  ).toBeTruthy();
+  await page
+    .getByText("Review permanent account deletion", { exact: true })
+    .click();
+  await page
+    .getByLabel("Current password for account deletion")
+    .fill(data.password);
+  await page.getByLabel("Type DELETE to confirm").fill("DELETE");
+  await page
+    .getByLabel("I understand account deletion cannot be undone.")
+    .check();
+  await page
+    .getByRole("button", { name: "Permanently delete account", exact: true })
+    .click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Transfer ownership" }),
+  ).toBeVisible();
+});
+test("email verification and password recovery consume email-fragment codes", async ({
+  page,
+}) => {
+  const data = await fixtures();
+  await page.goto("/verify-email#token=" + data.tokens.unverified);
+  await expect(page.getByLabel("Verification code")).toHaveValue(
+    data.tokens.unverified,
+  );
+  expect(page.url()).not.toContain(data.tokens.unverified);
+  await page.getByRole("button", { name: "Verify email", exact: true }).click();
+  await expect(
+    page.getByText(/Email verified. You can now sign in/),
+  ).toBeVisible();
+  await page.goto("/reset-password#token=" + data.tokens.recovery);
+  await expect(page.getByLabel("Reset code")).toHaveValue(data.tokens.recovery);
+  expect(page.url()).not.toContain(data.tokens.recovery);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("new-fixture-recovery-password-123");
+  await page
+    .getByLabel("Confirm new password")
+    .fill("new-fixture-recovery-password-123");
+  await page
+    .getByRole("button", { name: "Reset password", exact: true })
+    .click();
+  await expect(page.getByText(/Password reset. Sign in/)).toBeVisible();
+  await page
+    .getByRole("button", { name: "Back to sign in", exact: true })
+    .click();
+  await page.getByLabel("Email address").fill(data.accounts.recovery.email);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("new-fixture-recovery-password-123");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Overview", exact: true }),
+  ).toBeVisible();
+});
+test("registration and password-confirmed account deletion clear the browser session", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Create an account", exact: true })
+    .click();
+  await page.getByLabel("Your name").fill("Disposable browser fixture");
+  await page
+    .getByLabel("Email address")
+    .fill("disposable@dashboard.example.invalid");
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("disposable-fixture-password-123");
+  await page
+    .getByRole("button", { name: "Create account", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Your devices", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/Verify your email to manage/)).toBeVisible();
+  await page
+    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .click();
+  await page
+    .getByText("Review permanent account deletion", { exact: true })
+    .click();
+  await page
+    .getByLabel("Current password for account deletion")
+    .fill("disposable-fixture-password-123");
+  await page.getByLabel("Type DELETE to confirm").fill("DELETE");
+  await page
+    .getByLabel("I understand account deletion cannot be undone.")
+    .check();
+  await page
+    .getByRole("button", { name: "Permanently delete account", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Welcome back", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Your account has been deleted.", { exact: true }),
+  ).toBeVisible();
+  expect(
+    (await context.cookies()).filter((cookie) =>
+      cookie.name.startsWith("netsentry_"),
+    ),
+  ).toHaveLength(0);
+});
+test("consent, pause, revocation and erasure are explicit device actions", async ({
+  page,
+}) => {
+  await login(page);
+  await page.getByRole("button", { name: "Devices", exact: true }).click();
+  await page
+    .getByRole("button", { name: "View Fixture iOS", exact: true })
+    .click();
+  await page.getByText("Review monitoring consent", { exact: true }).click();
+  await page.getByLabel("Network usage", { exact: true }).check();
+  await page
+    .getByLabel("I understand and accept this monitoring disclosure.")
+    .check();
+  await page
+    .getByRole("button", { name: "Grant selected consent", exact: true })
+    .click();
+  await expect(page.getByText(/Consent recorded/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Pause monitoring", exact: true }),
+  ).toBeEnabled();
+  await page
+    .getByRole("button", { name: "Pause monitoring", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Pause monitoring", exact: true }),
+  ).toBeDisabled();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Revoke consent", exact: true })
+    .click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Delete device data", exact: true })
+    .click();
+  await expect(page.getByText("REVOKED", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("No capability report", { exact: true }),
+  ).toBeVisible();
+});
+test("narrow desktop-browser layouts support keyboard navigation and honest future modules", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page);
+  await page
+    .getByRole("button", { name: "Open navigation", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Close navigation", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "Open navigation", exact: true }),
+  ).toBeFocused();
+  await page
+    .getByRole("button", { name: "Open navigation", exact: true })
+    .click();
+  await page.getByRole("button", { name: "More modules", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Developer Tools", exact: true }),
+  ).toBeVisible();
+  expect(await page.getByText("Planned", { exact: true }).count()).toBe(9);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+  await page.screenshot({ path: ".test/narrow-dashboard.png", fullPage: true });
+  await page.goBack();
+  await expect(
+    page.getByRole("heading", { name: "Overview", exact: true }),
+  ).toBeVisible();
 });

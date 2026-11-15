@@ -17,6 +17,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { SettingsPanel } from "./settings-panel";
 import { TeamPanel } from "./team-panel";
 import { AlertsPanel } from "./alerts-panel";
 import { DevicesPanel } from "./devices-panel";
@@ -147,7 +148,11 @@ function WorkspaceShell({
   const [switching, setSwitching] = useState(false);
   const switchPending = useRef(false);
   const [selected, setSelected] = useState<string>();
-  const [section, setSection] = useState("Overview");
+  const [section, setSection] = useState(() => {
+    if (typeof window === "undefined") return "Overview";
+    const view = new URLSearchParams(window.location.search).get("view");
+    return navigation.some((item) => item.label === view) ? view! : "Overview";
+  });
   const [menu, setMenu] = useState(false);
   const workspace =
     workspaces.data?.find(
@@ -173,6 +178,38 @@ function WorkspaceShell({
           accountDeleted,
         }
       : undefined;
+  const contentRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      document.documentElement.dataset.theme =
+        user.preferences.theme === "DARK" ||
+        ((user.preferences.theme ?? "SYSTEM") === "SYSTEM" && media.matches)
+          ? "dark"
+          : "light";
+      document.documentElement.dataset.reducedMotion = String(
+        !!user.preferences.reducedMotion,
+      );
+    };
+    apply();
+    media.addEventListener("change", apply);
+    return () => {
+      media.removeEventListener("change", apply);
+      delete document.documentElement.dataset.theme;
+      delete document.documentElement.dataset.reducedMotion;
+    };
+  }, [user.preferences.theme, user.preferences.reducedMotion]);
+  useEffect(() => {
+    const back = () => {
+      const view = new URLSearchParams(window.location.search).get("view");
+      setSection(
+        navigation.some((item) => item.label === view) ? view! : "Overview",
+      );
+      setMenu(false);
+    };
+    window.addEventListener("popstate", back);
+    return () => window.removeEventListener("popstate", back);
+  }, []);
   const sideRef = useRef<HTMLElement>(null);
   const openRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -213,10 +250,19 @@ function WorkspaceShell({
     "Audit",
     "Subscription",
     "Developer Tools",
+    "Network Security",
+    "Insights",
   ];
   function choose(label: string) {
     setSection(label);
+    if (section !== label)
+      history.pushState(
+        null,
+        "",
+        "/?" + new URLSearchParams({ view: label }).toString(),
+      );
     setMenu(false);
+    requestAnimationFrame(() => contentRef.current?.focus());
     window.scrollTo({ top: 0 });
   }
   return (
@@ -225,6 +271,8 @@ function WorkspaceShell({
         Skip to content
       </a>
       <aside
+        role={menu ? "dialog" : undefined}
+        aria-modal={menu ? true : undefined}
         ref={sideRef}
         className={`sidebar ${menu ? "open" : ""}`}
         aria-label="Workspace navigation"
@@ -348,9 +396,7 @@ function WorkspaceShell({
             <button
               className="button"
               onClick={() => {
-                workspaces.reload();
-                permission.reload();
-                devices.reload();
+                window.dispatchEvent(new Event("netsentry:refresh"));
               }}
             >
               Refresh workspace
@@ -366,12 +412,11 @@ function WorkspaceShell({
               >
                 Request verification email
               </ActionButton>{" "}
-              <button
-                className="text-button"
-                onClick={async () => updateUser(await api<User>("/auth/me"))}
+              <ActionButton
+                action={async () => updateUser(await api<User>("/auth/me"))}
               >
                 I have verified my email
-              </button>
+              </ActionButton>
             </Notice>
           )}
           <ErrorNotice
@@ -506,6 +551,10 @@ function WorkspaceShell({
                               Audit: "Full workspace action history.",
                               Subscription:
                                 "Editions, entitlements and billing.",
+                              "Network Security":
+                                "Supported network health and security observations, once available.",
+                              Insights:
+                                "Digital wellbeing summaries based on authorized observations.",
                               "Developer Tools":
                                 "Paired computer services, project association and authorized stop actions.",
                             }[label]
@@ -549,11 +598,6 @@ function ConnectedSection({
     return (
       <TeamPanel context={context} workspacesChanged={workspacesChanged} />
     );
-  return (
-    <Card title={section}>
-      <Empty title="This section is being connected">
-        The account and monitoring views are available.
-      </Empty>
-    </Card>
-  );
+  if (section === "Settings & privacy") return <SettingsPanel {...context} />;
+  return null;
 }

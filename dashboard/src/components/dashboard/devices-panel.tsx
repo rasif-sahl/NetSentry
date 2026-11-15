@@ -185,6 +185,7 @@ export function DevicesPanel({
               <ErrorNotice error={disclosures.error} />
               {disclosures.data && (
                 <ActionForm
+                  key={disclosures.data.monitoring.version}
                   submit="Grant selected consent"
                   action={async (form) => {
                     const scopes = form.getAll("scopes").map(String);

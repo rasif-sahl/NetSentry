@@ -38,6 +38,8 @@ export function useResource<T>(path: string | null, poll = false) {
       }
     }
     void load();
+    const manual = () => void load();
+    window.addEventListener("netsentry:refresh", manual);
     const check = () => {
       if (document.visibilityState === "visible" && navigator.onLine)
         void load();
@@ -49,6 +51,7 @@ export function useResource<T>(path: string | null, poll = false) {
     }
     return () => {
       controller.abort();
+      window.removeEventListener("netsentry:refresh", manual);
       clearInterval(timer);
       window.removeEventListener("online", check);
       document.removeEventListener("visibilitychange", check);

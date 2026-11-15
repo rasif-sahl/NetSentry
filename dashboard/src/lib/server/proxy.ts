@@ -2,8 +2,13 @@ import "server-only";
 import { NextRequest, NextResponse } from "next/server";
 import contract from "../../../../contracts/openapi/api.v1.json";
 
-const accessCookie = "netsentry_access";
-const refreshCookie = "netsentry_refresh";
+function sessionCookies(url: URL) {
+  const prefix = url.protocol === "https:" ? "__Host-" : "";
+  return {
+    accessCookie: prefix + "netsentry_access",
+    refreshCookie: prefix + "netsentry_refresh",
+  };
+}
 const sessionPaths = new Set([
   "/auth/login",
   "/auth/register",
@@ -74,6 +79,7 @@ export function clearSession(request: NextRequest) {
   try {
     if (!sameOrigin(request))
       return failure(403, "This action must come from this dashboard.");
+    const { accessCookie, refreshCookie } = sessionCookies(origin(request));
     const result = response({ cleared: true });
     for (const name of [accessCookie, refreshCookie])
       result.cookies.set(name, "", {
@@ -115,6 +121,7 @@ export async function proxy(request: NextRequest, segments: string[]) {
     return failure(404, "This dashboard action is unavailable.");
   try {
     const expected = origin(request);
+    const { accessCookie, refreshCookie } = sessionCookies(expected);
     if (request.method !== "GET" && !sameOrigin(request))
       return failure(403, "This action must come from this dashboard.");
     const base = new URL(

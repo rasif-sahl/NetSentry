@@ -133,10 +133,11 @@ export function AuthPanel({
           )}
           {["verify", "reset"].includes(mode) && (
             <Field
-              label="Link token"
-              hint="Opened from your email link. You can paste the token if needed."
+              label={mode === "verify" ? "Verification code" : "Reset code"}
+              hint="Filled from your email link. You can paste the code here if needed."
             >
               <input
+                type="password"
                 name="token"
                 required
                 pattern="[A-Za-z0-9_-]{43}"
