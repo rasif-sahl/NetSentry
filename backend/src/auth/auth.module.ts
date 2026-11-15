@@ -17,6 +17,6 @@ import { Session } from './session.entity';
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard, PasswordHasher],
-  exports: [AuthGuard],
+  exports: [AuthGuard, JwtModule, TypeOrmModule],
 })
 export class AuthModule {}

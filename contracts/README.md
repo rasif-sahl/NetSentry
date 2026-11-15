@@ -1,7 +1,42 @@
 # Shared contracts
 
-Versioned, language-neutral schemas belong here. Backend, Kotlin, Swift, Go and TypeScript clients will consume the same contracts rather than sharing platform code.
+Backend, Kotlin, Swift, Go and TypeScript clients use language-neutral schemas. Platform source and generated client bindings stay with their applications. No mobile build tool is needed to check these contracts.
 
-`schemas/capability-report.schema.json` is a draft agent capability-report contract. `fixtures/agent-disabled.json` is synthetic setup data, not a monitoring observation. These files do not introduce an implemented backend endpoint. Phase 1 will establish API schemas, code generation/versioning and runtime schema validation.
+## Implemented API
 
-Run `npm run check:scaffolds` at the repository root for structural and fixture consistency checks. It is not a complete JSON Schema validator or a replacement for native builds.
+`openapi/api.v1.json` describes the 12 implemented health, authentication/session and workspace/device operations at the default `/api/v1` base. It includes request/response schemas, bearer authentication, path parameters, status codes and structured errors. The deployment base URL and prefix remain configurable. The legacy starter root response is not a product API.
+
+POST responses retain NestJS's existing 201 status. Session refresh revokes the previous session. Personal workspaces are created at signup; manual PERSONAL creation returns 403. Existing optional input fields accept null where their DTO uses `IsOptional`. Device registration still carries a legacy boolean capability map; it does not grant permissions or represent verified feature availability.
+
+Errors include `statusCode`, stable `code`, user-facing `message`, optional validation `details`, query-free `path`, UTC `timestamp` and server-generated `requestId`. The same correlation ID is returned in `x-request-id`; arbitrary caller IDs are not trusted. Internal errors never expose exception messages or query strings. Health is liveness only, not a dependency-readiness guarantee.
+
+## Future contracts
+
+| Schema | Purpose | Implementation boundary |
+| --- | --- | --- |
+| `capability-report.schema.json` | Original Phase 0 local agent startup report | Agent only prints disabled module status and exits |
+| `device-capabilities.v1.schema.json` | Per-feature status/reason, source, setup steps, action availability and check/report times | Future device/agent reporting; no ingestion endpoint yet |
+| `measurement.v1.schema.json` | Event/workspace/device IDs, source/version, interval, UTC times, units, measured/estimated quality and optional application ID | Future monitoring ingestion |
+| `service-permissions.v1.schema.json` | Server-evaluated viewing/control rights for a paired agent | Future control authorization; capabilities cannot grant these rights |
+| `service-command.v1.schema.json` | Typed stop/force-stop command, target identity, request time and expiry | Future remote execution, never arbitrary shell input |
+| `local-ipc.v1.schema.json` | Typed local status/list/stop request envelope | Future authenticated desktop-agent transport; not a listening socket |
+
+All examples in `fixtures/` are synthetic. They do not establish real monitoring support. Unsupported/permission/setup states expose no executable actions. Command checks enforce a positive lifetime of at most 60 seconds; real execution must additionally check current time, current authorization, duplicate state and the actual process identity. Measurement intervals must be positive, collection cannot precede the interval end, and serialized timestamps must be UTC with a `Z` suffix.
+
+## Versioning and compatibility
+
+Use UUIDs for server-issued workspace/device/agent/event/service/command identifiers. Installation IDs remain separate opaque strings. Preserve source observation/collection time separately from later ingestion time. Do not derive endpoint identity from IP address or process ID alone.
+
+API breaking changes require a new major URI version. Breaking event/IPC shape changes require a new schema filename/ID and `schemaVersion`; do not repurpose the legacy startup report. Existing strict schemas are immutable after adoption unless the change is demonstrably compatible; adding required fields or enum values may break older validators. Clients handle unknown capabilities/statuses as unavailable. Revisit client code generation after endpoint contracts stabilize; no native bindings are claimed generated here.
+
+## Checks
+
+```sh
+npm ci --ignore-scripts
+npm run check
+npm test
+```
+
+AJV compiles all JSON Schemas/API components and validates fixtures. Additional checks enforce time, identity uniqueness and capability invariants. The OpenAPI checks cover component compilation, local references and operation structure; they are not a full external OpenAPI conformance linter. `backend/scripts/check-api.mjs` tests actual responses against the specified operation/status schemas using an isolated PostgreSQL database.
+
+The root `check:scaffolds` remains a lightweight file/configuration check, separate from full schema validation and native build verification.

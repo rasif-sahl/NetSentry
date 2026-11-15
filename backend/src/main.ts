@@ -1,28 +1,15 @@
-import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ApiExceptionFilter } from './common/api-exception.filter';
+import { configureHttp } from './common/configure-http';
+
+// Legacy timestamp columns are read in UTC; new event contracts require UTC.
+process.env.TZ = 'UTC';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
-
-  app.setGlobalPrefix(config.get<string>('API_PREFIX', 'api'));
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
-  app.enableCors({
-    origin: config.getOrThrow<string[]>('CORS_ORIGINS'),
-    credentials: true,
-  });
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
-  app.useGlobalFilters(new ApiExceptionFilter());
-
+  configureHttp(app, config);
   await app.listen(config.get<number>('PORT', 3000));
 }
 void bootstrap();

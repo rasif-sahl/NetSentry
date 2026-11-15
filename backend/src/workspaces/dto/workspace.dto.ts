@@ -5,6 +5,7 @@ import {
   IsString,
   IsUUID,
   MaxLength,
+  ValidateBy,
 } from 'class-validator';
 import { DevicePlatform } from '../registered-device.entity';
 import { WorkspaceType } from '../workspace.entity';
@@ -21,5 +22,17 @@ export class RegisterDeviceDto {
   @IsString() @MaxLength(100) name!: string;
   @IsEnum(DevicePlatform) platform!: DevicePlatform;
   @IsOptional() @IsString() operatingSystemVersion?: string;
-  @IsOptional() @IsObject() capabilities?: Record<string, boolean>;
+  @IsOptional()
+  @IsObject()
+  @ValidateBy({
+    name: 'booleanCapabilities',
+    validator: {
+      validate: (value: unknown) =>
+        value !== null &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        Object.values(value).every((entry) => typeof entry === 'boolean'),
+    },
+  })
+  capabilities?: Record<string, boolean>;
 }

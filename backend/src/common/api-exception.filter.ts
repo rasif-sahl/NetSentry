@@ -5,43 +5,62 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import { randomUUID } from 'node:crypto';
+import type { Response } from 'express';
+import type { ContextRequest } from './configure-http';
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
   catch(reason: unknown, host: ArgumentsHost) {
     const context = host.switchToHttp();
     const response = context.getResponse<Response>();
-    const request = context.getRequest<Request>();
+    const request = context.getRequest<ContextRequest>();
     const status =
       reason instanceof HttpException
         ? reason.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
     const payload =
       reason instanceof HttpException ? reason.getResponse() : null;
-    const validationMessages =
+    const messages =
       typeof payload === 'object' && payload !== null
         ? (payload as { message?: unknown }).message
         : undefined;
-    const message =
-      typeof payload === 'string'
-        ? payload
-        : Array.isArray(validationMessages)
-          ? 'The request contains invalid values.'
-          : typeof validationMessages === 'string'
-            ? validationMessages
-            : status === 500
-              ? 'An unexpected error occurred.'
-              : 'The request could not be completed.';
-
+    const serverError = status >= 500;
+    const validation = status === 400 && Array.isArray(messages);
+    const codes: Record<number, string> = {
+      401: 'unauthenticated',
+      403: 'forbidden',
+      404: 'not_found',
+      409: 'conflict',
+      429: 'rate_limited',
+    };
+    const requestId = request.requestId ?? randomUUID();
+    response.setHeader('x-request-id', requestId);
     response.status(status).json({
       statusCode: status,
-      message,
-      details: Array.isArray(validationMessages)
-        ? validationMessages
-        : undefined,
-      path: request.url,
+      code: serverError
+        ? 'internal_error'
+        : validation
+          ? 'validation_failed'
+          : (codes[status] ?? 'request_failed'),
+      message: serverError
+        ? 'An unexpected error occurred.'
+        : validation
+          ? 'The request contains invalid values.'
+          : typeof payload === 'string'
+            ? payload
+            : typeof messages === 'string'
+              ? messages
+              : 'The request could not be completed.',
+      details:
+        !serverError && Array.isArray(messages)
+          ? messages.filter(
+              (value): value is string => typeof value === 'string',
+            )
+          : undefined,
+      path: request.path,
       timestamp: new Date().toISOString(),
+      requestId,
     });
   }
 }

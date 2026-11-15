@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/device-capabilities.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workspaceId",
+    "deviceId",
+    "reportedAt",
+    "capabilities"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "workspaceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "deviceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reportedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "reason",
+          "source",
+          "checkedAt",
+          "requiredSetup",
+          "availableActions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.]+$"
+          },
+          "status": {
+            "enum": [
+              "supported",
+              "permission_required",
+              "battery_setup_required",
+              "device_owner_access_required",
+              "manufacturer_specific",
+              "router_required",
+              "restricted_by_os",
+              "unsupported",
+              "temporarily_unavailable"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "enum": [
+              "os",
+              "router",
+              "agent",
+              "permission_check"
+            ]
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "requiredSetup": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "availableActions": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "measure",
+                "enforce",
+                "view_services",
+                "stop_service",
+                "force_stop_service"
+              ]
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "not": {
+                    "const": "supported"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "availableActions": {
+                  "maxItems": 0,
+                  "type": "array"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

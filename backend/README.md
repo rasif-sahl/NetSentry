@@ -49,3 +49,13 @@ TEST_DATABASE_URL=postgresql://localhost/netsentry_test npm run test:database
 ```
 
 This test refuses nonempty application schemas or migration history. It creates only test fixtures, verifies migration/schema agreement, database constraints/cascades, rollback and data-preserving adoption, then removes its fixture tables through rollback. Never point it at a real application database. It does not install PostgreSQL, mobile SDKs, emulators or other platform tooling.
+
+## API contract verification
+
+The shared OpenAPI specification is `../contracts/openapi/api.v1.json`. Error codes and response correlation are configured identically in application startup and API checks. With the contracts dependencies prepared and a separate empty test database:
+
+```sh
+TEST_DATABASE_URL=postgresql://localhost/netsentry_api_test npm run test:api
+```
+
+This runs a loopback API server with fixture accounts, validates actual responses against OpenAPI component/operation schemas, and checks request validation, workspace isolation, device ownership, refresh rotation and session revocation. It rolls back its fixture schema afterward. It does not contact mobile devices or external notification services.

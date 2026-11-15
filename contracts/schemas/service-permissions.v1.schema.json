@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/service-permissions.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workspaceId",
+    "agentId",
+    "canViewServices",
+    "canControlServices",
+    "evaluatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "workspaceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "agentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "canViewServices": {
+      "type": "boolean"
+    },
+    "canControlServices": {
+      "type": "boolean"
+    },
+    "evaluatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "canControlServices": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "canViewServices": {
+            "const": true
+          }
+        }
+      }
+    }
+  ]
+}

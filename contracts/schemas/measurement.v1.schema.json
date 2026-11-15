@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/measurement.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "workspaceId",
+    "deviceId",
+    "metric",
+    "value",
+    "unit",
+    "source",
+    "intervalStart",
+    "intervalEnd",
+    "collectedAt",
+    "quality"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "workspaceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "deviceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "metric": {
+      "enum": [
+        "mobile_data_bytes",
+        "wifi_data_bytes",
+        "screen_time_seconds",
+        "application_foreground_seconds",
+        "network_upload_bytes",
+        "network_download_bytes"
+      ]
+    },
+    "value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "unit": {
+      "enum": [
+        "bytes",
+        "seconds"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "collectorVersion"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "android",
+            "ios",
+            "router",
+            "agent"
+          ]
+        },
+        "collectorVersion": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "intervalStart": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "intervalEnd": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "collectedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "quality": {
+      "enum": [
+        "measured",
+        "estimated"
+      ]
+    },
+    "applicationId": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "metric": {
+            "enum": [
+              "screen_time_seconds",
+              "application_foreground_seconds"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "unit": {
+            "const": "seconds"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "unit": {
+            "const": "bytes"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "metric": {
+            "const": "application_foreground_seconds"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "applicationId"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/service-command.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "commandId",
+    "workspaceId",
+    "agentId",
+    "serviceId",
+    "action",
+    "expectedProcess",
+    "requestedAt",
+    "expiresAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "commandId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "workspaceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "agentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "serviceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "action": {
+      "enum": [
+        "stop",
+        "force_stop"
+      ]
+    },
+    "expectedProcess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "startedAt"
+      ],
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      }
+    },
+    "requestedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  }
+}
