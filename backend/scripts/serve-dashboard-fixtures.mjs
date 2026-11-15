@@ -84,6 +84,15 @@ try {
     logger: false,
     abortOnError: false,
   });
+  // Browser tests share loopback IPs; only this isolated server uses an unbounded counter.
+  // Production authentication, authorization and throttling are unchanged.
+  app.get(require('@nestjs/throttler').ThrottlerStorage).increment =
+    async () => ({
+      totalHits: 1,
+      timeToExpire: 1,
+      isBlocked: false,
+      timeToBlockExpire: 0,
+    });
   app
     .getHttpAdapter()
     .get('/__dashboard-ready', (_request, response) =>

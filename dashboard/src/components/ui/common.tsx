@@ -1,5 +1,5 @@
 "use client";
-import { useState, type ReactNode, type FormEvent } from "react";
+import { useState, useId, cloneElement, isValidElement, type ReactElement, type ReactNode, type FormEvent } from "react";
 import { ApiError } from "@/lib/api";
 export function Card({
   children,
@@ -83,12 +83,22 @@ export function Field({
   children: ReactNode;
   hint?: string;
 }) {
+  const generatedId = useId();
+  const control = isValidElement(children)
+    ? (children as ReactElement<{ id?: string; "aria-describedby"?: string }>)
+    : undefined;
+  const id = control?.props.id ?? generatedId;
   return (
-    <label className="field">
-      <span>{label}</span>
-      {children}
-      {hint && <small>{hint}</small>}
-    </label>
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      {control
+        ? cloneElement(control, {
+            id,
+            ...(hint ? { "aria-describedby": id + "-hint" } : {}),
+          })
+        : children}
+      {hint && <small id={id + "-hint"}>{hint}</small>}
+    </div>
   );
 }
 export function ActionForm({

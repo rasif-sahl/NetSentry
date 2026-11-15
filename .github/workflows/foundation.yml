@@ -93,3 +93,54 @@ jobs:
           ../artifacts/netsentry-agent > ../artifacts/agent-report.json
           cd ..
           node contracts/scripts/check-agent-report.mjs artifacts/agent-report.json
+
+  dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: netsentry
+          POSTGRES_PASSWORD: isolated-test-password
+          POSTGRES_DB: netsentry_phase4_web_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U netsentry -d netsentry_phase4_web_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://netsentry:isolated-test-password@127.0.0.1:5432/netsentry_phase4_web_test
+      TEST_DATABASE_SSL: 'false'
+      TZ: UTC
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Prepare web and fixture-backend dependencies without install scripts
+        run: |
+          npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
+          npm --prefix backend ci --ignore-scripts --no-audit --no-fund
+          npm --prefix dashboard ci --ignore-scripts --no-audit --no-fund
+      - name: Build and lint the dashboard and fixture backend
+        run: |
+          npm run build:backend
+          npm --prefix dashboard run lint
+          npm --prefix dashboard run build
+      - name: Prepare the desktop Chromium test browser
+        working-directory: dashboard
+        run: npx playwright install --with-deps chromium
+      - name: Exercise browser flows against isolated PostgreSQL
+        run: npm --prefix dashboard run test:e2e
+      - name: Keep failure screenshots and traces from synthetic browser fixtures
+        if: failure()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: dashboard-browser-failures
+          path: dashboard/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

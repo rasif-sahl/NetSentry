@@ -39,6 +39,23 @@ async function send(
     );
   return data;
 }
+async function sessionLock<T>(work: () => Promise<T>): Promise<T> {
+  if (typeof navigator !== "undefined" && navigator.locks)
+    return navigator.locks.request("netsentry-session", work);
+  return work();
+}
+async function renewSession() {
+  await sessionLock(async () => {
+    try {
+      await send("/auth/me", "GET");
+      return;
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 401) throw error;
+    }
+    await send("/auth/refresh", "POST", {});
+  });
+  epoch++;
+}
 export async function api<T>(
   path: string,
   method = "GET",
@@ -63,13 +80,9 @@ export async function api<T>(
     )
       throw error;
     if (started === epoch) {
-      refresh ??= send("/auth/refresh", "POST", {})
-        .then(() => {
-          epoch++;
-        })
-        .finally(() => {
-          refresh = undefined;
-        });
+      refresh ??= renewSession().finally(() => {
+        refresh = undefined;
+      });
       await refresh;
     }
     return (await send(path, method, body, signal)) as T;
@@ -78,24 +91,26 @@ export async function api<T>(
 export async function signOut() {
   closing = true;
   await refresh?.catch(() => undefined);
-  let revoked = true;
-  try {
-    await send("/auth/logout", "POST", {});
-  } catch {
-    revoked = false;
-  }
-  const cleared = await fetch("/api/session/clear", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: "{}",
+  return sessionLock(async () => {
+    let revoked = true;
+    try {
+      await send("/auth/logout", "POST", {});
+    } catch {
+      revoked = false;
+    }
+    const cleared = await fetch("/api/session/clear", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    });
+    if (!cleared.ok)
+      throw new ApiError(
+        cleared.status,
+        "Could not clear this browser session. Please try again.",
+      );
+    epoch++;
+    return revoked;
   });
-  if (!cleared.ok)
-    throw new ApiError(
-      cleared.status,
-      "Could not clear this browser session. Please try again.",
-    );
-  epoch++;
-  return revoked;
 }
 export function download(
   content: string,

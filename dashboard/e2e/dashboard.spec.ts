@@ -15,6 +15,14 @@ async function login(page: Page, account = "owner") {
   await expect(
     page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
+  await expect(page.getByLabel("Active workspace")).not.toHaveValue("");
+  await page.getByLabel("Active workspace").selectOption(data.workspaceId);
+  await expect(page.getByLabel("Active workspace")).toHaveValue(
+    data.workspaceId,
+  );
+  await expect(
+    page.getByRole("heading", { name: "Your devices", exact: true }),
+  ).toBeVisible();
   return data;
 }
 test("sign in, restore an HTTP-only session and sign out", async ({
@@ -208,6 +216,87 @@ test("manual network labels are explicit and editable", async ({ page }) => {
     .getByRole("button", { name: "Create network label", exact: true })
     .click();
   await expect(
-    page.getByRole("listitem").getByText("Browser fixture label", { exact: true }),
+    page
+      .getByRole("listitem")
+      .getByText("Browser fixture label", { exact: true }),
   ).toBeVisible();
+});
+
+test("alerts expose delivery, acknowledgement and editable quiet-hour rules", async ({
+  page,
+}) => {
+  const data = await login(page);
+  await page.getByRole("button", { name: "Alerts", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "In-app notifications", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("threshold · warning", { exact: true }).first(),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Acknowledge notification", exact: true })
+    .first()
+    .click();
+  await expect(page.getByText(/Acknowledged/).first()).toBeVisible();
+  await page.getByLabel("Rule device").selectOption(data.deviceId);
+  await page.getByLabel("Threshold (bytes)", { exact: true }).fill("20000000");
+  await page.getByLabel("Use quiet hours", { exact: true }).check();
+  await page.getByLabel("Quiet hours start").fill("21:30");
+  await page.getByLabel("Quiet hours end").fill("07:15");
+  await page
+    .getByRole("button", { name: "Create alert rule", exact: true })
+    .click();
+  await expect(page.getByText(/Rule saved/)).toBeVisible();
+  const created = page
+    .getByRole("listitem")
+    .filter({ hasText: "20,000,000 bytes" });
+  await expect(created).toBeVisible();
+  await created.getByRole("button", { name: "Edit rule", exact: true }).click();
+  await page.getByLabel("Severity", { exact: true }).selectOption("critical");
+  await page
+    .getByLabel(
+      "I understand that editing removes this rule’s previous alert and delivery history.",
+    )
+    .check();
+  await page
+    .getByRole("button", { name: "Update alert rule", exact: true })
+    .click();
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" }),
+  ).toContainText("critical");
+  await page.getByLabel("In-app notifications", { exact: true }).uncheck();
+  await page
+    .getByRole("button", { name: "Save notification preferences", exact: true })
+    .click();
+  await expect(
+    page.getByText("Changes saved.", { exact: true }).last(),
+  ).toBeVisible();
+  await page.getByLabel("In-app notifications", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "Save notification preferences", exact: true })
+    .click();
+});
+test("expired access cookies refresh safely across browser tabs", async ({
+  page,
+  context,
+}) => {
+  await login(page);
+  const second = await context.newPage();
+  await second.goto("/");
+  await expect(
+    second.getByRole("heading", { name: "Overview", exact: true }),
+  ).toBeVisible();
+  await context.clearCookies({ name: "netsentry_access" });
+  await Promise.all([page.reload(), second.reload()]);
+  await expect(
+    page.getByRole("heading", { name: "Your devices", exact: true }),
+  ).toBeVisible();
+  await expect(
+    second.getByRole("heading", { name: "Your devices", exact: true }),
+  ).toBeVisible();
+  expect(
+    (await context.cookies()).filter(
+      (cookie) => cookie.name === "netsentry_access",
+    ),
+  ).toHaveLength(1);
 });

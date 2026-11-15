@@ -17,6 +17,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { AlertsPanel } from "./alerts-panel";
 import { DevicesPanel } from "./devices-panel";
 import { NetworksPanel } from "./networks-panel";
 import { ReportsPanel } from "./reports-panel";
@@ -541,6 +542,7 @@ function ConnectedSection({
   if (section === "Devices") return <DevicesPanel {...context} />;
   if (section === "Usage & reports") return <ReportsPanel {...context} />;
   if (section === "Networks") return <NetworksPanel {...context} />;
+  if (section === "Alerts") return <AlertsPanel {...context} />;
   return (
     <Card title={section}>
       <Empty title="This section is being connected">
