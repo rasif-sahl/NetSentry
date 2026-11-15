@@ -85,6 +85,7 @@ jobs:
           npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
           mkdir -p artifacts
           cd agent
+          gofmt -d .
           test -z "$(gofmt -l .)"
           go vet ./...
           go test ./...
