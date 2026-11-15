@@ -164,6 +164,8 @@ Completion: each planned component has a documented location, platform choice an
 
 ### Phase 1 Architecture and project foundation
 
+Status: architecture and contract foundations implemented, with local and hosted foundation checks passed. See `docs/validation/phase-1.md` for exact verification and deferred hardware/native work.
+
 - Establish API schemas, structured errors, versioning, identifiers, event timezones, and shared fixtures.
 - Define capability statuses/reasons and distinguish monitoring, enforcement, and control rights.
 - Add PostgreSQL migrations, development/test configuration, and repeatable checks using available tools.
