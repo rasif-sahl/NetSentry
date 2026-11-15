@@ -343,6 +343,15 @@ export async function checkMonitoring({ request, source, alice, workspace }) {
     auth,
   );
   assert.equal(retained.comparison.currentMeasured, '103.000000');
+  const { checkAlerts } = await import('./alert-checks.mjs');
+  await checkAlerts({
+    request,
+    source,
+    auth,
+    workspace,
+    id,
+    clock: new Date(finish.getTime() + 1000),
+  });
   const label = await request(
     'POST',
     `${prefix}/networks`,
@@ -378,6 +387,7 @@ export async function checkMonitoring({ request, source, alice, workspace }) {
     'collection_gaps',
     'daily_usage',
     'monitoring_runs',
+    'alert_rules',
   ])
     assert.equal(
       (
@@ -388,6 +398,15 @@ export async function checkMonitoring({ request, source, alice, workspace }) {
       )[0].n,
       0,
     );
+  assert.equal(
+    (
+      await source.query(
+        'SELECT count(*)::int AS n FROM alerts WHERE \"sourceDeviceIds\" @> $1::jsonb',
+        [JSON.stringify([id])],
+      )
+    )[0].n,
+    0,
+  );
   await request('POST', path, 401, 'ApiError', batch, pair.deviceToken);
   console.log(
     'Passed synthetic measurement replay, conflict, midnight split, gap, rollback/recovery and deletion checks.',

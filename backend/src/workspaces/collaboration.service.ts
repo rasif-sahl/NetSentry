@@ -1,3 +1,4 @@
+import { AlertRule } from '../monitoring/alert.entities';
 import {
   BadRequestException,
   ConflictException,
@@ -267,6 +268,8 @@ export class CollaborationService {
           [targetId, workspaceId],
         );
       }
+      if (!role || !roleAllows(role, WorkspacePermission.HANDLE_ALERTS))
+        await manager.delete(AlertRule, { workspaceId, userId: targetId });
       const targetUser = await manager.findOneBy(User, { id: targetId });
       if (targetUser)
         await manager.update(

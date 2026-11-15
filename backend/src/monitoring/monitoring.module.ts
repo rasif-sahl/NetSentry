@@ -1,3 +1,8 @@
+import {
+  AlertController,
+  NotificationPreferenceController,
+} from './alert.controller';
+import { AlertService } from './alert.service';
 import { ReportController } from './report.controller';
 import { ReportService } from './report.service';
 import { Module, Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
@@ -15,7 +20,12 @@ class IngestionController {
 }
 @Module({
   imports: [AuthModule],
-  controllers: [IngestionController, ReportController],
-  providers: [DeviceGuard, IngestionService, ReportService],
+  controllers: [
+    IngestionController,
+    ReportController,
+    AlertController,
+    NotificationPreferenceController,
+  ],
+  providers: [DeviceGuard, IngestionService, ReportService, AlertService],
 })
 export class MonitoringModule {}

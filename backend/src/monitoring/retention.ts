@@ -22,6 +22,11 @@ export async function retainWorkspace(
     const counts: Record<string, number> = {};
     for (const [table, condition, args] of [
       [
+        'alerts',
+        '"ruleId" IN (SELECT id FROM alert_rules WHERE "workspaceId"=$1) AND "createdAt"<$2',
+        [workspaceId, new Date(now.getTime() - policy.alertDays * 86400000)],
+      ],
+      [
         'measurements',
         '"workspaceId"=$1 AND "intervalEnd"<=$2',
         [workspaceId, raw],

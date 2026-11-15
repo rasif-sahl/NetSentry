@@ -1,3 +1,4 @@
+import { recordFailure } from './diagnostics';
 import {
   BadRequestException,
   ConflictException,
@@ -27,6 +28,19 @@ import { validateBatch } from './validation';
 export class IngestionService {
   constructor(private readonly source: DataSource) {}
   async ingest(authenticated: RegisteredDevice, input: unknown) {
+    try {
+      return await this.process(authenticated, input);
+    } catch (error) {
+      await recordFailure(
+        this.source,
+        authenticated.workspaceId,
+        'ingestion_aggregation',
+        authenticated,
+      );
+      throw error;
+    }
+  }
+  private async process(authenticated: RegisteredDevice, input: unknown) {
     validateBatch(input);
     return this.source.transaction(async (manager) => {
       const { workspace } = await workspacePolicy(

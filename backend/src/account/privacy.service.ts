@@ -1,3 +1,4 @@
+import { eraseMonitoring } from '../monitoring/privacy';
 import { Measurement, DailyUsage, CollectionGap } from '../monitoring/entities';
 import {
   ConflictException,
@@ -177,6 +178,10 @@ export class PrivacyService {
             'Transfer ownership of shared workspaces containing other people before deleting your account.',
           );
       }
+      const subjects = await manager.findBy(RegisteredDevice, {
+        registeredById: userId,
+      });
+      for (const device of subjects) await eraseMonitoring(manager, device.id);
       for (const workspace of owned)
         await manager.delete(Workspace, workspace.id);
       // FKs remove sessions, actions, outbox, enrolments, owned devices/history and

@@ -1,4 +1,10 @@
 import {
+  AlertRule,
+  AlertOccurrence,
+  NotificationDelivery,
+  NotificationPreference,
+} from '../monitoring/alert.entities';
+import {
   RetentionPolicy,
   Measurement,
   MeasurementReceipt,
@@ -43,6 +49,10 @@ export function databaseOptions(
       DeviceEnrolment,
       DeviceEvent,
       PrivacyEvent,
+      AlertRule,
+      AlertOccurrence,
+      NotificationDelivery,
+      NotificationPreference,
       RetentionPolicy,
       Measurement,
       MeasurementReceipt,
