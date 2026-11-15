@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/capability-report.v1.json",
+  "title": "NetSentry agent capability report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "modules"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/module"
+      }
+    }
+  },
+  "$defs": {
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "enabled",
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "network",
+            "developer"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "supported",
+            "permission_required",
+            "battery_setup_required",
+            "device_owner_access_required",
+            "manufacturer_specific",
+            "router_required",
+            "restricted_by_os",
+            "unsupported",
+            "temporarily_unavailable"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

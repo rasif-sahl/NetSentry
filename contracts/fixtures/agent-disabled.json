@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "modules": [
+    { "id": "network", "enabled": false, "status": "temporarily_unavailable", "reason": "Network monitoring is not implemented in this scaffold." },
+    { "id": "developer", "enabled": false, "status": "temporarily_unavailable", "reason": "Developer tools are not implemented in this scaffold." }
+  ]
+}
