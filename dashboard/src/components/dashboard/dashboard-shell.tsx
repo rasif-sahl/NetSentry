@@ -17,6 +17,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { TeamPanel } from "./team-panel";
 import { AlertsPanel } from "./alerts-panel";
 import { DevicesPanel } from "./devices-panel";
 import { NetworksPanel } from "./networks-panel";
@@ -533,6 +534,7 @@ function WorkspaceShell({
 function ConnectedSection({
   section,
   context,
+  workspacesChanged,
 }: {
   section: string;
   context: PageContext;
@@ -543,6 +545,10 @@ function ConnectedSection({
   if (section === "Usage & reports") return <ReportsPanel {...context} />;
   if (section === "Networks") return <NetworksPanel {...context} />;
   if (section === "Alerts") return <AlertsPanel {...context} />;
+  if (section === "Team")
+    return (
+      <TeamPanel context={context} workspacesChanged={workspacesChanged} />
+    );
   return (
     <Card title={section}>
       <Empty title="This section is being connected">

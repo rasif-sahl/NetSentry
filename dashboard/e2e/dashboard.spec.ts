@@ -300,3 +300,105 @@ test("expired access cookies refresh safely across browser tabs", async ({
     ),
   ).toHaveLength(1);
 });
+
+test("team invitations bind a recipient and management changes take effect", async ({
+  page,
+  browser,
+}) => {
+  const data = await login(page);
+  await page.getByRole("button", { name: "Team", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Workspace members", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Recipient email").fill(data.accounts.recovery.email);
+  await page.getByLabel("Invitation role").selectOption("MEMBER");
+  await page
+    .getByRole("button", { name: "Create invitation", exact: true })
+    .click();
+  const token = await page.getByTestId("invitation-token").innerText();
+  const recipient = await browser.newContext();
+  const guest = await recipient.newPage();
+  await guest.goto("/");
+  await guest.getByLabel("Email address").fill(data.accounts.recovery.email);
+  await guest.getByLabel("Password", { exact: true }).fill(data.password);
+  await guest.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    guest.getByRole("heading", { name: "Your devices", exact: true }),
+  ).toBeVisible();
+  await guest.getByRole("button", { name: "Team", exact: true }).click();
+  await guest.getByLabel("Invitation token").fill(token);
+  await guest
+    .getByRole("button", { name: "Accept invitation", exact: true })
+    .click();
+  await expect(guest.getByText(/Invitation accepted/)).toBeVisible();
+  await guest.getByLabel("Active workspace").selectOption(data.workspaceId);
+  await expect(guest.getByLabel("Active workspace")).toHaveValue(
+    data.workspaceId,
+  );
+  await expect(
+    guest.getByRole("heading", { name: "Invite someone", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Refresh workspace", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Overview", exact: true }).click();
+  await page.getByRole("button", { name: "Team", exact: true }).click();
+  const members = page
+    .locator("section")
+    .filter({
+      has: page.getByRole("heading", {
+        name: "Workspace members",
+        exact: true,
+      }),
+    });
+  const member = members
+    .getByRole("listitem")
+    .filter({ hasText: data.accounts.recovery.email });
+  await member.getByText("Manage member", { exact: true }).click();
+  await member.getByLabel("Role for Fixture recovery").selectOption("VIEWER");
+  await member
+    .getByLabel("I understand this may revoke devices or delete queued alerts.")
+    .check();
+  await member
+    .getByRole("button", { name: "Change member role", exact: true })
+    .click();
+  await expect(member).toContainText("VIEWER");
+  page.once("dialog", (dialog) => dialog.accept());
+  await member
+    .getByRole("button", { name: "Remove member", exact: true })
+    .click();
+  await expect(
+    members.getByText(data.accounts.recovery.email, { exact: false }),
+  ).toHaveCount(0);
+  const denied = await guest.request.get(
+    `/api/backend/workspaces/${data.workspaceId}/members`,
+  );
+  expect(denied.status()).toBe(403);
+  await recipient.close();
+});
+test("a verified user can create and switch to a new workspace", async ({
+  page,
+}) => {
+  const data = await login(page);
+  await page.getByRole("button", { name: "Team", exact: true }).click();
+  await page
+    .getByLabel("Workspace name", { exact: true })
+    .fill("Browser-created workspace");
+  await page
+    .getByLabel("Workspace type", { exact: true })
+    .selectOption("BUSINESS");
+  await page
+    .getByLabel("Workspace timezone", { exact: true })
+    .fill("Asia/Colombo");
+  await page
+    .getByRole("button", { name: "Create workspace", exact: true })
+    .click();
+  await expect(page.getByText(/Workspace created/)).toBeVisible();
+  await page
+    .getByLabel("Active workspace")
+    .selectOption({ label: "Browser-created workspace · business" });
+  await expect(
+    page.getByText("Asia/Colombo", { exact: true }).first(),
+  ).toBeVisible();
+  await page.getByLabel("Active workspace").selectOption(data.workspaceId);
+});
