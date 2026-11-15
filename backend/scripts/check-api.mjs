@@ -814,7 +814,7 @@ try {
     refreshToken: bob.refreshToken,
   });
   const { checkMonitoring } = await import('./monitoring-checks.mjs');
-  await checkMonitoring({ request, source, alice: recovered, workspace });
+  await checkMonitoring({ request, source, alice: recovered, bob, workspace });
   const { checkPrivacy } = await import('./privacy-checks.mjs');
   await checkPrivacy({ request, source, alice: recovered, bob, workspace });
   console.log(

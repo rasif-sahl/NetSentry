@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   BadRequestException,
   ForbiddenException,
   Injectable,
@@ -257,7 +258,7 @@ export class ReportService {
           intervalEnd: g.intervalEnd,
         })),
         qualityNote:
-          'Device-reported observations. Declared gaps are historical; later uploads may fill them. Split intervals use proportional allocation.',
+          'Device-reported observations. Declared gaps are historical; later uploads may fill them. Split intervals use proportional allocation. Missing time uses the selected devices’ full report windows; network labels do not prove continuous network presence.',
       };
       if (!exporting) return report;
       const header = [
@@ -317,7 +318,11 @@ export class ReportService {
             errorCode: null,
           }),
         );
-      return input ? manager.save(Object.assign(current, input)) : current;
+      return input
+        ? manager.save(
+            Object.assign(current, input, { effectiveAt: new Date() }),
+          )
+        : current;
     });
   }
   networks(userId: string, workspaceId: string, name?: string) {
@@ -330,6 +335,18 @@ export class ReportService {
           ? WorkspacePermission.MANAGE_NETWORKS
           : WorkspacePermission.READ_NETWORKS,
       );
+      if (
+        name &&
+        (await manager.existsBy(UsageNetwork, {
+          workspaceId,
+          name: name.trim(),
+        }))
+      )
+        throw new ConflictException('This network label already exists.');
+      if (name && (await manager.countBy(UsageNetwork, { workspaceId })) >= 200)
+        throw new BadRequestException(
+          'This workspace has reached its network label limit.',
+        );
       if (name)
         return manager.save(
           manager.create(UsageNetwork, {

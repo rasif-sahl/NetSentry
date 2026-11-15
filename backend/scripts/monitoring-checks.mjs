@@ -2,7 +2,13 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 import { randomUUID } from 'node:crypto';
-export async function checkMonitoring({ request, source, alice, workspace }) {
+export async function checkMonitoring({
+  request,
+  source,
+  alice,
+  bob,
+  workspace,
+}) {
   const auth = alice.accessToken;
   const code = await request(
     'POST',
@@ -37,7 +43,7 @@ export async function checkMonitoring({ request, source, alice, workspace }) {
     201,
     'RegisteredDevice',
     {
-      disclosureVersion: 'monitoring-v2',
+      disclosureVersion: 'monitoring-v3',
       accepted: true,
       scopes: ['network_usage'],
     },
@@ -128,6 +134,11 @@ export async function checkMonitoring({ request, source, alice, workspace }) {
     pair.deviceToken,
   );
   assert.equal(accepted.accepted, 1);
+  const simultaneous = await Promise.all([
+    request('POST', path, 201, 'MeasurementReceipt', batch, pair.deviceToken),
+    request('POST', path, 201, 'MeasurementReceipt', batch, pair.deviceToken),
+  ]);
+  assert.ok(simultaneous.every((result) => result.replayed));
   const replay = await request(
     'POST',
     path,
@@ -318,12 +329,31 @@ export async function checkMonitoring({ request, source, alice, workspace }) {
     { rawDays: 1, aggregateDays: 365, alertDays: 90, diagnosticDays: 7 },
     auth,
   );
+  // Retention failure rolls back every deletion, and a later pass can recover.
+  await source.query(
+    `CREATE FUNCTION fixture_reject_retention() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic retention failure'; END $$`,
+  );
+  await source.query(
+    'CREATE TRIGGER fixture_reject_retention BEFORE DELETE ON measurements FOR EACH ROW EXECUTE FUNCTION fixture_reject_retention()',
+  );
   // Backdate one raw row only. Aggregate history must survive independent raw expiry.
   await source.query(
     'UPDATE measurements SET "intervalEnd"=$2 WHERE "eventId"=$1',
     [next.eventId, new Date(Date.now() - 2 * 86400000)],
   );
   const { retainWorkspace } = require('../dist/monitoring/retention.js');
+  await assert.rejects(retainWorkspace(source, workspace.id));
+  assert.equal(
+    (
+      await source.query(
+        'SELECT count(*)::int AS n FROM measurements WHERE "eventId"=$1',
+        [next.eventId],
+      )
+    )[0].n,
+    1,
+  );
+  await source.query('DROP TRIGGER fixture_reject_retention ON measurements');
+  await source.query('DROP FUNCTION fixture_reject_retention()');
   await retainWorkspace(source, workspace.id);
   assert.equal(
     (
@@ -333,6 +363,27 @@ export async function checkMonitoring({ request, source, alice, workspace }) {
       )
     )[0].n,
     0,
+  );
+  // Increasing raw retention must not permit a new ID to recount an expired raw interval.
+  await request(
+    'PATCH',
+    `${prefix}/retention`,
+    200,
+    'RetentionPolicy',
+    { rawDays: 30, aggregateDays: 365, alertDays: 90, diagnosticDays: 7 },
+    auth,
+  );
+  await request(
+    'POST',
+    path,
+    409,
+    'ApiError',
+    {
+      ...batch,
+      batchId: randomUUID(),
+      events: [{ ...next, eventId: randomUUID() }],
+    },
+    pair.deviceToken,
   );
   const retained = await request(
     'GET',
@@ -352,6 +403,122 @@ export async function checkMonitoring({ request, source, alice, workspace }) {
     id,
     clock: new Date(finish.getTime() + 1000),
   });
+  // Fixture membership verifies own-only reports and immediate queue revocation on role loss.
+  await source.query("UPDATE users SET status='ACTIVE' WHERE id=$1", [
+    bob.user.id,
+  ]);
+  await request(
+    'GET',
+    `${prefix}/usage?${query}`,
+    403,
+    'ApiError',
+    null,
+    bob.accessToken,
+  );
+  await source.query(
+    `INSERT INTO memberships ("workspaceId","userId",role) VALUES ($1,$2,'VIEWER')`,
+    [workspace.id, bob.user.id],
+  );
+  await request(
+    'GET',
+    `${prefix}/usage?${query}`,
+    403,
+    'ApiError',
+    null,
+    bob.accessToken,
+  );
+  await request(
+    'POST',
+    `${prefix}/rules`,
+    403,
+    'ApiError',
+    {
+      kind: 'threshold',
+      metric: 'mobile_data_bytes',
+      period: 'day',
+      threshold: 1,
+      severity: 'warning',
+      channels: ['in_app'],
+      enabled: true,
+    },
+    bob.accessToken,
+  );
+  await request(
+    'GET',
+    `${prefix}/diagnostics`,
+    403,
+    'ApiError',
+    null,
+    bob.accessToken,
+  );
+  await request(
+    'PATCH',
+    `/workspaces/${workspace.id}/members/${bob.user.id}`,
+    200,
+    null,
+    { role: 'ADMIN' },
+    auth,
+  );
+  const sharedRule = await request(
+    'POST',
+    `${prefix}/rules`,
+    201,
+    'AlertRule',
+    {
+      kind: 'threshold',
+      metric: 'mobile_data_bytes',
+      period: 'month',
+      threshold: 1,
+      severity: 'warning',
+      channels: ['in_app'],
+      enabled: true,
+    },
+    bob.accessToken,
+  );
+  const { evaluateWorkspace } = require('../dist/monitoring/alert.service.js');
+  await evaluateWorkspace(
+    source,
+    workspace.id,
+    new Date(finish.getTime() + 1000),
+  );
+  await request(
+    'PATCH',
+    `/workspaces/${workspace.id}/members/${bob.user.id}`,
+    200,
+    null,
+    { role: 'MEMBER' },
+    auth,
+  );
+  assert.equal(
+    (
+      await source.query(
+        'SELECT count(*)::int AS n FROM alert_rules WHERE id=$1',
+        [sharedRule.id],
+      )
+    )[0].n,
+    0,
+  );
+  await request(
+    'DELETE',
+    `/workspaces/${workspace.id}/members/${bob.user.id}`,
+    200,
+    null,
+    null,
+    auth,
+  );
+  const personal = await request(
+    'POST',
+    '/privacy/export',
+    201,
+    'PrivacyExport',
+    { password: 'final-fixture-password-7890' },
+    auth,
+  );
+  assert.ok(personal.monitoring.dailyUsage.some((row) => row.deviceId === id));
+  assert.ok(
+    personal.monitoring.measurements.every((row) => row.deviceId === id),
+  );
+  assert.ok(!JSON.stringify(personal).includes('payloadHash'));
   const label = await request(
     'POST',
     `${prefix}/networks`,
@@ -370,6 +537,55 @@ export async function checkMonitoring({ request, source, alice, workspace }) {
   );
   assert.equal(assigned.requiresConsent, true);
   await request('POST', path, 409, 'ApiError', batch, pair.deviceToken);
+  const networkRule = await request(
+    'POST',
+    `${prefix}/rules`,
+    201,
+    'AlertRule',
+    {
+      kind: 'threshold',
+      networkId: label.id,
+      metric: 'mobile_data_bytes',
+      period: 'month',
+      threshold: 1,
+      severity: 'warning',
+      channels: ['in_app'],
+      enabled: true,
+    },
+    auth,
+  );
+  await evaluateWorkspace(
+    source,
+    workspace.id,
+    new Date(finish.getTime() + 1000),
+  );
+  assert.equal(
+    (
+      await source.query(
+        'SELECT count(*)::int AS n FROM alerts WHERE "ruleId"=$1',
+        [networkRule.id],
+      )
+    )[0].n,
+    0,
+  );
+  await source.query(
+    'UPDATE daily_usage SET "networkId"=$2 WHERE "deviceId"=$1',
+    [id, label.id],
+  );
+  await evaluateWorkspace(
+    source,
+    workspace.id,
+    new Date(finish.getTime() + 1000),
+  );
+  assert.equal(
+    (
+      await source.query(
+        'SELECT count(*)::int AS n FROM alerts WHERE "ruleId"=$1',
+        [networkRule.id],
+      )
+    )[0].n,
+    1,
+  );
   await request(
     'POST',
     `/devices/${id}/pause`,

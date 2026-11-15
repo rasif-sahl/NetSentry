@@ -138,6 +138,33 @@ export async function checkAlerts({
   assert.equal(retry.status, 'delivered');
   assert.equal(retry.attemptHistory.length, 2);
   assert.equal(keys[0], keys[1]);
+  // Retry budgets terminate after five durable attempts.
+  await request(
+    'PATCH',
+    `${prefix}/rules/${rule.id}`,
+    200,
+    'AlertRule',
+    { ...definition, channels: ['in_app'] },
+    auth,
+  );
+  await evaluateWorkspace(source, workspace.id, clock);
+  const alwaysFails = {
+    channel: 'in_app',
+    deliver: async () => ({ status: 'retry', code: 'SYNTHETIC_FAILURE' }),
+  };
+  for (let attempt = 0; attempt < 6; attempt++)
+    await deliverWorkspace(
+      source,
+      workspace.id,
+      new Date(clock.getTime() + attempt * 7200000),
+      [alwaysFails],
+    );
+  const exhausted = (
+    await request('GET', `${prefix}/alerts`, 200, null, null, auth)
+  )[0].deliveries[0];
+  assert.equal(exhausted.status, 'failed');
+  assert.equal(exhausted.attempts, 5);
+  assert.equal(exhausted.attemptHistory.length, 5);
   // Preference changes are applied at delivery time.
   await request(
     'PATCH',

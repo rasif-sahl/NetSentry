@@ -1,3 +1,4 @@
+import { NotificationPreference } from '../monitoring/alert.entities';
 import { eraseMonitoring } from '../monitoring/privacy';
 import { Measurement, DailyUsage, CollectionGap } from '../monitoring/entities';
 import {
@@ -83,6 +84,9 @@ export class PrivacyService {
         user: this.auth.safeUser(user),
         memberships,
         devices: devices.map(publicDevice),
+        notificationPreferences:
+          (await manager.findOneBy(NotificationPreference, { userId })) ??
+          manager.create(NotificationPreference, { userId }),
         monitoring: {
           measurements: devices.length
             ? await manager.findBy(Measurement, {

@@ -298,6 +298,13 @@ export class DeviceService {
       generation: device.generation,
       monitoringEnabled: device.monitoringEnabled,
       consentScopes: device.consentScopes,
+      syncPolicy: {
+        maxEvents: 100,
+        maxGaps: 100,
+        maxAttempts: 8,
+        initialBackoffMs: 1000,
+        maxBackoffMs: 300000,
+      },
     };
   }
 

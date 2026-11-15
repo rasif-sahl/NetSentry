@@ -18,6 +18,8 @@ export class RetentionPolicy {
   @ManyToOne(() => Workspace, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'workspaceId' })
   workspace!: Workspace;
+  @Column({ type: 'timestamptz', nullable: true }) effectiveAt: Date | null =
+    null;
   @Column('integer', { default: 30 }) rawDays = 30;
   @Column('integer', { default: 365 }) aggregateDays = 365;
   @Column('integer', { default: 90 }) alertDays = 90;
@@ -55,6 +57,9 @@ export class Measurement {
 @Entity('measurement_receipts')
 @Unique(['deviceId', 'eventId'])
 export class MeasurementReceipt {
+  @Column({ type: 'varchar', nullable: true }) partitionHash!: string | null;
+  @Column({ type: 'timestamptz', nullable: true }) intervalStart!: Date | null;
+  @Column({ type: 'timestamptz', nullable: true }) intervalEnd!: Date | null;
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column('uuid') eventId!: string;
   @Column('uuid') deviceId!: string;

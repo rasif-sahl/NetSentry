@@ -188,7 +188,7 @@ export class IngestionService {
         if (
           item.unit !== definition.unit ||
           (item.unit === 'seconds' &&
-            !Number.isSafeInteger(item.value * 1000000)) ||
+            Number(item.value.toFixed(6)) !== item.value) ||
           (item.unit === 'bytes' && !Number.isSafeInteger(item.value)) ||
           (item.unit === 'seconds' && item.value > (last - first) / 1000) ||
           Date.parse(item.collectedAt) < last ||
@@ -210,13 +210,30 @@ export class IngestionService {
           duplicates++;
           continue;
         }
+        const partitionHash = fingerprint([
+          item.metric,
+          item.applicationId ?? '',
+          item.quality,
+        ]);
+        const unknownHistory = await manager
+          .getRepository(MeasurementReceipt)
+          .createQueryBuilder('r')
+          .where('r.deviceId=:id AND r."intervalStart" IS NULL', {
+            id: device.id,
+          })
+          .getExists();
+        if (unknownHistory)
+          throw new ConflictException(
+            'Legacy synchronization history is incomplete. Erase device data before collecting a replacement history.',
+          );
         const overlaps = await manager
-          .getRepository(Measurement)
+          .getRepository(MeasurementReceipt)
           .createQueryBuilder('m')
           .where(
-            'm.deviceId=:id AND m.metric=:metric AND m.applicationId=:app AND m.quality=:quality AND m."intervalStart" < :end AND m."intervalEnd" > :start',
+            'm.deviceId=:id AND m.partitionHash=:partitionHash AND m."intervalStart" < :end AND m."intervalEnd" > :start',
             {
               id: device.id,
+              partitionHash,
               metric: item.metric,
               app: item.applicationId ?? '',
               quality: item.quality,
@@ -254,6 +271,9 @@ export class IngestionService {
             deviceId: device.id,
             eventId: item.eventId,
             payloadHash: hash,
+            partitionHash,
+            intervalStart: new Date(first),
+            intervalEnd: new Date(last),
           }),
         );
         accepted++;

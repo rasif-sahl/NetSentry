@@ -1,3 +1,4 @@
+import { User, AccountStatus } from '../users/user.entity';
 import {
   BadRequestException,
   ForbiddenException,
@@ -177,6 +178,11 @@ export class AlertService {
   }
   preferences(userId: string, input?: NotificationPreferenceDto) {
     return this.source.transaction(async (manager) => {
+      const user = await manager.findOne(User, {
+        where: { id: userId, status: AccountStatus.ACTIVE },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!user) throw new ForbiddenException('Account is unavailable.');
       const existing =
         (await manager.findOneBy(NotificationPreference, { userId })) ??
         manager.create(NotificationPreference, { userId });

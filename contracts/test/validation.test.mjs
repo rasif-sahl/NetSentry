@@ -111,3 +111,12 @@ test("public user payloads cannot contain password hashes", () => {
     }),
   );
 });
+
+test("offline batches cap their contents and bind a configuration generation",()=>{
+  const batch=fixture("measurement-batch");
+  validatePayload("measurement-batch.v1.schema.json",batch);
+  batch.events=Array(101).fill(batch.events[0]);
+  assert.throws(()=>validatePayload("measurement-batch.v1.schema.json",batch));
+  batch.events=[];batch.generation=0;
+  assert.throws(()=>validatePayload("measurement-batch.v1.schema.json",batch));
+});

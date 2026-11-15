@@ -7821,7 +7821,7 @@
         ],
         "properties": {
           "disclosureVersion": {
-            "const": "monitoring-v2"
+            "const": "monitoring-v3"
           },
           "accepted": {
             "const": true
@@ -7903,7 +7903,8 @@
           "workspaceId",
           "generation",
           "monitoringEnabled",
-          "consentScopes"
+          "consentScopes",
+          "syncPolicy"
         ],
         "properties": {
           "deviceId": {
@@ -7929,6 +7930,34 @@
                 "network_usage",
                 "app_usage"
               ]
+            }
+          },
+          "syncPolicy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "maxEvents",
+              "maxGaps",
+              "maxAttempts",
+              "initialBackoffMs",
+              "maxBackoffMs"
+            ],
+            "properties": {
+              "maxEvents": {
+                "const": 100
+              },
+              "maxGaps": {
+                "const": 100
+              },
+              "maxAttempts": {
+                "const": 8
+              },
+              "initialBackoffMs": {
+                "const": 1000
+              },
+              "maxBackoffMs": {
+                "const": 300000
+              }
             }
           }
         }
@@ -8075,7 +8104,8 @@
           "deviceHistory",
           "sessions",
           "privacyHistory",
-          "monitoring"
+          "monitoring",
+          "notificationPreferences"
         ],
         "properties": {
           "schemaVersion": {
@@ -8167,6 +8197,9 @@
               "dailyUsage",
               "declaredGaps"
             ]
+          },
+          "notificationPreferences": {
+            "$ref": "#/components/schemas/NotificationPreference"
           }
         }
       },
@@ -8259,7 +8292,8 @@
               },
               "collectorVersion": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 100
               }
             }
           },
@@ -8286,7 +8320,8 @@
           },
           "applicationId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           }
         },
         "allOf": [
@@ -8752,6 +8787,13 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 30
+          },
+          "effectiveAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           }
         },
         "required": [
@@ -8759,7 +8801,8 @@
           "rawDays",
           "aggregateDays",
           "alertDays",
-          "diagnosticDays"
+          "diagnosticDays",
+          "effectiveAt"
         ]
       },
       "UsageNetwork": {
