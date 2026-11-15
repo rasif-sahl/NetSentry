@@ -4461,6 +4461,119 @@
           }
         }
       }
+    },
+    "/devices/{deviceId}/measurements": {
+      "post": {
+        "operationId": "ingestMeasurements",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeasurementReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeasurementBatch"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceTokenAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -5604,7 +5717,7 @@
         ],
         "properties": {
           "disclosureVersion": {
-            "const": "monitoring-v1"
+            "const": "monitoring-v2"
           },
           "accepted": {
             "const": true
@@ -5938,6 +6051,267 @@
           },
           "confirmation": {
             "const": "DELETE"
+          }
+        }
+      },
+      "MeasurementInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schemaVersion",
+          "eventId",
+          "workspaceId",
+          "deviceId",
+          "metric",
+          "value",
+          "unit",
+          "source",
+          "intervalStart",
+          "intervalEnd",
+          "collectedAt",
+          "quality"
+        ],
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metric": {
+            "enum": [
+              "mobile_data_bytes",
+              "wifi_data_bytes",
+              "screen_time_seconds",
+              "application_foreground_seconds",
+              "network_upload_bytes",
+              "network_download_bytes"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "enum": [
+              "bytes",
+              "seconds"
+            ]
+          },
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "collectorVersion"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "android",
+                  "ios",
+                  "router",
+                  "agent"
+                ]
+              },
+              "collectorVersion": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "intervalStart": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "intervalEnd": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "collectedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "quality": {
+            "enum": [
+              "measured",
+              "estimated"
+            ]
+          },
+          "applicationId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "metric": {
+                  "enum": [
+                    "screen_time_seconds",
+                    "application_foreground_seconds"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "unit": {
+                  "const": "seconds"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "unit": {
+                  "const": "bytes"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "metric": {
+                  "const": "application_foreground_seconds"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "applicationId"
+              ]
+            }
+          }
+        ]
+      },
+      "MeasurementBatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schemaVersion",
+          "batchId",
+          "generation",
+          "events",
+          "gaps"
+        ],
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "batchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "events": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/MeasurementInput"
+            }
+          },
+          "gaps": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "gapId",
+                "metric",
+                "intervalStart",
+                "intervalEnd",
+                "reason"
+              ],
+              "properties": {
+                "gapId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "metric": {
+                  "enum": [
+                    "mobile_data_bytes",
+                    "wifi_data_bytes",
+                    "screen_time_seconds",
+                    "application_foreground_seconds",
+                    "network_upload_bytes",
+                    "network_download_bytes"
+                  ]
+                },
+                "applicationId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "intervalStart": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "Z$"
+                },
+                "intervalEnd": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "Z$"
+                },
+                "reason": {
+                  "enum": [
+                    "offline",
+                    "unsupported",
+                    "collection_failed",
+                    "permission_unavailable"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "MeasurementReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "batchId",
+          "accepted",
+          "duplicates",
+          "gaps",
+          "replayed"
+        ],
+        "properties": {
+          "batchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accepted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duplicates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "gaps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "replayed": {
+            "type": "boolean"
           }
         }
       }

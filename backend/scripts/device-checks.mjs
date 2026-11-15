@@ -99,7 +99,7 @@ export async function checkDevices({
     201,
     'RegisteredDevice',
     {
-      disclosureVersion: 'monitoring-v1',
+      disclosureVersion: 'monitoring-v2',
       accepted: true,
       scopes: ['network_usage'],
     },
@@ -389,7 +389,7 @@ export async function checkDevices({
     403,
     'ApiError',
     {
-      disclosureVersion: 'monitoring-v1',
+      disclosureVersion: 'monitoring-v2',
       accepted: true,
       scopes: ['app_usage'],
     },

@@ -35,7 +35,7 @@ export class RenameDeviceDto {
   @IsString() @MinLength(1) @MaxLength(100) @Matches(/\S/) name!: string;
 }
 export class ConsentDto {
-  @IsIn(['monitoring-v1']) disclosureVersion!: string;
+  @IsIn(['monitoring-v2']) disclosureVersion!: string;
   @IsBoolean() @IsIn([true]) accepted!: boolean;
   @IsArray()
   @ArrayMinSize(1)

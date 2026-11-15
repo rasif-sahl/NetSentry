@@ -1,4 +1,5 @@
 import {
+  IsTimeZone,
   IsEnum,
   IsObject,
   IsOptional,
@@ -13,7 +14,7 @@ import { WorkspaceType } from '../workspace.entity';
 export class CreateWorkspaceDto {
   @IsString() @MaxLength(100) name!: string;
   @IsEnum(WorkspaceType) type!: WorkspaceType;
-  @IsOptional() @IsString() timezone?: string;
+  @IsOptional() @IsTimeZone() timezone?: string;
 }
 
 export class RegisterDeviceDto {

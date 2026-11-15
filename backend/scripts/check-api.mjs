@@ -813,6 +813,8 @@ try {
   await request('POST', '/auth/refresh', 401, 'ApiError', {
     refreshToken: bob.refreshToken,
   });
+  const { checkMonitoring } = await import('./monitoring-checks.mjs');
+  await checkMonitoring({ request, source, alice: recovered, workspace });
   const { checkPrivacy } = await import('./privacy-checks.mjs');
   await checkPrivacy({ request, source, alice: recovered, bob, workspace });
   console.log(
