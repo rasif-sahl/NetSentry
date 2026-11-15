@@ -1,8 +1,36 @@
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { DevicePlatform } from './registered-device.entity';
 import { WorkspaceService } from './workspace.service';
 
 describe('WorkspaceService', () => {
+  it('does not query devices or persist changes when access is denied', async () => {
+    const devices = { find: jest.fn(), findOneBy: jest.fn(), save: jest.fn() };
+    const access = {
+      assertPermission: jest.fn().mockRejectedValue(new ForbiddenException()),
+    };
+    const service = new WorkspaceService(
+      {} as never,
+      {} as never,
+      devices as never,
+      {} as never,
+      access as never,
+    );
+    await expect(
+      service.listDevices('outsider', 'workspace'),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(
+      service.registerDevice('outsider', {
+        workspaceId: 'workspace',
+        installationId: 'install',
+        name: 'Fixture',
+        platform: DevicePlatform.ANDROID,
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(devices.find).not.toHaveBeenCalled();
+    expect(devices.findOneBy).not.toHaveBeenCalled();
+    expect(devices.save).not.toHaveBeenCalled();
+  });
+
   it('does not let a member take over a device registered elsewhere', async () => {
     const memberships = { exists: jest.fn().mockResolvedValue(true) };
     const devices = {
@@ -19,6 +47,7 @@ describe('WorkspaceService', () => {
       memberships as never,
       devices as never,
       {} as never,
+      { assertPermission: jest.fn().mockResolvedValue(undefined) } as never,
     );
 
     await expect(

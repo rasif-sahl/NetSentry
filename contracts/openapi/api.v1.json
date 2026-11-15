@@ -919,7 +919,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Requires current workspace membership with device-registration permission. VIEWER is read-only. Existing installation ownership must match both user and workspace."
       }
     }
   },
