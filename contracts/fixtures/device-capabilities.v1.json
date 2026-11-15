@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "workspaceId": "22222222-2222-4222-8222-222222222222",
+  "deviceId": "11111111-1111-4111-8111-111111111111",
+  "reportedAt": "2026-11-15T00:00:00.000Z",
+  "capabilities": [
+    {
+      "id": "hotspot.client_traffic",
+      "status": "router_required",
+      "reason": "No verified measurement source is configured.",
+      "source": "os",
+      "checkedAt": "2026-11-15T00:00:00.000Z",
+      "requiredSetup": [
+        "Connect a supported router."
+      ],
+      "availableActions": []
+    }
+  ]
+}

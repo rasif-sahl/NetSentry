@@ -23,7 +23,7 @@ export class User {
   @Column({ select: false }) passwordHash!: string;
   @Column({ type: 'enum', enum: AccountStatus, default: AccountStatus.ACTIVE })
   status!: AccountStatus;
-  @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
+  @Column({ type: 'jsonb', default: {} })
   preferences!: Record<string, unknown>;
   @CreateDateColumn() createdAt!: Date;
   @UpdateDateColumn() updatedAt!: Date;

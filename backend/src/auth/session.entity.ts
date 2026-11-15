@@ -20,8 +20,8 @@ export class Session {
   @JoinColumn({ name: 'userId' })
   user!: User;
   @Column({ select: false }) refreshTokenHash!: string;
-  @Column({ nullable: true }) userAgent!: string | null;
-  @Column({ nullable: true }) ipAddress!: string | null;
+  @Column({ type: 'varchar', nullable: true }) userAgent!: string | null;
+  @Column({ type: 'varchar', nullable: true }) ipAddress!: string | null;
   @Column({ type: 'timestamptz' }) expiresAt!: Date;
   @Column({ type: 'timestamptz', nullable: true }) revokedAt!: Date | null;
   @CreateDateColumn() createdAt!: Date;

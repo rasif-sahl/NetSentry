@@ -3,10 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HealthController } from './common/health.controller';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { validateEnvironment } from './config/environment';
+import { databaseOptions } from './database/options';
 import { WorkspaceModule } from './workspaces/workspace.module';
 
 @Module({
@@ -15,20 +17,19 @@ import { WorkspaceModule } from './workspaces/workspace.module';
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres' as const,
-        url: config.getOrThrow<string>('DATABASE_URL'),
-        autoLoadEntities: true,
-        synchronize: config.get<boolean>('DB_SYNCHRONIZE', false),
-        ssl: config.get<boolean>('DATABASE_SSL', false)
-          ? { rejectUnauthorized: false }
-          : false,
-      }),
+      useFactory: (config: ConfigService) =>
+        databaseOptions({
+          NODE_ENV: config.get('NODE_ENV'),
+          DATABASE_URL: config.get('DATABASE_URL'),
+          DATABASE_SSL: config.get('DATABASE_SSL'),
+          DATABASE_SSL_CA: config.get('DATABASE_SSL_CA'),
+          DB_SYNCHRONIZE: config.get('DB_SYNCHRONIZE'),
+        }),
     }),
     AuthModule,
     WorkspaceModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

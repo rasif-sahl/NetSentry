@@ -6,6 +6,7 @@ import {
   Headers,
   Ip,
   Param,
+  ParseUUIDPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -64,7 +65,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   async revoke(
     @CurrentUser() user: RequestUser,
-    @Param('sessionId') sessionId: string,
+    @Param('sessionId', new ParseUUIDPipe()) sessionId: string,
   ) {
     await this.auth.revokeSession(user.userId, sessionId);
     return { revoked: true };

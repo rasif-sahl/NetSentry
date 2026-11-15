@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/request-user';
@@ -23,7 +31,7 @@ export class WorkspaceController {
   @Get(':workspaceId/devices')
   devices(
     @CurrentUser() user: RequestUser,
-    @Param('workspaceId') workspaceId: string,
+    @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
   ) {
     return this.workspaces.listDevices(user.userId, workspaceId);
   }

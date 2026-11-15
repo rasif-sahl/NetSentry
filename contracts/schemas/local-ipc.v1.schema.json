@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/local-ipc.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "requestId",
+    "method",
+    "payload"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "requestId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "method": {
+      "enum": [
+        "get_status",
+        "list_services",
+        "request_stop"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "method": {
+            "const": "request_stop"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "https://netsentry.example/schemas/service-command.v1.json"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "payload": {
+            "maxProperties": 0,
+            "type": "object"
+          }
+        }
+      }
+    }
+  ]
+}
