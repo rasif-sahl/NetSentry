@@ -5,6 +5,12 @@ import { User } from '../users/user.entity';
 import { Membership } from '../workspaces/membership.entity';
 import { RegisteredDevice } from '../workspaces/registered-device.entity';
 import { Workspace } from '../workspaces/workspace.entity';
+import { PrivacyEvent } from '../account/privacy-event.entity';
+import { DeviceEnrolment } from '../devices/enrolment.entity';
+import { DeviceEvent } from '../devices/device-event.entity';
+import { WorkspaceInvitation } from '../workspaces/invitation.entity';
+import { AccountAction } from '../auth/account-action.entity';
+import { MailOutbox } from '../mail/mail-outbox.entity';
 import { join } from 'node:path';
 
 export function databaseOptions(
@@ -14,7 +20,19 @@ export function databaseOptions(
   return {
     type: 'postgres',
     url: config.DATABASE_URL,
-    entities: [User, Session, Workspace, Membership, RegisteredDevice],
+    entities: [
+      User,
+      Session,
+      Workspace,
+      Membership,
+      RegisteredDevice,
+      AccountAction,
+      MailOutbox,
+      WorkspaceInvitation,
+      DeviceEnrolment,
+      DeviceEvent,
+      PrivacyEvent,
+    ],
     migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
     migrationsTableName: 'netsentry_migrations',
     migrationsRun: false,

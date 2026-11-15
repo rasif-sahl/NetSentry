@@ -30,14 +30,15 @@ checkReferences(api);
 const operationIDs = new Set();
 for (const [path, methods] of Object.entries(api.paths)) {
   for (const [method, operation] of Object.entries(methods)) {
-    assert.ok(["get", "post", "delete"].includes(method));
+    assert.ok(["get", "post", "delete", "patch"].includes(method));
     assert.ok(
       !operationIDs.has(operation.operationId),
       "Operation IDs must be unique",
     );
     operationIDs.add(operation.operationId);
     assert.ok(
-      Object.keys(operation.responses).some((code) => /^2\d\d$/.test(code)),
+      Object.keys(operation.responses).some((code) => /^2\d\d$/.test(code)) ||
+        (operation.deprecated === true && Boolean(operation.responses["403"])),
     );
     for (const match of path.matchAll(/\{([^}]+)\}/g))
       assert.ok(

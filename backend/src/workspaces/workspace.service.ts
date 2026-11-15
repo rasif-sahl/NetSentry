@@ -1,14 +1,12 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 import {
   WorkspaceAccessService,
   WorkspacePermission,
 } from './workspace-access.service';
+import { publicDevice } from '../devices/public-device';
+import { User, AccountStatus } from '../users/user.entity';
 import { CreateWorkspaceDto, RegisterDeviceDto } from './dto/workspace.dto';
 import { Membership, WorkspaceRole } from './membership.entity';
 import { RegisteredDevice } from './registered-device.entity';
@@ -45,6 +43,14 @@ export class WorkspaceService {
       );
     }
     return this.dataSource.transaction(async (manager) => {
+      const user = await manager.findOneBy(User, {
+        id: userId,
+        status: AccountStatus.ACTIVE,
+      });
+      if (!user?.emailVerifiedAt)
+        throw new ForbiddenException(
+          'Verify your email before creating a shared workspace.',
+        );
       const workspace = await manager.save(
         manager.create(Workspace, {
           name: input.name.trim(),
@@ -70,10 +76,12 @@ export class WorkspaceService {
       workspaceId,
       WorkspacePermission.READ_DEVICES,
     );
-    return this.devices.find({
-      where: { workspaceId },
-      order: { updatedAt: 'DESC' },
-    });
+    return (
+      await this.devices.find({
+        where: { workspaceId, removedAt: IsNull() },
+        order: { updatedAt: 'DESC' },
+      })
+    ).map(publicDevice);
   }
 
   async registerDevice(userId: string, input: RegisterDeviceDto) {
@@ -82,32 +90,8 @@ export class WorkspaceService {
       input.workspaceId,
       WorkspacePermission.REGISTER_DEVICE,
     );
-    const existing = await this.devices.findOneBy({
-      installationId: input.installationId,
-    });
-    if (
-      existing &&
-      (existing.workspaceId !== input.workspaceId ||
-        existing.registeredById !== userId)
-    ) {
-      throw new ConflictException(
-        'This device installation is already registered elsewhere.',
-      );
-    }
-    const values = {
-      installationId: input.installationId,
-      workspaceId: input.workspaceId,
-      name: input.name,
-      platform: input.platform,
-      registeredById: userId,
-      operatingSystemVersion: input.operatingSystemVersion ?? null,
-      capabilities: input.capabilities ?? {},
-      lastSeenAt: new Date(),
-    };
-    return this.devices.save(
-      existing
-        ? this.devices.merge(existing, values)
-        : this.devices.create(values),
+    throw new ForbiddenException(
+      'Create and redeem a one-time enrolment code through /devices/enrol.',
     );
   }
 

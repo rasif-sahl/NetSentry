@@ -8,8 +8,9 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Request } from 'express';
-import { Repository } from 'typeorm';
+import { IsNull, MoreThan, Repository } from 'typeorm';
 import type { RequestUser } from './request-user';
+import { AccountStatus } from '../users/user.entity';
 import { Session } from './session.entity';
 
 @Injectable()
@@ -39,10 +40,27 @@ export class AuthGuard implements CanActivate {
     if (payload.type !== 'access') throw new UnauthorizedException();
     const session = await this.sessions.findOne({
       where: { id: payload.sid, userId: payload.sub },
+      relations: { user: true },
     });
-    if (!session || session.revokedAt || session.expiresAt <= new Date()) {
+    if (
+      !session ||
+      session.revokedAt ||
+      session.expiresAt <= new Date() ||
+      session.user.status !== AccountStatus.ACTIVE
+    ) {
       throw new UnauthorizedException('Session expired.');
     }
+    const touched = await this.sessions.update(
+      {
+        id: session.id,
+        userId: payload.sub,
+        revokedAt: IsNull(),
+        expiresAt: MoreThan(new Date()),
+      },
+      { lastUsedAt: new Date() },
+    );
+    if (touched.affected !== 1)
+      throw new UnauthorizedException('Session expired.');
     request.user = {
       userId: payload.sub,
       sessionId: payload.sid,

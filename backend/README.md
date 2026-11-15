@@ -1,10 +1,10 @@
 # NetSentry API
 
-NestJS/TypeScript and PostgreSQL account, session, workspace and registered-device foundation. Business, monitoring, Family and remote-control APIs are delivered in later phases.
+NestJS/TypeScript and PostgreSQL APIs for account verification/recovery, sessions, workspace collaboration, device enrolment/health/consent and privacy. Usage collectors, Family/Business profiles, routers and remote process controls arrive in later phases.
 
 ## Local configuration
 
-Use Node.js 24 and the pinned dependency lockfile. Copy `.env.example` to `.env`, set `DATABASE_URL`, and replace both JWT secrets with independent values of at least 32 characters. Use explicit HTTP origins for local CORS. Runtime configuration is validated before database startup.
+Use Node.js 24 and the pinned dependency lockfile. Copy `.env.example` to `.env`, set `DATABASE_URL`, replace both JWT secrets with independent values of at least 32 characters, and set an independent base64-encoded 32-byte `ACCOUNT_MAIL_ENCRYPTION_KEY`. Use explicit HTTP origins for local CORS. Runtime configuration is validated before database startup.
 
 ```sh
 npm ci --ignore-scripts
@@ -27,11 +27,12 @@ npm run db:check
 For a schema originally created by development synchronization, applying the initial migration directly is refused. First back up the database, then run:
 
 ```sh
-npm run db:check
 npm run db:adopt
+npm run migration:run
+npm run db:check
 ```
 
-Adoption records only the initial migration after an exact entity-schema comparison, preserving application rows. It refuses schema drift or multiple migration definitions. Do not use `--fake` to bypass this verification. `db:check` reports differences without applying them; investigate differences explicitly rather than enabling synchronization on a populated database.
+Adoption compares frozen Phase 1 metadata and records only the initial migration, preserving application rows. It refuses baseline drift. Run migration:run afterward to apply newer migrations, then db:check to compare the latest schema. Do not use `--fake` to bypass this verification. `db:check` reports differences without applying them; investigate differences explicitly rather than enabling synchronization on a populated database.
 
 Generate future migrations with `npm run migration:generate -- src/database/migrations/MeaningfulName`, review SQL and test against an isolated database. `npm run migration:revert` reverses the latest migration; reversing the initial baseline drops application tables and their data, including an adopted schema. Restore from a verified backup rather than reverting a populated baseline.
 
@@ -61,3 +62,15 @@ TEST_DATABASE_URL=postgresql://localhost/netsentry_api_test npm run test:api
 `npm run test:e2e` aliases this same integration check, replacing the original starter test that did not exercise the configured API.
 
 This runs a loopback API server with fixture accounts, validates actual responses against OpenAPI component/operation schemas, and checks request validation, workspace isolation, device ownership, refresh rotation and session revocation. It rolls back its fixture schema afterward. It does not contact mobile devices or external notification services.
+
+## Account verification and recovery
+
+See `../docs/features/accounts.md`. Configure `ACCOUNT_MAIL_ENCRYPTION_KEY` before startup. Registration queues verification mail transactionally; `MAIL_ENABLED=false` keeps delivery disabled. An explicitly configured `npm run mail:deliver` processes at most 20 jobs over verified SMTP TLS. Do not run it against real recipients during automated verification. Tests use a mocked sender and never return recovery tokens through public API responses.
+
+Run `npm run accounts:cleanup` as scheduled operational maintenance to purge expired action tokens and encrypted outbox messages, including when SMTP delivery is disabled. It prints counts only and requires no mail-provider connection.
+
+## Phase 2 access and device APIs
+
+Feature details and acceptance boundaries are in `../docs/features/`. Legacy direct registration returns 403; use `/devices/enrolments` then `/devices/enrol`. Device heartbeat/configuration use opaque installation credentials rather than user JWTs. Scope, consent and generation checks constrain future ingestion; monitoring collectors are not running in this phase.
+
+Workspace invitations are returned once for explicit sharing and accepted only by the verified target account. Other-member consent cannot be granted by an administrator. Export/account deletion require current-password confirmation; shared owners must transfer ownership when other people's records remain.

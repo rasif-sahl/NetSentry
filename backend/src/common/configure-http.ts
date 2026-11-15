@@ -18,6 +18,7 @@ export function configureHttp(
     // Generate server-owned correlation IDs; never trust arbitrary caller IDs.
     request.requestId = randomUUID();
     response.setHeader('x-request-id', request.requestId);
+    response.setHeader('cache-control', 'no-store');
     next();
   });
   app.setGlobalPrefix(config.get<string>('API_PREFIX', 'api'));

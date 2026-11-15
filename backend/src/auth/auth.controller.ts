@@ -6,12 +6,21 @@ import {
   Headers,
   Ip,
   Param,
+  Patch,
   ParseUUIDPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from './auth.guard';
+import { AccountActionsService } from './account-actions.service';
+import {
+  EmailDto,
+  ActionTokenDto,
+  ResetPasswordDto,
+  PreferencesDto,
+  UpdateProfileDto,
+} from './dto/account.dto';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';
 import { LoginDto, RefreshDto, RegisterDto } from './dto/auth.dto';
@@ -19,7 +28,10 @@ import type { RequestUser } from './request-user';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly actions: AccountActionsService,
+  ) {}
 
   @Post('register')
   @Throttle({ default: { limit: 8, ttl: 60_000 } })
@@ -47,6 +59,52 @@ export class AuthController {
   @Post('refresh')
   refresh(@Body() input: RefreshDto) {
     return this.auth.refresh(input.refreshToken);
+  }
+
+  @Post('verification/request')
+  @UseGuards(AuthGuard)
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  requestVerification(@CurrentUser() user: RequestUser) {
+    return this.actions.requestVerification(user.userId);
+  }
+
+  @Post('verification/confirm')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  verifyEmail(@Body() input: ActionTokenDto) {
+    return this.actions.confirm(input.token, 'verify_email');
+  }
+
+  @Post('password/forgot')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  forgotPassword(@Body() input: EmailDto) {
+    return this.actions.forgot(input.email);
+  }
+
+  @Post('password/reset')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  resetPassword(@Body() input: ResetPasswordDto) {
+    return this.actions.confirm(input.token, 'reset_password', input.password);
+  }
+
+  @Patch('me')
+  @UseGuards(AuthGuard)
+  updateProfile(
+    @CurrentUser() user: RequestUser,
+    @Body() input: UpdateProfileDto,
+  ) {
+    return this.auth.updateProfile(user.userId, input.displayName);
+  }
+
+  @Patch('preferences')
+  @UseGuards(AuthGuard)
+  preferences(@CurrentUser() user: RequestUser, @Body() input: PreferencesDto) {
+    return this.auth.preferences(user.userId, input);
+  }
+
+  @Delete('sessions')
+  @UseGuards(AuthGuard)
+  revokeOthers(@CurrentUser() user: RequestUser) {
+    return this.auth.revokeOthers(user.userId, user.sessionId);
   }
 
   @Get('me')

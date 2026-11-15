@@ -6,7 +6,7 @@ NetSentry is being built for device/network monitoring, family digital wellbeing
 
 | Directory | Technology | Current role |
 | --- | --- | --- |
-| `backend/` | NestJS, TypeScript, PostgreSQL/TypeORM | Existing account/workspace/device API foundation |
+| `backend/` | NestJS, TypeScript, PostgreSQL/TypeORM | Account, workspace, enrolment, health/consent and privacy APIs |
 | `dashboard/` | Next.js, React, TypeScript, Tailwind CSS | Existing web interface; preview monitoring values remain until integration |
 | `android/` | Kotlin, Jetpack Compose | New independent native source/build scaffold |
 | `ios/` | Swift, SwiftUI | New independent native source/Xcode project scaffold |
@@ -53,6 +53,11 @@ Agent commands require an existing Go 1.23+ toolchain. Native build/signing comm
 - [Complete development plan](DEVELOPMENT_PLAN.md)
 - [Phase 0 architecture decisions](docs/architecture/phase-0-decisions.md)
 - [Phase 1 verification](docs/validation/phase-1.md)
+- [Phase 2 verification](docs/validation/phase-2.md)
+- [Account verification and recovery](docs/features/accounts.md)
+- [Workspace collaboration](docs/features/workspaces.md)
+- [Device lifecycle and consent](docs/features/devices.md)
+- [Account export and deletion](docs/features/privacy.md)
 - [Agent and authenticated IPC design](docs/architecture/agent-protocol.md)
 - [Workspace permission boundaries](docs/architecture/workspace-permissions.md)
 - [Privacy and data lifecycle](docs/architecture/data-and-privacy.md)
@@ -75,3 +80,11 @@ npm run test:api
 The database check verifies clean migration, rollback, constraints, schema drift refusal and existing-data adoption. The API check validates actual operation responses against OpenAPI and exercises session, workspace, device-ownership and viewer-permission boundaries. Both use only fixture data and remove their fixture schema afterward. Neither provisions a database server.
 
 The Foundation checks workflow uses isolated PostgreSQL on GitHub Actions, checks backend/contracts/desktop, and builds/runs the Go scaffold on a CI Go toolchain. It has no mobile setup/build/simulator steps and does not deploy the application. Native builds and real-device tests remain deferred.
+
+## Phase 2 setup
+
+Before starting the backend, set an independent base64-encoded 32-byte `ACCOUNT_MAIL_ENCRYPTION_KEY` in its private environment. Run explicit migrations after backing up existing data; use the checked baseline-adoption path only for the old synchronized schema. Existing users/devices are never silently verified or enabled.
+
+Account mail is queued encrypted. Real delivery requires configured SMTP credentials and explicitly enabled delivery; client verification/reset screens come later. `npm --prefix backend run mail:deliver` processes delivery batches, and `npm --prefix backend run accounts:cleanup` purges expired tokens/messages without SMTP. No real email is sent by the integration tests.
+
+Direct device registration is disabled in favor of one-time enrolment. Device credentials differ from user sessions; consent, revocation and configuration generations constrain later collection. Current device reports are authenticated metadata, not actual native monitoring measurements.

@@ -14,6 +14,6 @@ Device read and registration endpoints now use `WorkspaceAccessService`. A VIEWE
 
 Developer permissions reserve separate viewing/control gates; no service-control API is implemented yet. Passing the workspace control gate will additionally require explicit device pairing/control authorization, an enabled module, supported action, unrevoked credentials and current consent. Capability reports describe technical support, not authority. Family guardian status does not grant desktop process-control permission.
 
-This is a foundation for the existing role enum, not the complete Family/Business role model. Invitations, children, organizations, detailed profile/device grants, policies, user management and subscription permissions remain Phase 2/11/13 work. Role administration endpoints are not introduced here.
+This is a foundation for the existing role enum, not the complete Family/Business role model. Phase 2 adds invitations, member role changes, ownership transfer and device lifecycle gates. Owner-only billing and elevated-role grants are enforced; full children/organization profiles, policies and domain-specific grants remain Phase 11/13 work. See docs/features/workspaces.md for the current collaboration rules.
 
 Unit and live API tests cover denied cross-workspace access, read-only viewers, invalid roles, no device queries after access denial, installation ownership, and membership revocation. No mobile build or agent runtime is needed for these checks.

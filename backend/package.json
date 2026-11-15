@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && node scripts/copy-contracts.mjs",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -26,7 +26,9 @@
     "db:check": "npm run build && node dist/database/check-schema.js",
     "db:adopt": "npm run build && node dist/database/adopt-cli.js",
     "test:database": "npm run build && node scripts/check-database.mjs",
-    "test:api": "npm run build && node scripts/check-api.mjs"
+    "test:api": "npm run build && node scripts/check-api.mjs",
+    "mail:deliver": "npm run build && node dist/mail/deliver-cli.js",
+    "accounts:cleanup": "npm run build && node dist/mail/cleanup-cli.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -39,11 +41,14 @@
     "@nestjs/typeorm": "^12.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "dotenv": "18.0.3",
+    "nodemailer": "10.5.0",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "typeorm": "^1.1.2",
-    "dotenv": "18.0.3"
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",
@@ -53,6 +58,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
+    "@types/nodemailer": "8.0.2",
     "@types/supertest": "^7.0.0",
     "jest": "^30.0.0",
     "oxlint": "^1.58.0",

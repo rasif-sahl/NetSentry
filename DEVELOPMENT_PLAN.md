@@ -178,6 +178,8 @@ Completion: architecture decisions and contracts are recorded, applicable founda
 
 ### Phase 2 Accounts and access
 
+Status: backend APIs, migrations and access/privacy rules implemented. See `docs/validation/phase-2.md` for local/hosted checks and configured SMTP/client/device prerequisites. No mobile tooling is installed.
+
 - Complete registration, verification, recovery, login/logout, refresh, session listing/revocation, profile, notification preferences, and account deletion.
 - Add workspace invitations/switching, membership lifecycle, and explicit report/device/network/control permissions.
 - Implement device ownership/enrolment codes, rename/pause/remove/revoke/delete workflows, and installation metadata/health contracts.
