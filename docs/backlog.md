@@ -6,9 +6,9 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | --- | --- | --- |
 | Repository layout and platform scaffolds | 0 | Source scaffolds added; see Phase 0 validation record |
 | Architecture, contracts and database foundation | 1 | Implemented; local and hosted foundation checks pass; native/device acceptance remains deferred |
-| 1 Accounts and authentication | 2, 8, 12 | Existing backend/Flutter foundation; complete native flows pending |
-| 2 Device registration and lifecycle | 2, 8, 12 | Existing registration API; lifecycle/native integration pending |
-| 3 Capability detection and explanations | 1, 3, 8, 12 | Versioned statuses/reasons/actions contract and invariants tested; collectors/report ingestion pending |
+| 1 Accounts and authentication | 2, 8, 12 | Phase 2 backend verification/recovery/profile/session/deletion flows implemented; configured email acceptance and clients pending |
+| 2 Device registration and lifecycle | 2, 8, 12 | Phase 2 enrolment, credentials, metadata/lifecycle and history APIs implemented; native pairing/detection tests pending |
+| 3 Capability detection and explanations | 1, 3, 8, 12 | Versioned schema and authenticated metadata ingestion implemented; actual native/router detection and measurement remain pending |
 | 4 Personal hotspot and data monitoring | 8 | Pending platform/device validation and implementation |
 | 5 Advanced Android monitoring | 9 | Pending |
 | 6 Application catalogue | 9 | Pending |
@@ -25,10 +25,10 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 17 Wellbeing insights | 9, 11 | Pending; deterministic rules first |
 | 18 Authorized YouTube insights | 16 | Deferred; legitimate source required |
 | 19 Business organizations | 13 | Pending |
-| 20 Roles and permissions | 1, 2, 7, 11, 13 | Workspace permission foundation and read-only viewer behavior tested; device-specific/Family/Business grants pending |
+| 20 Roles and permissions | 1, 2, 7, 11, 13 | Workspace roles, invitations, lifecycle/consent ownership and separate service gates implemented; remote-control/Family/Business resource grants pending |
 | 21 Subscriptions and editions | 14, earlier if paid launch | Pending |
 | 22 Responsive web dashboard | 4 and each domain | Existing preview interface; live integration pending |
-| 23 Data and privacy | 1, 2, 3 and each domain | Privacy/retention/audit boundaries designed; query-safe errors implemented; collection lifecycle/persistence pending |
+| 23 Data and privacy | 1, 2, 3 and each domain | Phase 2 disclosures/history, export, deletion, revocation/generation and account-mail cleanup implemented; future measurement retention and offline-client enforcement pending |
 | 24 Platform administration | 3, 14 | Pending |
 | 25 Excluded functionality | All | Preserve catalogue boundaries; no inbox access |
 | 26 Developer tools and mobile stop | 5–8, 12 | Desktop/agent source scaffolds; discovery/control pending |

@@ -1,6 +1,6 @@
 # NetSentry API
 
-NestJS/TypeScript and PostgreSQL account, session, workspace and registered-device foundation. Business, monitoring, Family and remote-control APIs are delivered in later phases.
+NestJS/TypeScript and PostgreSQL APIs for account verification/recovery, sessions, workspace collaboration, device enrolment/health/consent and privacy. Usage collectors, Family/Business profiles, routers and remote process controls arrive in later phases.
 
 ## Local configuration
 
@@ -68,3 +68,9 @@ This runs a loopback API server with fixture accounts, validates actual response
 See `../docs/features/accounts.md`. Configure `ACCOUNT_MAIL_ENCRYPTION_KEY` before startup. Registration queues verification mail transactionally; `MAIL_ENABLED=false` keeps delivery disabled. An explicitly configured `npm run mail:deliver` processes at most 20 jobs over verified SMTP TLS. Do not run it against real recipients during automated verification. Tests use a mocked sender and never return recovery tokens through public API responses.
 
 Run `npm run accounts:cleanup` as scheduled operational maintenance to purge expired action tokens and encrypted outbox messages, including when SMTP delivery is disabled. It prints counts only and requires no mail-provider connection.
+
+## Phase 2 access and device APIs
+
+Feature details and acceptance boundaries are in `../docs/features/`. Legacy direct registration returns 403; use `/devices/enrolments` then `/devices/enrol`. Device heartbeat/configuration use opaque installation credentials rather than user JWTs. Scope, consent and generation checks constrain future ingestion; monitoring collectors are not running in this phase.
+
+Workspace invitations are returned once for explicit sharing and accepted only by the verified target account. Other-member consent cannot be granted by an administrator. Export/account deletion require current-password confirmation; shared owners must transfer ownership when other people's records remain.
