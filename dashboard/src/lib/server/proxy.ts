@@ -45,8 +45,11 @@ function response(body: unknown, status = 200) {
     headers: { "cache-control": "no-store", "referrer-policy": "no-referrer" },
   });
 }
-function failure(status: number, message: string) {
-  return response({ statusCode: status, message }, status);
+function failure(status: number, message: string, code?: string) {
+  return response(
+    { statusCode: status, message, ...(code ? { code } : {}) },
+    status,
+  );
 }
 function origin(request: NextRequest) {
   const configured = process.env.DASHBOARD_ORIGIN;
@@ -94,22 +97,29 @@ export function clearSession(request: NextRequest) {
     return failure(503, "The dashboard connection is not configured.");
   }
 }
-async function boundedJSON(upstream: Response) {
-  const reader = upstream.body?.getReader();
-  if (!reader) throw new Error("Missing response");
+class SizeLimitError extends Error {}
+async function boundedText(
+  body: ReadableStream<Uint8Array> | null,
+  limit: number,
+) {
+  const reader = body?.getReader();
+  if (!reader) return "";
   const chunks: Uint8Array[] = [];
   let length = 0;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
     length += value.length;
-    if (length > 16 * 1024 * 1024) {
+    if (length > limit) {
       await reader.cancel();
-      throw new Error("Response too large");
+      throw new SizeLimitError();
     }
     chunks.push(value);
   }
-  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  return Buffer.concat(chunks).toString("utf8");
+}
+async function boundedJSON(upstream: Response) {
+  return JSON.parse(await boundedText(upstream.body, 16 * 1024 * 1024));
 }
 export async function proxy(request: NextRequest, segments: string[]) {
   const path = "/" + segments.join("/");
@@ -144,12 +154,43 @@ export async function proxy(request: NextRequest, segments: string[]) {
       return failure(401, "Sign in to continue.");
     if (!publicPaths.has(path) && path !== "/auth/refresh" && !access)
       return failure(401, "Sign in to continue.");
+    if (!publicPaths.has(path) && path !== "/auth/refresh") {
+      const actor = request.headers.get("x-netsentry-user");
+      if (request.method !== "GET" && !actor)
+        return failure(
+          400,
+          "Refresh your account context before making changes.",
+        );
+      if (actor) {
+        let subject: unknown;
+        try {
+          subject = JSON.parse(
+            Buffer.from(access!.split(".")[1], "base64url").toString("utf8"),
+          ).sub;
+        } catch {
+          return failure(401, "Sign in to continue.");
+        }
+        // This is an identity fence, not JWT verification. The backend still validates signature/session/permissions.
+        if (actor !== subject)
+          return failure(
+            409,
+            "Your account changed in another tab. Reload before continuing.",
+            "SESSION_CHANGED",
+          );
+      }
+    }
     let body: string | undefined;
     if (request.method !== "GET") {
       if (!request.headers.get("content-type")?.startsWith("application/json"))
         return failure(415, "Use a JSON request.");
-      const raw = await request.text();
-      if (raw.length > 65536) return failure(413, "This request is too large.");
+      let raw: string;
+      try {
+        raw = await boundedText(request.body, 65536);
+      } catch (error) {
+        if (error instanceof SizeLimitError)
+          return failure(413, "This request is too large.");
+        throw error;
+      }
       try {
         body = JSON.stringify(
           path === "/auth/refresh"
@@ -242,7 +283,12 @@ export async function proxy(request: NextRequest, segments: string[]) {
           maxAge: 0,
         });
     return result;
-  } catch {
+  } catch (error) {
+    if (error instanceof SizeLimitError)
+      return failure(
+        502,
+        "This response exceeds the 16 MiB browser download limit. Narrow the report or contact your administrator for a larger export.",
+      );
     return failure(
       503,
       "Cannot reach NetSentry right now. Check the dashboard connection and try again.",

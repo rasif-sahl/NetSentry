@@ -79,7 +79,7 @@ export function AuthPanel({
                     : {}),
                 },
               );
-              beginSession();
+              beginSession(result.user.id);
               onSignedIn(result.user);
               return;
             }

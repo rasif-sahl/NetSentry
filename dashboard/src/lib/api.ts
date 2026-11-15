@@ -4,6 +4,7 @@ export class ApiError extends Error {
     message: string,
     public requestId?: string,
     public details?: string[],
+    public code?: string,
   ) {
     super(message);
   }
@@ -11,21 +12,55 @@ export class ApiError extends Error {
 let refresh: Promise<void> | undefined;
 let epoch = 0;
 let closing = false;
-export function beginSession() {
+let actorId: string | undefined;
+export function adoptActor(id: string | undefined) {
+  actorId = id;
+}
+let tabId: string | undefined;
+function currentTab() {
+  return (tabId ??= crypto.randomUUID());
+}
+export function announceSession(type: "changed" | "ended") {
+  if (typeof BroadcastChannel === "undefined") return;
+  const channel = new BroadcastChannel("netsentry-session-events");
+  channel.postMessage({ type, tabId: currentTab() });
+  channel.close();
+}
+export function listenForSessionChanges(
+  onChange: (type: "changed" | "ended") => void,
+) {
+  if (typeof BroadcastChannel === "undefined") return () => {};
+  const channel = new BroadcastChannel("netsentry-session-events");
+  channel.onmessage = (event) => {
+    if (
+      event.data?.tabId !== currentTab() &&
+      ["changed", "ended"].includes(event.data?.type)
+    )
+      onChange(event.data.type);
+  };
+  return () => channel.close();
+}
+export function beginSession(id: string) {
+  actorId = id;
   closing = false;
   epoch++;
+  announceSession("changed");
 }
 async function send(
   path: string,
   method: string,
   body?: unknown,
   signal?: AbortSignal,
+  actor = actorId,
 ) {
   const response = await fetch(`/api/backend${path}`, {
     method,
     credentials: "same-origin",
     cache: "no-store",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(actor ? { "x-netsentry-user": actor } : {}),
+    },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     signal,
   });
@@ -36,6 +71,7 @@ async function send(
       data.message ?? "This request could not be completed.",
       data.requestId,
       data.details,
+      data.code,
     );
   return data;
 }
@@ -63,9 +99,26 @@ export async function api<T>(
   signal?: AbortSignal,
 ): Promise<T> {
   const started = epoch;
+  const actor = actorId;
   try {
-    return (await send(path, method, body, signal)) as T;
+    const mutation =
+      [
+        "/auth/login",
+        "/auth/register",
+        "/auth/password/reset",
+        "/privacy/account",
+      ].includes(path) && method !== "GET";
+    const result = (await (mutation
+      ? sessionLock(() => send(path, method, body, signal, actor))
+      : send(path, method, body, signal, actor))) as T;
+    if (path === "/auth/password/reset" && method === "POST")
+      announceSession("ended");
+    return result;
   } catch (error) {
+    if (error instanceof ApiError && error.code === "SESSION_CHANGED") {
+      window.location.reload();
+      throw error;
+    }
     const isPublic =
       /^(\/auth\/(login|register|password\/|verification\/confirm)|\/privacy\/disclosures)/.test(
         path,
@@ -85,7 +138,9 @@ export async function api<T>(
       });
       await refresh;
     }
-    return (await send(path, method, body, signal)) as T;
+    return (await sessionLock(() =>
+      send(path, method, body, signal, actor),
+    )) as T;
   }
 }
 export async function signOut() {
@@ -109,6 +164,8 @@ export async function signOut() {
         "Could not clear this browser session. Please try again.",
       );
     epoch++;
+    actorId = undefined;
+    announceSession("ended");
     return revoked;
   });
 }

@@ -654,3 +654,92 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
     page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
 });
+
+test("signing out or changing accounts clears other tabs instead of mixing user data", async ({
+  page,
+  context,
+}) => {
+  const data = await login(page);
+  const other = await context.newPage();
+  await other.goto("/");
+  await expect(
+    other.getByRole("heading", { name: "Your devices", exact: true }),
+  ).toBeVisible();
+  // Hold an already-authorized profile response until the other tab signs out.
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let received!: () => void;
+  const receivedResponse = new Promise<void>((resolve) => {
+    received = resolve;
+  });
+  await page
+    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .click();
+  await page.route("**/api/backend/auth/me", async (route) => {
+    if (route.request().method() !== "PATCH") {
+      await route.continue();
+      return;
+    }
+    const response = await route.fetch();
+    received();
+    await held;
+    await route.fulfill({ response });
+  });
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("Delayed fixture profile");
+  await page
+    .getByRole("button", { name: "Update profile", exact: true })
+    .click();
+  await receivedResponse;
+  await other.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Welcome back", exact: true }),
+  ).toBeVisible();
+  release();
+  await page.unrouteAll({ behavior: "wait" });
+  await expect(
+    page.getByRole("heading", { name: "Welcome back", exact: true }),
+  ).toBeVisible();
+  await other.getByLabel("Email address").fill(data.accounts.viewer.email);
+  await other.getByLabel("Password", { exact: true }).fill(data.password);
+  await other.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.locator(".sidebar-profile")).toContainText(
+    data.accounts.viewer.email,
+  );
+  await page
+    .getByRole("button", { name: "Usage & reports", exact: true })
+    .click();
+  await expect(
+    page.getByText("No observations in this period", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("10,485,760 bytes", { exact: true })).toHaveCount(
+    0,
+  );
+});
+
+test("the session boundary rejects stale actor mutations and oversized bodies", async ({
+  page,
+}) => {
+  const data = await login(page);
+  const before = await (await page.request.get("/api/backend/auth/me")).json();
+  const wrong = await page.request.patch("/api/backend/auth/me", {
+    headers: {
+      origin: "http://127.0.0.1:54111",
+      "x-netsentry-user": data.accounts.viewer.id,
+    },
+    data: { displayName: "Must not be applied" },
+  });
+  expect(wrong.status()).toBe(409);
+  expect((await wrong.json()).code).toBe("SESSION_CHANGED");
+  expect(
+    (await (await page.request.get("/api/backend/auth/me")).json()).displayName,
+  ).toBe(before.displayName);
+  const oversized = await page.request.post("/api/backend/auth/login", {
+    headers: { origin: "http://127.0.0.1:54111" },
+    data: { email: "x".repeat(70000), password: "fixture" },
+  });
+  expect(oversized.status()).toBe(413);
+});

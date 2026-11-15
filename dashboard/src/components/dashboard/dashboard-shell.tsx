@@ -23,7 +23,13 @@ import { AlertsPanel } from "./alerts-panel";
 import { DevicesPanel } from "./devices-panel";
 import { NetworksPanel } from "./networks-panel";
 import { ReportsPanel } from "./reports-panel";
-import { api, signOut } from "@/lib/api";
+import {
+  api,
+  signOut,
+  announceSession,
+  adoptActor,
+  listenForSessionChanges,
+} from "@/lib/api";
 import { useResource } from "@/lib/use-resource";
 import type { Device, Permissions, User, Workspace } from "@/lib/types";
 import { AuthPanel, type AuthMode } from "../account/auth-panel";
@@ -59,7 +65,10 @@ export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
     let active = true;
     api<User>("/auth/me")
       .then((user) => {
-        if (active) setSession({ ready: true, user });
+        if (active) {
+          adoptActor(user.id);
+          setSession({ ready: true, user });
+        }
       })
       .catch((error) => {
         if (active) setSession({ ready: true, error });
@@ -77,6 +86,17 @@ export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
     window.addEventListener("netsentry:expired", expired);
     return () => window.removeEventListener("netsentry:expired", expired);
   }, []);
+  useEffect(() => {
+    if (initialMode) return;
+    return listenForSessionChanges((type) => {
+      if (type === "ended") {
+        adoptActor(undefined);
+        setSession({ ready: true, notice: "You signed out in another tab." });
+      }
+      // A full document refresh clears every in-flight user/workspace response on identity changes.
+      if (type === "changed") window.location.reload();
+    });
+  }, [initialMode, router]);
   if (initialMode || (session.ready && !session.user))
     return (
       <AuthPanel
@@ -107,10 +127,15 @@ export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
     <WorkspaceShell
       key={session.user.id}
       user={session.user}
-      updateUser={(user) => setSession({ ready: true, user })}
-      accountDeleted={() =>
-        setSession({ ready: true, notice: "Your account has been deleted." })
+      updateUser={(user) =>
+        setSession((current) =>
+          current.user?.id === user.id ? { ready: true, user } : current,
+        )
       }
+      accountDeleted={() => {
+        announceSession("ended");
+        setSession({ ready: true, notice: "Your account has been deleted." });
+      }}
       onSignOut={async () => {
         const revoked = await signOut();
         setSession({
@@ -347,10 +372,7 @@ function WorkspaceShell({
                 try {
                   await api(`/workspaces/${id}/select`, "POST", {});
                   setSelected(id);
-                  updateUser({
-                    ...user,
-                    preferences: { ...user.preferences, activeWorkspaceId: id },
-                  });
+                  updateUser(await api<User>("/auth/me"));
                 } catch (error) {
                   setSelectionError(error);
                   workspaces.reload();
