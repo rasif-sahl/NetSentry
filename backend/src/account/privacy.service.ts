@@ -1,3 +1,4 @@
+import { Measurement, DailyUsage, CollectionGap } from '../monitoring/entities';
 import {
   ConflictException,
   Injectable,
@@ -81,6 +82,25 @@ export class PrivacyService {
         user: this.auth.safeUser(user),
         memberships,
         devices: devices.map(publicDevice),
+        monitoring: {
+          measurements: devices.length
+            ? await manager.findBy(Measurement, {
+                deviceId: In(devices.map((d) => d.id)),
+              })
+            : [],
+          dailyUsage: devices.length
+            ? await manager.findBy(DailyUsage, {
+                deviceId: In(devices.map((d) => d.id)),
+              })
+            : [],
+          declaredGaps: devices.length
+            ? (
+                await manager.findBy(CollectionGap, {
+                  deviceId: In(devices.map((d) => d.id)),
+                })
+              ).map(({ payloadHash: _payloadHash, ...gap }) => gap)
+            : [],
+        },
         deviceHistory: history.map((event) => ({
           id: event.id,
           deviceId: event.deviceId,

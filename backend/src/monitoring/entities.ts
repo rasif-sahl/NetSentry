@@ -18,10 +18,10 @@ export class RetentionPolicy {
   @ManyToOne(() => Workspace, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'workspaceId' })
   workspace!: Workspace;
-  @Column('integer', { default: 30 }) rawDays!: number;
-  @Column('integer', { default: 365 }) aggregateDays!: number;
-  @Column('integer', { default: 90 }) alertDays!: number;
-  @Column('integer', { default: 7 }) diagnosticDays!: number;
+  @Column('integer', { default: 30 }) rawDays = 30;
+  @Column('integer', { default: 365 }) aggregateDays = 365;
+  @Column('integer', { default: 90 }) alertDays = 90;
+  @Column('integer', { default: 7 }) diagnosticDays = 7;
 }
 
 @Entity('measurements')

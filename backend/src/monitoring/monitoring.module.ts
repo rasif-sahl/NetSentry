@@ -1,3 +1,5 @@
+import { ReportController } from './report.controller';
+import { ReportService } from './report.service';
 import { Module, Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { DeviceGuard, type DeviceRequest } from '../devices/device.guard';
@@ -13,7 +15,7 @@ class IngestionController {
 }
 @Module({
   imports: [AuthModule],
-  controllers: [IngestionController],
-  providers: [DeviceGuard, IngestionService],
+  controllers: [IngestionController, ReportController],
+  providers: [DeviceGuard, IngestionService, ReportService],
 })
 export class MonitoringModule {}
