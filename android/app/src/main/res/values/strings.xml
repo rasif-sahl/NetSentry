@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NetSentry</string>
+    <string name="setup_title">Set up NetSentry</string>
+    <string name="setup_message">Device pairing and monitoring will be available after setup. Nothing is being monitored yet.</string>
+</resources>
