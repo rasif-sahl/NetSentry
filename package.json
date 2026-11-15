@@ -1,0 +1,17 @@
+{
+  "name": "netsentry",
+  "version": "0.0.0",
+  "private": true,
+  "description": "NetSentry platform development commands; applications keep independent dependencies.",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "check:scaffolds": "node scripts/check-scaffolds.mjs",
+    "build:backend": "npm --prefix backend run build",
+    "test:backend": "npm --prefix backend test -- --runInBand",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "dev:dashboard": "npm --prefix dashboard run dev -- --port 3001",
+    "build:desktop": "npm --prefix desktop run build",
+    "check:desktop": "npm --prefix desktop run typecheck",
+    "test:agent": "cd agent && GOTOOLCHAIN=local go test ./..."
+  }
+}
