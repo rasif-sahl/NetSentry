@@ -704,6 +704,43 @@ try {
     otherLogin.accessToken,
   );
   await request('GET', '/auth/me', 200, 'User', null, recovered.accessToken);
+  const currentSessions = await request(
+    'GET',
+    '/auth/sessions',
+    200,
+    'Session[]',
+    null,
+    recovered.accessToken,
+  );
+  const currentSession = currentSessions.find(
+    (session) => session.revokedAt === null,
+  );
+  await source.query('UPDATE sessions SET "lastUsedAt"=$1 WHERE id=$2', [
+    new Date(0),
+    currentSession.id,
+  ]);
+  await request('GET', '/auth/me', 200, 'User', null, recovered.accessToken);
+  const [activity] = await source.query(
+    'SELECT "lastUsedAt" FROM sessions WHERE id=$1',
+    [currentSession.id],
+  );
+  assert.ok(new Date(activity.lastUsedAt).getTime() > Date.now() - 60000);
+  const refreshRace = await Promise.all(
+    [0, 1].map(() =>
+      fetch(`${base}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ refreshToken: recovered.refreshToken }),
+      }),
+    ),
+  );
+  assert.deepEqual(
+    refreshRace.map((response) => response.status).sort(),
+    [201, 401],
+  );
+  const refreshWinner = refreshRace.find((response) => response.status === 201);
+  recovered = await refreshWinner.json();
+  validateApiPayload('AuthSession', recovered);
   await request('POST', '/auth/password/forgot', 201, null, {
     email: 'alice@example.invalid',
   });

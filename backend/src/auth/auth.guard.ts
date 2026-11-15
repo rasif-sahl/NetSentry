@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Request } from 'express';
-import { Repository } from 'typeorm';
+import { IsNull, MoreThan, Repository } from 'typeorm';
 import type { RequestUser } from './request-user';
 import { AccountStatus } from '../users/user.entity';
 import { Session } from './session.entity';
@@ -50,6 +50,17 @@ export class AuthGuard implements CanActivate {
     ) {
       throw new UnauthorizedException('Session expired.');
     }
+    const touched = await this.sessions.update(
+      {
+        id: session.id,
+        userId: payload.sub,
+        revokedAt: IsNull(),
+        expiresAt: MoreThan(new Date()),
+      },
+      { lastUsedAt: new Date() },
+    );
+    if (touched.affected !== 1)
+      throw new UnauthorizedException('Session expired.');
     request.user = {
       userId: payload.sub,
       sessionId: payload.sid,

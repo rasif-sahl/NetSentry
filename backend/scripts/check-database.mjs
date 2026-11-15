@@ -116,6 +116,18 @@ try {
   const [preserved] = await source.query(
     `INSERT INTO users (email, "displayName", "passwordHash") VALUES ('preserved@example.invalid', 'Preserved fixture', 'not-a-real-password') RETURNING id`,
   );
+  const [legacyWorkspace] = await source.query(
+    `INSERT INTO workspaces (name, type, "ownerId") VALUES ('Legacy fixture', 'PERSONAL', $1) RETURNING id`,
+    [preserved.id],
+  );
+  await source.query(
+    `INSERT INTO memberships ("workspaceId", "userId", role) VALUES ($1, $2, 'OWNER')`,
+    [legacyWorkspace.id, preserved.id],
+  );
+  const [legacyDevice] = await source.query(
+    `INSERT INTO registered_devices ("installationId", "workspaceId", "registeredById", name, platform) VALUES ('legacy-installation', $1, $2, 'Legacy phone', 'ANDROID') RETURNING id`,
+    [legacyWorkspace.id, preserved.id],
+  );
   await source.query('ALTER TABLE users ADD COLUMN unexpected_column text');
   await assert.rejects(adoptBaseline(source), /does not match/);
   await source.query('ALTER TABLE users DROP COLUMN unexpected_column');
@@ -127,6 +139,22 @@ try {
     1,
     'Baseline adoption must preserve existing rows.',
   );
+  const [migratedUser] = await source.query(
+    'SELECT "emailVerifiedAt" FROM users WHERE id=$1',
+    [preserved.id],
+  );
+  const [migratedDevice] = await source.query(
+    'SELECT state, "monitoringEnabled", "credentialHash" FROM registered_devices WHERE id=$1',
+    [legacyDevice.id],
+  );
+  assert.equal(
+    migratedUser.emailVerifiedAt,
+    null,
+    'Historical users must not be silently email-verified.',
+  );
+  assert.equal(migratedDevice.state, 'UNVERIFIED');
+  assert.equal(migratedDevice.monitoringEnabled, false);
+  assert.equal(migratedDevice.credentialHash, null);
   assert.equal(await source.showMigrations(), false);
   assert.equal(
     (await source.driver.createSchemaBuilder().log()).upQueries.length,

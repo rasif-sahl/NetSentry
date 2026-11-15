@@ -1,10 +1,26 @@
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { cleanupAccountMail } = require('../dist/mail/cleanup.js');
 export async function checkPrivacy({ request, source, alice, bob, workspace }) {
   const auth = alice.accessToken;
   const password = 'final-fixture-password-7890';
   await source.query("UPDATE users SET status='ACTIVE' WHERE id=$1", [
     bob.user.id,
   ]);
+  await source.query(
+    'UPDATE mail_outbox SET "expiresAt"=$1 WHERE "userId"=$2',
+    [new Date(0), bob.user.id],
+  );
+  await source.query(
+    'UPDATE account_actions SET "expiresAt"=$1 WHERE "userId"=$2',
+    [new Date(0), bob.user.id],
+  );
+  const cleanup = await cleanupAccountMail(source);
+  assert.ok(
+    cleanup.messagesRemoved > 0 && cleanup.actionsRemoved > 0,
+    'Expired account tokens and encrypted messages must be removable without SMTP.',
+  );
   const code = await request(
     'POST',
     '/devices/enrolments',

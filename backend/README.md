@@ -66,3 +66,5 @@ This runs a loopback API server with fixture accounts, validates actual response
 ## Account verification and recovery
 
 See `../docs/features/accounts.md`. Configure `ACCOUNT_MAIL_ENCRYPTION_KEY` before startup. Registration queues verification mail transactionally; `MAIL_ENABLED=false` keeps delivery disabled. An explicitly configured `npm run mail:deliver` processes at most 20 jobs over verified SMTP TLS. Do not run it against real recipients during automated verification. Tests use a mocked sender and never return recovery tokens through public API responses.
+
+Run `npm run accounts:cleanup` as scheduled operational maintenance to purge expired action tokens and encrypted outbox messages, including when SMTP delivery is disabled. It prints counts only and requires no mail-provider connection.
