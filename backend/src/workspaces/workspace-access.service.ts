@@ -5,6 +5,16 @@ import { Membership, WorkspaceRole } from './membership.entity';
 
 export enum WorkspacePermission {
   READ = 'workspace:read',
+  READ_REPORTS = 'reports:read',
+  MANAGE_MEMBERS = 'members:manage',
+  MANAGE_DEVICES = 'devices:manage',
+  READ_NETWORKS = 'networks:read',
+  MANAGE_NETWORKS = 'networks:manage',
+  MANAGE_POLICIES = 'policies:manage',
+  HANDLE_ALERTS = 'alerts:handle',
+  READ_AUDIT = 'audit:read',
+  MANAGE_BILLING = 'billing:manage',
+  EXPORT_REPORTS = 'reports:export',
   READ_DEVICES = 'devices:read',
   REGISTER_DEVICE = 'devices:register',
   VIEW_SERVICES = 'services:view',
@@ -14,13 +24,19 @@ export enum WorkspacePermission {
 const readPermissions = [
   WorkspacePermission.READ,
   WorkspacePermission.READ_DEVICES,
+  WorkspacePermission.READ_NETWORKS,
   WorkspacePermission.VIEW_SERVICES,
 ];
 const grants: Record<WorkspaceRole, readonly WorkspacePermission[]> = {
   [WorkspaceRole.OWNER]: Object.values(WorkspacePermission),
-  [WorkspaceRole.ADMIN]: Object.values(WorkspacePermission),
+  [WorkspaceRole.ADMIN]: Object.values(WorkspacePermission).filter(
+    (permission) => permission !== WorkspacePermission.MANAGE_BILLING,
+  ),
   [WorkspaceRole.GUARDIAN]: [
     ...readPermissions,
+    WorkspacePermission.READ_REPORTS,
+    WorkspacePermission.MANAGE_POLICIES,
+    WorkspacePermission.HANDLE_ALERTS,
     WorkspacePermission.REGISTER_DEVICE,
   ],
   [WorkspaceRole.MEMBER]: [

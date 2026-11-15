@@ -152,7 +152,7 @@ try {
     null,
     alice.accessToken,
   );
-  await request(
+  const family = await request(
     'POST',
     '/workspaces',
     201,
@@ -245,6 +245,228 @@ try {
     'ApiError',
     null,
     bob.accessToken,
+  );
+  await request(
+    'POST',
+    `/workspaces/${workspace.id}/invitations`,
+    403,
+    'ApiError',
+    { email: 'bob@example.invalid', role: 'VIEWER' },
+    alice.accessToken,
+  );
+  const invite = await request(
+    'POST',
+    `/workspaces/${family.id}/invitations`,
+    201,
+    null,
+    { email: 'bob@example.invalid', role: 'VIEWER' },
+    alice.accessToken,
+  );
+  await request(
+    'POST',
+    '/workspaces/invitations/accept',
+    400,
+    'ApiError',
+    { token: invite.token },
+    alice.accessToken,
+  );
+  await request(
+    'POST',
+    '/workspaces/invitations/accept',
+    201,
+    null,
+    { token: invite.token },
+    bob.accessToken,
+  );
+  await request(
+    'POST',
+    '/workspaces/invitations/accept',
+    400,
+    'ApiError',
+    { token: invite.token },
+    bob.accessToken,
+  );
+  await request(
+    'GET',
+    `/workspaces/${family.id}/members`,
+    200,
+    'WorkspaceMember[]',
+    null,
+    bob.accessToken,
+  );
+  await request(
+    'POST',
+    `/workspaces/${family.id}/select`,
+    201,
+    'Workspace',
+    null,
+    bob.accessToken,
+  );
+  const viewerPermissions = await request(
+    'GET',
+    `/workspaces/${family.id}/permissions`,
+    200,
+    'WorkspacePermissions',
+    null,
+    bob.accessToken,
+  );
+  assert.ok(!viewerPermissions.permissions.includes('services:control'));
+  await request(
+    'POST',
+    `/workspaces/${family.id}/invitations`,
+    403,
+    'ApiError',
+    { email: 'carol@example.invalid', role: 'ADMIN' },
+    bob.accessToken,
+  );
+  await request(
+    'PATCH',
+    `/workspaces/${family.id}/members/${bob.user.id}`,
+    403,
+    'ApiError',
+    { role: 'ADMIN' },
+    bob.accessToken,
+  );
+  await request(
+    'PATCH',
+    `/workspaces/${family.id}/members/${bob.user.id}`,
+    200,
+    null,
+    { role: 'ADMIN' },
+    alice.accessToken,
+  );
+  await request(
+    'POST',
+    `/workspaces/${family.id}/invitations`,
+    403,
+    'ApiError',
+    { email: 'carol@example.invalid', role: 'ADMIN' },
+    bob.accessToken,
+  );
+  await request(
+    'POST',
+    `/workspaces/${family.id}/owner`,
+    403,
+    'ApiError',
+    { userId: alice.user.id },
+    bob.accessToken,
+  );
+  await request(
+    'DELETE',
+    `/workspaces/${family.id}/members/${alice.user.id}`,
+    409,
+    'ApiError',
+    null,
+    alice.accessToken,
+  );
+  await request(
+    'DELETE',
+    `/workspaces/${family.id}/members/${bob.user.id}`,
+    200,
+    null,
+    null,
+    bob.accessToken,
+  );
+  const afterLeave = await request(
+    'GET',
+    '/auth/me',
+    200,
+    'User',
+    null,
+    bob.accessToken,
+  );
+  assert.ok(!afterLeave.preferences.activeWorkspaceId);
+  await request(
+    'GET',
+    `/workspaces/${family.id}/members`,
+    403,
+    'ApiError',
+    null,
+    bob.accessToken,
+  );
+  const expiredInvite = await request(
+    'POST',
+    `/workspaces/${family.id}/invitations`,
+    201,
+    null,
+    { email: 'bob@example.invalid', role: 'MEMBER' },
+    alice.accessToken,
+  );
+  await source.query(
+    'UPDATE workspace_invitations SET "expiresAt"=now()-interval \'1 minute\' WHERE id=$1',
+    [expiredInvite.invitation.id],
+  );
+  await request(
+    'POST',
+    '/workspaces/invitations/accept',
+    400,
+    'ApiError',
+    { token: expiredInvite.token },
+    bob.accessToken,
+  );
+  const revokedInvite = await request(
+    'POST',
+    `/workspaces/${family.id}/invitations`,
+    201,
+    null,
+    { email: 'bob@example.invalid', role: 'MEMBER' },
+    alice.accessToken,
+  );
+  await request(
+    'DELETE',
+    `/workspaces/${family.id}/invitations/${revokedInvite.invitation.id}`,
+    200,
+    null,
+    null,
+    alice.accessToken,
+  );
+  await request(
+    'POST',
+    '/workspaces/invitations/accept',
+    400,
+    'ApiError',
+    { token: revokedInvite.token },
+    bob.accessToken,
+  );
+  const memberInvite = await request(
+    'POST',
+    `/workspaces/${family.id}/invitations`,
+    201,
+    null,
+    { email: 'bob@example.invalid', role: 'MEMBER' },
+    alice.accessToken,
+  );
+  await request(
+    'POST',
+    '/workspaces/invitations/accept',
+    201,
+    null,
+    { token: memberInvite.token },
+    bob.accessToken,
+  );
+  await request(
+    'POST',
+    `/workspaces/${family.id}/owner`,
+    201,
+    null,
+    { userId: bob.user.id },
+    alice.accessToken,
+  );
+  await request(
+    'DELETE',
+    `/workspaces/${family.id}/members/${alice.user.id}`,
+    200,
+    null,
+    null,
+    bob.accessToken,
+  );
+  await request(
+    'GET',
+    `/workspaces/${family.id}/members`,
+    403,
+    'ApiError',
+    null,
+    alice.accessToken,
   );
   const renewed = await request('POST', '/auth/refresh', 201, 'AuthSession', {
     refreshToken: alice.refreshToken,

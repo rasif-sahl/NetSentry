@@ -9,6 +9,7 @@ import {
   WorkspaceAccessService,
   WorkspacePermission,
 } from './workspace-access.service';
+import { User, AccountStatus } from '../users/user.entity';
 import { CreateWorkspaceDto, RegisterDeviceDto } from './dto/workspace.dto';
 import { Membership, WorkspaceRole } from './membership.entity';
 import { RegisteredDevice } from './registered-device.entity';
@@ -45,6 +46,14 @@ export class WorkspaceService {
       );
     }
     return this.dataSource.transaction(async (manager) => {
+      const user = await manager.findOneBy(User, {
+        id: userId,
+        status: AccountStatus.ACTIVE,
+      });
+      if (!user?.emailVerifiedAt)
+        throw new ForbiddenException(
+          'Verify your email before creating a shared workspace.',
+        );
       const workspace = await manager.save(
         manager.create(Workspace, {
           name: input.name.trim(),

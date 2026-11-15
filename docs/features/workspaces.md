@@ -1,0 +1,11 @@
+# Workspace invitations and membership
+
+Shared Family/Business workspaces support recipient-bound invitations, member listing, role changes, leaving/removing members, workspace selection and ownership transfer. Personal workspaces cannot invite members or transfer ownership. The full family/profile and business organization models remain later phases.
+
+Verified managers issue random, single-use invitation tokens valid for seven days. Tokens are returned once to the creator for explicit sharing; lists expose only invitation metadata, not hashes/tokens. No invitation email or other external message is sent automatically. Acceptance requires an authenticated, verified account with the exact target email, an active unrevoked invitation and a creator who still has permission to grant that role. Workspace-row locking serializes acceptance/membership updates. Reissuing an invitation for the same email revokes earlier pending invitations.
+
+Only the owner can grant ADMIN, and only a Family owner can grant GUARDIAN. OWNER is excluded from role DTOs; ownership uses a dedicated transfer operation to another verified active member. Administrators cannot change another admin/guardian or the owner. Nobody can change their own role; non-owners can leave. Owners must transfer ownership before leaving. Removing or changing a member revokes their outstanding invitations; leaving/removal clears a selected workspace that is no longer accessible. Selection validates membership and does not change session authority.
+
+The permission endpoint reports workspace role gates for reports, devices, networks, policies, alerts, audit, exports, subscriptions and service viewing/control. Unimplemented resource APIs are not implied by these gates. Device-specific consent/pairing and Family/Business resource filters still apply; a capability report cannot grant a role. Billing management is owner-only. Detailed child/employee profiles are not introduced here.
+
+Live API checks cover wrong recipient, used/expired/revoked invitations, viewer/admin escalation attempts, member departure, current permission reads, selected workspace cleanup, ownership transfer and denied access after removal.

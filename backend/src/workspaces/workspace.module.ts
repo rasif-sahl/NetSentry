@@ -1,3 +1,5 @@
+import { CollaborationController } from './collaboration.controller';
+import { CollaborationService } from './collaboration.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
@@ -13,8 +15,8 @@ import { WorkspaceService } from './workspace.service';
     AuthModule,
     TypeOrmModule.forFeature([Workspace, Membership, RegisteredDevice]),
   ],
-  controllers: [WorkspaceController],
-  providers: [WorkspaceService, WorkspaceAccessService],
+  controllers: [WorkspaceController, CollaborationController],
+  providers: [WorkspaceService, WorkspaceAccessService, CollaborationService],
   exports: [WorkspaceAccessService],
 })
 export class WorkspaceModule {}
