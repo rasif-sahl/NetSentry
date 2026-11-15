@@ -1,0 +1,95 @@
+name: Foundation checks
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts-and-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: netsentry
+          POSTGRES_PASSWORD: isolated-test-password
+          POSTGRES_DB: netsentry_phase1_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U netsentry -d netsentry_phase1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://netsentry:isolated-test-password@127.0.0.1:5432/netsentry_phase1_test
+      TEST_DATABASE_SSL: 'false'
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Prepare contracts and backend dependencies without install scripts
+        run: |
+          npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
+          npm --prefix backend ci --ignore-scripts --no-audit --no-fund
+      - name: Check shared contracts and backend
+        run: |
+          npm run check:scaffolds
+          npm run check:contracts
+          npm run test:contracts
+          npm run build:backend
+          npm run test:backend
+      - name: Verify database lifecycle and actual API responses
+        run: |
+          node backend/scripts/check-database.mjs
+          node backend/scripts/check-api.mjs
+
+  desktop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Build desktop source without downloading Electron runtime
+        run: |
+          npm --prefix desktop ci --ignore-scripts --no-audit --no-fund
+          npm run build:desktop
+
+  agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          cache: false
+      - name: Check Go source and capability output
+        env:
+          GOTOOLCHAIN: local
+        run: |
+          npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
+          mkdir -p artifacts
+          cd agent
+          gofmt -d .
+          test -z "$(gofmt -l .)"
+          go vet ./...
+          go test ./...
+          go build -o ../artifacts/netsentry-agent ./cmd/netsentry-agent
+          ../artifacts/netsentry-agent > ../artifacts/agent-report.json
+          cd ..
+          node contracts/scripts/check-agent-report.mjs artifacts/agent-report.json

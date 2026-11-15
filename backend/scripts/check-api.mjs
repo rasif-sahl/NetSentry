@@ -188,6 +188,38 @@ try {
     { ...device, workspaceId: bobWorkspace.id },
     bob.accessToken,
   );
+  await source.query(
+    'INSERT INTO memberships ("workspaceId", "userId", role) VALUES ($1, $2, $3)',
+    [workspace.id, bob.user.id, 'VIEWER'],
+  );
+  await request(
+    'GET',
+    `/workspaces/${workspace.id}/devices`,
+    200,
+    'RegisteredDevice[]',
+    null,
+    bob.accessToken,
+  );
+  await request(
+    'POST',
+    '/workspaces/devices',
+    403,
+    'ApiError',
+    { ...device, installationId: 'viewer-cannot-register' },
+    bob.accessToken,
+  );
+  await source.query(
+    'DELETE FROM memberships WHERE "workspaceId"=$1 AND "userId"=$2',
+    [workspace.id, bob.user.id],
+  );
+  await request(
+    'GET',
+    `/workspaces/${workspace.id}/devices`,
+    403,
+    'ApiError',
+    null,
+    bob.accessToken,
+  );
   const renewed = await request('POST', '/auth/refresh', 201, 'AuthSession', {
     refreshToken: alice.refreshToken,
   });

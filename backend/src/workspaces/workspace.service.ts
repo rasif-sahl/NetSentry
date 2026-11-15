@@ -5,6 +5,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+import {
+  WorkspaceAccessService,
+  WorkspacePermission,
+} from './workspace-access.service';
 import { CreateWorkspaceDto, RegisterDeviceDto } from './dto/workspace.dto';
 import { Membership, WorkspaceRole } from './membership.entity';
 import { RegisteredDevice } from './registered-device.entity';
@@ -20,6 +24,7 @@ export class WorkspaceService {
     @InjectRepository(RegisteredDevice)
     private readonly devices: Repository<RegisteredDevice>,
     private readonly dataSource: DataSource,
+    private readonly access: WorkspaceAccessService,
   ) {}
 
   async list(userId: string) {
@@ -60,7 +65,11 @@ export class WorkspaceService {
   }
 
   async listDevices(userId: string, workspaceId: string) {
-    await this.assertMember(userId, workspaceId);
+    await this.access.assertPermission(
+      userId,
+      workspaceId,
+      WorkspacePermission.READ_DEVICES,
+    );
     return this.devices.find({
       where: { workspaceId },
       order: { updatedAt: 'DESC' },
@@ -68,7 +77,11 @@ export class WorkspaceService {
   }
 
   async registerDevice(userId: string, input: RegisterDeviceDto) {
-    await this.assertMember(userId, input.workspaceId);
+    await this.access.assertPermission(
+      userId,
+      input.workspaceId,
+      WorkspacePermission.REGISTER_DEVICE,
+    );
     const existing = await this.devices.findOneBy({
       installationId: input.installationId,
     });
@@ -96,12 +109,6 @@ export class WorkspaceService {
         ? this.devices.merge(existing, values)
         : this.devices.create(values),
     );
-  }
-
-  private async assertMember(userId: string, workspaceId: string) {
-    if (!(await this.memberships.exists({ where: { userId, workspaceId } }))) {
-      throw new ForbiddenException('You do not have access to this workspace.');
-    }
   }
 
   private workspaceResponse(workspace: Workspace, role: WorkspaceRole) {

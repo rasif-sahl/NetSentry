@@ -5,6 +5,7 @@ import { Membership } from './membership.entity';
 import { RegisteredDevice } from './registered-device.entity';
 import { WorkspaceController } from './workspace.controller';
 import { Workspace } from './workspace.entity';
+import { WorkspaceAccessService } from './workspace-access.service';
 import { WorkspaceService } from './workspace.service';
 
 @Module({
@@ -13,6 +14,7 @@ import { WorkspaceService } from './workspace.service';
     TypeOrmModule.forFeature([Workspace, Membership, RegisteredDevice]),
   ],
   controllers: [WorkspaceController],
-  providers: [WorkspaceService],
+  providers: [WorkspaceService, WorkspaceAccessService],
+  exports: [WorkspaceAccessService],
 })
 export class WorkspaceModule {}
