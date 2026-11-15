@@ -29,8 +29,9 @@ export class RegisteredDevice {
   @Column('uuid') registeredById!: string;
   @Column({ length: 100 }) name!: string;
   @Column({ type: 'enum', enum: DevicePlatform }) platform!: DevicePlatform;
-  @Column({ nullable: true }) operatingSystemVersion!: string | null;
-  @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
+  @Column({ type: 'varchar', nullable: true }) operatingSystemVersion!:
+    string | null;
+  @Column({ type: 'jsonb', default: {} })
   capabilities!: Record<string, boolean>;
   @Column({ type: 'timestamptz', nullable: true }) lastSeenAt!: Date | null;
   @ManyToOne(() => Workspace, (workspace) => workspace.devices, {
