@@ -1,3 +1,4 @@
+import { DeviceModule } from './devices/device.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -14,7 +15,12 @@ import { WorkspaceModule } from './workspaces/workspace.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        { ttl: 60000, limit: config.get<number>('API_RATE_LIMIT', 120) },
+      ],
+    }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) =>
@@ -27,6 +33,7 @@ import { WorkspaceModule } from './workspaces/workspace.module';
         }),
     }),
     AuthModule,
+    DeviceModule,
     WorkspaceModule,
   ],
   controllers: [AppController, HealthController],

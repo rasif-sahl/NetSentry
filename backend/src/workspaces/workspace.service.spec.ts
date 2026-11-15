@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 import { DevicePlatform } from './registered-device.entity';
 import { WorkspaceService } from './workspace.service';
 
@@ -31,7 +31,7 @@ describe('WorkspaceService', () => {
     expect(devices.save).not.toHaveBeenCalled();
   });
 
-  it('does not let a member take over a device registered elsewhere', async () => {
+  it('does not let authorized clients bypass one-time device enrolment', async () => {
     const memberships = { exists: jest.fn().mockResolvedValue(true) };
     const devices = {
       findOneBy: jest.fn().mockResolvedValue({
@@ -57,7 +57,7 @@ describe('WorkspaceService', () => {
         name: 'Pixel',
         platform: DevicePlatform.ANDROID,
       }),
-    ).rejects.toBeInstanceOf(ConflictException);
+    ).rejects.toBeInstanceOf(ForbiddenException);
     expect(devices.save).not.toHaveBeenCalled();
   });
 });

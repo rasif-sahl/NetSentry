@@ -14,6 +14,7 @@ if (!url || !new URL(url).pathname.endsWith('_test'))
   );
 Object.assign(process.env, {
   NODE_ENV: 'test',
+  API_RATE_LIMIT: '1000',
   ACCOUNT_MAIL_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
   DATABASE_URL: url,
   DATABASE_SSL: process.env.TEST_DATABASE_SSL ?? 'false',
@@ -139,9 +140,47 @@ try {
   await request(
     'POST',
     '/workspaces/devices',
-    201,
-    'RegisteredDevice',
+    403,
+    'ApiError',
     device,
+    alice.accessToken,
+  );
+  const enrolment = await request(
+    'POST',
+    '/devices/enrolments',
+    201,
+    null,
+    {
+      workspaceId: workspace.id,
+      installationId: device.installationId,
+      platform: 'ANDROID',
+    },
+    alice.accessToken,
+  );
+  const enrolledDevice = await request(
+    'POST',
+    '/devices/enrol',
+    201,
+    null,
+    {
+      token: enrolment.token,
+      name: device.name,
+      disclosureVersion: 'device-enrolment-v1',
+      accepted: true,
+    },
+    alice.accessToken,
+  );
+  await request(
+    'POST',
+    '/devices/enrol',
+    400,
+    'ApiError',
+    {
+      token: enrolment.token,
+      name: device.name,
+      disclosureVersion: 'device-enrolment-v1',
+      accepted: true,
+    },
     alice.accessToken,
   );
   await request(
@@ -208,10 +247,14 @@ try {
   );
   await request(
     'POST',
-    '/workspaces/devices',
+    '/devices/enrolments',
     409,
     'ApiError',
-    { ...device, workspaceId: bobWorkspace.id },
+    {
+      installationId: device.installationId,
+      platform: 'ANDROID',
+      workspaceId: bobWorkspace.id,
+    },
     bob.accessToken,
   );
   await source.query(
@@ -468,6 +511,16 @@ try {
     null,
     alice.accessToken,
   );
+  const { checkDevices } = await import('./device-checks.mjs');
+  await checkDevices({
+    request,
+    source,
+    alice,
+    bob,
+    workspace,
+    family,
+    enrolledDevice,
+  });
   const renewed = await request('POST', '/auth/refresh', 201, 'AuthSession', {
     refreshToken: alice.refreshToken,
   });

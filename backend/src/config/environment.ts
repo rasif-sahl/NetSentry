@@ -127,6 +127,7 @@ export function validateEnvironment(input: Record<string, unknown>) {
   return {
     ...database,
     ACCOUNT_MAIL_ENCRYPTION_KEY: mailKey,
+    API_RATE_LIMIT: integer(input.API_RATE_LIMIT, 'API_RATE_LIMIT', 120, 10000),
     PORT: integer(input.PORT, 'PORT', 3000, 65535),
     API_PREFIX: prefix,
     CORS_ORIGINS: [...new Set(origins)],

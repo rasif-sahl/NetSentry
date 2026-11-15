@@ -7,6 +7,9 @@ import {
 import { DataSource, IsNull } from 'typeorm';
 import { randomBytes } from 'node:crypto';
 import { hashToken } from '../auth/account-actions.service';
+import { RegisteredDevice } from './registered-device.entity';
+import { DeviceEnrolment } from '../devices/enrolment.entity';
+import { DeviceEvent } from '../devices/device-event.entity';
 import { User, AccountStatus } from '../users/user.entity';
 import { Membership, WorkspaceRole } from './membership.entity';
 import { Workspace, WorkspaceType } from './workspace.entity';
@@ -257,6 +260,34 @@ export class CollaborationService {
         await manager.query(
           `UPDATE users SET preferences=preferences - 'activeWorkspaceId' WHERE id=$1 AND preferences->>'activeWorkspaceId'=$2`,
           [targetId, workspaceId],
+        );
+      }
+      if (!role || !roleAllows(role, WorkspacePermission.REGISTER_DEVICE)) {
+        const devices = await manager.find(RegisteredDevice, {
+          where: { workspaceId, registeredById: targetId, removedAt: IsNull() },
+        });
+        for (const device of devices) {
+          device.monitoringEnabled = false;
+          device.consentScopes = [];
+          device.credentialHash = null;
+          device.state = 'REVOKED';
+          device.revokedAt = new Date();
+          device.generation++;
+          await manager.save(device);
+          await manager.save(
+            manager.create(DeviceEvent, {
+              deviceId: device.id,
+              actorUserId: userId,
+              kind: 'membership_revoked',
+              generation: device.generation,
+              details: {},
+            }),
+          );
+        }
+        await manager.update(
+          DeviceEnrolment,
+          { workspaceId, userId: targetId, consumedAt: IsNull() },
+          { consumedAt: new Date() },
         );
       }
       await manager.update(

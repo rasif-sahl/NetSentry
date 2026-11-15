@@ -37,7 +37,8 @@ for (const [path, methods] of Object.entries(api.paths)) {
     );
     operationIDs.add(operation.operationId);
     assert.ok(
-      Object.keys(operation.responses).some((code) => /^2\d\d$/.test(code)),
+      Object.keys(operation.responses).some((code) => /^2\d\d$/.test(code)) ||
+        (operation.deprecated === true && Boolean(operation.responses["403"])),
     );
     for (const match of path.matchAll(/\{([^}]+)\}/g))
       assert.ok(
