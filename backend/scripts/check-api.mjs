@@ -81,6 +81,7 @@ try {
       `${method} ${path} returned an unexpected status`,
     );
     const payload = await response.json();
+    assert.equal(response.headers.get('cache-control'), 'no-store');
     if (path !== '/missing') validateApiResponse(method, path, status, payload);
     assert.match(response.headers.get('x-request-id'), /^[0-9a-f-]{36}$/);
     if (schema === 'ApiError') {
@@ -487,6 +488,46 @@ try {
     { token: memberInvite.token },
     bob.accessToken,
   );
+  const staleRejoin = await request(
+    'POST',
+    `/workspaces/${family.id}/invitations`,
+    201,
+    null,
+    { email: 'bob@example.invalid', role: 'ADMIN' },
+    alice.accessToken,
+  );
+  await request(
+    'DELETE',
+    `/workspaces/${family.id}/members/${bob.user.id}`,
+    200,
+    null,
+    null,
+    alice.accessToken,
+  );
+  await request(
+    'POST',
+    '/workspaces/invitations/accept',
+    400,
+    'ApiError',
+    { token: staleRejoin.token },
+    bob.accessToken,
+  );
+  const freshRejoin = await request(
+    'POST',
+    `/workspaces/${family.id}/invitations`,
+    201,
+    null,
+    { email: 'bob@example.invalid', role: 'MEMBER' },
+    alice.accessToken,
+  );
+  await request(
+    'POST',
+    '/workspaces/invitations/accept',
+    201,
+    null,
+    { token: freshRejoin.token },
+    bob.accessToken,
+  );
   await request(
     'POST',
     `/workspaces/${family.id}/owner`,
@@ -634,6 +675,14 @@ try {
     { activeWorkspaceId: workspace.id },
     recovered.accessToken,
   );
+  await request(
+    'PATCH',
+    '/auth/preferences',
+    400,
+    'ApiError',
+    { notifications: [] },
+    recovered.accessToken,
+  );
   const otherLogin = await request('POST', '/auth/login', 201, 'AuthSession', {
     email: 'alice@example.invalid',
     password: 'replacement-password-5678',
@@ -727,6 +776,8 @@ try {
   await request('POST', '/auth/refresh', 401, 'ApiError', {
     refreshToken: bob.refreshToken,
   });
+  const { checkPrivacy } = await import('./privacy-checks.mjs');
+  await checkPrivacy({ request, source, alice: recovered, bob, workspace });
   console.log(
     'Passed live API/schema checks, validation errors, request correlation, workspace isolation, device ownership and session revocation.',
   );

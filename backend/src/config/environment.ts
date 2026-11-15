@@ -93,6 +93,8 @@ export function validateEnvironment(input: Record<string, unknown>) {
     throw new Error(
       'ACCOUNT_MAIL_ENCRYPTION_KEY must be an independent base64-encoded 32-byte key.',
     );
+  if (mailKey === accessSecret || mailKey === refreshSecret)
+    throw new Error('Account mail encryption must use an independent key.');
   const ttl = text(input.JWT_ACCESS_TOKEN_TTL, '15m');
   if (!/^[1-9]\d*(s|m|h|d)$/.test(ttl))
     throw new Error(

@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { MailOutbox } from './mail-outbox.entity';
 import { decryptMail } from './mail-crypto';
 import { type AccountMail } from './mail.service';
+import { User, AccountStatus } from '../users/user.entity';
 import { AccountAction } from '../auth/account-action.entity';
 import { hashToken } from '../auth/account-actions.service';
 
@@ -94,26 +95,27 @@ export async function deliverOne(
       key,
       job.id,
     ) as AccountMail;
-    const action = await source
-      .getRepository(AccountAction)
-      .findOneBy({
-        userId: job.userId,
-        tokenHash: hashToken(payload.token),
-        purpose: payload.purpose,
-        consumedAt: IsNull(),
-      });
+    const action = await source.getRepository(AccountAction).findOneBy({
+      userId: job.userId,
+      tokenHash: hashToken(payload.token),
+      purpose: payload.purpose,
+      consumedAt: IsNull(),
+    });
+    const user = await source
+      .getRepository(User)
+      .findOneBy({ id: job.userId, status: AccountStatus.ACTIVE });
     if (
       job.expiresAt <= new Date() ||
+      !user ||
+      payload.to !== user.email ||
       !action ||
       action.expiresAt <= new Date()
     ) {
-      await source
-        .getRepository(MailOutbox)
-        .update(job.id, {
-          discardedAt: new Date(),
-          encryptedPayload: '',
-          claimedUntil: null,
-        });
+      await source.getRepository(MailOutbox).update(job.id, {
+        discardedAt: new Date(),
+        encryptedPayload: '',
+        claimedUntil: null,
+      });
       return 'discarded';
     }
     const link = new URL(
@@ -130,13 +132,11 @@ export async function deliverOne(
       text: `Open ${link.toString()} to continue. This single-use link expires at ${payload.expiresAt}. If you did not request it, ignore this message.`,
       messageId: `<${job.id}@netsentry.invalid>`,
     });
-    await source
-      .getRepository(MailOutbox)
-      .update(job.id, {
-        sentAt: new Date(),
-        encryptedPayload: '',
-        claimedUntil: null,
-      });
+    await source.getRepository(MailOutbox).update(job.id, {
+      sentAt: new Date(),
+      encryptedPayload: '',
+      claimedUntil: null,
+    });
     return 'sent';
   } catch {
     await source

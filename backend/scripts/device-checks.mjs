@@ -163,6 +163,14 @@ export async function checkDevices({
     auth,
   );
   await request('DELETE', `/devices/${id}/data`, 200, null, null, auth);
+  await request(
+    'GET',
+    `/devices/${id}/configuration`,
+    401,
+    'ApiError',
+    null,
+    pairing.deviceToken,
+  );
   const erased = await request(
     'GET',
     `/devices/${id}`,

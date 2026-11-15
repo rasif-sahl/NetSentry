@@ -231,10 +231,17 @@ export class DeviceService {
         device.monitoringEnabled = false;
         device.generation++;
         if (action !== 'pause') device.consentScopes = [];
-        if (action === 'unenrol' || action === 'remove') {
+        if (
+          action === 'unenrol' ||
+          action === 'remove' ||
+          action === 'delete_data'
+        ) {
           device.credentialHash = null;
           device.revokedAt = new Date();
-          device.state = action === 'remove' ? 'REMOVED' : 'REVOKED';
+          device.state =
+            action === 'remove' || device.state === 'REMOVED'
+              ? 'REMOVED'
+              : 'REVOKED';
         }
         if (action === 'remove') {
           device.removedAt = new Date();

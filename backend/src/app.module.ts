@@ -1,3 +1,4 @@
+import { PrivacyModule } from './account/privacy.module';
 import { DeviceModule } from './devices/device.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -34,6 +35,7 @@ import { WorkspaceModule } from './workspaces/workspace.module';
     }),
     AuthModule,
     DeviceModule,
+    PrivacyModule,
     WorkspaceModule,
   ],
   controllers: [AppController, HealthController],

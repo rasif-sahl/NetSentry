@@ -1,8 +1,9 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEmail,
   IsIn,
+  IsObject,
   IsString,
   Matches,
   MaxLength,
@@ -39,6 +40,16 @@ export class PreferencesDto {
   @IsBoolean()
   reducedMotion?: boolean;
   @ValidateIf((_, value) => value !== undefined)
+  @Transform(
+    ({ obj, key, value }) => {
+      const raw: unknown = obj[key];
+      return raw !== null && typeof raw === 'object' && !Array.isArray(raw)
+        ? value
+        : raw;
+    },
+    { toClassOnly: true },
+  )
+  @IsObject()
   @ValidateNested()
   @Type(() => NotificationPreferencesDto)
   notifications?: NotificationPreferencesDto;

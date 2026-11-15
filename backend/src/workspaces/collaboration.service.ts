@@ -113,6 +113,10 @@ export class CollaborationService {
         where: { id: candidate.id },
         lock: { mode: 'pessimistic_write' },
       });
+      const invitingUser = await manager.findOneBy(User, {
+        id: candidate.createdById,
+        status: AccountStatus.ACTIVE,
+      });
       const creator = await manager.findOneBy(Membership, {
         workspaceId: candidate.workspaceId,
         userId: candidate.createdById,
@@ -126,6 +130,7 @@ export class CollaborationService {
         invitation.revokedAt ||
         invitation.expiresAt <= new Date() ||
         invitation.email !== user.email ||
+        !invitingUser?.emailVerifiedAt ||
         !creator ||
         !roleAllows(creator.role, WorkspacePermission.MANAGE_MEMBERS)
       )
@@ -262,6 +267,18 @@ export class CollaborationService {
           [targetId, workspaceId],
         );
       }
+      const targetUser = await manager.findOneBy(User, { id: targetId });
+      if (targetUser)
+        await manager.update(
+          WorkspaceInvitation,
+          {
+            workspaceId,
+            email: targetUser.email,
+            acceptedAt: IsNull(),
+            revokedAt: IsNull(),
+          },
+          { revokedAt: new Date() },
+        );
       if (!role || !roleAllows(role, WorkspacePermission.REGISTER_DEVICE)) {
         const devices = await manager.find(RegisteredDevice, {
           where: { workspaceId, registeredById: targetId, removedAt: IsNull() },

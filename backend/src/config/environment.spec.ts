@@ -20,6 +20,12 @@ describe('environment configuration', () => {
   });
 
   it.each([
+    { ACCOUNT_MAIL_ENCRYPTION_KEY: 'invalid' },
+    {
+      ACCOUNT_MAIL_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
+      JWT_ACCESS_TOKEN_SECRET: Buffer.alloc(32, 7).toString('base64'),
+    },
+    { API_RATE_LIMIT: '0' },
     { PORT: '0' },
     { PORT: 'NaN' },
     { PORT: '1.5' },

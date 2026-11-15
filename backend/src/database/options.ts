@@ -5,6 +5,7 @@ import { User } from '../users/user.entity';
 import { Membership } from '../workspaces/membership.entity';
 import { RegisteredDevice } from '../workspaces/registered-device.entity';
 import { Workspace } from '../workspaces/workspace.entity';
+import { PrivacyEvent } from '../account/privacy-event.entity';
 import { DeviceEnrolment } from '../devices/enrolment.entity';
 import { DeviceEvent } from '../devices/device-event.entity';
 import { WorkspaceInvitation } from '../workspaces/invitation.entity';
@@ -30,6 +31,7 @@ export function databaseOptions(
       WorkspaceInvitation,
       DeviceEnrolment,
       DeviceEvent,
+      PrivacyEvent,
     ],
     migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
     migrationsTableName: 'netsentry_migrations',
