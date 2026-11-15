@@ -6,6 +6,7 @@ const fixtures = [
   ...[
     "device-capabilities",
     "measurement",
+    "measurement-batch",
     "service-permissions",
     "service-command",
     "local-ipc",

@@ -1,3 +1,4 @@
+import { MonitoringModule } from './monitoring/monitoring.module';
 import { PrivacyModule } from './account/privacy.module';
 import { DeviceModule } from './devices/device.module';
 import { Module } from '@nestjs/common';
@@ -36,6 +37,7 @@ import { WorkspaceModule } from './workspaces/workspace.module';
     AuthModule,
     DeviceModule,
     PrivacyModule,
+    MonitoringModule,
     WorkspaceModule,
   ],
   controllers: [AppController, HealthController],

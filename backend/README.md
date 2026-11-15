@@ -1,76 +1,25 @@
-# NetSentry API
+# Device enrolment and lifecycle
 
-NestJS/TypeScript and PostgreSQL APIs for account verification/recovery, sessions, workspace collaboration, device enrolment/health/consent and privacy. Usage collectors, Family/Business profiles, routers and remote process controls arrive in later phases.
+Verified users with workspace registration permission issue one-time, account/workspace/installation/platform-bound enrolment codes. Codes expire after ten minutes and cannot be reused. Redemption acknowledges the versioned pairing disclosure and returns a new opaque device credential once; only its hash is stored. An installation already owned elsewhere cannot be taken over. This is installation pairing, not hardware attestation; native device-side acceptance is still pending.
 
-## Local configuration
+Direct POST /workspaces/devices registration is deprecated and returns 403. Existing records migrate to UNVERIFIED with no device credential and monitoring disabled. Explicit enrolment is required before receiving authenticated health reports. Re-enrolment by the same owner/workspace rotates credentials, increments the generation and starts with monitoring disabled. It never silently preserves old consent or revives an old token.
 
-Use Node.js 24 and the pinned dependency lockfile. Copy `.env.example` to `.env`, set `DATABASE_URL`, replace both JWT secrets with independent values of at least 32 characters, and set an independent base64-encoded 32-byte `ACCOUNT_MAIL_ENCRYPTION_KEY`. Use explicit HTTP origins for local CORS. Runtime configuration is validated before database startup.
+Device bearer credentials are distinct from user JWT sessions. Configuration/heartbeat endpoints validate current device state, credential hash, active verified owner and current workspace registration permission. Heartbeats recheck credentials under the same workspace/device locks as revocation. User tokens cannot authenticate a device, and device credentials cannot access user APIs. Membership removal or a downgrade that loses registration permission revokes associated device credentials and unused enrolment codes.
 
-```sh
-npm ci --ignore-scripts
-npm run migration:run
-npm run start:dev
-```
+Owners and authorized managers may rename/pause/unenrol/remove devices. Only the device owner grants monitoring consent or erases personal data. Administrators cannot grant consent for someone else. Owner data-erasure rights remain available after workspace departure. Removed devices disappear from inventory; their minimal identity/generation tombstone prevents stale code/credential reuse. Account deletion removes the owned record entirely.
 
-The default API base is `/api/v1`. PostgreSQL must already be available; these commands do not provision it. `DATABASE_SSL=true` enables certificate verification; provide `DATABASE_SSL_CA` for a private CA. Connection-string SSL query parameters are rejected so they cannot override the explicit TLS policy. Production requires TLS and HTTPS CORS origins. `DB_SYNCHRONIZE` defaults to false and is rejected outside development when true. Application startup never runs migrations automatically.
+Consent records include actor, server time, selected scopes, disclosure version/hash and generation. MonitoringEnabled is the user's collection setting, not proof that a collector is supported or running. Phase 2 enables no monitoring collectors. Later ingestion must additionally validate consent scope, permission/capability, owner membership, credential and current generation. Pause/revocation/deletion advance that generation so old offline batches cannot be replayed. Permission-denied/revoked health reports turn monitoring off.
 
-## Database lifecycle
+Health metadata contains reported OS/model/app version, permission/battery status, synchronization time and a schema-validated capability report. Reports cannot claim executable actions while a capability is unavailable, use another device/workspace identity, duplicate identifiers, or use invalid/future check times. These are authenticated client reports, not independently measured device certification. No actual native detection or monitoring is claimed before physical-device checks.
 
-Back up an existing database before schema changes. Commands load the local `.env` without printing its contents. Migration CLI connections always disable schema synchronization and automatic extension installation. The initial migration explicitly creates `uuid-ossp` if absent; a database administrator may need to provision this extension first. Database sessions use UTC.
+Permission/consent history is scoped to the device owner or authorized managers. Data erasure clears stored capability/health/version fields and old history, disables collection, revokes the installation credential and retains only the new deletion tombstone event. Fresh enrolment is required before health metadata can be reported again. Phase 3 connects measurement, aggregate, synchronization, gap and alert stores to this erasure lifecycle; see `monitoring.md`. Current collection metadata is deleted transactionally; future offline agents must apply revocation and deletion when their synchronization protocols are implemented.
 
-```sh
-npm run migration:show
-npm run migration:run
-npm run db:check
-```
+Builds copy the shared capability schema into the backend artifact. Source/watch development can read the repository contract when the bundled copy is absent. Test metadata is synthetic; no SDK, emulator, native collector or live network scan is installed or run.
 
-For a schema originally created by development synchronization, applying the initial migration directly is refused. First back up the database, then run:
+Phase 3 ingestion requires the current `monitoring-v3` disclosure, source-specific scopes/capabilities and the current generation. Configuration includes bounded synchronization guidance. Manual network reassignment pauses monitoring and requires consent again. The measurement feature remains device-reported infrastructure until native collectors are implemented and validated.
 
-```sh
-npm run db:adopt
-npm run migration:run
-npm run db:check
-```
+## Measurement and notification maintenance
 
-Adoption compares frozen Phase 1 metadata and records only the initial migration, preserving application rows. It refuses baseline drift. Run migration:run afterward to apply newer migrations, then db:check to compare the latest schema. Do not use `--fake` to bypass this verification. `db:check` reports differences without applying them; investigate differences explicitly rather than enabling synchronization on a populated database.
+See `../docs/features/monitoring.md` for ingestion, reporting, privacy and alert APIs. Apply explicit migrations before use; the latest Phase 3 disclosure requires renewed consent. No native collector is enabled.
 
-Generate future migrations with `npm run migration:generate -- src/database/migrations/MeaningfulName`, review SQL and test against an isolated database. `npm run migration:revert` reverses the latest migration; reversing the initial baseline drops application tables and their data, including an adopted schema. Restore from a verified backup rather than reverting a populated baseline.
-
-## Verification
-
-```sh
-npm run build
-npm test -- --runInBand
-```
-
-With an existing PostgreSQL server and a dedicated empty database whose name ends in `_test`:
-
-```sh
-TEST_DATABASE_URL=postgresql://localhost/netsentry_test npm run test:database
-```
-
-This test refuses nonempty application schemas or migration history. It creates only test fixtures, verifies migration/schema agreement, database constraints/cascades, rollback and data-preserving adoption, then removes its fixture tables through rollback. Never point it at a real application database. It does not install PostgreSQL, mobile SDKs, emulators or other platform tooling.
-
-## API contract verification
-
-The shared OpenAPI specification is `../contracts/openapi/api.v1.json`. Error codes and response correlation are configured identically in application startup and API checks. With the contracts dependencies prepared and a separate empty test database:
-
-```sh
-TEST_DATABASE_URL=postgresql://localhost/netsentry_api_test npm run test:api
-```
-
-`npm run test:e2e` aliases this same integration check, replacing the original starter test that did not exercise the configured API.
-
-This runs a loopback API server with fixture accounts, validates actual responses against OpenAPI component/operation schemas, and checks request validation, workspace isolation, device ownership, refresh rotation and session revocation. It rolls back its fixture schema afterward. It does not contact mobile devices or external notification services.
-
-## Account verification and recovery
-
-See `../docs/features/accounts.md`. Configure `ACCOUNT_MAIL_ENCRYPTION_KEY` before startup. Registration queues verification mail transactionally; `MAIL_ENABLED=false` keeps delivery disabled. An explicitly configured `npm run mail:deliver` processes at most 20 jobs over verified SMTP TLS. Do not run it against real recipients during automated verification. Tests use a mocked sender and never return recovery tokens through public API responses.
-
-Run `npm run accounts:cleanup` as scheduled operational maintenance to purge expired action tokens and encrypted outbox messages, including when SMTP delivery is disabled. It prints counts only and requires no mail-provider connection.
-
-## Phase 2 access and device APIs
-
-Feature details and acceptance boundaries are in `../docs/features/`. Legacy direct registration returns 403; use `/devices/enrolments` then `/devices/enrol`. Device heartbeat/configuration use opaque installation credentials rather than user JWTs. Scope, consent and generation checks constrain future ingestion; monitoring collectors are not running in this phase.
-
-Workspace invitations are returned once for explicit sharing and accepted only by the verified target account. Other-member consent cannot be granted by an administrator. Export/account deletion require current-password confirmation; shared owners must transfer ownership when other people's records remain.
+`npm run monitoring:work -- WORKSPACE_UUID` runs one bounded alert evaluation, delivery and retention pass using the backend environment. Arrange recurring passes per workspace in deployment; starting the API alone does not schedule jobs. In-app delivery is implemented; Android/iOS push adapters explicitly report unavailable. Live API tests use synthetic data and injected adapters only.

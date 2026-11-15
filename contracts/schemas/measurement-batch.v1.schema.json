@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/measurement-batch.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "batchId",
+    "generation",
+    "events",
+    "gaps"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "batchId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "https://netsentry.example/schemas/measurement.v1.json"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "gapId",
+          "metric",
+          "intervalStart",
+          "intervalEnd",
+          "reason"
+        ],
+        "properties": {
+          "gapId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metric": {
+            "enum": [
+              "mobile_data_bytes",
+              "wifi_data_bytes",
+              "screen_time_seconds",
+              "application_foreground_seconds",
+              "network_upload_bytes",
+              "network_download_bytes"
+            ]
+          },
+          "applicationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "intervalStart": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "intervalEnd": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "reason": {
+            "enum": [
+              "offline",
+              "unsupported",
+              "collection_failed",
+              "permission_unavailable"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

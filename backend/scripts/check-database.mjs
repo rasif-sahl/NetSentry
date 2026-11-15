@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 require('reflect-metadata');
@@ -63,9 +64,53 @@ try {
     `INSERT INTO memberships ("workspaceId", "userId", role) VALUES ($1, $2, 'OWNER')`,
     [workspace.id, user.id],
   );
-  await source.query(
-    `INSERT INTO registered_devices ("installationId", "workspaceId", "registeredById", name, platform) VALUES ('fixture-installation', $1, $2, 'Fixture phone', 'ANDROID')`,
+  const [measurementDevice] = await source.query(
+    `INSERT INTO registered_devices ("installationId", "workspaceId", "registeredById", name, platform) VALUES ('fixture-installation', $1, $2, 'Fixture phone', 'ANDROID') RETURNING id`,
     [workspace.id, user.id],
+  );
+  // Upgrade a previously running Phase 3 pipeline, including a receipt whose raw row expired.
+  await source.undoLastMigration();
+  const eventId = randomUUID();
+  await source.query(
+    `INSERT INTO measurements ("eventId","workspaceId","deviceId",generation,metric,"applicationId",quality,"sourceKind","collectorVersion",value,unit,"intervalStart","intervalEnd","collectedAt") VALUES ($1,$2,$3,1,'mobile_data_bytes','','measured','android','synthetic-1',1,'bytes','2026-11-01T00:00:00Z','2026-11-01T00:00:01Z','2026-11-01T00:00:01Z')`,
+    [eventId, workspace.id, measurementDevice.id],
+  );
+  await source.query(
+    `INSERT INTO measurement_receipts ("eventId","deviceId","payloadHash") VALUES ($1,$2,$3),($4,$2,$3)`,
+    [eventId, measurementDevice.id, 'a'.repeat(64), randomUUID()],
+  );
+  await source.query(
+    'UPDATE registered_devices SET "monitoringEnabled"=true WHERE id=$1',
+    [measurementDevice.id],
+  );
+  await source.runMigrations();
+  const { fingerprint } = require('../dist/monitoring/values.js');
+  const backfilled = (
+    await source.query(
+      'SELECT * FROM measurement_receipts WHERE "eventId"=$1',
+      [eventId],
+    )
+  )[0];
+  assert.equal(
+    backfilled.partitionHash,
+    fingerprint(['mobile_data_bytes', '', 'measured']),
+  );
+  assert.equal(
+    backfilled.intervalStart.toISOString(),
+    '2026-11-01T00:00:00.000Z',
+  );
+  assert.equal(
+    (
+      await source.query(
+        'SELECT "monitoringEnabled" FROM registered_devices WHERE id=$1',
+        [measurementDevice.id],
+      )
+    )[0].monitoringEnabled,
+    false,
+  );
+  assert.equal(
+    (await source.driver.createSchemaBuilder().log()).upQueries.length,
+    0,
   );
   await assert.rejects(
     source.query(

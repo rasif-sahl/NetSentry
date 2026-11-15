@@ -190,6 +190,8 @@ Completion: API integration tests cover recovery, session revocation, enrolment 
 
 ### Phase 3 Measurement and notification infrastructure
 
+Status: backend infrastructure implemented and verified with synthetic integration fixtures. Native buffers/collectors, UI integration, deployment scheduling and physical push acceptance remain in their platform/deployment phases. See `docs/features/monitoring.md` and `docs/validation/phase-3.md`.
+
 - Implement idempotent ingestion, offline batch synchronization, retry limits, source attribution, data-quality flags, missing intervals, and raw/aggregate retention.
 - Add daily/weekly/monthly aggregation, comparison periods, report/export APIs, measurement-source indicators, and measured/estimated distinctions.
 - Implement configurable thresholds, severity, quiet hours, device/network scope, alert acknowledgement, delivery attempts, and notification preferences.

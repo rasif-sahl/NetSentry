@@ -28,7 +28,8 @@
     "test:database": "npm run build && node scripts/check-database.mjs",
     "test:api": "npm run build && node scripts/check-api.mjs",
     "mail:deliver": "npm run build && node dist/mail/deliver-cli.js",
-    "accounts:cleanup": "npm run build && node dist/mail/cleanup-cli.js"
+    "accounts:cleanup": "npm run build && node dist/mail/cleanup-cli.js",
+    "monitoring:work": "npm run build && node dist/monitoring/work-cli.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

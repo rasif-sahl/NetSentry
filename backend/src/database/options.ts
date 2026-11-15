@@ -1,3 +1,20 @@
+import {
+  AlertRule,
+  AlertOccurrence,
+  NotificationDelivery,
+  NotificationPreference,
+} from '../monitoring/alert.entities';
+import {
+  RetentionPolicy,
+  Measurement,
+  MeasurementReceipt,
+  SyncBatch,
+  CollectionGap,
+  DailyUsage,
+  MonitoringRun,
+  UsageNetwork,
+  DeviceUsageNetwork,
+} from '../monitoring/entities';
 import type { DataSourceOptions } from 'typeorm';
 import { validateDatabaseEnvironment } from '../config/environment';
 import { Session } from '../auth/session.entity';
@@ -32,6 +49,19 @@ export function databaseOptions(
       DeviceEnrolment,
       DeviceEvent,
       PrivacyEvent,
+      AlertRule,
+      AlertOccurrence,
+      NotificationDelivery,
+      NotificationPreference,
+      RetentionPolicy,
+      Measurement,
+      MeasurementReceipt,
+      SyncBatch,
+      CollectionGap,
+      DailyUsage,
+      MonitoringRun,
+      UsageNetwork,
+      DeviceUsageNetwork,
     ],
     migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
     migrationsTableName: 'netsentry_migrations',

@@ -1,3 +1,6 @@
+import { NotificationPreference } from '../monitoring/alert.entities';
+import { eraseMonitoring } from '../monitoring/privacy';
+import { Measurement, DailyUsage, CollectionGap } from '../monitoring/entities';
 import {
   ConflictException,
   Injectable,
@@ -81,6 +84,28 @@ export class PrivacyService {
         user: this.auth.safeUser(user),
         memberships,
         devices: devices.map(publicDevice),
+        notificationPreferences:
+          (await manager.findOneBy(NotificationPreference, { userId })) ??
+          manager.create(NotificationPreference, { userId }),
+        monitoring: {
+          measurements: devices.length
+            ? await manager.findBy(Measurement, {
+                deviceId: In(devices.map((d) => d.id)),
+              })
+            : [],
+          dailyUsage: devices.length
+            ? await manager.findBy(DailyUsage, {
+                deviceId: In(devices.map((d) => d.id)),
+              })
+            : [],
+          declaredGaps: devices.length
+            ? (
+                await manager.findBy(CollectionGap, {
+                  deviceId: In(devices.map((d) => d.id)),
+                })
+              ).map(({ payloadHash: _payloadHash, ...gap }) => gap)
+            : [],
+        },
         deviceHistory: history.map((event) => ({
           id: event.id,
           deviceId: event.deviceId,
@@ -157,6 +182,10 @@ export class PrivacyService {
             'Transfer ownership of shared workspaces containing other people before deleting your account.',
           );
       }
+      const subjects = await manager.findBy(RegisteredDevice, {
+        registeredById: userId,
+      });
+      for (const device of subjects) await eraseMonitoring(manager, device.id);
       for (const workspace of owned)
         await manager.delete(Workspace, workspace.id);
       // FKs remove sessions, actions, outbox, enrolments, owned devices/history and

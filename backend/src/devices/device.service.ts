@@ -1,3 +1,4 @@
+import { eraseMonitoring } from '../monitoring/privacy';
 import {
   BadRequestException,
   ConflictException,
@@ -258,6 +259,7 @@ export class DeviceService {
           device.permissionStatus = 'unknown';
           device.monitoringHealth = 'unknown';
           device.batteryOptimizationStatus = 'unknown';
+          await eraseMonitoring(manager, device.id);
           await manager.delete(DeviceEvent, { deviceId: device.id });
         }
         if (action !== 'pause')
@@ -296,6 +298,13 @@ export class DeviceService {
       generation: device.generation,
       monitoringEnabled: device.monitoringEnabled,
       consentScopes: device.consentScopes,
+      syncPolicy: {
+        maxEvents: 100,
+        maxGaps: 100,
+        maxAttempts: 8,
+        initialBackoffMs: 1000,
+        maxBackoffMs: 300000,
+      },
     };
   }
 
