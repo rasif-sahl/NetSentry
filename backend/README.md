@@ -58,4 +58,6 @@ The shared OpenAPI specification is `../contracts/openapi/api.v1.json`. Error co
 TEST_DATABASE_URL=postgresql://localhost/netsentry_api_test npm run test:api
 ```
 
+`npm run test:e2e` aliases this same integration check, replacing the original starter test that did not exercise the configured API.
+
 This runs a loopback API server with fixture accounts, validates actual responses against OpenAPI component/operation schemas, and checks request validation, workspace isolation, device ownership, refresh rotation and session revocation. It rolls back its fixture schema afterward. It does not contact mobile devices or external notification services.

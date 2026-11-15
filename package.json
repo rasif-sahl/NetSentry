@@ -16,6 +16,9 @@
     "check:desktop": "npm --prefix desktop run typecheck",
     "test:agent": "cd agent && GOTOOLCHAIN=local go test ./...",
     "check:contracts": "npm --prefix contracts run check",
-    "test:contracts": "npm --prefix contracts test"
+    "test:contracts": "npm --prefix contracts test",
+    "check": "npm run check:scaffolds && npm run check:contracts && npm run test:contracts && npm run build:backend && npm run test:backend && npm run build:desktop",
+    "test:database": "npm --prefix backend run test:database",
+    "test:api": "npm --prefix backend run test:api"
   }
 }

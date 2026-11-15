@@ -30,7 +30,10 @@ No command automatically starts monitoring, installs a persistent agent, stops p
 Use an existing Node.js 24 toolchain. Applications keep independent package files/lockfiles; the root package has no dependencies and is not an npm workspace that installs every application together.
 
 ```sh
+npm run check
 npm run check:scaffolds
+npm run check:contracts
+npm run test:contracts
 npm run build:backend
 npm run test:backend
 npm run dev:backend
@@ -38,6 +41,8 @@ npm run dev:dashboard
 npm run check:desktop
 npm run build:desktop
 ```
+
+The contracts checks require `npm --prefix contracts ci --ignore-scripts` when preparing a fresh checkout. `npm run check` checks scaffolds/contracts, runs contract/backend units, and builds backend/desktop; it does not install dependencies or mobile tools.
 
 Backend commands require its existing dependencies; server/integration tests require the configured PostgreSQL environment. `dev:dashboard` uses port 3001 to match the existing API CORS example. Desktop checks require its prepared dependencies. If preparing them later, use `npm --prefix desktop ci --ignore-scripts` to avoid running dependency installers. Electron's runtime binary is intentionally not installed by this command; see `desktop/README.md` before desktop launch. Standard first-use backend/dashboard dependency installation is separate and is not performed by root commands.
 
@@ -47,7 +52,26 @@ Agent commands require an existing Go 1.23+ toolchain. Native build/signing comm
 
 - [Complete development plan](DEVELOPMENT_PLAN.md)
 - [Phase 0 architecture decisions](docs/architecture/phase-0-decisions.md)
+- [Phase 1 verification](docs/validation/phase-1.md)
+- [Agent and authenticated IPC design](docs/architecture/agent-protocol.md)
+- [Workspace permission boundaries](docs/architecture/workspace-permissions.md)
+- [Privacy and data lifecycle](docs/architecture/data-and-privacy.md)
+- [Platform feasibility and hardware gates](docs/architecture/platform-feasibility.md)
+- [Deployment foundation](infra/deployment.md)
 - [Implementation backlog](docs/backlog.md)
 - [Phase 0 verification and physical-device checklist](docs/validation/phase-0.md)
 
 Source implementation, verified build, integration verification and physical-device verification are tracked separately. Email sorting is deferred.
+
+## Database and API integration checks
+
+Use a dedicated empty PostgreSQL database ending in `_test`, supplied through `TEST_DATABASE_URL`. See `backend/.env.test.example`. Do not use a real application database.
+
+```sh
+npm run test:database
+npm run test:api
+```
+
+The database check verifies clean migration, rollback, constraints, schema drift refusal and existing-data adoption. The API check validates actual operation responses against OpenAPI and exercises session, workspace, device-ownership and viewer-permission boundaries. Both use only fixture data and remove their fixture schema afterward. Neither provisions a database server.
+
+The Foundation checks workflow uses isolated PostgreSQL on GitHub Actions, checks backend/contracts/desktop, and builds/runs the Go scaffold on a CI Go toolchain. It has no mobile setup/build/simulator steps and does not deploy the application. Native builds and real-device tests remain deferred.
