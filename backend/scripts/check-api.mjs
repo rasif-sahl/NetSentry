@@ -14,6 +14,7 @@ if (!url || !new URL(url).pathname.endsWith('_test'))
   );
 Object.assign(process.env, {
   NODE_ENV: 'test',
+  ACCOUNT_MAIL_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
   DATABASE_URL: url,
   DATABASE_SSL: process.env.TEST_DATABASE_SSL ?? 'false',
   DB_SYNCHRONIZE: 'false',
@@ -23,6 +24,8 @@ Object.assign(process.env, {
   JWT_REFRESH_TOKEN_SECRET:
     'isolated-api-test-refresh-secret-not-for-production',
 });
+const { deliverOne } = require('../dist/mail/delivery.js');
+const { decryptMail } = require('../dist/mail/mail-crypto.js');
 const { DataSource } = require('typeorm');
 const { databaseOptions } = require('../dist/database/options.js');
 const { NestFactory } = require('@nestjs/core');
@@ -89,12 +92,34 @@ try {
     } else if (schema) validateApiPayload(schema, payload);
     return payload;
   }
+  async function mailToken(email, purpose) {
+    const [row] = await source.query(
+      'SELECT m.id, m."encryptedPayload" FROM mail_outbox m JOIN users u ON u.id=m."userId" WHERE u.email=$1 ORDER BY m."createdAt" DESC',
+      [email],
+    );
+    assert.ok(row, 'Expected encrypted fixture mail');
+    const payload = decryptMail(
+      row.encryptedPayload,
+      process.env.ACCOUNT_MAIL_ENCRYPTION_KEY,
+      row.id,
+    );
+    assert.equal(payload.purpose, purpose);
+    return payload.token;
+  }
+  async function verify(email) {
+    const token = await mailToken(email, 'verify_email');
+    await request('POST', '/auth/verification/confirm', 201, null, { token });
+    await request('POST', '/auth/verification/confirm', 400, 'ApiError', {
+      token,
+    });
+  }
   await request('GET', '/health', 200, 'Health');
   const alice = await request('POST', '/auth/register', 201, 'AuthSession', {
     email: 'alice@example.invalid',
     displayName: 'Alice fixture',
     password: 'fixture-password-1234',
   });
+  await verify('alice@example.invalid');
   await request('GET', '/auth/me', 200, 'User', null, alice.accessToken);
   const [workspace] = await request(
     'GET',
@@ -164,6 +189,7 @@ try {
     displayName: 'Bob fixture',
     password: 'fixture-password-1234',
   });
+  await verify('bob@example.invalid');
   await request(
     'GET',
     `/workspaces/${workspace.id}/devices`,
@@ -257,6 +283,175 @@ try {
   await request('POST', '/auth/logout', 201, null, null, login.accessToken);
   await request('GET', '/auth/me', 401, 'ApiError', null, login.accessToken);
   await request('GET', '/missing', 404, 'ApiError');
+  const beforeReset = await request('POST', '/auth/login', 201, 'AuthSession', {
+    email: 'alice@example.invalid',
+    password: 'fixture-password-1234',
+  });
+  const unknownRecovery = await request(
+    'POST',
+    '/auth/password/forgot',
+    201,
+    null,
+    { email: 'unknown@example.invalid' },
+  );
+  const knownRecovery = await request(
+    'POST',
+    '/auth/password/forgot',
+    201,
+    null,
+    { email: 'alice@example.invalid' },
+  );
+  assert.deepEqual(
+    knownRecovery,
+    unknownRecovery,
+    'Recovery responses cannot identify registered addresses.',
+  );
+  const reset = await mailToken('alice@example.invalid', 'reset_password');
+  await request('POST', '/auth/verification/confirm', 400, 'ApiError', {
+    token: reset,
+  });
+  await request('POST', '/auth/password/reset', 201, null, {
+    token: reset,
+    password: 'replacement-password-5678',
+  });
+  await request('POST', '/auth/password/reset', 400, 'ApiError', {
+    token: reset,
+    password: 'replacement-password-5678',
+  });
+  await request('POST', '/auth/login', 401, 'ApiError', {
+    email: 'alice@example.invalid',
+    password: 'fixture-password-1234',
+  });
+  await request(
+    'GET',
+    '/auth/me',
+    401,
+    'ApiError',
+    null,
+    beforeReset.accessToken,
+  );
+  let recovered = await request('POST', '/auth/login', 201, 'AuthSession', {
+    email: 'alice@example.invalid',
+    password: 'replacement-password-5678',
+  });
+  await request(
+    'PATCH',
+    '/auth/me',
+    200,
+    'User',
+    { displayName: 'Updated fixture' },
+    recovered.accessToken,
+  );
+  const preference = await request(
+    'PATCH',
+    '/auth/preferences',
+    200,
+    'User',
+    { theme: 'DARK', notifications: { push: false } },
+    recovered.accessToken,
+  );
+  assert.equal(preference.preferences.notifications.push, false);
+  await request(
+    'PATCH',
+    '/auth/preferences',
+    400,
+    'ApiError',
+    { activeWorkspaceId: workspace.id },
+    recovered.accessToken,
+  );
+  const otherLogin = await request('POST', '/auth/login', 201, 'AuthSession', {
+    email: 'alice@example.invalid',
+    password: 'replacement-password-5678',
+  });
+  await request(
+    'DELETE',
+    '/auth/sessions',
+    200,
+    null,
+    null,
+    recovered.accessToken,
+  );
+  await request(
+    'GET',
+    '/auth/me',
+    401,
+    'ApiError',
+    null,
+    otherLogin.accessToken,
+  );
+  await request('GET', '/auth/me', 200, 'User', null, recovered.accessToken);
+  await request('POST', '/auth/password/forgot', 201, null, {
+    email: 'alice@example.invalid',
+  });
+  const expired = await mailToken('alice@example.invalid', 'reset_password');
+  await source.query(
+    "UPDATE account_actions SET \"expiresAt\"=now()-interval '1 minute' WHERE purpose='reset_password'",
+  );
+  await request('POST', '/auth/password/reset', 400, 'ApiError', {
+    token: expired,
+    password: 'replacement-password-9999',
+  });
+  await request('POST', '/auth/password/forgot', 201, null, {
+    email: 'alice@example.invalid',
+  });
+  const concurrentToken = await mailToken(
+    'alice@example.invalid',
+    'reset_password',
+  );
+  const delivered = [];
+  for (let i = 0; i < 20; i++) {
+    const result = await deliverOne(
+      source,
+      process.env.ACCOUNT_MAIL_ENCRYPTION_KEY,
+      'https://app.example.invalid',
+      async (mail) => {
+        delivered.push(mail);
+      },
+    );
+    if (result === 'sent' || result === 'empty') break;
+  }
+  assert.equal(
+    delivered.length,
+    1,
+    'Mock delivery receives only the current valid message.',
+  );
+  assert.ok(delivered[0].text.includes('#token='));
+  const concurrentResults = await Promise.all(
+    [0, 1].map(() =>
+      fetch(`${base}/auth/password/reset`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          token: concurrentToken,
+          password: 'final-fixture-password-7890',
+        }),
+      }),
+    ),
+  );
+  assert.deepEqual(
+    concurrentResults.map((response) => response.status).sort(),
+    [201, 400],
+    'Reset must have only one winner.',
+  );
+  await request(
+    'GET',
+    '/auth/me',
+    401,
+    'ApiError',
+    null,
+    recovered.accessToken,
+  );
+  recovered = await request('POST', '/auth/login', 201, 'AuthSession', {
+    email: 'alice@example.invalid',
+    password: 'final-fixture-password-7890',
+  });
+  await source.query("UPDATE users SET status='SUSPENDED' WHERE id=$1", [
+    bob.user.id,
+  ]);
+  await request('GET', '/auth/me', 401, 'ApiError', null, bob.accessToken);
+  await request('POST', '/auth/refresh', 401, 'ApiError', {
+    refreshToken: bob.refreshToken,
+  });
   console.log(
     'Passed live API/schema checks, validation errors, request correlation, workspace isolation, device ownership and session revocation.',
   );
@@ -264,7 +459,17 @@ try {
   if (app) await app.close();
   if (source.isInitialized) {
     try {
-      if (ownsSchema) await source.undoLastMigration();
+      if (ownsSchema)
+        while (
+          Number(
+            (
+              await source.query(
+                'SELECT count(*) AS count FROM netsentry_migrations',
+              )
+            )[0].count,
+          )
+        )
+          await source.undoLastMigration();
     } finally {
       await source.destroy();
     }

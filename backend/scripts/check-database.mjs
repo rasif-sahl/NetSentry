@@ -4,6 +4,7 @@ const require = createRequire(import.meta.url);
 require('reflect-metadata');
 const { DataSource } = require('typeorm');
 const { databaseOptions } = require('../dist/database/options.js');
+const { baselineEntities } = require('../dist/database/baseline/index.js');
 const { adoptBaseline } = require('../dist/database/adopt-baseline.js');
 
 const url = process.env.TEST_DATABASE_URL;
@@ -82,7 +83,14 @@ try {
     0,
     'Workspace deletion must cascade to devices.',
   );
-  await source.undoLastMigration();
+  while (
+    Number(
+      (
+        await source.query('SELECT count(*) AS count FROM netsentry_migrations')
+      )[0].count,
+    )
+  )
+    await source.undoLastMigration();
   assert.equal(
     (
       await source.query(
@@ -93,7 +101,18 @@ try {
   );
 
   // Reproduce a development schema created through synchronize, then adopt it.
-  await source.synchronize();
+  const baseline = new DataSource({
+    ...source.options,
+    entities: baselineEntities,
+    migrations: [],
+    synchronize: false,
+  });
+  try {
+    await baseline.initialize();
+    await baseline.synchronize();
+  } finally {
+    if (baseline.isInitialized) await baseline.destroy();
+  }
   const [preserved] = await source.query(
     `INSERT INTO users (email, "displayName", "passwordHash") VALUES ('preserved@example.invalid', 'Preserved fixture', 'not-a-real-password') RETURNING id`,
   );
@@ -101,6 +120,7 @@ try {
   await assert.rejects(adoptBaseline(source), /does not match/);
   await source.query('ALTER TABLE users DROP COLUMN unexpected_column');
   await adoptBaseline(source);
+  await source.runMigrations();
   assert.equal(
     (await source.query('SELECT id FROM users WHERE id=$1', [preserved.id]))
       .length,
@@ -112,7 +132,14 @@ try {
     (await source.driver.createSchemaBuilder().log()).upQueries.length,
     0,
   );
-  await source.undoLastMigration();
+  while (
+    Number(
+      (
+        await source.query('SELECT count(*) AS count FROM netsentry_migrations')
+      )[0].count,
+    )
+  )
+    await source.undoLastMigration();
   console.log(
     'Passed clean migration, constraints/cascades, rollback, drift refusal and data-preserving baseline adoption.',
   );

@@ -85,6 +85,14 @@ export function validateEnvironment(input: Record<string, unknown>) {
   }
   if (accessSecret === refreshSecret)
     throw new Error('JWT access and refresh secrets must be different.');
+  const mailKey = text(input.ACCOUNT_MAIL_ENCRYPTION_KEY);
+  if (
+    !/^[A-Za-z0-9+/]{43}=$/.test(mailKey) ||
+    Buffer.from(mailKey, 'base64').length !== 32
+  )
+    throw new Error(
+      'ACCOUNT_MAIL_ENCRYPTION_KEY must be an independent base64-encoded 32-byte key.',
+    );
   const ttl = text(input.JWT_ACCESS_TOKEN_TTL, '15m');
   if (!/^[1-9]\d*(s|m|h|d)$/.test(ttl))
     throw new Error(
@@ -118,6 +126,7 @@ export function validateEnvironment(input: Record<string, unknown>) {
   }
   return {
     ...database,
+    ACCOUNT_MAIL_ENCRYPTION_KEY: mailKey,
     PORT: integer(input.PORT, 'PORT', 3000, 65535),
     API_PREFIX: prefix,
     CORS_ORIGINS: [...new Set(origins)],

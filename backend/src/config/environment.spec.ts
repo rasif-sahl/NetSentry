@@ -5,6 +5,7 @@ import {
 import { databaseOptions } from '../database/options';
 
 const input = {
+  ACCOUNT_MAIL_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
   DATABASE_URL: 'postgresql://test:password@localhost/netsentry_test',
   JWT_ACCESS_TOKEN_SECRET: 'access-secret-for-isolated-unit-tests-only',
   JWT_REFRESH_TOKEN_SECRET: 'refresh-secret-for-isolated-unit-tests-only',

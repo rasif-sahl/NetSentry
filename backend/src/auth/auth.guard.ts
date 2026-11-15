@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import type { Request } from 'express';
 import { Repository } from 'typeorm';
 import type { RequestUser } from './request-user';
+import { AccountStatus } from '../users/user.entity';
 import { Session } from './session.entity';
 
 @Injectable()
@@ -39,8 +40,14 @@ export class AuthGuard implements CanActivate {
     if (payload.type !== 'access') throw new UnauthorizedException();
     const session = await this.sessions.findOne({
       where: { id: payload.sid, userId: payload.sub },
+      relations: { user: true },
     });
-    if (!session || session.revokedAt || session.expiresAt <= new Date()) {
+    if (
+      !session ||
+      session.revokedAt ||
+      session.expiresAt <= new Date() ||
+      session.user.status !== AccountStatus.ACTIVE
+    ) {
       throw new UnauthorizedException('Session expired.');
     }
     request.user = {
