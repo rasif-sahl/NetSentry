@@ -12,3 +12,30 @@ artifacts/
 /backend/secrets/
 
 .DS_Store
+
+# Platform dependencies and generated output.
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Native local configuration, caches, builds and signing materials.
+.gradle/
+.kotlin/
+**/build/
+local.properties
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.ipa
+*.apk
+*.aab
+*.dSYM/
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+
+# Go outputs and local agent state.
+/agent/bin/
+/agent/.local/
