@@ -54,6 +54,8 @@ Agent commands require an existing Go 1.23+ toolchain. Native build/signing comm
 - [Phase 0 architecture decisions](docs/architecture/phase-0-decisions.md)
 - [Phase 1 verification](docs/validation/phase-1.md)
 - [Phase 2 verification](docs/validation/phase-2.md)
+- [Phase 3 verification](docs/validation/phase-3.md)
+- [Measurements, reports and notifications](docs/features/monitoring.md)
 - [Account verification and recovery](docs/features/accounts.md)
 - [Workspace collaboration](docs/features/workspaces.md)
 - [Device lifecycle and consent](docs/features/devices.md)
@@ -88,3 +90,9 @@ Before starting the backend, set an independent base64-encoded 32-byte `ACCOUNT_
 Account mail is queued encrypted. Real delivery requires configured SMTP credentials and explicitly enabled delivery; client verification/reset screens come later. `npm --prefix backend run mail:deliver` processes delivery batches, and `npm --prefix backend run accounts:cleanup` purges expired tokens/messages without SMTP. No real email is sent by the integration tests.
 
 Direct device registration is disabled in favor of one-time enrolment. Device credentials differ from user sessions; consent, revocation and configuration generations constrain later collection. Current device reports are authenticated metadata, not actual native monitoring measurements.
+
+## Phase 3 setup
+
+Review and apply explicit migrations before using the measurement APIs. The final Phase 3 migration pauses old monitoring grants and advances configuration generations; accept the current monitoring disclosure before uploading. No collector is enabled by migration.
+
+Measurement batches, usage reports/CSV, retention, manual network labels, alert rules, in-app notification delivery and operational diagnostics are implemented in the backend. Run `npm --prefix backend run monitoring:work -- WORKSPACE_UUID` for one bounded maintenance pass per workspace; deployment scheduling remains to be configured. Push providers remain unavailable. See [monitoring behavior and limits](docs/features/monitoring.md).

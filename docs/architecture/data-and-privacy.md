@@ -1,6 +1,6 @@
 # Data and privacy foundations
 
-Phase 1 establishes contracts and boundaries. Monitoring ingestion, consent records, retention jobs, exports and full deletion workflows are implemented in subsequent phases before the corresponding collection features are enabled. No monitoring collector is enabled now.
+Phases 1–3 establish contracts, account/device consent and lifecycle, measurement ingestion, scoped reports/exports, retention and derivative-data deletion. See `../features/monitoring.md` for the implemented Phase 3 bounds and `../validation/phase-3.md` for fixture verification. No real monitoring collector is enabled now.
 
 ## Identity and provenance
 

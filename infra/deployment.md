@@ -1,23 +1,50 @@
-# Deployment foundation
+# Shared contracts
 
-Phase 1 defines topology and checks; it does not deploy services, provision cloud accounts, start a permanent database or install mobile tooling.
+Backend, Kotlin, Swift, Go and TypeScript clients use language-neutral schemas. Platform source and generated client bindings stay with their applications. No mobile build tool is needed to check these contracts.
 
-## Environments and topology
+## Implemented API
 
-Keep local development, disposable tests, staging and production separate, with distinct databases and credentials. Clients/agents connect through a TLS HTTPS API entry point. Keep PostgreSQL on a private network with certificate verification enabled. A reverse proxy terminates public TLS; restrict trust-proxy settings explicitly when configuring real deployment, so client IP/rate limits cannot be spoofed.
+`openapi/api.v1.json` describes the 46 documented account, workspace, device, health and privacy operations (including disabled legacy registration) at the default `/api/v1` base. It includes request/response schemas, bearer authentication, path parameters, status codes and structured errors. The deployment base URL and prefix remain configurable. The legacy starter root response is not a product API.
 
-Run reviewed migrations as an explicit deployment step with a suitably scoped migration role, then run the application with a less privileged runtime database role. Startup never synchronizes or runs migrations automatically. Back up and verify restoration before a production schema change. The initial migration needs the uuid-ossp extension, which can be provisioned by the administrator. Do not reverse the populated baseline to roll back an application release; use compatible application rollback and verified backups.
+POST responses retain NestJS's existing 201 status. Session refresh revokes the previous session. Personal workspaces are created at signup; manual PERSONAL creation returns 403. Existing optional input fields accept null where their DTO uses `IsOptional`. Direct legacy device registration is disabled. One-time enrolment returns a separate opaque device credential; capability/permission history and reported metadata use scoped lifecycle endpoints. Capability declarations never grant permissions. The pre-release API is v1.2.0; native/web consumers are still being implemented.
 
-Use UTC for the backend process and database sessions, and explicit workspace timezones for reports. Secrets come from environment/managed secret storage, never committed environment files. Production requires verified database TLS and explicit HTTPS CORS origins. A configured CA is separate from permissive TLS; certificate errors must fail rather than disabling verification.
+Errors include `statusCode`, stable `code`, user-facing `message`, optional validation `details`, query-free `path`, UTC `timestamp` and server-generated `requestId`. The same correlation ID is returned in `x-request-id`; arbitrary caller IDs are not trusted. Internal errors never expose exception messages or query strings. Health is liveness only, not a dependency-readiness guarantee.
 
-## Runtime and health
+## Shared formats and future contracts
 
-`GET /api/v1/health` reports process liveness only. Future readiness checks must verify the database, migration level and required background dependencies without exposing credentials. Design separate worker processes when ingestion/retention/alerts need jobs; no queue/provider is installed or claimed implemented now. API handlers and workers share idempotency rules and a versioned contract.
+| Schema | Purpose | Implementation boundary |
+| --- | --- | --- |
+| `capability-report.schema.json` | Original Phase 0 local agent startup report | Agent only prints disabled module status and exits |
+| `device-capabilities.v1.schema.json` | Per-feature status/reason, source, setup steps, action availability and check/report times | Implemented for authenticated device health/capability reports; no usage-measurement ingestion yet |
+| `measurement.v1.schema.json` | Event/workspace/device IDs, source/version, interval, UTC times, units, measured/estimated quality and optional application ID | Future monitoring ingestion |
+| `service-permissions.v1.schema.json` | Server-evaluated viewing/control rights for a paired agent | Future control authorization; capabilities cannot grant these rights |
+| `service-command.v1.schema.json` | Typed stop/force-stop command, target identity, request time and expiry | Future remote execution, never arbitrary shell input |
+| `local-ipc.v1.schema.json` | Typed local status/list/stop request envelope | Future authenticated desktop-agent transport; not a listening socket |
 
-Expose structured request/operation correlation, error-rate/latency, rejected-ingestion counts, source freshness, agent disconnects, job retries, retention backlog and notification failures as those domains arrive. Keep metrics free of payloads/secrets and avoid high-cardinality device identifiers as labels. Set deployment scale/freshness/SLO targets before load testing and autoscaling decisions.
+All examples in `fixtures/` are synthetic. They do not establish real monitoring support. Unsupported/permission/setup states expose no executable actions. Command checks enforce a positive lifetime of at most 60 seconds; real execution must additionally check current time, current authorization, duplicate state and the actual process identity. Measurement intervals must be positive, collection cannot precede the interval end, and serialized timestamps must be UTC with a `Z` suffix.
 
-## Packaging and release
+## Versioning and compatibility
 
-Build and verify backend/web/desktop artifacts separately. Package signed Electron/Go artifacts per OS/architecture; native app signing/distribution is a later explicitly prepared environment. No mobile SDK/simulator installation exists in this repository's check workflow. Production promotion requires passing applicable contracts, migration, authorization, build and actual-device/hardware acceptance checks.
+Use UUIDs for server-issued workspace/device/agent/event/service/command identifiers. Installation IDs remain separate opaque strings. Preserve source observation/collection time separately from later ingestion time. Do not derive endpoint identity from IP address or process ID alone.
 
-Choose hosting, key management, notification/job providers, signing identities, update distribution and backup retention before their production features launch. No provider account, paid resource or production secret is assumed to exist.
+API breaking changes require a new major URI version. Breaking event/IPC shape changes require a new schema filename/ID and `schemaVersion`; do not repurpose the legacy startup report. Existing strict schemas are immutable after adoption unless the change is demonstrably compatible; adding required fields or enum values may break older validators. Clients handle unknown capabilities/statuses as unavailable. Revisit client code generation after endpoint contracts stabilize; no native bindings are claimed generated here.
+
+## Checks
+
+```sh
+npm ci --ignore-scripts
+npm run check
+npm test
+```
+
+AJV compiles all JSON Schemas/API components and validates fixtures. Additional checks enforce time, identity uniqueness and capability invariants. The OpenAPI checks cover component compilation, local references and operation structure; they are not a full external OpenAPI conformance linter. `backend/scripts/check-api.mjs` tests actual responses against the specified operation/status schemas using an isolated PostgreSQL database.
+
+The root `check:scaffolds` remains a lightweight file/configuration check, separate from full schema validation and native build verification.
+
+Phase 3 implements the mobile-authenticated measurement batch endpoint and scoped usage/report, retention, manual network label, alert and notification APIs (64 total documented operations). `measurement-batch.v1.schema.json` is a bounded synchronization envelope. Current configuration publishes retry guidance; native persistent queues remain later work. Router/Go-agent sources in the generic observation schema are rejected by the mobile endpoint until their separate authenticated paths exist. See `../docs/features/monitoring.md` for semantic limits and availability.
+
+## Monitoring maintenance
+
+Phase 3 supplies `npm --prefix backend run monitoring:work -- WORKSPACE_UUID` as a one-pass operator command. Deployment must enumerate workspaces and schedule recurring evaluation/delivery/retention passes with failure/backlog monitoring. Each retention pass is bounded to 1,000 rows per store; repeat to catch up. No scheduler/service is installed by application startup. Workspace locks serialize concurrent ingestion, evaluation, scope changes and cleanup.
+
+Android/iOS push providers remain unconfigured and report unavailable. Configure secure token registration, provider idempotency, credentials and bounded network timeouts in the native delivery phase before enabling real push. No provider traffic is generated by current checks. Review `docs/features/monitoring.md` for retention defaults, synchronization metadata retention, renewed disclosure requirements and backup/client-deletion limitations.

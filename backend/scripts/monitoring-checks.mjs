@@ -1,3 +1,7 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
+const execute = promisify(execFile);
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
@@ -343,6 +347,21 @@ export async function checkMonitoring({
   );
   const { retainWorkspace } = require('../dist/monitoring/retention.js');
   await assert.rejects(retainWorkspace(source, workspace.id));
+  const worker = fileURLToPath(
+    new URL('../dist/monitoring/work-cli.js', import.meta.url),
+  );
+  await assert.rejects(
+    execute(process.execPath, [worker, workspace.id], { env: process.env }),
+    (error) => error.code === 1 && error.stderr.includes('retention: failed'),
+  );
+  assert.ok(
+    (
+      await source.query(
+        "SELECT id FROM monitoring_runs WHERE \"workspaceId\"=$1 AND kind='retention' AND status='failed'",
+        [workspace.id],
+      )
+    ).length > 0,
+  );
   assert.equal(
     (
       await source.query(
@@ -354,7 +373,10 @@ export async function checkMonitoring({
   );
   await source.query('DROP TRIGGER fixture_reject_retention ON measurements');
   await source.query('DROP FUNCTION fixture_reject_retention()');
-  await retainWorkspace(source, workspace.id);
+  const worked = await execute(process.execPath, [worker, workspace.id], {
+    env: process.env,
+  });
+  assert.match(worked.stdout, /retention: completed/);
   assert.equal(
     (
       await source.query(

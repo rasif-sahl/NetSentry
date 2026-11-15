@@ -4,9 +4,9 @@ Backend, Kotlin, Swift, Go and TypeScript clients use language-neutral schemas. 
 
 ## Implemented API
 
-`openapi/api.v1.json` describes the 46 documented account, workspace, device, health and privacy operations (including disabled legacy registration) at the default `/api/v1` base. It includes request/response schemas, bearer authentication, path parameters, status codes and structured errors. The deployment base URL and prefix remain configurable. The legacy starter root response is not a product API.
+`openapi/api.v1.json` describes the 64 documented account, workspace, device, health, privacy, monitoring and notification operations (including disabled legacy registration) at the default `/api/v1` base. It includes request/response schemas, bearer authentication, path parameters, status codes and structured errors. The deployment base URL and prefix remain configurable. The legacy starter root response is not a product API.
 
-POST responses retain NestJS's existing 201 status. Session refresh revokes the previous session. Personal workspaces are created at signup; manual PERSONAL creation returns 403. Existing optional input fields accept null where their DTO uses `IsOptional`. Direct legacy device registration is disabled. One-time enrolment returns a separate opaque device credential; capability/permission history and reported metadata use scoped lifecycle endpoints. Capability declarations never grant permissions. The pre-release API is v1.2.0; native/web consumers are still being implemented.
+POST responses retain NestJS's existing 201 status. Session refresh revokes the previous session. Personal workspaces are created at signup; manual PERSONAL creation returns 403. Existing optional input fields accept null where their DTO uses `IsOptional`. Direct legacy device registration is disabled. One-time enrolment returns a separate opaque device credential; capability/permission history and reported metadata use scoped lifecycle endpoints. Capability declarations never grant permissions. The pre-release API is v1.3.0; native/web consumers are still being implemented.
 
 Errors include `statusCode`, stable `code`, user-facing `message`, optional validation `details`, query-free `path`, UTC `timestamp` and server-generated `requestId`. The same correlation ID is returned in `x-request-id`; arbitrary caller IDs are not trusted. Internal errors never expose exception messages or query strings. Health is liveness only, not a dependency-readiness guarantee.
 
@@ -15,8 +15,9 @@ Errors include `statusCode`, stable `code`, user-facing `message`, optional vali
 | Schema | Purpose | Implementation boundary |
 | --- | --- | --- |
 | `capability-report.schema.json` | Original Phase 0 local agent startup report | Agent only prints disabled module status and exits |
-| `device-capabilities.v1.schema.json` | Per-feature status/reason, source, setup steps, action availability and check/report times | Implemented for authenticated device health/capability reports; no usage-measurement ingestion yet |
-| `measurement.v1.schema.json` | Event/workspace/device IDs, source/version, interval, UTC times, units, measured/estimated quality and optional application ID | Future monitoring ingestion |
+| `device-capabilities.v1.schema.json` | Per-feature status/reason, source, setup steps, action availability and check/report times | Implemented for authenticated device health/capability reports; mobile ingestion requires separate consent, permission, current generation and supported OS measurement capability |
+| `measurement-batch.v1.schema.json` | Bounded offline envelope, batch UUID, generation, observations and explicit gaps | Mobile device-authenticated batch endpoint; native persistent buffers pending |
+| `measurement.v1.schema.json` | Event/workspace/device IDs, source/version, interval, UTC times, units, measured/estimated quality and optional application ID | Mobile-authenticated observation ingestion; router/agent paths remain future work |
 | `service-permissions.v1.schema.json` | Server-evaluated viewing/control rights for a paired agent | Future control authorization; capabilities cannot grant these rights |
 | `service-command.v1.schema.json` | Typed stop/force-stop command, target identity, request time and expiry | Future remote execution, never arbitrary shell input |
 | `local-ipc.v1.schema.json` | Typed local status/list/stop request envelope | Future authenticated desktop-agent transport; not a listening socket |
@@ -40,3 +41,5 @@ npm test
 AJV compiles all JSON Schemas/API components and validates fixtures. Additional checks enforce time, identity uniqueness and capability invariants. The OpenAPI checks cover component compilation, local references and operation structure; they are not a full external OpenAPI conformance linter. `backend/scripts/check-api.mjs` tests actual responses against the specified operation/status schemas using an isolated PostgreSQL database.
 
 The root `check:scaffolds` remains a lightweight file/configuration check, separate from full schema validation and native build verification.
+
+Phase 3 implements the mobile-authenticated measurement batch endpoint and scoped usage/report, retention, manual network label, alert and notification APIs (64 total documented operations). `measurement-batch.v1.schema.json` is a bounded synchronization envelope. Current configuration publishes retry guidance; native persistent queues remain later work. Router/Go-agent sources in the generic observation schema are rejected by the mobile endpoint until their separate authenticated paths exist. See `../docs/features/monitoring.md` for semantic limits and availability.

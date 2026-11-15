@@ -12,8 +12,8 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 4 Personal hotspot and data monitoring | 8 | Pending platform/device validation and implementation |
 | 5 Advanced Android monitoring | 9 | Pending |
 | 6 Application catalogue | 9 | Pending |
-| 7 Reports and exports | 3, 4, 9 | Pending |
-| 8 Alerts and notifications | 3 and each domain | Pending; push requires later device checks |
+| 7 Reports and exports | 3, 4, 9 | Phase 3 scoped reports, comparisons, source/quality/coverage indicators and CSV APIs implemented; dashboard/native integration pending |
+| 8 Alerts and notifications | 3 and each domain | Phase 3 measured thresholds, health rules, quiet hours, acknowledgement, in-app delivery, preferences and retries implemented; real push/providers pending |
 | 9 Wi-Fi discovery and agent | 5, 10 | Go module boundary only; discovery pending |
 | 10 Router compatibility | 10 | Pending; select hardware support matrix |
 | 11 Network inventory | 10, 11, 13 | Pending |
@@ -28,8 +28,8 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 20 Roles and permissions | 1, 2, 7, 11, 13 | Workspace roles, invitations, lifecycle/consent ownership and separate service gates implemented; remote-control/Family/Business resource grants pending |
 | 21 Subscriptions and editions | 14, earlier if paid launch | Pending |
 | 22 Responsive web dashboard | 4 and each domain | Existing preview interface; live integration pending |
-| 23 Data and privacy | 1, 2, 3 and each domain | Phase 2 disclosures/history, export, deletion, revocation/generation and account-mail cleanup implemented; future measurement retention and offline-client enforcement pending |
-| 24 Platform administration | 3, 14 | Pending |
+| 23 Data and privacy | 1, 2, 3 and each domain | Phase 2 disclosures/history, export, deletion, revocation/generation and account-mail cleanup implemented; Phase 3 retention and raw/derived-data erasure implemented; offline-client enforcement pending |
+| 24 Platform administration | 3, 14 | Phase 3 workspace monitoring diagnostics implemented; platform administration/billing tools pending |
 | 25 Excluded functionality | All | Preserve catalogue boundaries; no inbox access |
 | 26 Developer tools and mobile stop | 5–8, 12 | Desktop/agent source scaffolds; discovery/control pending |
 | Optional platform/container/AI integrations | 16 | Deferred |
