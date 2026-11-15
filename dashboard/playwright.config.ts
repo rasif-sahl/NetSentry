@@ -16,7 +16,7 @@ export default defineConfig({
   webServer: [
     {
       command: "node ../backend/scripts/serve-dashboard-fixtures.mjs",
-      url: "http://127.0.0.1:54110/api/v1/health",
+      url: "http://127.0.0.1:54110/__dashboard-ready",
       reuseExistingServer: false,
       timeout: 30000,
       gracefulShutdown: { signal: "SIGTERM", timeout: 10000 },

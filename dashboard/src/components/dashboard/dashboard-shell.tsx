@@ -17,6 +17,9 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { DevicesPanel } from "./devices-panel";
+import { NetworksPanel } from "./networks-panel";
+import { ReportsPanel } from "./reports-panel";
 import { api, signOut } from "@/lib/api";
 import { useResource } from "@/lib/use-resource";
 import type { Device, Permissions, User, Workspace } from "@/lib/types";
@@ -102,6 +105,9 @@ export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
       key={session.user.id}
       user={session.user}
       updateUser={(user) => setSession({ ready: true, user })}
+      accountDeleted={() =>
+        setSession({ ready: true, notice: "Your account has been deleted." })
+      }
       onSignOut={async () => {
         const revoked = await signOut();
         setSession({
@@ -121,17 +127,23 @@ export type PageContext = {
   devices: Device[];
   reloadDevices: () => void;
   updateUser: (user: User) => void;
+  accountDeleted: () => void;
 };
 function WorkspaceShell({
   user,
   updateUser,
   onSignOut,
+  accountDeleted,
 }: {
   user: User;
   updateUser: (user: User) => void;
   onSignOut: () => Promise<void>;
+  accountDeleted: () => void;
 }) {
   const workspaces = useResource<Workspace[]>("/workspaces", true);
+  const [selectionError, setSelectionError] = useState<unknown>();
+  const [switching, setSwitching] = useState(false);
+  const switchPending = useRef(false);
   const [selected, setSelected] = useState<string>();
   const [section, setSection] = useState("Overview");
   const [menu, setMenu] = useState(false);
@@ -156,6 +168,7 @@ function WorkspaceShell({
           devices: devices.data,
           reloadDevices: devices.reload,
           updateUser,
+          accountDeleted,
         }
       : undefined;
   const sideRef = useRef<HTMLElement>(null);
@@ -163,6 +176,7 @@ function WorkspaceShell({
   useEffect(() => {
     if (!menu) return;
     const previous = document.body.style.overflow;
+    const trigger = openRef.current;
     document.body.style.overflow = "hidden";
     const nodes = sideRef.current?.querySelectorAll<HTMLElement>(
       "a,button:not([disabled]),select,input",
@@ -186,7 +200,7 @@ function WorkspaceShell({
     return () => {
       document.body.style.overflow = previous;
       document.removeEventListener("keydown", handle);
-      openRef.current?.focus();
+      trigger?.focus();
     };
   }, [menu]);
   const future = [
@@ -271,19 +285,28 @@ function WorkspaceShell({
           <label className="workspace-select">
             <span className="sr-only">Active workspace</span>
             <select
+              disabled={switching}
               aria-label="Active workspace"
               value={workspace?.id ?? ""}
               onChange={async (event) => {
                 const id = event.target.value;
-                setSelected(id);
+                if (switchPending.current) return;
+                switchPending.current = true;
+                setSwitching(true);
+                setSelectionError(undefined);
                 try {
                   await api(`/workspaces/${id}/select`, "POST", {});
+                  setSelected(id);
                   updateUser({
                     ...user,
                     preferences: { ...user.preferences, activeWorkspaceId: id },
                   });
-                } catch {
+                } catch (error) {
+                  setSelectionError(error);
                   workspaces.reload();
+                } finally {
+                  switchPending.current = false;
+                  setSwitching(false);
                 }
               }}
             >
@@ -350,7 +373,12 @@ function WorkspaceShell({
             </Notice>
           )}
           <ErrorNotice
-            error={workspaces.error ?? permission.error ?? devices.error}
+            error={
+              selectionError ??
+              workspaces.error ??
+              permission.error ??
+              devices.error
+            }
           />
           {(workspaces.loading || permission.loading || devices.loading) && (
             <Loading />
@@ -503,16 +531,20 @@ function WorkspaceShell({
 }
 function ConnectedSection({
   section,
+  context,
 }: {
   section: string;
   context: PageContext;
   workspacesChanged: () => void;
   signedOut: () => Promise<void>;
 }) {
+  if (section === "Devices") return <DevicesPanel {...context} />;
+  if (section === "Usage & reports") return <ReportsPanel {...context} />;
+  if (section === "Networks") return <NetworksPanel {...context} />;
   return (
     <Card title={section}>
-      <Empty title="Connecting this workspace section">
-        This view will use the existing NetSentry APIs.
+      <Empty title="This section is being connected">
+        The account and monitoring views are available.
       </Empty>
     </Card>
   );

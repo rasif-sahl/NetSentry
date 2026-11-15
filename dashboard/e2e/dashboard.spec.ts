@@ -80,3 +80,134 @@ test("invalid credentials stay on sign in with a useful error", async ({
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
 });
+
+test("device inventory uses reported health and capability states", async ({
+  page,
+}) => {
+  await login(page);
+  await page.getByRole("button", { name: "Devices", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Device inventory" }),
+  ).toBeVisible();
+  await page.getByLabel("Find a device").fill("no-such-fixture");
+  await expect(
+    page.getByText("No matching devices", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Find a device").fill("");
+  await page
+    .getByRole("button", { name: "View Fixture iOS", exact: true })
+    .click();
+  await expect(
+    page.getByText("restricted by os", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Synthetic OS restriction; not verified native behavior", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "View Fixture Android", exact: true })
+    .click();
+  await page.getByText("Rename this device", { exact: true }).click();
+  await page
+    .getByLabel("Device name", { exact: true })
+    .fill("Fixture Android renamed");
+  await page
+    .getByRole("button", { name: "Rename device", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Fixture Android renamed", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Protected", { exact: true })).toHaveCount(0);
+});
+test("reports show real measured/estimated values, export and isolate workspace switches", async ({
+  page,
+}) => {
+  const data = await login(page);
+  await page
+    .getByRole("button", { name: "Usage & reports", exact: true })
+    .click();
+  await expect(
+    page.getByText("10,485,760 bytes", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("9,437,184 bytes", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("synthetic-browser-1", { exact: true }).first(),
+  ).toBeVisible();
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download CSV", exact: true }).click();
+  const downloaded = await downloading;
+  expect(downloaded.suggestedFilename()).toBe("netsentry-usage.csv");
+  expect(await readFile((await downloaded.path())!, "utf8")).toContain(
+    '"measured","estimated"',
+  );
+  await page.getByLabel("Active workspace").selectOption(data.emptyId);
+  await expect(
+    page.getByText("No observations in this period", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("10,485,760 bytes", { exact: true })).toHaveCount(
+    0,
+  );
+  await page.getByLabel("Active workspace").selectOption(data.workspaceId);
+});
+test("viewers cannot expose another device report or monitoring controls", async ({
+  page,
+}) => {
+  const data = await login(page, "viewer");
+  await page.getByRole("button", { name: "Devices", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Device inventory" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Pause monitoring", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Usage & reports", exact: true })
+    .click();
+  await expect(
+    page.getByText("No observations in this period", { exact: true }),
+  ).toBeVisible();
+  const response = await page.request.get(
+    `/api/backend/workspaces/${data.workspaceId}/monitoring/usage?from=2026-11-01&to=2026-11-16&metric=mobile_data_bytes&deviceId=${data.deviceId}`,
+  );
+  expect(response.status()).toBe(403);
+});
+test("report failures have a recoverable error state", async ({ page }) => {
+  await login(page);
+  await page.route("**/api/backend/workspaces/*/monitoring/usage?*", (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "Synthetic connection failure" }),
+    }),
+  );
+  await page
+    .getByRole("button", { name: "Usage & reports", exact: true })
+    .click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Synthetic connection failure" }),
+  ).toBeVisible();
+  await page.unroute("**/api/backend/workspaces/*/monitoring/usage?*");
+  await page
+    .getByRole("button", { name: "Apply report filters", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Usage over time", exact: true }),
+  ).toBeVisible();
+});
+test("manual network labels are explicit and editable", async ({ page }) => {
+  await login(page);
+  await page.getByRole("button", { name: "Networks", exact: true }).click();
+  await expect(
+    page.getByRole("listitem").getByText("Fixture home label", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Network label name").fill("Browser fixture label");
+  await page
+    .getByRole("button", { name: "Create network label", exact: true })
+    .click();
+  await expect(
+    page.getByRole("listitem").getByText("Browser fixture label", { exact: true }),
+  ).toBeVisible();
+});

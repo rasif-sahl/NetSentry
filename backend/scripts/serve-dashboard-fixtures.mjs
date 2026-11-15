@@ -33,6 +33,7 @@ const { ConfigService } = require('@nestjs/config');
 const { configureHttp } = require('../dist/common/configure-http.js');
 const { decryptMail } = require('../dist/mail/mail-crypto.js');
 const source = await new DataSource(databaseOptions(process.env)).initialize();
+let ready = false;
 let app,
   ownsSchema = false,
   stopping = false;
@@ -83,6 +84,11 @@ try {
     logger: false,
     abortOnError: false,
   });
+  app
+    .getHttpAdapter()
+    .get('/__dashboard-ready', (_request, response) =>
+      response.status(ready ? 200 : 503).json({ ready }),
+    );
   configureHttp(app, app.get(ConfigService));
   await app.listen(54110, '127.0.0.1');
   const base = 'http://127.0.0.1:54110/api/v1';
@@ -271,6 +277,53 @@ try {
   } = require('../dist/monitoring/alert.service.js');
   await evaluateWorkspace(source, workspace.id);
   await deliverWorkspace(source, workspace.id);
+  const iosCode = await call(
+    '/devices/enrolments',
+    'POST',
+    {
+      workspaceId: workspace.id,
+      installationId: randomUUID(),
+      platform: 'IOS',
+    },
+    owner.accessToken,
+  );
+  const ios = await call(
+    '/devices/enrol',
+    'POST',
+    {
+      token: iosCode.token,
+      name: 'Fixture iOS',
+      disclosureVersion: 'device-enrolment-v1',
+      accepted: true,
+    },
+    owner.accessToken,
+  );
+  await call(
+    `/devices/${ios.device.id}/heartbeat`,
+    'POST',
+    {
+      generation: ios.device.generation,
+      permissionStatus: 'denied',
+      capabilityReport: {
+        schemaVersion: 1,
+        workspaceId: workspace.id,
+        deviceId: ios.device.id,
+        reportedAt: now,
+        capabilities: [
+          {
+            id: 'network.wifi_data',
+            status: 'restricted_by_os',
+            reason: 'Synthetic OS restriction; not verified native behavior',
+            source: 'os',
+            checkedAt: now,
+            requiredSetup: [],
+            availableActions: [],
+          },
+        ],
+      },
+    },
+    ios.deviceToken,
+  );
   const label = await call(
     `/workspaces/${workspace.id}/monitoring/networks`,
     'POST',
@@ -313,6 +366,7 @@ try {
     }),
     { mode: 0o600 },
   );
+  ready = true;
   process.on('SIGTERM', () => void stop().finally(() => process.exit(0)));
   process.on('SIGINT', () => void stop().finally(() => process.exit(0)));
   console.log(
