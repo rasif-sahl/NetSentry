@@ -1,3 +1,8 @@
+import {
+  AgentDeveloper,
+  DeveloperCommand,
+  DeveloperAudit,
+} from '../agents/developer.entities';
 import { Agent, AgentEnrolment, AgentEvent } from '../agents/agent.entities';
 import {
   AlertRule,
@@ -39,6 +44,9 @@ export function databaseOptions(
     type: 'postgres',
     url: config.DATABASE_URL,
     entities: [
+      AgentDeveloper,
+      DeveloperCommand,
+      DeveloperAudit,
       Agent,
       AgentEnrolment,
       AgentEvent,
