@@ -667,7 +667,7 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
   await expect(
     page.getByRole("heading", { name: "Network Security", exact: true }),
   ).toBeVisible();
-  expect(await page.getByText("Planned", { exact: true }).count()).toBe(8);
+  expect(await page.getByText("Planned", { exact: true }).count()).toBe(7);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -921,4 +921,96 @@ test("network viewers cannot grant collectors or configure router secrets", asyn
     0,
   );
   await expect(page.getByLabel("Trust label")).toHaveCount(0);
+});
+
+test("child time requests require an assigned guardian decision and never claim applied restrictions", async ({
+  page,
+  browser,
+}) => {
+  const data = await login(page, "child");
+  await page.getByRole("button", { name: "Family", exact: true }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Synthetic family child · family overview",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Save requested policy", exact: true }),
+  ).toHaveCount(0);
+  await page.getByLabel("Requested minutes", { exact: true }).fill("20");
+  await page
+    .getByLabel("Reason for time request", { exact: true })
+    .fill("Browser fixture homework");
+  await page
+    .getByRole("button", { name: "Request more time", exact: true })
+    .click();
+  await expect(
+    page.getByText("Request recorded for an authorized guardian.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  const guardianContext = await browser.newContext();
+  const guardian = await guardianContext.newPage();
+  await login(guardian, "guardian");
+  await guardian.getByRole("button", { name: "Family", exact: true }).click();
+  const item = guardian
+    .getByRole("listitem")
+    .filter({ hasText: "Browser fixture homework" });
+  await expect(item).toContainText("pending");
+  await item
+    .getByRole("button", { name: "Approve request", exact: true })
+    .click();
+  await expect(item).toContainText("approved");
+  await guardianContext.close();
+  await page
+    .getByRole("button", { name: "Refresh child profile", exact: true })
+    .click();
+  await expect(page.getByText("overridden", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(
+      "Current Android consumer usage access and the read-only router adapter cannot enforce",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  expect(data.familyProfileId).toBeTruthy();
+});
+test("family viewers cannot see child profiles and policy edits require explicit consent", async ({
+  page,
+}) => {
+  await login(page, "viewer");
+  await page.getByRole("button", { name: "Family", exact: true }).click();
+  await expect(
+    page.getByText("No child profiles in your current grant", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Weekly wellbeing observations",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Welcome back", exact: true }),
+  ).toBeVisible();
+  await login(page, "owner");
+  await page.getByRole("button", { name: "Family", exact: true }).click();
+  const policy = page
+    .getByRole("heading", { name: "Family policy", exact: true })
+    .locator("..");
+  await policy
+    .getByLabel("Daily observed screen-time allowance (minutes)", {
+      exact: true,
+    })
+    .fill("120");
+  await policy
+    .getByRole("checkbox", {
+      name: "I accept the family-sharing disclosure and have authority for this change.",
+      exact: true,
+    })
+    .check();
+  await policy
+    .getByRole("button", { name: "Save requested policy", exact: true })
+    .click();
+  await expect(page.getByText(/Revision 2 · timezone/)).toBeVisible();
 });
