@@ -817,6 +817,8 @@ try {
   await checkMonitoring({ request, source, alice: recovered, bob, workspace });
   const { checkEstimatedAlerts } = await import('./estimated-alert-checks.mjs');
   await checkEstimatedAlerts({ request, source, alice: recovered, workspace });
+  const { checkApplications } = await import('./application-checks.mjs');
+  await checkApplications({ request, source, app, alice: recovered, bob, workspace });
   const { checkAgents } = await import('./agent-checks.mjs');
   await checkAgents({ request, source, alice: recovered, bob, workspace });
   const { checkRemoteCommands } = await import('./remote-command-checks.mjs');

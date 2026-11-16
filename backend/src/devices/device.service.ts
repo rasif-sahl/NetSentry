@@ -209,6 +209,10 @@ export class DeviceService {
           disclosureVersion: disclosures.monitoring.version,
           disclosureHash: disclosureHash('monitoring'),
           scopes: input.scopes,
+          ...(input.scopes.includes('app_usage') &&
+          input.appUsageDisclosureVersion
+            ? { appUsageDisclosureVersion: input.appUsageDisclosureVersion }
+            : {}),
         });
         return publicDevice(device);
       },

@@ -1,3 +1,8 @@
+import {
+  ApplicationCatalog,
+  ApplicationWindow,
+  ApplicationDay,
+} from './application.entities';
 import { AlertOccurrence, AlertRule } from './alert.entities';
 import { EntityManager } from 'typeorm';
 import {
@@ -26,6 +31,9 @@ export async function eraseMonitoring(
   }
   await manager.delete(AlertRule, { deviceId });
   for (const entity of [
+    ApplicationCatalog,
+    ApplicationWindow,
+    ApplicationDay,
     CollectionGap,
     DailyUsage,
     Measurement,

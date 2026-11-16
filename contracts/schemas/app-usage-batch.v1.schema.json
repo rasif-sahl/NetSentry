@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/app-usage-batch.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "batchId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "workspaceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "deviceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "intervalStart": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "\\.\\d{3}Z$"
+    },
+    "intervalEnd": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "\\.\\d{3}Z$"
+    },
+    "collectedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "\\.\\d{3}Z$"
+    },
+    "screenKnown": {
+      "type": "boolean"
+    },
+    "appKnown": {
+      "type": "boolean"
+    },
+    "sessions": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "\\.\\d{3}Z$"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "\\.\\d{3}Z$"
+          }
+        },
+        "required": [
+          "applicationId",
+          "start",
+          "end"
+        ]
+      }
+    },
+    "screen": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "\\.\\d{3}Z$"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "\\.\\d{3}Z$"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ]
+      }
+    },
+    "launches": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "\\.\\d{3}Z$"
+          }
+        },
+        "required": [
+          "applicationId",
+          "at"
+        ]
+      }
+    },
+    "applications": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "platformCategory": {
+            "enum": [
+              "game",
+              "audio",
+              "video",
+              "image",
+              "social",
+              "news",
+              "maps",
+              "productivity",
+              "accessibility",
+              "unknown"
+            ]
+          }
+        },
+        "required": [
+          "applicationId",
+          "label",
+          "platformCategory"
+        ]
+      }
+    },
+    "issues": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 8,
+      "items": {
+        "enum": [
+          "initial_state_unknown",
+          "screen_api_unavailable",
+          "event_limit",
+          "device_restart",
+          "stream_unavailable",
+          "activity_identity_unavailable",
+          "window_limit",
+          "screen_state_unknown"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "batchId",
+    "generation",
+    "workspaceId",
+    "deviceId",
+    "intervalStart",
+    "intervalEnd",
+    "collectedAt",
+    "screenKnown",
+    "appKnown",
+    "sessions",
+    "screen",
+    "launches",
+    "applications",
+    "issues"
+  ]
+}

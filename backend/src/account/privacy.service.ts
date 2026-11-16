@@ -1,3 +1,8 @@
+import {
+  ApplicationCatalog,
+  ApplicationWindow,
+  ApplicationDay,
+} from '../monitoring/application.entities';
 import { AgentDeveloper, DeveloperCommand } from '../agents/developer.entities';
 import { Agent, AgentEvent } from '../agents/agent.entities';
 import { publicAgent } from '../agents/agent.service';
@@ -107,6 +112,21 @@ export class PrivacyService {
           (await manager.findOneBy(NotificationPreference, { userId })) ??
           manager.create(NotificationPreference, { userId }),
         monitoring: {
+          applicationCatalogs: devices.length
+            ? await manager.findBy(ApplicationCatalog, {
+                deviceId: In(devices.map((d) => d.id)),
+              })
+            : [],
+          applicationWindows: devices.length
+            ? await manager.findBy(ApplicationWindow, {
+                deviceId: In(devices.map((d) => d.id)),
+              })
+            : [],
+          applicationDays: devices.length
+            ? await manager.findBy(ApplicationDay, {
+                deviceId: In(devices.map((d) => d.id)),
+              })
+            : [],
           measurements: devices.length
             ? await manager.findBy(Measurement, {
                 deviceId: In(devices.map((d) => d.id)),

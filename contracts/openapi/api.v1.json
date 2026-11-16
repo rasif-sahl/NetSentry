@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "NetSentry API",
-    "version": "1.8.0",
-    "description": "Implemented account, workspace, device enrolment/lifecycle, health/capability reporting and privacy APIs. Measurement ingestion, router actions and service-command execution remain future contracts. POST endpoints retain 201 defaults. Direct device registration is disabled in favor of explicit enrolment."
+    "version": "1.9.0",
+    "description": "Versioned account, workspace, device consent/health, monitoring/report/alert, agent/remote-command and detailed Android event-history APIs. Technical capability does not grant consent or control. Platform source, API integration and actual device validation are tracked separately. POST endpoints retain 201 defaults; direct legacy device registration is disabled."
   },
   "servers": [
     {
@@ -9257,6 +9257,782 @@
           }
         }
       }
+    },
+    "/devices/{deviceId}/application-usage": {
+      "post": {
+        "operationId": "ingestApplicationUsage",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeasurementReceipt"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceTokenAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationUsageBatch"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspaces/{workspaceId}/monitoring/application-usage": {
+      "get": {
+        "operationId": "getApplicationUsage",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "day",
+                "week",
+                "month"
+              ]
+            }
+          },
+          {
+            "name": "applicationId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationReport"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/monitoring/application-export": {
+      "get": {
+        "operationId": "exportApplicationUsage",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "day",
+                "week",
+                "month"
+              ]
+            }
+          },
+          {
+            "name": "applicationId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageExport"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/monitoring/application-categories": {
+      "post": {
+        "operationId": "createApplicationCategory",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationCatalog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationCategoryRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspaces/{workspaceId}/monitoring/application-categories/{categoryId}": {
+      "delete": {
+        "operationId": "removeApplicationCategory",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationCatalog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/monitoring/application-classification": {
+      "patch": {
+        "operationId": "correctApplicationClassification",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Structured error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationCatalog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationCorrectionRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -10420,6 +11196,9 @@
               ]
             },
             "minItems": 1
+          },
+          "appUsageDisclosureVersion": {
+            "const": "app-usage-v1"
           }
         }
       },
@@ -10601,7 +11380,8 @@
         "additionalProperties": false,
         "required": [
           "enrolment",
-          "monitoring"
+          "monitoring",
+          "applications"
         ],
         "properties": {
           "enrolment": {
@@ -10626,6 +11406,27 @@
             }
           },
           "monitoring": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "version",
+              "text",
+              "hash"
+            ],
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "hash": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          },
+          "applications": {
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -10778,12 +11579,33 @@
                 "items": {
                   "type": "object"
                 }
+              },
+              "applicationCatalogs": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "applicationWindows": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "applicationDays": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
               }
             },
             "required": [
               "measurements",
               "dailyUsage",
-              "declaredGaps"
+              "declaredGaps",
+              "applicationCatalogs",
+              "applicationWindows",
+              "applicationDays"
             ]
           },
           "notificationPreferences": {
@@ -11505,7 +12327,8 @@
             "enum": [
               "threshold",
               "device_offline",
-              "permission_revoked"
+              "permission_revoked",
+              "not_reporting"
             ]
           },
           "metric": {
@@ -11640,7 +12463,8 @@
                 "enum": [
                   "threshold",
                   "device_offline",
-                  "permission_revoked"
+                  "permission_revoked",
+                  "not_reporting"
                 ]
               },
               "metric": {
@@ -13327,6 +14151,805 @@
         "required": [
           "leaseToken",
           "outcome"
+        ]
+      },
+      "ApplicationUsageBatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "batchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "workspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "intervalStart": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "\\.\\d{3}Z$"
+          },
+          "intervalEnd": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "\\.\\d{3}Z$"
+          },
+          "collectedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "\\.\\d{3}Z$"
+          },
+          "screenKnown": {
+            "type": "boolean"
+          },
+          "appKnown": {
+            "type": "boolean"
+          },
+          "sessions": {
+            "type": "array",
+            "maxItems": 128,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "applicationId": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 255,
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
+                },
+                "start": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "\\.\\d{3}Z$"
+                },
+                "end": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "\\.\\d{3}Z$"
+                }
+              },
+              "required": [
+                "applicationId",
+                "start",
+                "end"
+              ]
+            }
+          },
+          "screen": {
+            "type": "array",
+            "maxItems": 128,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "\\.\\d{3}Z$"
+                },
+                "end": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "\\.\\d{3}Z$"
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ]
+            }
+          },
+          "launches": {
+            "type": "array",
+            "maxItems": 256,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "applicationId": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 255,
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "\\.\\d{3}Z$"
+                }
+              },
+              "required": [
+                "applicationId",
+                "at"
+              ]
+            }
+          },
+          "applications": {
+            "type": "array",
+            "maxItems": 32,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "applicationId": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 255,
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
+                },
+                "label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 100
+                },
+                "platformCategory": {
+                  "enum": [
+                    "game",
+                    "audio",
+                    "video",
+                    "image",
+                    "social",
+                    "news",
+                    "maps",
+                    "productivity",
+                    "accessibility",
+                    "unknown"
+                  ]
+                }
+              },
+              "required": [
+                "applicationId",
+                "label",
+                "platformCategory"
+              ]
+            }
+          },
+          "issues": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 8,
+            "items": {
+              "enum": [
+                "initial_state_unknown",
+                "screen_api_unavailable",
+                "event_limit",
+                "device_restart",
+                "stream_unavailable",
+                "activity_identity_unavailable",
+                "window_limit",
+                "screen_state_unknown"
+              ]
+            }
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "batchId",
+          "generation",
+          "workspaceId",
+          "deviceId",
+          "intervalStart",
+          "intervalEnd",
+          "collectedAt",
+          "screenKnown",
+          "appKnown",
+          "sessions",
+          "screen",
+          "launches",
+          "applications",
+          "issues"
+        ]
+      },
+      "ApplicationCatalog": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "applications": {
+            "type": "array",
+            "maxItems": 32,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "applicationId": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 255,
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
+                },
+                "label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 100
+                },
+                "platformCategory": {
+                  "enum": [
+                    "game",
+                    "audio",
+                    "video",
+                    "image",
+                    "social",
+                    "news",
+                    "maps",
+                    "productivity",
+                    "accessibility",
+                    "unknown"
+                  ]
+                }
+              },
+              "required": [
+                "applicationId",
+                "label",
+                "platformCategory"
+              ]
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          },
+          "overrides": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "deviceId",
+          "applications",
+          "categories",
+          "overrides"
+        ]
+      },
+      "ApplicationCategoryRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          }
+        },
+        "required": [
+          "deviceId",
+          "name"
+        ]
+      },
+      "ApplicationCorrectionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "applicationId": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "deviceId",
+          "applicationId",
+          "categoryId"
+        ]
+      },
+      "ApplicationSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "applicationId": {
+            "type": "string"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "platformCategory": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "manual",
+              "unknown",
+              "os_category"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "seconds": {
+            "type": "number"
+          },
+          "previousSeconds": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "observedLaunches": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "launchCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "firstUse": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "lastUse": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "lateNightSeconds": {
+            "type": "number"
+          },
+          "quality": {
+            "const": "estimated"
+          }
+        },
+        "required": [
+          "applicationId",
+          "label",
+          "platformCategory",
+          "categoryId",
+          "category",
+          "source",
+          "confidence",
+          "seconds",
+          "previousSeconds",
+          "observedLaunches",
+          "launchCount",
+          "firstUse",
+          "lastUse",
+          "lateNightSeconds",
+          "quality"
+        ]
+      },
+      "ApplicationReport": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "period": {
+            "enum": [
+              "day",
+              "week",
+              "month"
+            ]
+          },
+          "applications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationSummary"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "seconds": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "seconds"
+              ]
+            }
+          },
+          "customCategories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          },
+          "builtinCategories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "trends": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "periodStart": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "foregroundSeconds": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "screenSeconds": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "expectedMs": {
+                  "type": "number"
+                },
+                "coverageMs": {
+                  "type": "number"
+                },
+                "missingMs": {
+                  "type": "number"
+                },
+                "screenLateNightSeconds": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "periodStart",
+                "foregroundSeconds",
+                "screenSeconds",
+                "expectedMs",
+                "coverageMs",
+                "missingMs",
+                "screenLateNightSeconds"
+              ]
+            }
+          },
+          "limits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "metric": {
+                  "type": "string"
+                },
+                "applicationId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "period": {
+                  "type": "string"
+                },
+                "quality": {
+                  "type": "string"
+                },
+                "threshold": {
+                  "type": "number"
+                },
+                "observedValue": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "percent": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "metric",
+                "applicationId",
+                "period",
+                "quality",
+                "threshold",
+                "observedValue",
+                "percent"
+              ]
+            }
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "batchId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "intervalStart": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "intervalEnd": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "screenKnown": {
+                  "type": "boolean"
+                },
+                "appKnown": {
+                  "type": "boolean"
+                },
+                "issues": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "maxItems": 8,
+                  "items": {
+                    "enum": [
+                      "initial_state_unknown",
+                      "screen_api_unavailable",
+                      "event_limit",
+                      "device_restart",
+                      "stream_unavailable",
+                      "activity_identity_unavailable",
+                      "window_limit",
+                      "screen_state_unknown"
+                    ]
+                  }
+                },
+                "sessions": {
+                  "type": "array",
+                  "maxItems": 128,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "applicationId": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 255,
+                        "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
+                      },
+                      "start": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "\\.\\d{3}Z$"
+                      },
+                      "end": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "\\.\\d{3}Z$"
+                      }
+                    },
+                    "required": [
+                      "applicationId",
+                      "start",
+                      "end"
+                    ]
+                  }
+                },
+                "screen": {
+                  "type": "array",
+                  "maxItems": 128,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "start": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "\\.\\d{3}Z$"
+                      },
+                      "end": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "\\.\\d{3}Z$"
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "batchId",
+                "intervalStart",
+                "intervalEnd",
+                "screenKnown",
+                "appKnown",
+                "issues",
+                "sessions",
+                "screen"
+              ]
+            }
+          },
+          "comparison": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date"
+              },
+              "to": {
+                "type": "string",
+                "format": "date"
+              },
+              "currentSeconds": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "previousSeconds": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "percentChange": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "currentSeconds",
+              "previousSeconds",
+              "percentChange"
+            ]
+          },
+          "insights": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "applicationId": {
+                  "type": "string"
+                },
+                "seconds": {
+                  "type": "number"
+                },
+                "evidence": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "applicationId",
+                "seconds",
+                "evidence"
+              ]
+            }
+          },
+          "qualityNote": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "deviceId",
+          "timezone",
+          "from",
+          "to",
+          "period",
+          "applications",
+          "categories",
+          "customCategories",
+          "builtinCategories",
+          "trends",
+          "limits",
+          "timeline",
+          "comparison",
+          "insights",
+          "qualityNote"
         ]
       }
     }

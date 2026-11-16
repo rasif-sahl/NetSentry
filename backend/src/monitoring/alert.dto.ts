@@ -24,8 +24,9 @@ class QuietHoursDto {
   @IsTimeZone() timezone!: string;
 }
 export class AlertRuleDto {
-  @IsIn(['threshold', 'device_offline', 'permission_revoked']) kind!:
-    'threshold' | 'device_offline' | 'permission_revoked';
+  @IsIn(['threshold', 'device_offline', 'permission_revoked', 'not_reporting'])
+  kind!:
+    'threshold' | 'device_offline' | 'permission_revoked' | 'not_reporting';
   @IsOptional()
   @IsIn([
     'mobile_data_bytes',
@@ -35,7 +36,8 @@ export class AlertRuleDto {
   ])
   metric?: string;
   @IsOptional() @IsString() @MaxLength(255) applicationId?: string;
-  @IsOptional() @IsIn(['measured', 'estimated']) quality?: 'measured' | 'estimated';
+  @IsOptional() @IsIn(['measured', 'estimated']) quality?:
+    'measured' | 'estimated';
   @IsOptional() @IsUUID() deviceId?: string;
   @IsOptional() @IsUUID() networkId?: string;
   @IsIn(['day', 'week', 'month']) period!: 'day' | 'week' | 'month';

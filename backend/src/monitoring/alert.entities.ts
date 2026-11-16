@@ -13,7 +13,7 @@ import { RegisteredDevice } from '../workspaces/registered-device.entity';
 import { UsageNetwork } from './entities';
 export type Channel = 'in_app' | 'android_push' | 'ios_push';
 export type RuleConfig = {
-  kind: 'threshold' | 'device_offline' | 'permission_revoked';
+  kind: 'threshold' | 'device_offline' | 'permission_revoked' | 'not_reporting';
   metric?: string;
   quality?: 'measured' | 'estimated';
   applicationId?: string;
