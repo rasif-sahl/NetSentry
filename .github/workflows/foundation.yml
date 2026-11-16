@@ -123,6 +123,9 @@ jobs:
           GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -o ../artifacts/agent-macos-no-keychain ./cmd/netsentry-agent
           cd ..
           node contracts/scripts/check-agent-report.mjs artifacts/agent-report.json
+          npm --prefix desktop ci --ignore-scripts --no-audit --no-fund
+          npm run build:desktop
+          TEST_AGENT_BINARY="$GITHUB_WORKSPACE/artifacts/netsentry-agent" npm --prefix desktop run test:developer
 
   dashboard:
     runs-on: ubuntu-latest
