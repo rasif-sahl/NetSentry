@@ -92,7 +92,8 @@ export function AlertsPanel(context: PageContext) {
               <li key={alert.id}>
                 <div>
                   <strong>
-                    {alert.snapshot.kind.replaceAll("_", " ")} · {alert.snapshot.quality ?? "health"} ·{" "}
+                    {alert.snapshot.kind.replaceAll("_", " ")} ·{" "}
+                    {alert.snapshot.quality ?? "health"} ·{" "}
                     {alert.snapshot.severity}
                   </strong>
                   <small>
@@ -207,7 +208,8 @@ export function AlertsPanel(context: PageContext) {
               <article key={alert.id} className="alert-entry">
                 <div className="section-heading">
                   <h3>
-                    {alert.snapshot.kind.replaceAll("_", " ")} · {alert.snapshot.quality ?? "health"}{" "}
+                    {alert.snapshot.kind.replaceAll("_", " ")} ·{" "}
+                    {alert.snapshot.quality ?? "health"}{" "}
                     <span className="badge">{alert.snapshot.severity}</span>
                   </h3>
                   {!alert.acknowledgedAt && (
@@ -232,7 +234,8 @@ export function AlertsPanel(context: PageContext) {
                 </p>
                 <p>
                   Observed value: {alert.snapshot.value ?? "Not applicable"} ·
-                  window {alert.snapshot.windowKey} · {alert.snapshot.quality ?? "quality not recorded"}
+                  window {alert.snapshot.windowKey} ·{" "}
+                  {alert.snapshot.quality ?? "quality not recorded"}
                 </p>
                 <details>
                   <summary>Delivery attempts</summary>
@@ -349,6 +352,7 @@ function RuleEditor({
           >
             <option value="threshold">Usage threshold</option>
             <option value="device_offline">Device offline</option>
+            <option value="not_reporting">Usage reports missing</option>
             <option value="permission_revoked">Permission lost</option>
           </select>
         </Field>
@@ -378,7 +382,10 @@ function RuleEditor({
       </div>
       {kind === "threshold" && (
         <div className="field-row">
-          <Field label="Threshold data quality" hint="Estimated totals are a separate source and are never added to measured totals.">
+          <Field
+            label="Threshold data quality"
+            hint="Estimated totals are a separate source and are never added to measured totals."
+          >
             <select name="quality" defaultValue={config?.quality ?? "measured"}>
               <option value="measured">Measured only</option>
               <option value="estimated">Estimated only</option>
@@ -421,26 +428,40 @@ function RuleEditor({
         {kind !== "permission_revoked" && (
           <Field
             label={
-              kind === "device_offline"
-                ? "Offline threshold (seconds)"
+              ["device_offline", "not_reporting"].includes(kind)
+                ? "Reporting/heartbeat threshold (seconds)"
                 : `Threshold (${metric.endsWith("_bytes") ? "bytes" : "seconds"})`
             }
             hint={
-              kind === "device_offline"
+              ["device_offline", "not_reporting"].includes(kind)
                 ? "60–604800 seconds."
-                : "Only measured values trigger this rule."
+                : "Only the selected data quality triggers this threshold."
             }
           >
             <input
               name="threshold"
               type="number"
               required
-              min={kind === "device_offline" ? 60 : 0.000001}
-              max={kind === "device_offline" ? 604800 : 9007199254}
-              step={kind === "device_offline" ? 1 : 0.000001}
+              min={
+                ["device_offline", "not_reporting"].includes(kind)
+                  ? 60
+                  : 0.000001
+              }
+              max={
+                ["device_offline", "not_reporting"].includes(kind)
+                  ? 604800
+                  : 9007199254
+              }
+              step={
+                ["device_offline", "not_reporting"].includes(kind)
+                  ? 1
+                  : 0.000001
+              }
               defaultValue={
                 config?.threshold ??
-                (kind === "device_offline" ? 600 : 104857600)
+                (["device_offline", "not_reporting"].includes(kind)
+                  ? 600
+                  : 104857600)
               }
             />
           </Field>
