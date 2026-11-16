@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const Version = "0.5.0"
+const Version = "0.6.0"
 const TimeLayout = "2006-01-02T15:04:05.000Z"
 
 type Modules struct {
@@ -17,12 +17,13 @@ type Modules struct {
 	Developer bool `json:"developer"`
 }
 type Config struct {
-	SchemaVersion     int     `json:"schemaVersion"`
-	InstallationID    string  `json:"installationId"`
-	APIURL            string  `json:"apiUrl"`
-	Requested         Modules `json:"requested"`
-	BackgroundAllowed bool    `json:"backgroundAllowed"`
-	DevelopmentStore  bool    `json:"developmentStore"`
+	SchemaVersion       int     `json:"schemaVersion"`
+	InstallationID      string  `json:"installationId"`
+	APIURL              string  `json:"apiUrl"`
+	Requested           Modules `json:"requested"`
+	BackgroundAllowed   bool    `json:"backgroundAllowed"`
+	LocalControlAllowed bool    `json:"localControlAllowed"`
+	DevelopmentStore    bool    `json:"developmentStore"`
 }
 type Binding struct {
 	AgentID     string `json:"agentId"`

@@ -81,7 +81,7 @@ func Serve(ctx context.Context, dir, secret string, agent *runner.Runner) error 
 				}
 				conn.SetDeadline(time.Now().Add(20 * time.Second))
 				var request Request
-				if Read(conn, &request) != nil || request.SchemaVersion != 2 || !core.ValidUUID(request.RequestID) {
+				if Read(conn, &request) != nil || (request.SchemaVersion != 2 && request.SchemaVersion != 3) || !core.ValidUUID(request.RequestID) {
 					return
 				}
 				response := Dispatch(ctx, request, agent)
@@ -93,6 +93,9 @@ func Serve(ctx context.Context, dir, secret string, agent *runner.Runner) error 
 	}
 }
 func Dispatch(ctx context.Context, request Request, agent *runner.Runner) Response {
+	if request.SchemaVersion == 3 {
+		return DispatchDeveloper(ctx, request, agent)
+	}
 	response := Response{SchemaVersion: 2, RequestID: request.RequestID, Code: "OK", OK: true, Data: nil}
 	invalid := func() Response { response.OK = false; response.Code = "INVALID_REQUEST"; return response }
 	payload := bytes.TrimSpace(request.Payload)

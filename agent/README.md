@@ -1,6 +1,6 @@
 # NetSentry Go agent
 
-Phase 5 implements a separately enrolled, revocable software identity, outbound backend connection, heartbeats, bounded diagnostic buffering, independently gated modules, and authenticated desktop IPC. It does not collect traffic, discover services or stop servers. Remote control is always unavailable in this phase.
+Phase 5 implements a separately enrolled, revocable software identity, outbound backend connection, heartbeats, bounded diagnostic buffering, independently gated modules, and authenticated desktop IPC. Phase 6 additionally discovers owned macOS TCP services and performs explicitly confirmed local shutdown through the desktop. It does not collect traffic or receive remote commands.
 
 ## Build and test
 
@@ -56,3 +56,19 @@ Local storage is per user: private directory 0700, files/socket 0600. The outbox
 The key and detached signature are standard base64 Ed25519 values. The signature covers the exact manifest bytes. Pin the public key independently of the downloaded package; never trust a key shipped alongside an untrusted update. The signed manifest binds schema version 1, monotonic `release`, display `version`, platform, architecture, artifact basename, byte size, SHA-256 and UTC-millisecond `expiresAt`. It rejects expired metadata, freshness windows over 30 days, rollback below the supplied minimum, wrong targets, modified files, non-regular files and files over 128 MiB. Success verifies bytes only; it does not install or run them. A production installer must persist its accepted release high-water mark and verify again at replacement time.
 
 See [agent protocol](../docs/architecture/agent-protocol.md) and [package/service plan](../docs/architecture/agent-distribution.md) for trust, installation, recovery and pending platform acceptance.
+
+## Phase 6 local developer tools
+
+Pair with Developer Tools authorized in your workspace and enable the local developer preference. In the desktop, choose **Refresh services** to discover owned TCP listeners. Project names are inferred from nearby markers or directories and show their uncertainty. Enter a local project/group correction or use the inferred association again. Search by project/runtime/PID/port; inventory is paginated.
+
+Local service shutdown is a separate unchecked choice. Enable it in the desktop, or while the foreground agent is stopped:
+
+```sh
+/tmp/netsentry-agent settings --developer=true --allow-local-control=true
+```
+
+Pairing, unpairing and revocation reset that choice. Select a fresh service observation and confirm graceful stop or a separate force-stop. The entire selected process and its listeners are targeted, with optional captured descendants (maximum sixteen). Backend authorization must be reachable/current for every operation. An offline backend denies local developer access in this initial policy; no stale grant enables shutdown.
+
+Node, Python, Bun, Deno, Ruby, PHP and Java executable names are initially eligible. Unknown/native/Go runtimes remain view-only. A marker or capability does not grant control. Signals are bound to the stored process incarnation; changed sockets/trees and expired observations are rejected. A supervisor may replace a process; the agent reports observed replacement without targeting it automatically.
+
+Action receipts and manual labels are private local data, not backend telemetry. Receipts are bounded to 100 within seven days, pruned on active agent passes/start/read/write; they are cleared with labels on unpair/revocation. Full paths and process arguments are not sent to the renderer/backend. See [architecture and limits](../docs/architecture/local-service-controls.md) and [Phase 6 verification](../docs/validation/phase-6.md). Windows/Linux controls and packaged Electron/Keychain acceptance remain pending.

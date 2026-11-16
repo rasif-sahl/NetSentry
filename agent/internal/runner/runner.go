@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"netsentry.local/agent/internal/buffer"
 	"netsentry.local/agent/internal/core"
+	"netsentry.local/agent/internal/modules/developer"
 	"netsentry.local/agent/internal/remote"
 	"netsentry.local/agent/internal/securestore"
 	"os"
@@ -44,6 +45,7 @@ type Runner struct {
 	Client      *remote.Client
 	Queue       *buffer.Queue
 	binding     core.Binding
+	developer   *developer.Manager
 	remote      core.RemoteConfig
 	connection  string
 	code        string
@@ -59,9 +61,16 @@ func New(dir string, config core.Config, store securestore.Store) (*Runner, erro
 	if err != nil {
 		return nil, err
 	}
-	r := &Runner{Dir: dir, Config: config, Store: store, Client: client, Queue: queue, connection: "unpaired"}
+	services, err := developer.New(dir, developer.Native())
+	if err != nil {
+		return nil, err
+	}
+	r := &Runner{developer: services, Dir: dir, Config: config, Store: store, Client: client, Queue: queue, connection: "unpaired"}
 	binding, err := securestore.Binding(store)
 	if errors.Is(err, securestore.ErrNotFound) {
+		if err := r.developer.Reset(); err != nil {
+			return nil, err
+		}
 		return r, nil
 	}
 	if err != nil {
@@ -101,6 +110,13 @@ func (r *Runner) Pair(ctx context.Context, token string) error {
 	}
 	binding := core.Binding{AgentID: result.Configuration.AgentID, WorkspaceID: result.Configuration.WorkspaceID, Generation: result.Configuration.Generation, Token: result.Token, APIURL: r.Config.APIURL}
 	if err := remote.Validate(result.Configuration, binding); err != nil {
+		return err
+	}
+	if err := r.developer.Reset(); err != nil {
+		return err
+	}
+	r.Config.LocalControlAllowed = false
+	if err := core.WritePrivate(filepath.Join(r.Dir, "config.json"), r.Config); err != nil {
 		return err
 	}
 	if err := r.Queue.Bind(binding.AgentID, binding.Generation); err != nil {
@@ -143,10 +159,17 @@ func (r *Runner) Settings(modules *core.Modules, background *bool) error {
 func (r *Runner) Unpair() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if err := r.developer.Reset(); err != nil {
+		return err
+	}
 	if err := r.Queue.Clear(); err != nil {
 		return err
 	}
 	if err := r.Store.Delete("backend"); err != nil {
+		return err
+	}
+	r.Config.LocalControlAllowed = false
+	if err := core.WritePrivate(filepath.Join(r.Dir, "config.json"), r.Config); err != nil {
 		return err
 	}
 	r.binding = core.Binding{}
@@ -157,6 +180,9 @@ func (r *Runner) Unpair() error {
 func (r *Runner) Cycle(ctx context.Context) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if err := r.developer.Retain(); err != nil {
+		return err
+	}
 	if r.binding.Token == "" {
 		return nil
 	}
@@ -233,6 +259,13 @@ func (r *Runner) failed(err error) error {
 			r.connection = "revoked"
 			r.code = "CREDENTIAL_REVOKED"
 			r.remote = core.RemoteConfig{}
+			r.Config.LocalControlAllowed = false
+			if clear := core.WritePrivate(filepath.Join(r.Dir, "config.json"), r.Config); clear != nil {
+				return clear
+			}
+			if clear := r.developer.Reset(); clear != nil {
+				return clear
+			}
 			if clear := r.Queue.Clear(); clear != nil {
 				return clear
 			}
@@ -320,4 +353,76 @@ func ReadPairingCode(path string) (string, error) {
 		return "", errors.New("invalid private enrolment code file")
 	}
 	return string(value[:43]), nil
+}
+
+// Local control is a separate owner choice, never inferred from module capabilities.
+func (r *Runner) LocalControl(allowed bool) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	next := r.Config
+	next.LocalControlAllowed = allowed
+	if err := core.WritePrivate(filepath.Join(r.Dir, "config.json"), next); err != nil {
+		return err
+	}
+	r.Config = next
+	return nil
+}
+func (r *Runner) developerGate(ctx context.Context, action bool) error {
+	if !r.Config.Requested.Developer || r.binding.Token == "" {
+		return errors.New("MODULE_DISABLED")
+	}
+	config, err := r.Client.Configuration(ctx, r.binding)
+	if err != nil {
+		r.failed(err)
+		return errors.New("AUTHORIZATION_UNAVAILABLE")
+	}
+	if config.Generation != r.binding.Generation {
+		return errors.New("CONFIGURATION_REQUIRED")
+	}
+	if !config.Modules.Developer {
+		return errors.New("MODULE_DISABLED")
+	}
+	if action && !r.Config.LocalControlAllowed {
+		return errors.New("LOCAL_CONTROL_DISABLED")
+	}
+	return nil
+}
+func (r *Runner) Services(ctx context.Context, query string, offset int) (developer.Inventory, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if err := r.developerGate(ctx, false); err != nil {
+		return developer.Inventory{}, err
+	}
+	scan, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	return r.developer.Scan(scan, query, offset, r.Config.LocalControlAllowed)
+}
+func (r *Runner) StopService(ctx context.Context, input developer.StopInput) (developer.Action, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if err := r.developerGate(ctx, true); err != nil {
+		return developer.Action{}, err
+	}
+	if !r.developer.Supported() {
+		return developer.Action{}, errors.New("PLATFORM_UNAVAILABLE")
+	}
+	operation, cancel := context.WithTimeout(ctx, 6*time.Second)
+	defer cancel()
+	return r.developer.Stop(operation, input)
+}
+func (r *Runner) ServiceProject(ctx context.Context, id, observation, label string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if err := r.developerGate(ctx, false); err != nil {
+		return err
+	}
+	return r.developer.Project(id, observation, label)
+}
+func (r *Runner) ServiceHistory(ctx context.Context) ([]developer.Action, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if err := r.developerGate(ctx, false); err != nil {
+		return nil, err
+	}
+	return r.developer.History()
 }

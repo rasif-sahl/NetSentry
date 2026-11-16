@@ -137,3 +137,13 @@ test("desktop setup IPC accepts only typed preferences and pairing codes", () =>
   request.payload = {};
   assert.throws(() => validatePayload("local-ipc.v2.schema.json", request));
 });
+
+test("local shutdown binds a fresh observation and explicit force/child choices", () => {
+  const request = readJSON("fixtures/local-ipc.v3.json");
+  validatePayload("local-ipc.v3.schema.json", request);
+  request.payload.pid = 123;
+  assert.throws(() => validatePayload("local-ipc.v3.schema.json", request));
+  delete request.payload.pid;
+  delete request.payload.observationId;
+  assert.throws(() => validatePayload("local-ipc.v3.schema.json", request));
+});

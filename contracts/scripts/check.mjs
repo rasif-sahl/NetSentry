@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { api, readJSON, validatePayload } from "./validation.mjs";
 
 const fixtures = [
+ ["local-ipc.v3.schema.json","local-ipc.v3.json"],
   ["local-auth.v1.schema.json", "local-auth.v1.json"],
   ["local-ipc.v2.schema.json", "local-ipc.v2.json"],
   ["capability-report.schema.json", "agent-disabled.json"],

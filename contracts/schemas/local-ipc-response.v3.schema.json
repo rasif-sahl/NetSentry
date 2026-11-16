@@ -1,0 +1,496 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/local-ipc-response.v3.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "ok",
+        "code",
+        "data"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 3
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ok": {
+          "const": true
+        },
+        "code": {
+          "const": "OK"
+        },
+        "data": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schemaVersion",
+                "services",
+                "total",
+                "offset",
+                "nextOffset",
+                "truncated",
+                "skippedProcesses",
+                "observedAt",
+                "expiresAt",
+                "platformSupported",
+                "localControlAllowed"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "const": 1
+                },
+                "services": {
+                  "type": "array",
+                  "maxItems": 10,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "observationId",
+                      "pid",
+                      "parentPid",
+                      "runtime",
+                      "executable",
+                      "startedAt",
+                      "uptimeSeconds",
+                      "observedAt",
+                      "endpoints",
+                      "additionalEndpoints",
+                      "project",
+                      "childCount",
+                      "canStop",
+                      "blockReason"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "observationId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "pid": {
+                        "type": "integer",
+                        "minimum": 2,
+                        "maximum": 2147483647
+                      },
+                      "parentPid": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2147483647
+                      },
+                      "runtime": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                      },
+                      "executable": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                      },
+                      "startedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "\\.\\d{3}Z$"
+                      },
+                      "uptimeSeconds": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "observedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "\\.\\d{3}Z$"
+                      },
+                      "endpoints": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 8,
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "address",
+                            "port",
+                            "socketId"
+                          ],
+                          "properties": {
+                            "address": {
+                              "type": "string",
+                              "maxLength": 46
+                            },
+                            "port": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 65535
+                            },
+                            "socketId": {
+                              "type": "string",
+                              "pattern": "^[a-f0-9]{64}$"
+                            }
+                          }
+                        }
+                      },
+                      "additionalEndpoints": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 64
+                      },
+                      "project": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "id",
+                          "name",
+                          "source",
+                          "confidence",
+                          "evidence"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 100,
+                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                          },
+                          "source": {
+                            "enum": [
+                              "inferred",
+                              "directory",
+                              "unknown",
+                              "manual"
+                            ]
+                          },
+                          "confidence": {
+                            "enum": [
+                              "inferred",
+                              "uncertain",
+                              "unknown",
+                              "user_confirmed"
+                            ]
+                          },
+                          "evidence": {
+                            "type": "string",
+                            "maxLength": 100,
+                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                          }
+                        }
+                      },
+                      "childCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 8192
+                      },
+                      "canStop": {
+                        "type": "boolean"
+                      },
+                      "blockReason": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 256
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 256
+                },
+                "nextOffset": {
+                  "type": "integer",
+                  "minimum": -1,
+                  "maximum": 256
+                },
+                "truncated": {
+                  "type": "boolean"
+                },
+                "skippedProcesses": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 8192
+                },
+                "observedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "\\.\\d{3}Z$"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "\\.\\d{3}Z$"
+                },
+                "platformSupported": {
+                  "type": "boolean"
+                },
+                "localControlAllowed": {
+                  "type": "boolean"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "actionId",
+                "serviceId",
+                "mode",
+                "includeChildren",
+                "pid",
+                "project",
+                "requestedAt",
+                "completedAt",
+                "outcome",
+                "targetCount"
+              ],
+              "properties": {
+                "actionId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "serviceId": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "mode": {
+                  "enum": [
+                    "graceful",
+                    "force"
+                  ]
+                },
+                "includeChildren": {
+                  "type": "boolean"
+                },
+                "pid": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 2147483647
+                },
+                "project": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                },
+                "requestedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "\\.\\d{3}Z$"
+                },
+                "completedAt": {
+                  "anyOf": [
+                    {
+                      "const": ""
+                    },
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "\\.\\d{3}Z$"
+                    }
+                  ]
+                },
+                "outcome": {
+                  "enum": [
+                    "pending",
+                    "unknown",
+                    "already_stopped",
+                    "permission_denied",
+                    "target_changed",
+                    "inspection_failed",
+                    "tree_limit",
+                    "tree_changed",
+                    "partial",
+                    "stopped_unverified_listeners",
+                    "replacement_listener",
+                    "stopped",
+                    "still_running"
+                  ]
+                },
+                "targetCount": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 17
+                }
+              }
+            },
+            {
+              "type": "array",
+              "maxItems": 100,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "actionId",
+                  "serviceId",
+                  "mode",
+                  "includeChildren",
+                  "pid",
+                  "project",
+                  "requestedAt",
+                  "completedAt",
+                  "outcome",
+                  "targetCount"
+                ],
+                "properties": {
+                  "actionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "serviceId": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "mode": {
+                    "enum": [
+                      "graceful",
+                      "force"
+                    ]
+                  },
+                  "includeChildren": {
+                    "type": "boolean"
+                  },
+                  "pid": {
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 2147483647
+                  },
+                  "project": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                  },
+                  "requestedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "\\.\\d{3}Z$"
+                  },
+                  "completedAt": {
+                    "anyOf": [
+                      {
+                        "const": ""
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "\\.\\d{3}Z$"
+                      }
+                    ]
+                  },
+                  "outcome": {
+                    "enum": [
+                      "pending",
+                      "unknown",
+                      "already_stopped",
+                      "permission_denied",
+                      "target_changed",
+                      "inspection_failed",
+                      "tree_limit",
+                      "tree_changed",
+                      "partial",
+                      "stopped_unverified_listeners",
+                      "replacement_listener",
+                      "stopped",
+                      "still_running"
+                    ]
+                  },
+                  "targetCount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 17
+                  }
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "saved"
+              ],
+              "properties": {
+                "saved": {
+                  "const": true
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "allowed"
+              ],
+              "properties": {
+                "allowed": {
+                  "type": "boolean"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "ok",
+        "code",
+        "data"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 3
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ok": {
+          "const": false
+        },
+        "code": {
+          "enum": [
+            "INVALID_REQUEST",
+            "MODULE_DISABLED",
+            "AUTHORIZATION_UNAVAILABLE",
+            "CONFIGURATION_REQUIRED",
+            "LOCAL_CONTROL_DISABLED",
+            "PLATFORM_UNAVAILABLE",
+            "STALE_OBSERVATION",
+            "ACTION_CONFLICT",
+            "HISTORY_WRITE_FAILED",
+            "ASSOCIATION_LIMIT",
+            "PROTECTED_PROCESS",
+            "UNSUPPORTED_RUNTIME",
+            "DEVELOPER_UNAVAILABLE"
+          ]
+        },
+        "data": {
+          "type": "null"
+        }
+      }
+    }
+  ]
+}

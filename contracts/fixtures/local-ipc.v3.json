@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 3,
+  "requestId": "10000000-0000-4000-8000-000000000001",
+  "method": "request_stop",
+  "payload": {
+    "actionId": "20000000-0000-4000-8000-000000000002",
+    "serviceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "observationId": "30000000-0000-4000-8000-000000000003",
+    "mode": "graceful",
+    "includeChildren": false
+  }
+}

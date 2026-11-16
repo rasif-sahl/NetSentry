@@ -7,6 +7,6 @@ func Capability() capability.Module {
 		ID:      "developer",
 		Enabled: false,
 		Status:  "temporarily_unavailable",
-		Reason:  "Developer tools are not implemented in this scaffold.",
+		Reason:  "Developer Tools is disabled in this startup report. Use authenticated desktop inventory for local platform availability.",
 	}
 }

@@ -1,8 +1,8 @@
 # NetSentry Desktop
 
-Electron main/preload with a React/TypeScript renderer and Vite. Phase 5 adds live local agent status, pairing-code exchange and local module/background preferences. It does not discover or stop servers and never starts or installs a background agent automatically.
+Electron main/preload with a React/TypeScript renderer and Vite. Phase 5 adds live local agent status, pairing-code exchange and local module/background preferences. Phase 6 adds supported macOS local discovery/project grouping and separately confirmed graceful/force shutdown. It never starts or installs a background agent automatically.
 
-The renderer has Node integration disabled, context isolation and sandboxing enabled, a restrictive CSP and navigation/window denial. Its typed bridge exposes runtime metadata plus four allowlisted calls. Only main verifies local file/socket ownership/permissions, invokes the fixed agent credential helper over inherited descriptor 3 and performs the mutual HMAC handshake. The backend agent credential never enters Electron; the local secret never enters the renderer, process arguments or stdout. Frames are bounded to 64 KiB and one request per authenticated connection.
+The renderer has Node integration disabled, context isolation and sandboxing enabled, a restrictive CSP and navigation/window denial. Its typed bridge exposes runtime metadata plus allowlisted setup and developer calls. Only main verifies local file/socket ownership/permissions, invokes the fixed agent credential helper over inherited descriptor 3 and performs the mutual HMAC handshake. The backend agent credential never enters Electron; the local secret never enters the renderer, process arguments or stdout. Frames are bounded to 64 KiB and one request per authenticated connection.
 
 With prepared dependencies:
 
@@ -16,7 +16,7 @@ npm run dev:renderer
 
 Build and initialize the agent separately using [its README](../agent/README.md), then run it in the foreground. Development-only Electron main environment overrides are `NETSENTRY_AGENT_BINARY` (absolute path to your built executable) and optional `NETSENTRY_AGENT_STATE_DIR` (private directory). Packaged builds ignore overrides and resolve the executable at `resources/agent/netsentry-agent`, with state under the user's application-data `NetSentry/agent` directory. The current repository does not produce a signed installer or bundle that binary automatically.
 
-The UI shows the installation UUID needed to issue a workspace-bound enrolment code through the backend API. Paste the single-use code, then enable the desired local preferences. Pairing and module eligibility do not grant process-control authority. Backend online status proves a recent heartbeat only; collectors and remote controls remain unavailable. Background preference is separate from a registered service and requires workspace allowance as well.
+The UI shows the installation UUID needed to issue a workspace-bound enrolment code through the backend API. Paste the single-use code, then enable the desired local preferences. Pairing and module eligibility do not grant process-control authority. Backend online status proves a recent heartbeat only. Network collectors and remote controls remain unavailable; local macOS service eligibility is reported separately by v3 inventory. Background preference is separate from a registered service and requires workspace allowance as well.
 
 Cross-language integration check after building both source projects:
 
@@ -25,3 +25,11 @@ TEST_AGENT_BINARY=/absolute/path/to/netsentry-agent npm run test:agent
 ```
 
 This starts a temporary foreground Go process with explicit loopback-only development credential files. It verifies actual socket authentication, shared HMAC vectors, status, module isolation, persistent preferences, wrong-secret denial, unsafe permissions/symlink denial, and exclusive startup. It does not launch Electron or use native Keychain. Native Electron/Keychain runtime acceptance remains pending; the initial target is macOS. Windows named-pipe/private ACL operation is explicitly unavailable. See [Phase 5 validation](../docs/validation/phase-5.md) and the [distribution/service decision](../docs/architecture/agent-distribution.md).
+
+## Phase 6 service workflow
+
+After pairing and enabling Developer Tools locally and in the workspace, refresh services. Review runtime/executable, PID/parent, listeners, start/duration, project evidence and fifteen-second freshness. Correct a project/group label locally, search the inventory and inspect paginated groups. Enable local shutdown separately; it is off by default and grants no remote/mobile access. Confirm graceful stop or separate force-stop; optionally include the captured descendants after reviewing the count. Expired observations disable action buttons and require a refresh.
+
+Results distinguish still running, identity/tree changes, denied/unknown/partial outcomes, original exit and observed replacement listeners. The latter may indicate a supervisor or port reuse; no automatic follow-up kill occurs. Load action history before retrying a lost response. Revocation/disabled authorization clears visible service data; backend outages deny fresh access/actions.
+
+`TEST_AGENT_BINARY=/absolute/path/to/netsentry-agent npm run test:developer` validates actual authenticated Go IPC, all v3 wire responses, native controlled samples on macOS and fail-closed platform behavior elsewhere. The backend is an explicit loopback fixture. Existing desktop Chrome fixture checks separately cover UI/dialogs; native Electron/Keychain packaging acceptance remains pending. See [Phase 6 verification](../docs/validation/phase-6.md).
