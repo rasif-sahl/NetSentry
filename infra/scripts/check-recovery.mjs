@@ -54,13 +54,25 @@ try {
   await backupDatabase(url, encrypted, key);
   const bytes = await readFile(encrypted);
   assert.ok(!bytes.includes(Buffer.from("synthetic-recovery@example.invalid")));
+  await target.initialize();
+  await target.query(
+    "CREATE FUNCTION public.fixture_restore_guard() RETURNS integer LANGUAGE sql AS 'SELECT 1'",
+  );
+  await assert.rejects(
+    restoreDatabase(
+      targetURL.toString(),
+      encrypted,
+      key,
+      "netsentry_phase14_restore_test",
+    ),
+  );
+  await target.query("DROP FUNCTION public.fixture_restore_guard()");
   await restoreDatabase(
     targetURL.toString(),
     encrypted,
     key,
     "netsentry_phase14_restore_test",
   );
-  await target.initialize();
   assert.equal(
     (await target.query("SELECT email FROM users"))[0].email,
     "synthetic-recovery@example.invalid",

@@ -17,6 +17,7 @@ import {
   pinnedImage,
   privateEnvironment,
   ingressConfig,
+  deploymentConfiguration,
 } from "../scripts/deployment.mjs";
 import { backupCycle, backupHealth } from "../scripts/backup-cycle.mjs";
 import { verifyBackup } from "../scripts/backup.mjs";
@@ -157,3 +158,106 @@ test("HTTPS smoke checks require trusted HTTPS, headers and dependency readiness
     ),
   );
 });
+
+test("backup retention always keeps the new authenticated snapshot after clock rollback", async () =>
+  temporary(async (dir) => {
+    const key = randomBytes(32),
+      { randomUUID } = await import("node:crypto");
+    for (let i = 0; i < 3; i++)
+      await writeFile(
+        join(dir, `netsentry-9999999999999-${randomUUID()}.netsbk`),
+        sealed(Buffer.from("synthetic older dump"), key),
+        { mode: 0o600 },
+      );
+    await backupCycle(
+      { dir, key, url: "unused", keep: 2 },
+      async (_url, path) => {
+        await writeFile(path, sealed(Buffer.from("new synthetic dump"), key), {
+          mode: 0o600,
+        });
+      },
+    );
+    const receipt = JSON.parse(
+      await readFile(join(dir, "status.json"), "utf8"),
+    );
+    await verifyBackup(join(dir, receipt.file), key);
+    assert.equal((await backupHealth(dir)).healthy, true);
+  }));
+
+test("complete deployment preflight rejects inline secrets, mismatched origins and mutable images", async () =>
+  temporary(async (root) => {
+    const { mkdir } = await import("node:fs/promises");
+    const secretDir = join(root, "secrets"),
+      tls = join(root, "tls");
+    await mkdir(secretDir, { mode: 0o700 });
+    await mkdir(tls, { mode: 0o700 });
+    for (const name of [
+      "database-url",
+      "access-secret",
+      "refresh-secret",
+      "mail-key",
+      "router-key",
+    ])
+      await writeFile(join(secretDir, name), "synthetic", { mode: 0o600 });
+    await writeFile(join(tls, "fullchain.pem"), "synthetic public certificate");
+    await writeFile(join(tls, "privkey.pem"), "synthetic key", { mode: 0o600 });
+    const backend = join(root, "backend.env"),
+      dashboard = join(root, "dashboard.env"),
+      path = join(root, "deployment.env");
+    const publicHost = "app.example.org";
+    const server = {
+      PORT: "3000",
+      API_PREFIX: "api",
+      BILLING_MODE: "disabled",
+      CORS_ORIGINS: `https://${publicHost}`,
+      PUBLIC_APP_URL: `https://${publicHost}`,
+      DATABASE_URL_FILE: "/run/secrets/database-url",
+      JWT_ACCESS_TOKEN_SECRET_FILE: "/run/secrets/access-secret",
+      JWT_REFRESH_TOKEN_SECRET_FILE: "/run/secrets/refresh-secret",
+      ACCOUNT_MAIL_ENCRYPTION_KEY_FILE: "/run/secrets/mail-key",
+      ROUTER_CREDENTIAL_ENCRYPTION_KEY_FILE: "/run/secrets/router-key",
+    };
+    const env = {
+      COMPOSE_PROJECT_NAME: "netsentry-test",
+      BACKEND_IMAGE: "registry.example.org/backend@sha256:" + "a".repeat(64),
+      DASHBOARD_IMAGE:
+        "registry.example.org/dashboard@sha256:" + "b".repeat(64),
+      INGRESS_IMAGE: "nginx@sha256:" + "c".repeat(64),
+      SERVER_ENV_FILE: backend,
+      DASHBOARD_ENV_FILE: dashboard,
+      SERVER_SECRET_DIR: secretDir,
+      TLS_CERT_DIR: tls,
+      INGRESS_CONFIG_FILE: join(root, "nginx.conf"),
+      PUBLIC_HOST: publicHost,
+      HTTPS_BIND_ADDRESS: "127.0.0.1",
+    };
+    const write = async (path, values) =>
+      writeFile(
+        path,
+        Object.entries(values)
+          .map(([key, value]) => `${key}=${value}`)
+          .join("\n"),
+        { mode: 0o600 },
+      );
+    await write(backend, server);
+    await write(dashboard, {
+      DASHBOARD_ORIGIN: `https://${publicHost}`,
+      NETSENTRY_API_URL: "http://backend:3000/api/v1",
+    });
+    await write(path, env);
+    assert.equal((await deploymentConfiguration(path)).PUBLIC_HOST, publicHost);
+    await write(backend, { ...server, DATABASE_URL: "do-not-print-this" });
+    await assert.rejects(deploymentConfiguration(path));
+    await write(backend, server);
+    await write(dashboard, {
+      DASHBOARD_ORIGIN: "https://other.example.org",
+      NETSENTRY_API_URL: "http://backend:3000/api/v1",
+    });
+    await assert.rejects(deploymentConfiguration(path));
+    await write(dashboard, {
+      DASHBOARD_ORIGIN: `https://${publicHost}`,
+      NETSENTRY_API_URL: "http://backend:3000/api/v1",
+    });
+    await write(path, { ...env, BACKEND_IMAGE: "backend:latest" });
+    await assert.rejects(deploymentConfiguration(path));
+  }));

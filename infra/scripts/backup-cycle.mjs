@@ -84,7 +84,7 @@ export async function backupCycle(
       .sort()
       .reverse();
     let pruned = 0;
-    for (const old of files.slice(keep)) {
+    for (const old of files.filter((file) => file !== name).slice(keep - 1)) {
       // Never remove unknown, modified, inaccessible or old-key backups.
       await verifyBackup(join(dir, old), key);
       await unlink(join(dir, old));
