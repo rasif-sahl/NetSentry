@@ -11,7 +11,7 @@ struct ExportDocument: FileDocument {
 struct AccountSettingsView: View {
     @EnvironmentObject private var model: AppModel
     @State private var name = "", password = "", theme = "SYSTEM"
-    @State private var reducedMotion = false, inApp = true, deleting = false, exporting = false
+    @State private var reducedMotion = false, inApp = true, emailAlerts = false, deleting = false, exporting = false
     var body: some View {
         Form {
             Section("Profile and appearance") {
@@ -24,7 +24,9 @@ struct AccountSettingsView: View {
             }
             Section("Notifications") {
                 Toggle("In-app notifications", isOn: $inApp)
-                Button("Save notification preference") { model.run { try await $0.notificationPreference(inApp: inApp) } }
+                Toggle("Opt in to email alerts", isOn: $emailAlerts)
+                Text("Email alert delivery is disabled. Saving this preference sends no email.").font(.footnote)
+                Button("Save notification preference") { model.run { try await $0.notificationPreference(inApp: inApp, email: emailAlerts) } }
                 Text("APNs registration, provider delivery and physical-device checks are pending. This build does not request push permission.").font(.footnote)
             }
             Section("Sessions") {
@@ -42,7 +44,7 @@ struct AccountSettingsView: View {
                 Button("Stop local controls and clear credentials", role: .destructive) { model.recoverLocal() }
             }
         }
-        .onAppear { name = model.snapshot?.user["displayName"].text ?? ""; theme = model.snapshot?.user["preferences"]["theme"].text ?? "SYSTEM"; reducedMotion = model.snapshot?.user["preferences"]["reducedMotion"].flag ?? false; inApp = model.snapshot?.preferences["inApp"].flag ?? true }
+        .onAppear { name = model.snapshot?.user["displayName"].text ?? ""; theme = model.snapshot?.user["preferences"]["theme"].text ?? "SYSTEM"; reducedMotion = model.snapshot?.user["preferences"]["reducedMotion"].flag ?? false; inApp = model.snapshot?.preferences["inApp"].flag ?? true; emailAlerts = model.snapshot?.preferences["email"].flag ?? false }
         .confirmationDialog("Permanently delete your account and its personal data?", isPresented: $deleting) { Button("Delete account", role: .destructive) { let secret = password; password = ""; model.privacyAction { try await $0.deleteAccount(password: secret) } } }
         .fileExporter(isPresented: $exporting, document: ExportDocument(text: model.exportText), contentType: .json, defaultFilename: "netsentry-personal-export") { result in if case .failure(let error) = result { model.message = error.localizedDescription } }
     }
