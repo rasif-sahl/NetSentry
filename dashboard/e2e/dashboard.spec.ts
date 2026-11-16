@@ -793,11 +793,14 @@ test("developer commands show pending/cancelled outcomes and keep viewers read-o
     page.getByText("cancelled · cancelled", { exact: false }).first(),
   ).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
-  expect(
-    await page.evaluate(
+  await page
+    .getByRole("heading", { name: "Paired developer computers" })
+    .scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBeTruthy();
+    ))
+    .toBeTruthy();
   await page.screenshot({ path: ".test/developer-remote.png", fullPage: true });
   const viewer = await browser.newContext();
   const tab = await viewer.newPage();
