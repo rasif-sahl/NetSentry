@@ -101,6 +101,10 @@ export class PrivacyService {
           })
         : [];
       return {
+        billing: {
+          requests: await manager.query('SELECT "workspaceId","requestId",plan,interval,status,"createdAt" FROM billing_requests WHERE "requesterId"=$1 ORDER BY "createdAt" DESC LIMIT 1000',[userId]),
+          operatorActions: await manager.query('SELECT action,"workspaceId","occurredAt" FROM operator_audit WHERE "actorId"=$1 ORDER BY "occurredAt" DESC LIMIT 1000',[userId]),
+        },
         business: {
           employees: await manager.query(
             'SELECT id,"workspaceId","departmentId",revision,"offboardedAt" FROM business_employees WHERE "userId"=$1',

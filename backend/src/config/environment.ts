@@ -126,8 +126,30 @@ export function validateEnvironment(input: Record<string, unknown>) {
       );
     }
   }
+  const billingMode = text(input.BILLING_MODE, 'disabled');
+  if (
+    !['disabled', 'sandbox'].includes(billingMode) ||
+    (database.NODE_ENV === 'production' && billingMode === 'sandbox')
+  )
+    throw new Error(
+      'Billing sandbox is restricted to development/test; live billing is not configured.',
+    );
+  const billingSecret = text(input.BILLING_EVENT_SECRET);
+  if (
+    billingMode === 'sandbox' &&
+    (billingSecret.length < 32 ||
+      [accessSecret, refreshSecret, mailKey].includes(billingSecret))
+  )
+    throw new Error(
+      'Billing event authentication requires an independent secret of at least 32 characters.',
+    );
   return {
     ...database,
+    BILLING_MODE: billingMode,
+    BILLING_ENFORCEMENT: boolean(
+      input.BILLING_ENFORCEMENT,
+      'BILLING_ENFORCEMENT',
+    ),
     ACCOUNT_MAIL_ENCRYPTION_KEY: mailKey,
     API_RATE_LIMIT: integer(input.API_RATE_LIMIT, 'API_RATE_LIMIT', 120, 10000),
     PORT: integer(input.PORT, 'PORT', 3000, 65535),

@@ -1,3 +1,4 @@
+import { assertFeature } from '../billing/policy';
 import { ForbiddenException } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { FamilyProfile } from './family.entities';
@@ -13,6 +14,7 @@ export async function familyScope(
   manage = false,
 ) {
   const { workspace, member } = await workspacePolicy(m, userId, wid, P.READ);
+  await assertFeature(m, wid, 'family');
   if (workspace.type !== 'FAMILY')
     throw new ForbiddenException('Choose a Family workspace.');
   const elevated = ['OWNER', 'ADMIN'].includes(member.role);

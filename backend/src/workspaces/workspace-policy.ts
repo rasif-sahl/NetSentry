@@ -1,3 +1,4 @@
+import { assertFeature } from '../billing/policy';
 import { ForbiddenException } from '@nestjs/common';
 import type { EntityManager } from 'typeorm';
 import { User, AccountStatus } from '../users/user.entity';
@@ -36,5 +37,12 @@ export async function workspacePolicy(
     throw new ForbiddenException(
       'Verify your email before managing workspace access or enrolling devices.',
     );
+  const feature =
+    permission === WorkspacePermission.CONTROL_SERVICES
+      ? 'developer'
+      : permission === WorkspacePermission.MANAGE_NETWORKS
+        ? 'network'
+        : undefined;
+  if (feature) await assertFeature(manager, workspaceId, feature);
   return { workspace, member, user };
 }

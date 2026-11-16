@@ -1,3 +1,6 @@
+import {ReadinessController} from './common/readiness.controller';
+import {OperationsModule} from './operations/operations.controller';
+import {BillingModule} from './billing/billing.controller';
 import { BusinessModule } from './business/business.controller';
 import { FamilyModule } from './family/family.controller';
 import { AgentModule } from './agents/agent.controller';
@@ -45,8 +48,10 @@ import { WorkspaceModule } from './workspaces/workspace.module';
     WorkspaceModule,
     FamilyModule,
     BusinessModule,
+    BillingModule,
+    OperationsModule,
   ],
-  controllers: [AppController, HealthController],
+  controllers: [AppController, HealthController, ReadinessController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

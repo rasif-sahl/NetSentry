@@ -33,7 +33,9 @@
     "agents:cleanup": "npm run build && node dist/agents/cleanup-cli.js",
     "networks:work": "npm run build && node dist/networks/network-work-cli.js",
     "family:work": "npm run build && node dist/family/family-work-cli.js",
-    "business:work": "npm run build && node dist/business/business-work-cli.js"
+    "business:work": "npm run build && node dist/business/business-work-cli.js",
+    "operations:grant": "npm run build && node dist/operations/grant-cli.js",
+    "operations:work": "npm run build && node dist/operations/work-cli.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

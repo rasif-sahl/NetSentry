@@ -1,3 +1,4 @@
+import {assertCapacity} from '../billing/policy';
 import {
   offboardBusinessMember,
   transferBusinessAssets,
@@ -152,6 +153,7 @@ export class CollaborationService {
         })
       )
         throw new ConflictException('You already belong to this workspace.');
+      await assertCapacity(manager,workspace.id,"members");
       await manager.save(
         manager.create(Membership, {
           userId,

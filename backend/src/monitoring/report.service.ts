@@ -1,3 +1,4 @@
+import { assertCapacity, entitlements } from '../billing/policy';
 import {
   ConflictException,
   BadRequestException,
@@ -45,7 +46,7 @@ export async function reportDevices(
     WorkspacePermission.READ,
   );
   const all =
-    workspace.type !== "BUSINESS" &&
+    workspace.type !== 'BUSINESS' &&
     roleAllows(member.role, WorkspacePermission.READ_REPORTS) &&
     !(workspace.type === 'FAMILY' && member.role === 'GUARDIAN');
   const devices = await manager.findBy(RegisteredDevice, {
@@ -304,6 +305,17 @@ export class ReportService {
       );
       if (input && member.role !== WorkspaceRole.OWNER)
         throw new ForbiddenException('Only the owner can change retention.');
+      if (input) {
+        const e = await entitlements(manager, workspaceId);
+        if (
+          e.enforced &&
+          (input.rawDays > e.limits.rawDays ||
+            input.aggregateDays > e.limits.aggregateDays)
+        )
+          throw new ForbiddenException(
+            'Retention exceeds the current edition. Existing retention is not shortened automatically.',
+          );
+      }
       if (input && input.aggregateDays < input.rawDays)
         throw new BadRequestException(
           'Aggregate retention must cover raw retention.',
@@ -350,6 +362,7 @@ export class ReportService {
         throw new BadRequestException(
           'This workspace has reached its network label limit.',
         );
+      if (name) await assertCapacity(manager, workspaceId, 'networks');
       if (name)
         return manager.save(
           manager.create(UsageNetwork, {

@@ -1,3 +1,4 @@
+import {assertCapacity} from '../billing/policy';
 import {
   BadRequestException,
   ConflictException,
@@ -133,6 +134,7 @@ export class NetworkService {
       if (id) {
         ({ label, profile } = await this.site(m, wid, id));
       } else {
+        await assertCapacity(m,wid,"networks");
         label = await m.save(
           m.create(UsageNetwork, {
             workspaceId: wid,
