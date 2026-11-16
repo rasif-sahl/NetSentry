@@ -41,7 +41,7 @@ try {
   await new Promise((ready) => server.listen(0, '127.0.0.1', ready));
   const jar = resolve(temp, 'live.jar');
   const source = resolve(root, 'android/app/src/main/java/com/netsentry/app');
-  await execute(KOTLINC, [resolve(source, 'core/Policy.kt'), resolve(source, 'core/UsageTimeline.kt'), ...['Api', 'Wire', 'ApplicationWire', 'Repository'].map((name) => resolve(source, `data/${name}.kt`)), resolve(root, 'android/test/LiveChecks.kt'), '-cp', clientClasspath, '-include-runtime', '-d', jar], { env: process.env });
+  await execute(KOTLINC, [resolve(source, 'core/Policy.kt'), resolve(source, 'core/UsageTimeline.kt'), ...['Api', 'Wire', 'ApplicationWire', 'FamilyWire', 'Repository'].map((name) => resolve(source, `data/${name}.kt`)), resolve(root, 'android/test/LiveChecks.kt'), '-cp', clientClasspath, '-include-runtime', '-d', jar], { env: process.env });
   const result = await execute(resolve(JAVA_HOME, 'bin/java'), [`-Djavax.net.ssl.trustStore=${trust}`, '-Djavax.net.ssl.trustStorePassword=fixture-only-password', '-cp', `${jar}:${clientClasspath}`, 'LiveChecksKt', `https://127.0.0.1:${server.address().port}/api/v1`, resolve(root, 'dashboard/.test/fixtures.json')], { env: process.env });
   assert.equal(redirectHits,0,'Redirect target must never be followed.');
   assert.equal(retryHits,1,'One-shot mutations must not be automatically retried after 503.');

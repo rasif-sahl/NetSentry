@@ -1,3 +1,4 @@
+import { FamilyAssignment } from '../family/family.entities';
 import { eraseMonitoring } from '../monitoring/privacy';
 import {
   BadRequestException,
@@ -253,6 +254,7 @@ export class DeviceService {
           device.name = 'Removed device';
         }
         if (['delete_data', 'remove'].includes(action)) {
+          await manager.delete(FamilyAssignment, { deviceId: device.id });
           device.capabilityReport = null;
           device.capabilities = {};
           device.applicationVersion = null;

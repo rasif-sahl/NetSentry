@@ -1,3 +1,4 @@
+import { eraseFamilyUser, exportFamilyUser } from '../family/family.lifecycle';
 import { eraseNetworkAgent } from '../networks/network-lifecycle';
 import {
   NetworkCollector,
@@ -99,6 +100,11 @@ export class PrivacyService {
           })
         : [];
       return {
+        family: await exportFamilyUser(
+          manager,
+          userId,
+          devices.map((d) => d.id),
+        ),
         networkCollectors: agents.length
           ? await manager.findBy(NetworkCollector, {
               agentId: In(agents.map((a) => a.id)),
@@ -211,6 +217,10 @@ export class PrivacyService {
       registeredById: userId,
     });
     const agents = await manager.findBy(Agent, { userId });
+    const familyRefs: { workspaceId: string }[] = await manager.query(
+      'SELECT DISTINCT p."workspaceId" FROM family_profiles p LEFT JOIN family_policies pol ON pol."profileId"=p.id LEFT JOIN family_requests r ON r."profileId"=p.id WHERE p."userId"=$1 OR p.guardians ? $2 OR pol."authorId"=$1 OR r."requesterId"=$1 OR r."decidedBy"=$1',
+      [userId, userId],
+    );
     const networkRefs: { workspaceId: string }[] = await manager.query(
       'SELECT DISTINCT n."workspaceId" FROM network_endpoints e JOIN usage_networks n ON n.id=e."networkId" WHERE e."assignedUserId"=$1',
       [userId],
@@ -221,6 +231,7 @@ export class PrivacyService {
     );
     return [
       ...new Set([
+        ...familyRefs.map((row) => row.workspaceId),
         ...networkRefs.map((row) => row.workspaceId),
         ...developerRefs.map((row: { workspaceId: string }) => row.workspaceId),
         ...agents.map((agent) => agent.workspaceId),
@@ -286,6 +297,7 @@ export class PrivacyService {
       );
       for (const agent of await manager.findBy(Agent, { userId }))
         await eraseNetworkAgent(manager, agent.id);
+      await eraseFamilyUser(manager, userId);
       await manager.delete(User, userId);
     });
     return { deleted: true };

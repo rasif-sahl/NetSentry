@@ -254,3 +254,34 @@ test("network snapshots bound passive metadata and keep unknown router traffic u
     }),
   );
 });
+
+test("family policies contain bounded intent and cannot authorize arbitrary actions", () => {
+  const rules = readJSON("fixtures/family-rules.v1.json");
+  validatePayload("family-rules.v1.schema.json", rules);
+  assert.throws(() =>
+    validatePayload("family-rules.v1.schema.json", {
+      ...rules,
+      execute: "shell",
+    }),
+  );
+  assert.throws(() =>
+    validatePayload("family-rules.v1.schema.json", {
+      ...rules,
+      dailyMinutes: 0,
+    }),
+  );
+  assert.throws(() =>
+    validateApiPayload("FamilyReceiptInput", {
+      generation: 1,
+      policyRevision: 1,
+      profileRevision: 1,
+      status: "applied",
+    }),
+  );
+  validateApiPayload("FamilyReceiptInput", {
+    generation: 1,
+    policyRevision: 1,
+    profileRevision: 1,
+    status: "unsupported",
+  });
+});

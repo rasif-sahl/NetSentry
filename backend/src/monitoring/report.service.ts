@@ -44,7 +44,9 @@ export async function reportDevices(
     workspaceId,
     WorkspacePermission.READ,
   );
-  const all = roleAllows(member.role, WorkspacePermission.READ_REPORTS);
+  const all =
+    roleAllows(member.role, WorkspacePermission.READ_REPORTS) &&
+    !(workspace.type === 'FAMILY' && member.role === 'GUARDIAN');
   const devices = await manager.findBy(RegisteredDevice, {
     workspaceId,
     ...(all ? {} : { registeredById: userId }),

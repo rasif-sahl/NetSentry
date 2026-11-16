@@ -1,4 +1,12 @@
 import {
+  FamilyProfile,
+  FamilyAssignment,
+  FamilyPolicy,
+  FamilyRequest,
+  FamilyReceipt,
+  FamilyEvent,
+} from '../family/family.entities';
+import {
   NetworkPresence,
   NetworkProfile,
   NetworkCollector,
@@ -60,6 +68,12 @@ export function databaseOptions(
     type: 'postgres',
     url: config.DATABASE_URL,
     entities: [
+      FamilyProfile,
+      FamilyAssignment,
+      FamilyPolicy,
+      FamilyRequest,
+      FamilyReceipt,
+      FamilyEvent,
       NetworkPresence,
       NetworkProfile,
       NetworkCollector,

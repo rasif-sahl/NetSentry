@@ -17,6 +17,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { FamilyPanel } from "./family-panel";
 import { DeveloperPanel } from "./developer-panel";
 import { SettingsPanel } from "./settings-panel";
 import { TeamPanel } from "./team-panel";
@@ -50,6 +51,7 @@ const navigation = [
   { label: "Alerts", icon: Bell },
   { label: "Networks", icon: Network },
   { label: "Developer Tools", icon: Laptop },
+  { label: "Family", icon: Users },
   { label: "Team", icon: Users },
   { label: "Settings & privacy", icon: Settings },
   { label: "More modules", icon: Laptop },
@@ -270,7 +272,6 @@ function WorkspaceShell({
     };
   }, [menu]);
   const future = [
-    "Family",
     "Policies",
     "Organizations",
     "Locations",
@@ -611,6 +612,7 @@ function ConnectedSection({
   workspacesChanged: () => void;
   signedOut: () => Promise<void>;
 }) {
+  if (section === "Family") return <FamilyPanel {...context} />;
   if (section === "Developer Tools") return <DeveloperPanel {...context} />;
   if (section === "Devices") return <DevicesPanel {...context} />;
   if (section === "Usage & reports") return <ReportsPanel {...context} />;

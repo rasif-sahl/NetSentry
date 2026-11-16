@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/family-rules.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "enabled",
+    "dailyMinutes",
+    "appLimits",
+    "categoryLimits",
+    "allowedApps",
+    "restrictedApps",
+    "schedules",
+    "pauseUntil",
+    "networkPause",
+    "domains",
+    "domainCategories"
+  ],
+  "properties": {
+    "enabled": {
+      "type": "boolean"
+    },
+    "dailyMinutes": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "appLimits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "minutes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "minutes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1440
+          }
+        }
+      },
+      "maxItems": 32
+    },
+    "categoryLimits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "minutes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^(?:[a-z][a-z0-9_]{0,63}|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$"
+          },
+          "minutes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1440
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "education",
+              "entertainment",
+              "other"
+            ]
+          }
+        }
+      },
+      "maxItems": 32
+    },
+    "allowedApps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64
+    },
+    "restrictedApps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64
+    },
+    "schedules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "days",
+          "start",
+          "end"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "bedtime",
+              "study",
+              "weekend"
+            ]
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "maxItems": 7,
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "start": {
+            "type": "string",
+            "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+          },
+          "end": {
+            "type": "string",
+            "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+          }
+        }
+      },
+      "maxItems": 12
+    },
+    "pauseUntil": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "networkPause": {
+      "type": "boolean"
+    },
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64
+    },
+    "domainCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 16
+    }
+  }
+}

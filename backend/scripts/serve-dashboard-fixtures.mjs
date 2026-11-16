@@ -122,7 +122,14 @@ try {
   }
   const password = 'fixture-dashboard-password-123';
   const accounts = {};
-  for (const name of ['owner', 'viewer', 'unverified', 'recovery']) {
+  for (const name of [
+    'owner',
+    'viewer',
+    'unverified',
+    'recovery',
+    'child',
+    'guardian',
+  ]) {
     const session = await call('/auth/register', 'POST', {
       email: `${name}@dashboard.example.invalid`,
       displayName: `Fixture ${name}`,
@@ -552,6 +559,56 @@ try {
       .then(() => publishNetwork())
       .catch(() => {});
   }, 2000);
+  // Synthetic family scope; no native restriction adapter or device action.
+  for (const [name, role] of [
+    ['child', 'MEMBER'],
+    ['guardian', 'GUARDIAN'],
+  ])
+    await source.query(
+      'INSERT INTO memberships ("workspaceId","userId",role) VALUES ($1,$2,$3)',
+      [workspace.id, accounts[name].user.id, role],
+    );
+  const familyProfile = await call(
+    `/workspaces/${workspace.id}/family/profiles`,
+    'POST',
+    {
+      expectedRevision: 0,
+      name: 'Synthetic family child',
+      avatar: 'owl',
+      ageBand: 'teen',
+      userId: accounts.child.user.id,
+      guardians: [accounts.guardian.user.id],
+      networks: [label.id],
+      archived: false,
+      accepted: true,
+      disclosureVersion: 'family-sharing-v1',
+    },
+    owner.accessToken,
+  );
+  const familyRules = {
+    enabled: true,
+    dailyMinutes: 90,
+    appLimits: [],
+    categoryLimits: [],
+    allowedApps: [],
+    restrictedApps: [],
+    schedules: [],
+    pauseUntil: null,
+    networkPause: false,
+    domains: [],
+    domainCategories: [],
+  };
+  await call(
+    `/workspaces/${workspace.id}/family/profiles/${familyProfile.id}/policy`,
+    'POST',
+    {
+      expectedRevision: 0,
+      rules: familyRules,
+      accepted: true,
+      disclosureVersion: 'family-sharing-v1',
+    },
+    owner.accessToken,
+  );
   await mkdir(new URL('../../dashboard/.test/', import.meta.url), {
     recursive: true,
   });
@@ -562,6 +619,7 @@ try {
       workspaceId: workspace.id,
       emptyId: empty.id,
       deviceId: pair.device.id,
+      familyProfileId: familyProfile.id,
       monitoredNetworkId: monitored.networkId,
       developerAgentId: developerPair.agent.id,
       networkId: label.id,

@@ -1,3 +1,4 @@
+import { FamilyModule } from './family/family.controller';
 import { AgentModule } from './agents/agent.controller';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { PrivacyModule } from './account/privacy.module';
@@ -41,6 +42,7 @@ import { WorkspaceModule } from './workspaces/workspace.module';
     PrivacyModule,
     MonitoringModule,
     WorkspaceModule,
+    FamilyModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
