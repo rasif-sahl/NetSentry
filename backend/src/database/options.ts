@@ -1,3 +1,4 @@
+import { DeploymentWorkerState } from '../deployment/worker-state.entity';
 import {operationEntities} from '../operations/operations.entities';
 import {billingEntities} from '../billing/billing.entities';
 import { businessEntities } from '../business/business.entities';
@@ -71,6 +72,7 @@ export function databaseOptions(
     type: 'postgres',
     url: config.DATABASE_URL,
     entities: [
+      DeploymentWorkerState,
       ...operationEntities,
       ...billingEntities,
       ...businessEntities,
