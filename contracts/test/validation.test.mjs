@@ -156,3 +156,12 @@ test("remote desktop consent cannot be inferred from local controls",()=>{
  request.payload.accepted=true;request.payload.sharing=false;
  assert.throws(()=>validatePayload('local-ipc.v4.schema.json',request));
 });
+
+test("mobile/web remote commands cannot substitute a PID or shell command",()=>{
+ const request=readJSON('fixtures/remote-command.v1.json');
+ validateApiPayload('RemoteCommandInput',request);
+ request.pid=12345;
+ assert.throws(()=>validateApiPayload('RemoteCommandInput',request));
+ delete request.pid;request.command='arbitrary shell text';
+ assert.throws(()=>validateApiPayload('RemoteCommandInput',request));
+});
