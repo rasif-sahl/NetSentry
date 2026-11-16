@@ -65,9 +65,10 @@ private class Harness(val workspaceType: String = "PERSONAL", val workspaceRole:
     val uploads = mutableListOf<String>()
     val appUploads = mutableListOf<String>()
     val businessWrites = mutableListOf<JSONObject>()
+    var changedObservation = false
     var remoteCount = 0
     val user = json("id" to U, "displayName" to "Test owner", "emailVerifiedAt" to Policy.timestamp(now))
-    fun service() = json("serviceId" to "a".repeat(64), "observationId" to O, "observedAt" to Policy.timestamp(now), "canStop" to true)
+    fun service() = json("serviceId" to "a".repeat(64), "observationId" to if (changedObservation) "00000000-0000-4000-8000-000000000099" else O, "observedAt" to Policy.timestamp(now), "canStop" to true)
     val transport = object : Transport {
         override fun request(method: String, path: String, token: String?, body: JSONObject?): Any {
             calls.add(Triple(method, path, token))
@@ -220,6 +221,11 @@ fun main(args: Array<String>) {
     test("authorization loss after token renewal clears protected views and stops collection") {
         val h = Harness(); h.consent(); h.expireAccess=true; h.forbidAfterRefresh=true
         denied { h.repo.remote(intent) }; check(h.repo.view().computers.isEmpty() && !h.repo.view().localEnabled)
+    }
+    test("replaced remote observations fail explicitly before any command POST") {
+        val h = Harness(); h.login(); h.changedObservation = true
+        check(runCatching { h.repo.remote(intent) }.exceptionOrNull() is ObservationChanged)
+        check(h.remoteCount == 0 && h.repo.view().queueSize == 0)
     }
     test("remote commands are never added to offline upload queue") {
         val h = Harness(); h.login(); h.offline = true

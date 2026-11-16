@@ -87,12 +87,22 @@ fun main(args: Array<String>) {
     child.refreshFamily(familyProfileId)
     check(child.view().familyDetail!!.getJSONObject("desired").getString("state")=="overridden")
     child.signOut();guardian.signOut()
-    repository.refreshDeveloper()
-    val computer = repository.view().computers.first { it.optBoolean("canControl") && it.array("services").isNotEmpty() }
-    val service = computer.array("services").first()
-    val intent = RemoteIntent(computer.getString("id"), service.getString("serviceId"), service.getString("observationId"),
-        Instant.parse(service.getString("observedAt")).toEpochMilli(), "graceful", false, service.getInt("childCount"))
-    repository.remote(intent)
+    lateinit var computer: JSONObject
+    lateinit var intent: RemoteIntent
+    var confirmed = false
+    // Synthetic publisher rotates observations every two seconds. A replacement
+    // rejected BEFORE any POST requires a new simulated user confirmation.
+    // Transport/API failures and uncertain command acknowledgements are never retried.
+    for (attempt in 0 until 5) {
+        repository.refreshDeveloper()
+        computer = repository.view().computers.first { it.optBoolean("canControl") && it.array("services").isNotEmpty() }
+        val service = computer.array("services").first()
+        intent = RemoteIntent(computer.getString("id"), service.getString("serviceId"), service.getString("observationId"),
+            Instant.parse(service.getString("observedAt")).toEpochMilli(), "graceful", false, service.getInt("childCount"))
+        try { repository.remote(intent); confirmed = true; break }
+        catch (_: ObservationChanged) { /* No command was sent; review a new fixture observation. */ }
+    }
+    check(confirmed) { "Synthetic observation kept changing before confirmation." }
     val pending = repository.view().commands[computer.getString("id")]!!.first { it.getString("requestId") == intent.requestId }
     check(pending.getString("state") == "pending") // Synthetic publisher never executes a signal.
     repository.cancel(computer.getString("id"), pending.getString("id"))

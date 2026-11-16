@@ -460,8 +460,8 @@ class Repository(
     @Synchronized fun remote(intent: RemoteIntent) {
         // Re-read permission and exact observation immediately. No worker/offline command queue exists.
         val latest = (account("GET", "/workspaces/${workspace()}/developer") as JSONArray).objects()
-        val computer = latest.first { it.getString("id") == intent.agentId }
-        val service = computer.array("services").first { it.getString("observationId") == intent.observationId && it.getString("serviceId") == intent.serviceId }
+        val computer = latest.firstOrNull { it.getString("id") == intent.agentId } ?: throw ObservationChanged()
+        val service = computer.array("services").firstOrNull { it.getString("observationId") == intent.observationId && it.getString("serviceId") == intent.serviceId } ?: throw ObservationChanged()
         intent.check(clock(), computer.getBoolean("canControl"), service.getBoolean("canStop"))
         account("POST", "/workspaces/${workspace()}/agents/${Policy.uuid(intent.agentId)}/commands", Wire.command(intent))
         refresh()
