@@ -67,11 +67,14 @@ const backend = createServer(async (req, res) => {
 const options = { stateDir, binary };
 const call = async (method, payload) => {
   const result = await requestServices(options, method, payload);
-  const version = ["get_remote_preferences", "set_remote_preferences"].includes(
-    method,
-  )
-    ? 4
-    : 3;
+  const version = [
+    "get_network_preferences",
+    "set_network_preferences",
+  ].includes(method)
+    ? 5
+    : ["get_remote_preferences", "set_remote_preferences"].includes(method)
+      ? 4
+      : 3;
   validatePayload(`local-ipc.v${version}.schema.json`, {
     schemaVersion: version,
     requestId: randomUUID(),
@@ -233,6 +236,40 @@ try {
     assert.equal(inventory.data.platformSupported, false);
     assert.equal(inventory.data.services.length, 0);
   }
+  const networkDefaults = await call("get_network_preferences", {});
+  assert.equal(networkDefaults.ok, true);
+  assert.equal(networkDefaults.data.sharing, false);
+  const networkId = randomUUID();
+  assert.equal(
+    (
+      await requestServices(options, "set_network_preferences", {
+        sharing: true,
+        networkId,
+        accepted: false,
+        disclosureVersion: "network-sharing-v1",
+      })
+    ).ok,
+    false,
+  );
+  const shared = await call("set_network_preferences", {
+    sharing: true,
+    networkId,
+    accepted: true,
+    disclosureVersion: "network-sharing-v1",
+  });
+  assert.equal(shared.ok, true);
+  assert.equal(shared.data.networkId, networkId);
+  assert.equal(
+    (
+      await call("set_network_preferences", {
+        sharing: false,
+        networkId: "",
+        accepted: false,
+        disclosureVersion: "network-sharing-v1",
+      })
+    ).data.sharing,
+    false,
+  );
   await request(options, "set_modules", { network: true, developer: false });
   assert.equal(
     (await call("list_services", { query: "", offset: 0 })).code,

@@ -1,3 +1,8 @@
+export type NetworkPreferences = {
+  sharing: boolean;
+  networkId: string;
+  supported: boolean;
+};
 export type Endpoint = { address: string; port: number; socketId: string };
 export type Project = {
   id: string;
@@ -76,6 +81,7 @@ export type RemotePreferences = {
   supported: boolean;
 };
 export type DeveloperData =
+  | NetworkPreferences
   | RemotePreferences
   | Inventory
   | Action
