@@ -7,7 +7,7 @@ NetSentry is being built for device/network monitoring, family digital wellbeing
 | Directory | Technology | Current role |
 | --- | --- | --- |
 | `backend/` | NestJS, TypeScript, PostgreSQL/TypeORM | Account, workspace, enrolment, health/consent and privacy APIs |
-| `dashboard/` | Next.js, React, TypeScript, Tailwind CSS | Existing web interface; preview monitoring values remain until integration |
+| `dashboard/` | Next.js, React, TypeScript, Tailwind CSS | Connected account/workspace, monitoring, team and privacy UI; later domains are explicitly planned |
 | `android/` | Kotlin, Jetpack Compose | New independent native source/build scaffold |
 | `ios/` | Swift, SwiftUI | New independent native source/Xcode project scaffold |
 | `desktop/` | Electron, React, TypeScript, Vite | New desktop interface and isolated native shell |
@@ -42,7 +42,7 @@ npm run check:desktop
 npm run build:desktop
 ```
 
-The contracts checks require `npm --prefix contracts ci --ignore-scripts` when preparing a fresh checkout. `npm run check` checks scaffolds/contracts, runs contract/backend units, and builds backend/desktop; it does not install dependencies or mobile tools.
+The contracts checks require `npm --prefix contracts ci --ignore-scripts` when preparing a fresh checkout. `npm run check` checks scaffolds/contracts, runs contract/backend units, lints the dashboard, and builds backend/desktop/dashboard; it does not install dependencies or mobile tools.
 
 Backend commands require its existing dependencies; server/integration tests require the configured PostgreSQL environment. `dev:dashboard` uses port 3001 to match the existing API CORS example. Desktop checks require its prepared dependencies. If preparing them later, use `npm --prefix desktop ci --ignore-scripts` to avoid running dependency installers. Electron's runtime binary is intentionally not installed by this command; see `desktop/README.md` before desktop launch. Standard first-use backend/dashboard dependency installation is separate and is not performed by root commands.
 
@@ -55,6 +55,8 @@ Agent commands require an existing Go 1.23+ toolchain. Native build/signing comm
 - [Phase 1 verification](docs/validation/phase-1.md)
 - [Phase 2 verification](docs/validation/phase-2.md)
 - [Phase 3 verification](docs/validation/phase-3.md)
+- [Phase 4 verification](docs/validation/phase-4.md)
+- [Responsive web dashboard](docs/features/dashboard.md)
 - [Measurements, reports and notifications](docs/features/monitoring.md)
 - [Account verification and recovery](docs/features/accounts.md)
 - [Workspace collaboration](docs/features/workspaces.md)
@@ -96,3 +98,9 @@ Direct device registration is disabled in favor of one-time enrolment. Device cr
 Review and apply explicit migrations before using the measurement APIs. The final Phase 3 migration pauses old monitoring grants and advances configuration generations; accept the current monitoring disclosure before uploading. No collector is enabled by migration.
 
 Measurement batches, usage reports/CSV, retention, manual network labels, alert rules, in-app notification delivery and operational diagnostics are implemented in the backend. Run `npm --prefix backend run monitoring:work -- WORKSPACE_UUID` for one bounded maintenance pass per workspace; deployment scheduling remains to be configured. Push providers remain unavailable. See [monitoring behavior and limits](docs/features/monitoring.md).
+
+## Phase 4 dashboard
+
+Configure the dashboard's server-only API base and exact browser origin using `dashboard/.env.example`, then run `npm run dev:dashboard` (port 3001). Real account/workspace, device, report, alert, team, profile and privacy flows now replace the preview data. Future modules are explicitly marked planned. See [dashboard setup and browser checks](dashboard/README.md).
+
+`npm run test:dashboard` runs desktop-browser flows against a disposable PostgreSQL fixture server after backend/dashboard builds. An existing desktop Chrome may be selected with `PLAYWRIGHT_CHROME_EXECUTABLE`; CI prepares desktop Chromium only. Native SDKs, emulators and real-device acceptance remain deferred.

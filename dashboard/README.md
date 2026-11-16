@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NetSentry web dashboard
 
-## Getting Started
+The responsive Next.js/React/TypeScript/Tailwind dashboard connects to the account, workspace, device and monitoring APIs delivered in Phases 2–3. It uses actual API responses; there are no simulated scans, sample security scores or hardcoded usage totals in the product interface.
 
-First, run the development server:
+## Local setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+With the existing backend environment/migrations configured and dashboard dependencies prepared:
+
+```sh
+cp dashboard/.env.example dashboard/.env.local
+npm run dev:dashboard
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3001`. Set the private `NETSENTRY_API_URL` to the full backend API base, normally `http://127.0.0.1:3000/api/v1`, and `DASHBOARD_ORIGIN` to the exact browser origin. These values are server-only; no JWT signing or account-mail encryption secret belongs in the dashboard environment. Never put credentials in a `NEXT_PUBLIC_` variable.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`DASHBOARD_ORIGIN` is mandatory in production. Production dashboard/API origins require HTTPS, with HTTP exceptions only for local loopback testing. A changed deployment hostname requires the matching configured origin. Forwarding untrusted client IP headers is deliberately disabled; backend IP-based rate limits currently share the dashboard proxy address. Configure a reviewed trusted-ingress/rate policy before a multi-user production rollout. Browser fixtures replace only their isolated rate counter, not production authentication or authorization.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Included flows
 
-## Learn More
+- Registration, sign-in/restoration/refresh/sign-out, email verification and password recovery.
+- Workspace selection, creation, invitation acceptance/sharing/revocation, member management and ownership transfer for supported workspace roles.
+- Reported device inventory, capabilities/permission/health, rename, explicit consent, pause/revocation/unenrolment and deletion.
+- Day/week/month usage reports, comparison periods, exact measured/estimated values, coverage/gaps, source indicators and CSV download.
+- Alert rules, quiet hours, severity, device/network scope, acknowledgement, delivery attempts, in-app notifications and preferences.
+- Manual network labels and consent-resetting device association.
+- Profile, light/dark/system appearance, reduced motion, sessions, personal export/account deletion, retention and safe operational diagnostics.
+- Responsive keyboard navigation, section history/bookmarks, loading/empty/error/permission states and explicitly planned future modules.
 
-To learn more about Next.js, take a look at the following resources:
+Email links use `/verify-email#token=…` and `/reset-password#token=…`. The browser removes the fragment from the address bar and asks the user to confirm the action; it never consumes a verification link during prefetch/render. Code fields are masked. Real email requires the backend's configured delivery process; real push remains unavailable.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Browser session boundary
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The browser uses same-origin `/api/backend/*` routes. The Next.js server forwards only documented operations and rejects device-token routes and legacy registration. Login/registration/refresh responses expose the public user only; access/refresh tokens remain in HTTP-only, SameSite=Strict cookies. HTTPS uses Secure `__Host-` cookies. Cookies have backend-token expiry capped at 30 days. No bearer tokens are stored in browser local/session storage.
 
-## Deploy on Vercel
+Mutations require an exact matching Origin and JSON content. An expected-account header fences authenticated mutations against account changes between tabs; this is a concurrency check, not authorization. The backend remains responsible for JWT signatures, current sessions, ownership, verification, workspace roles and consent. Cross-tab session changes clear the old UI, and late profile responses cannot recreate a signed-out user. Web Locks coordinate refresh/session changes where supported; BroadcastChannel coordinates tab identity changes. Refresh tokens are single-use: if navigation or connection loss discards a rotation response, sign in again rather than replaying the old credential. The server-side account fence still prevents wrong-account mutations if those browser APIs are unavailable.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+All API responses are `no-store`. Requests are bounded to 64 KiB; responses/download envelopes are bounded to 16 MiB and upstream requests time out after 20 seconds. Large personal archives require a separate operator export path; this phase does not provide a background archive service. Errors expose safe backend messages and request references, not arbitrary provider/server payloads.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Visible data resources poll every 30 seconds while online and visible, and refresh on reconnection, visibility changes or explicit refresh. User/workspace changes discard old resources and abort reads. Fetch time is labelled separately from device report/synchronization time. A disconnected refresh can retain a clearly errored previous result; authorization failures clear it.
+
+## Checks
+
+```sh
+npm --prefix dashboard run lint
+npm --prefix dashboard run build
+```
+
+Webpack and Tailwind's standard PostCSS integration provide a working build path in environments where Turbopack worker ports are restricted. System fonts avoid build-time font downloads. `typecheck` runs Next's route generation and TypeScript separately when needed; the production build already checks types.
+
+Browser integration tests require the already-built backend/dashboard, contracts/backend dependencies, and a dedicated empty PostgreSQL database whose name ends in `_test`:
+
+```sh
+npm run build:backend
+npm run build:dashboard
+TEST_DATABASE_URL=postgresql://localhost/netsentry_web_test \
+PLAYWRIGHT_CHROME_EXECUTABLE='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' \
+npm run test:dashboard
+```
+
+The optional executable variable selects an existing desktop Chrome. CI prepares desktop Chromium in its isolated runner. No Android/iOS SDK, emulator or simulator is used. Narrow/tablet checks resize a desktop browser window; they are not physical-device acceptance.
+
+The test server binds only loopback ports 54110/54111, refuses populated databases, seeds clearly synthetic accounts/capabilities/usage, waits for complete fixture readiness and removes the fixture schema on graceful shutdown. `.test/fixtures.json`, screenshots, browser downloads and traces are ignored artifacts. Never use real user accounts or production database URLs. Run builds before browser tests, not concurrently with the production server serving that build output.
+
+See `../docs/features/dashboard.md` and `../docs/validation/phase-4.md` for behavior, boundaries and verification.

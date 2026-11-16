@@ -1,6 +1,6 @@
 # NetSentry development plan
 
-Updated: 15 November 2026
+Updated: 16 November 2026
 
 NetSentry will provide personal device and network monitoring, family digital wellbeing and supported parental controls, business network management, and developer service monitoring across desktop and mobile. Features depend on verified operating-system, device, permission, agent, and router capabilities.
 
@@ -36,7 +36,7 @@ The existing Flutter application will be replaced by native applications. Flutte
 
 ## Existing implementation and migration
 
-The repository currently contains a NestJS/PostgreSQL backend, a Next.js/React/Tailwind dashboard, and a Flutter mobile application with a Kotlin capability bridge. The backend implements authentication/session foundations, workspace creation/listing, membership records, and device registration/listing. The dashboard uses preview data. Mobile connects to authentication and checks Android capabilities; it does not complete backend device registration. Native mobile applications, desktop applications, Go agents, verified monitoring pipelines, billing, and policy enforcement still need implementation.
+The repository currently contains a NestJS/PostgreSQL backend, a Next.js/React/Tailwind dashboard, and a Flutter mobile application with a Kotlin capability bridge. The backend implements authentication/session foundations, workspace creation/listing, membership records, and device registration/listing. The dashboard used preview data at the planning baseline; Phase 4 replaces those values with API-backed workflows and explicit unavailable states. Mobile connects to authentication and checks Android capabilities; it does not complete backend device registration. Native mobile applications, desktop applications, Go agents, verified monitoring pipelines, billing, and policy enforcement still need implementation.
 
 Migration work:
 
@@ -201,6 +201,8 @@ Status: backend infrastructure implemented and verified with synthetic integrati
 Completion: fixture-driven ingestion/report/alert integration checks pass, including duplicate batches, timezone boundaries, gaps, deletion, and failure recovery. Fixture data remains clearly identified as test data.
 
 ### Phase 4 Responsive web dashboard
+
+Status: connected web workflows implemented and browser integration verified with synthetic data. Deployment/provider/native and broader accessibility/browser acceptance remain documented follow-ups. See `docs/features/dashboard.md` and `docs/validation/phase-4.md`.
 
 - Connect real authentication, workspace switching, devices, usage, reports, alerts, profile, privacy and settings to the API.
 - Implement accessible mobile/tablet/desktop navigation and loading, empty, error, permission and unsupported states.
