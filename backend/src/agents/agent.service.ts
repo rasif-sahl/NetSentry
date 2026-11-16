@@ -1,3 +1,4 @@
+import { eraseNetworkAgent } from '../networks/network-lifecycle';
 import { AgentDeveloper, DeveloperCommand } from './developer.entities';
 import { Workspace } from '../workspaces/workspace.entity';
 import {
@@ -160,6 +161,7 @@ export class AgentService {
           throw new BadRequestException('Workspace agent limit reached.');
         const token = randomBytes(32).toString('base64url');
         if (agent) {
+          await eraseNetworkAgent(manager, agent.id);
           await manager.delete(AgentDeveloper, { agentId: agent.id });
           await manager.delete(DeveloperCommand, { agentId: agent.id });
           await manager.delete(AgentEvent, { agentId: agent.id });
@@ -313,6 +315,7 @@ export class AgentService {
         { consumedAt: new Date() },
       );
       if (erase) {
+        await eraseNetworkAgent(manager, id);
         await manager.delete(AgentDeveloper, { agentId: id });
         await manager.delete(DeveloperCommand, { agentId: id });
         await manager.delete(AgentEnrolment, {

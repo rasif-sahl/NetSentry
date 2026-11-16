@@ -112,13 +112,18 @@ test("public user payloads cannot contain password hashes", () => {
   );
 });
 
-test("offline batches cap their contents and bind a configuration generation",()=>{
-  const batch=fixture("measurement-batch");
-  validatePayload("measurement-batch.v1.schema.json",batch);
-  batch.events=Array(101).fill(batch.events[0]);
-  assert.throws(()=>validatePayload("measurement-batch.v1.schema.json",batch));
-  batch.events=[];batch.generation=0;
-  assert.throws(()=>validatePayload("measurement-batch.v1.schema.json",batch));
+test("offline batches cap their contents and bind a configuration generation", () => {
+  const batch = fixture("measurement-batch");
+  validatePayload("measurement-batch.v1.schema.json", batch);
+  batch.events = Array(101).fill(batch.events[0]);
+  assert.throws(() =>
+    validatePayload("measurement-batch.v1.schema.json", batch),
+  );
+  batch.events = [];
+  batch.generation = 0;
+  assert.throws(() =>
+    validatePayload("measurement-batch.v1.schema.json", batch),
+  );
 });
 
 test("desktop setup IPC accepts only typed preferences and pairing codes", () => {
@@ -148,38 +153,104 @@ test("local shutdown binds a fresh observation and explicit force/child choices"
   assert.throws(() => validatePayload("local-ipc.v3.schema.json", request));
 });
 
-test("remote desktop consent cannot be inferred from local controls",()=>{
- const request=readJSON('fixtures/local-ipc.v4.json');
- validatePayload('local-ipc.v4.schema.json',request);
- request.payload.accepted=false;
- assert.throws(()=>validatePayload('local-ipc.v4.schema.json',request));
- request.payload.accepted=true;request.payload.sharing=false;
- assert.throws(()=>validatePayload('local-ipc.v4.schema.json',request));
+test("remote desktop consent cannot be inferred from local controls", () => {
+  const request = readJSON("fixtures/local-ipc.v4.json");
+  validatePayload("local-ipc.v4.schema.json", request);
+  request.payload.accepted = false;
+  assert.throws(() => validatePayload("local-ipc.v4.schema.json", request));
+  request.payload.accepted = true;
+  request.payload.sharing = false;
+  assert.throws(() => validatePayload("local-ipc.v4.schema.json", request));
 });
 
-test("mobile/web remote commands cannot substitute a PID or shell command",()=>{
- const request=readJSON('fixtures/remote-command.v1.json');
- validateApiPayload('RemoteCommandInput',request);
- request.pid=12345;
- assert.throws(()=>validateApiPayload('RemoteCommandInput',request));
- delete request.pid;request.command='arbitrary shell text';
- assert.throws(()=>validateApiPayload('RemoteCommandInput',request));
+test("mobile/web remote commands cannot substitute a PID or shell command", () => {
+  const request = readJSON("fixtures/remote-command.v1.json");
+  validateApiPayload("RemoteCommandInput", request);
+  request.pid = 12345;
+  assert.throws(() => validateApiPayload("RemoteCommandInput", request));
+  delete request.pid;
+  request.command = "arbitrary shell text";
+  assert.throws(() => validateApiPayload("RemoteCommandInput", request));
 });
 
 test("detailed Android usage excludes activity classes and bounds metadata", () => {
   const batch = readJSON("../android/test/fixtures/application-usage.v1.json");
   validatePayload("app-usage-batch.v1.schema.json", batch);
   validateApiPayload("ApplicationUsageBatch", batch);
-  assert.throws(() => validatePayload("app-usage-batch.v1.schema.json", { ...batch, activityClass: "private.Class" }));
+  assert.throws(() =>
+    validatePayload("app-usage-batch.v1.schema.json", {
+      ...batch,
+      activityClass: "private.Class",
+    }),
+  );
   const oversized = structuredClone(batch);
   oversized.applications = Array(33).fill(batch.applications[0]);
-  assert.throws(() => validatePayload("app-usage-batch.v1.schema.json", oversized));
+  assert.throws(() =>
+    validatePayload("app-usage-batch.v1.schema.json", oversized),
+  );
   batch.intervalStart = batch.intervalStart.replace(".000Z", "Z");
   assert.throws(() => validatePayload("app-usage-batch.v1.schema.json", batch));
 });
 
 test("detailed application consent is an explicit versioned addition", () => {
-  const input = { accepted: true, disclosureVersion: "monitoring-v3", scopes: ["app_usage"], appUsageDisclosureVersion: "app-usage-v1" };
+  const input = {
+    accepted: true,
+    disclosureVersion: "monitoring-v3",
+    scopes: ["app_usage"],
+    appUsageDisclosureVersion: "app-usage-v1",
+  };
   validateApiPayload("DeviceConsentRequest", input);
-  assert.throws(() => validateApiPayload("DeviceConsentRequest", { ...input, appUsageDisclosureVersion: "future-or-invented" }));
+  assert.throws(() =>
+    validateApiPayload("DeviceConsentRequest", {
+      ...input,
+      appUsageDisclosureVersion: "future-or-invented",
+    }),
+  );
+});
+
+test("network sharing needs a named network and separate disclosure", () => {
+  const base = readJSON("fixtures/local-ipc.v5.json");
+  validatePayload("local-ipc.v5.schema.json", base);
+  assert.throws(() =>
+    validatePayload("local-ipc.v5.schema.json", {
+      ...base,
+      payload: { ...base.payload, accepted: false },
+    }),
+  );
+  assert.throws(() =>
+    validatePayload("local-ipc.v5.schema.json", {
+      ...base,
+      payload: { ...base.payload, networkId: "" },
+    }),
+  );
+  assert.throws(() =>
+    validatePayload("local-ipc.v5.schema.json", {
+      ...base,
+      payload: { ...base.payload, command: "scan" },
+    }),
+  );
+});
+test("network snapshots bound passive metadata and keep unknown router traffic unavailable", () => {
+  const base = readJSON("fixtures/network-snapshot.v1.json");
+  validatePayload("network-snapshot.v1.schema.json", base);
+  assert.throws(() =>
+    validatePayload("network-snapshot.v1.schema.json", {
+      ...base,
+      neighbors: [
+        ...base.neighbors.map((n) => ({ ...n, hostname: "inferred-owner" })),
+      ],
+    }),
+  );
+  assert.throws(() =>
+    validatePayload("network-snapshot.v1.schema.json", {
+      ...base,
+      neighbors: Array(129).fill(base.neighbors[0]),
+    }),
+  );
+  assert.throws(() =>
+    validatePayload("network-snapshot.v1.schema.json", {
+      ...base,
+      router: { rxBytes: 123 },
+    }),
+  );
 });
