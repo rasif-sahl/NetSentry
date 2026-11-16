@@ -308,6 +308,10 @@ export class AgentService {
         { consumedAt: new Date() },
       );
       if (erase) {
+        await manager.delete(AgentEnrolment, {
+          installationId: agent.installationId,
+          userId: agent.userId,
+        });
         await manager.delete(AgentEvent, { agentId: id });
         agent.name = 'Erased agent';
         agent.capabilities = {};

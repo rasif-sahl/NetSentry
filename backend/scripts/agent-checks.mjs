@@ -222,13 +222,22 @@ export async function checkAgents({ request, source, alice, bob, workspace }) {
   );
   assert.ok(changed.generation > pair.agent.generation);
   await request('POST', `/agents/${id}/sync`, 409, 'ApiError', batch, token);
-  await source.query(`UPDATE agent_events SET "receivedAt"=now()-interval '8 days' WHERE "agentId"=$1`, [id]);
-  await source.query(`UPDATE agent_enrolments SET "expiresAt"=now()-interval '1 day' WHERE "workspaceId"=$1`, [workspace.id]);
+  await source.query(
+    `UPDATE agent_events SET "receivedAt"=now()-interval '8 days' WHERE "agentId"=$1`,
+    [id],
+  );
+  await source.query(
+    `UPDATE agent_enrolments SET "expiresAt"=now()-interval '1 day' WHERE "workspaceId"=$1`,
+    [workspace.id],
+  );
   const { cleanupAgents } = await import('../dist/agents/cleanup.js');
   const cleaned = await cleanupAgents(source, workspace.id);
   assert.equal(cleaned.eventsRemoved, 1);
   assert.ok(Number.isInteger(cleaned.codesRemoved) && cleaned.codesRemoved > 0);
-  assert.deepEqual(await cleanupAgents(source, workspace.id), { eventsRemoved: 0, codesRemoved: 0 });
+  assert.deepEqual(await cleanupAgents(source, workspace.id), {
+    eventsRemoved: 0,
+    codesRemoved: 0,
+  });
   await request('DELETE', `${base}/${id}`, 200, 'Agent', null, auth);
   await request(
     'GET',
@@ -261,12 +270,22 @@ export async function checkAgents({ request, source, alice, bob, workspace }) {
     )[0].n,
     0,
   );
+  await request('POST', `${base}/enrolments`, 201, null, definition, auth);
   await request('DELETE', `${base}/${id}/data`, 200, 'Agent', null, auth);
   assert.equal(
     (
       await source.query(
         'SELECT count(*)::int AS n FROM agent_events WHERE "agentId"=$1',
         [id],
+      )
+    )[0].n,
+    0,
+  );
+  assert.equal(
+    (
+      await source.query(
+        'SELECT count(*)::int AS n FROM agent_enrolments WHERE "installationId"=$1 AND "userId"=$2',
+        [definition.installationId, alice.user.id],
       )
     )[0].n,
     0,
