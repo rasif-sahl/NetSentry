@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/local-ipc.v3.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 3
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "list_services"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "query",
+            "offset"
+          ],
+          "properties": {
+            "query": {
+              "type": "string",
+              "maxLength": 100,
+              "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 256
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 3
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "request_stop"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "actionId",
+            "serviceId",
+            "observationId",
+            "mode",
+            "includeChildren"
+          ],
+          "properties": {
+            "actionId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "serviceId": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "observationId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "mode": {
+              "enum": [
+                "graceful",
+                "force"
+              ]
+            },
+            "includeChildren": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 3
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "set_project"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "serviceId",
+            "observationId",
+            "label"
+          ],
+          "properties": {
+            "serviceId": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "observationId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 100,
+              "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 3
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "get_action_history"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {}
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 3
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "set_local_control"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowed"
+          ],
+          "properties": {
+            "allowed": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
