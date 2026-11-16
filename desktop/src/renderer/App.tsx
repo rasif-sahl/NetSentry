@@ -1,3 +1,4 @@
+import { Updates } from "./Updates";
 import { Appearance } from "./Appearance";
 import { NetworkSharing } from "./NetworkSharing";
 import { RemoteSharing } from "./RemoteSharing";
@@ -41,6 +42,7 @@ export function App() {
       </p>
       <h1>Connect this computer</h1>
       <Appearance />
+      <Updates />
       <p>
         Manage the shared agent’s pairing and local preferences. Inspect
         development services and confirm local shutdown on supported macOS

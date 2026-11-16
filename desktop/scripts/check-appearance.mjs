@@ -116,6 +116,11 @@ try {
   await paired.addInitScript(() => {
     window.__fixtureStops = 0;
     window.netsentry = {
+      desktopUpdate: async () => ({
+        state: "disabled",
+        version: "0.1.0",
+        message: "Production updates are unavailable until configured.",
+      }),
       getAgentStatus: async () => ({
         ok: true,
         status: {
@@ -209,6 +214,20 @@ try {
   await controls
     .getByRole("button", { name: "Stop gracefully", exact: true })
     .waitFor();
+  await controls
+    .getByRole("button", { name: "Update status", exact: true })
+    .click();
+  await controls
+    .getByText("Production updates are unavailable until configured.", {
+      exact: true,
+    })
+    .waitFor();
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Check for updates", exact: true })
+      .isDisabled(),
+    true,
+  );
   const layout = () =>
     controls.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
   assert.equal(await layout(), true);
