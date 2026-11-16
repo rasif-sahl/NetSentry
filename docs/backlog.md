@@ -35,3 +35,5 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | Optional platform/container/AI integrations | 16 | Deferred |
 
 Use separate source/build/integration/hardware verification states. Do not mark a whole group complete because its project directory or initial UI exists. Before each feature begins, review its catalogue scope, prerequisites, authorization and verification requirements. Commit coherent features separately with plain-language messages describing what changed.
+
+Phase 8 status: native Android personal-client source and SDK-free Kotlin/HTTPS/API checks are implemented. Device accounting, permissions, native builds, background operation and phone stop controls remain unverified. Current API 35 hotspot/client information stays unavailable. Quality-specific estimated allowances are implemented without mixing measured totals. See `validation/phase-8.md`.

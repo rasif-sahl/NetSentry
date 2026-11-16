@@ -252,6 +252,8 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     .click();
   await expect(page.getByText(/Acknowledged/).first()).toBeVisible();
   await page.getByLabel("Rule device").selectOption(data.deviceId);
+  await expect(page.getByLabel("Threshold data quality")).toHaveValue("measured");
+  await page.getByLabel("Threshold data quality").selectOption("estimated");
   await page.getByLabel("Threshold (bytes)", { exact: true }).fill("20000000");
   await page.getByLabel("Use quiet hours", { exact: true }).check();
   await page.getByLabel("Quiet hours start").fill("21:30");
@@ -264,7 +266,9 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     .getByRole("listitem")
     .filter({ hasText: "20,000,000 bytes" });
   await expect(created).toBeVisible();
+  await expect(created).toContainText("estimated");
   await created.getByRole("button", { name: "Edit rule", exact: true }).click();
+  await expect(page.getByLabel("Threshold data quality")).toHaveValue("estimated");
   await page.getByLabel("Severity", { exact: true }).selectOption("critical");
   await page
     .getByLabel(
@@ -277,6 +281,7 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
   await expect(
     page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" }),
   ).toContainText("critical");
+  await expect(page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" })).toContainText("estimated");
   await page.getByLabel("In-app notifications", { exact: true }).uncheck();
   await page
     .getByRole("button", { name: "Save notification preferences", exact: true })

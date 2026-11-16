@@ -8,7 +8,7 @@ NetSentry is being built for device/network monitoring, family digital wellbeing
 | --- | --- | --- |
 | `backend/` | NestJS, TypeScript, PostgreSQL/TypeORM | Account, workspace, enrolment, health/consent and privacy APIs |
 | `dashboard/` | Next.js, React, TypeScript, Tailwind CSS | Connected account/workspace, monitoring, team and privacy UI; later domains are explicitly planned |
-| `android/` | Kotlin, Jetpack Compose | New independent native source/build scaffold |
+| `android/` | Kotlin, Jetpack Compose | Personal-client source, secure sessions, consented usage/sync and remote commands; native build/device checks pending |
 | `ios/` | Swift, SwiftUI | New independent native source/Xcode project scaffold |
 | `desktop/` | Electron, React, TypeScript, Vite | Agent pairing/status/preferences plus macOS discovery and separate local/remote consent |
 | `agent/` | Go | Shared foundation plus owned macOS TCP service discovery/project mapping and authorized local/remote controls |
@@ -59,6 +59,8 @@ Agent commands require an existing Go 1.23+ toolchain. Native build/signing comm
 - [Phase 5 verification](docs/validation/phase-5.md)
 - [Phase 6 verification](docs/validation/phase-6.md)
 - [Phase 7 verification](docs/validation/phase-7.md)
+- [Phase 8 verification and device handoff](docs/validation/phase-8.md)
+- [Android personal-client design](docs/architecture/android-personal-client.md)
 - [Remote service commands](docs/architecture/remote-service-commands.md)
 - [Local developer service controls](docs/architecture/local-service-controls.md)
 - [Agent runtime and pairing](agent/README.md)
@@ -119,3 +121,7 @@ Build the Go executable separately as described in [agent/README.md](agent/READM
 Phase 6 developer integration can be checked after building Go and desktop with `TEST_AGENT_BINARY=/absolute/path/to/netsentry-agent npm --prefix desktop run test:developer`. It starts controlled sample services on supported macOS, verifies local gates/outcomes and cleans them up. Linux verifies an unavailable native adapter. It uses an explicit loopback backend fixture and never installs a persistent service.
 
 Phase 7 adds explicit sharing/controller grants, outbound remote commands and confirmed web outcomes. After applying the tenth migration, schedule bounded `agents:cleanup` maintenance. On macOS, `TEST_AGENT_BINARY` also enables the real API-to-native remote shutdown check in `test:api`; other platforms report that native scenario pending. See the Phase 7 verification record for fixture/device distinctions.
+
+## Phase 8 Android source checks
+
+Android personal-client source is implemented; native compilation and phone validation remain pending. `npm run check:android` validates synthetic Kotlin-emitted wire fixtures. `npm run test:android-core` uses explicitly supplied standalone JDK/Kotlin/JSON tooling to compile actual portable client code and parse native source, without Android SDKs or emulators. See [Android setup and signing handoff](android/README.md). Allowance alerts now explicitly select measured or estimated quality; existing rules default to measured.

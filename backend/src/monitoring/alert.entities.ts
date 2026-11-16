@@ -15,6 +15,7 @@ export type Channel = 'in_app' | 'android_push' | 'ios_push';
 export type RuleConfig = {
   kind: 'threshold' | 'device_offline' | 'permission_revoked';
   metric?: string;
+  quality?: 'measured' | 'estimated';
   applicationId?: string;
   period: 'day' | 'week' | 'month';
   threshold: number;
@@ -63,6 +64,7 @@ export class AlertOccurrence {
     severity: string;
     value: string | null;
     windowKey: string;
+    quality?: 'measured' | 'estimated';
   };
   @Column({ type: 'timestamptz', nullable: true }) acknowledgedAt!: Date | null;
   @Column({ type: 'timestamptz', nullable: true }) resolvedAt!: Date | null;

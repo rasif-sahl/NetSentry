@@ -12,8 +12,12 @@ android {
         applicationId = "com.netsentry.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 8
+        versionName = "0.8.0"
+    }
+
+    buildTypes {
+        debug { applicationIdSuffix = ".native.dev"; versionNameSuffix = "-dev" }
     }
 
     compileOptions {
@@ -29,4 +33,8 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("androidx.work:work-runtime-ktx:2.10.1")
 }

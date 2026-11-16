@@ -92,7 +92,7 @@ export function AlertsPanel(context: PageContext) {
               <li key={alert.id}>
                 <div>
                   <strong>
-                    {alert.snapshot.kind.replaceAll("_", " ")} ·{" "}
+                    {alert.snapshot.kind.replaceAll("_", " ")} · {alert.snapshot.quality ?? "health"} ·{" "}
                     {alert.snapshot.severity}
                   </strong>
                   <small>
@@ -170,7 +170,7 @@ export function AlertsPanel(context: PageContext) {
                         ? "Network label"
                         : "Workspace"}{" "}
                     · {rule.config.enabled ? "Enabled" : "Disabled"} ·{" "}
-                    {rule.config.period}
+                    {rule.config.period} · {rule.config.quality ?? "measured"}
                     {rule.config.metric
                       ? ` · ${exactValue(rule.config.threshold.toFixed(6), rule.config.metric)}`
                       : ""}
@@ -207,7 +207,7 @@ export function AlertsPanel(context: PageContext) {
               <article key={alert.id} className="alert-entry">
                 <div className="section-heading">
                   <h3>
-                    {alert.snapshot.kind.replaceAll("_", " ")}{" "}
+                    {alert.snapshot.kind.replaceAll("_", " ")} · {alert.snapshot.quality ?? "health"}{" "}
                     <span className="badge">{alert.snapshot.severity}</span>
                   </h3>
                   {!alert.acknowledgedAt && (
@@ -232,7 +232,7 @@ export function AlertsPanel(context: PageContext) {
                 </p>
                 <p>
                   Observed value: {alert.snapshot.value ?? "Not applicable"} ·
-                  window {alert.snapshot.windowKey}
+                  window {alert.snapshot.windowKey} · {alert.snapshot.quality ?? "quality not recorded"}
                 </p>
                 <details>
                   <summary>Delivery attempts</summary>
@@ -308,6 +308,7 @@ function RuleEditor({
           ...(kind === "threshold"
             ? {
                 metric,
+                quality: text(form, "quality"),
                 ...(text(form, "applicationId")
                   ? { applicationId: text(form, "applicationId") }
                   : {}),
@@ -346,7 +347,7 @@ function RuleEditor({
             value={kind}
             onChange={(e) => setKind(e.target.value as typeof kind)}
           >
-            <option value="threshold">Measured usage threshold</option>
+            <option value="threshold">Usage threshold</option>
             <option value="device_offline">Device offline</option>
             <option value="permission_revoked">Permission lost</option>
           </select>
@@ -377,6 +378,12 @@ function RuleEditor({
       </div>
       {kind === "threshold" && (
         <div className="field-row">
+          <Field label="Threshold data quality" hint="Estimated totals are a separate source and are never added to measured totals.">
+            <select name="quality" defaultValue={config?.quality ?? "measured"}>
+              <option value="measured">Measured only</option>
+              <option value="estimated">Estimated only</option>
+            </select>
+          </Field>
           <Field label="Rule metric">
             <select value={metric} onChange={(e) => setMetric(e.target.value)}>
               {Object.entries(metrics).map(([value, label]) => (
