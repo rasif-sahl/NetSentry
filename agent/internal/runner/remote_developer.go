@@ -217,7 +217,7 @@ func (r *Runner) RemoteCycle(ctx context.Context) error {
 			remaining := time.Duration(permit.RemainingMs)*time.Millisecond - time.Since(start) - 100*time.Millisecond
 			if err == nil && permit.Allowed && remaining > 0 && remaining <= 10*time.Second {
 				operation, cancel := context.WithTimeout(ctx, remaining)
-				action, err := r.developer.RemoteStop(operation, developer.StopInput{ActionID: c.ID, ServiceID: c.Target.ServiceID, ObservationID: c.Target.ObservationID, Mode: c.Mode, IncludeChildren: c.IncludeChildren})
+				action, err := r.developer.RemoteStop(operation, developer.StopInput{ActionID: c.ID, ServiceID: c.Target.ServiceID, ObservationID: c.Target.ObservationID, Mode: c.Mode, IncludeChildren: c.IncludeChildren}, time.Now().Round(0).Add(remaining))
 				cancel()
 				if err == nil {
 					receipt.Outcome = action.Outcome

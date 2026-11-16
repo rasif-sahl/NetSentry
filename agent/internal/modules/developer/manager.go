@@ -409,7 +409,22 @@ func (m *Manager) stop(ctx context.Context, input StopInput) (Action, error) {
 		if ctx.Err() != nil {
 			return finish("unknown")
 		}
-		if err := m.adapter.Signal(target, input.Mode == "force"); err != nil {
+		var signalErr error
+		if deadline, ok := ctx.Value(remoteDeadline{}).(time.Time); ok {
+			guarded, ok := m.adapter.(interface {
+				SignalBefore(Process, bool, time.Time) error
+			})
+			if !ok {
+				return finish("unknown")
+			}
+			signalErr = guarded.SignalBefore(target, input.Mode == "force", deadline)
+		} else {
+			signalErr = m.adapter.Signal(target, input.Mode == "force")
+		}
+		if err := signalErr; err != nil {
+			if errors.Is(err, ErrExpired) {
+				return finish("unknown")
+			}
 			if i > 0 {
 				return finish("partial")
 			}
@@ -541,7 +556,13 @@ func (m *Manager) RemoteScan(ctx context.Context, control bool) ([]Service, int,
 	}
 	return out, inventory.Total, nil
 }
-func (m *Manager) RemoteStop(ctx context.Context, input StopInput) (Action, error) {
+
+type remoteDeadline struct{}
+
+func (m *Manager) RemoteStop(ctx context.Context, input StopInput, before ...time.Time) (Action, error) {
+	if len(before) > 0 {
+		ctx = context.WithValue(ctx, remoteDeadline{}, before[0])
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	local := m.observations

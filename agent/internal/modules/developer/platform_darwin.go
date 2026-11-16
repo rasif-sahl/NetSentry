@@ -10,6 +10,7 @@ package developer
 #include <signal.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/time.h>
 #include <dlfcn.h>
 #include <string.h>
 // ABI binding for Apple's PROC_PIDUNIQIDENTIFIERINFO (17). The published XNU
@@ -52,9 +53,10 @@ static int ns_listeners(int pid,struct ns_endpoint *out,int capacity) {
  }
  return count;
 }
-static int ns_signal(int pid,uint32_t version,int sig) {
+static int ns_signal(int pid,uint32_t version,int sig,int64_t before) {
  ns_signal_fn fn=(ns_signal_fn)dlsym(RTLD_DEFAULT,"proc_signal_with_audittoken");if(!fn)return ENOTSUP;
  audit_token_t token={{0}};token.val[5]=pid;token.val[7]=version;
+ struct timeval now;if(before>0){gettimeofday(&now,NULL);if((int64_t)now.tv_sec*1000+now.tv_usec/1000>=before)return ETIMEDOUT;}
  return fn(&token,sig);
 }
 */
@@ -134,7 +136,8 @@ func (n native) Listeners(ctx context.Context, p Process) ([]Endpoint, error) {
 	})
 	return result, nil
 }
-func (n native) Signal(p Process, force bool) error {
+func (n native) Signal(p Process, force bool) error { return n.SignalBefore(p, force, time.Time{}) }
+func (n native) SignalBefore(p Process, force bool, before time.Time) error {
 	if p.PID <= 1 || p.PID == os.Getpid() || p.UID != os.Getuid() || p.Privileged || p.Version == 0 {
 		return ErrDenied
 	}
@@ -149,9 +152,16 @@ func (n native) Signal(p Process, force bool) error {
 	if force {
 		sig = C.SIGKILL
 	}
-	code := C.ns_signal(C.int(p.PID), C.uint32_t(p.Version), sig)
+	limit := int64(0)
+	if !before.IsZero() {
+		limit = before.UnixMilli()
+	}
+	code := C.ns_signal(C.int(p.PID), C.uint32_t(p.Version), sig, C.int64_t(limit))
 	if code == 0 {
 		return nil
+	}
+	if code == C.ETIMEDOUT {
+		return ErrExpired
 	}
 	if code == C.ESRCH {
 		return ErrGone

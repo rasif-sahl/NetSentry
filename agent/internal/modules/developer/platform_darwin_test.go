@@ -343,3 +343,18 @@ func TestNativeIPv6Listener(t *testing.T) {
 	}
 	t.Fatal("IPv6 listener address missing", endpoints)
 }
+
+func TestNativeExpiredWallClockPermitDoesNotSignal(t *testing.T) {
+	command, _ := sample(t, false)
+	adapter := native{}
+	p, err := adapter.Inspect(command.Process.Pid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = adapter.SignalBefore(p, false, time.Now().Add(-time.Second)); err != ErrExpired {
+		t.Fatal("expired execution permit was not rejected", err)
+	}
+	if _, err = adapter.Inspect(p.PID); err != nil {
+		t.Fatal("expired command affected the sample", err)
+	}
+}
