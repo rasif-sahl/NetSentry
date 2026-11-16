@@ -7,7 +7,7 @@ import {
   writeSync,
 } from "node:fs";
 import { readFile, lstat, mkdtemp, rm, open } from "node:fs/promises";
-import { Transform } from "node:stream";
+import { Transform, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
@@ -57,6 +57,8 @@ function settings(url) {
     database: decodeURIComponent(u.pathname.slice(1)),
     user: decodeURIComponent(u.username),
     password: decodeURIComponent(u.password),
+    connectionTimeoutMillis: 10000,
+    statement_timeout: 900000,
     ssl: test
       ? false
       : {
@@ -75,6 +77,8 @@ function tool(name, args, s) {
     PGDATABASE: s.database,
     PGUSER: s.user,
     PGPASSWORD: s.password,
+    PGCONNECT_TIMEOUT: "10",
+    PGOPTIONS: "-c statement_timeout=900000 -c lock_timeout=10000",
     PGSSLMODE: s.ssl ? "verify-full" : "disable",
     ...(process.env.PGSSLROOTCERT
       ? { PGSSLROOTCERT: process.env.PGSSLROOTCERT }
@@ -84,6 +88,14 @@ function tool(name, args, s) {
     ? join(process.env.PG_BIN_DIR, name)
     : name;
   if (process.env.PG_CONTAINER) {
+    if (
+      process.env.NODE_ENV !== "test" ||
+      !s.database.endsWith("_test") ||
+      !/^[a-zA-Z0-9_.-]+$/.test(process.env.PG_CONTAINER)
+    )
+      throw new Error("Container tools are restricted to isolated tests.");
+    env.PGHOST = "127.0.0.1";
+    env.PGPORT = "5432";
     args = [
       "exec",
       "-i",
@@ -96,7 +108,12 @@ function tool(name, args, s) {
     ];
     command = "docker";
   }
-  const child = spawn(command, args, { env, stdio: ["pipe", "pipe", "pipe"] });
+  const child = spawn(command, args, {
+    env,
+    stdio: ["pipe", "pipe", "pipe"],
+    timeout: 1800000,
+    killSignal: "SIGKILL",
+  });
   child.stderr.resume();
   const done = new Promise((yes, no) => {
     child.on("error", () =>
@@ -162,6 +179,8 @@ export async function backupDatabase(url, path, key) {
 }
 export async function restoreDatabase(url, path, key, confirmation) {
   const s = settings(url);
+  if (process.env.DATABASE_URL && url === process.env.DATABASE_URL)
+    throw new Error("Restore must use a separate target database.");
   if (confirmation !== s.database)
     throw new Error("Confirm the exact empty recovery database name.");
   const info = await lstat(path);
@@ -198,6 +217,11 @@ export async function restoreDatabase(url, path, key, confirmation) {
     // Authenticate the entire backup before any restore command can execute SQL.
     client = new Client(s);
     await client.connect();
+    if (
+      !(await client.query("SELECT pg_try_advisory_lock(17949314) AS locked"))
+        .rows[0].locked
+    )
+      throw new Error("Another restore is in progress.");
     const { rows } = await client.query(
       "SELECT count(*)::int AS n FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND n.nspname NOT LIKE 'pg_toast%' AND c.relkind IN ('r','v','m','S','f')",
     );
@@ -226,6 +250,46 @@ export async function restoreDatabase(url, path, key, confirmation) {
     await client?.end().catch(() => {});
     await h.close().catch(() => {});
     await rm(dir, { recursive: true, force: true });
+  }
+}
+// Authenticate without writing plaintext or executing SQL. Used before retention.
+export async function verifyBackup(path, key) {
+  const info = await lstat(path);
+  if (
+    !info.isFile() ||
+    info.isSymbolicLink() ||
+    info.mode & 0o077 ||
+    info.size < 36 ||
+    info.size > 10 * 1024 ** 3
+  )
+    throw new Error("Invalid private backup.");
+  const h = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try {
+    const header = Buffer.alloc(20),
+      tag = Buffer.alloc(16);
+    await h.read(header, 0, 20, 0);
+    await h.read(tag, 0, 16, info.size - 16);
+    if (!header.subarray(0, 8).equals(magic))
+      throw new Error("Invalid backup format.");
+    const decipher = createDecipheriv("aes-256-gcm", key, header.subarray(8));
+    decipher.setAuthTag(tag);
+    await pipeline(
+      createReadStream(path, {
+        fd: h.fd,
+        autoClose: false,
+        start: 20,
+        end: info.size - 17,
+      }),
+      decipher,
+      new Writable({
+        write(_chunk, _encoding, done) {
+          done();
+        },
+      }),
+    );
+    return { authenticated: true, bytes: info.size };
+  } finally {
+    await h.close();
   }
 }
 if (import.meta.url === pathToFileURL(resolve(process.argv[1] || "")).href) {

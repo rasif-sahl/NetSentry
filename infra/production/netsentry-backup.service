@@ -1,0 +1,19 @@
+[Unit]
+Description=NetSentry encrypted database backup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=netsentry-backup
+Group=netsentry-backup
+WorkingDirectory=/opt/netsentry/current
+EnvironmentFile=/etc/netsentry/backup.env
+ExecStart=/usr/bin/node infra/scripts/backup-cycle.mjs run
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/netsentry/backups
+TimeoutStartSec=35min
