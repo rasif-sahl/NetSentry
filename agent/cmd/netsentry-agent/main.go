@@ -109,6 +109,51 @@ func command(args []string) error {
 	if err != nil {
 		return errors.New("could not load private agent configuration")
 	}
+	if args[0] == "background-disable" {
+		unlock, err := core.Lock(dir)
+		if err != nil {
+			return err
+		}
+		defer unlock()
+		// Reload after acquiring the lock so concurrent settings are preserved.
+		config, err = core.LoadConfig(dir)
+		if err != nil {
+			return err
+		}
+		config.BackgroundAllowed = false
+		if err := core.WritePrivate(filepath.Join(dir, "config.json"), config); err != nil {
+			return err
+		}
+		return emit(map[string]bool{"disabled": true})
+	}
+	if args[0] == "background-check" || args[0] == "background-enable" {
+		unlock, err := core.Lock(dir)
+		if err != nil {
+			return err
+		}
+		defer unlock()
+		config, err = core.LoadConfig(dir)
+		if err != nil {
+			return err
+		}
+		store, err := securestore.Open(dir, config)
+		if err != nil {
+			return err
+		}
+		candidate := config
+		if args[0] == "background-enable" {
+			candidate.BackgroundAllowed = true
+		}
+		if _, err := runner.BackgroundConfiguration(context.Background(), candidate, store); err != nil {
+			return err
+		}
+		if args[0] == "background-enable" {
+			if err := core.WritePrivate(filepath.Join(dir, "config.json"), candidate); err != nil {
+				return err
+			}
+		}
+		return emit(map[string]bool{"allowed": true})
+	}
 	store, err := securestore.Open(dir, config)
 	if err != nil {
 		return err
