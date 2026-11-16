@@ -10,8 +10,8 @@ NetSentry is being built for device/network monitoring, family digital wellbeing
 | `dashboard/` | Next.js, React, TypeScript, Tailwind CSS | Connected account/workspace, monitoring, team and privacy UI; later domains are explicitly planned |
 | `android/` | Kotlin, Jetpack Compose | New independent native source/build scaffold |
 | `ios/` | Swift, SwiftUI | New independent native source/Xcode project scaffold |
-| `desktop/` | Electron, React, TypeScript, Vite | Agent pairing/status/preferences through authenticated local IPC |
-| `agent/` | Go | Revocable identity, heartbeat, offline buffer and independently gated module foundation |
+| `desktop/` | Electron, React, TypeScript, Vite | Agent pairing/status/preferences plus macOS service discovery and confirmed local shutdown |
+| `agent/` | Go | Shared foundation plus owned macOS TCP service discovery/project mapping/local controls |
 | `contracts/` | JSON Schema and synthetic fixtures | Versioned API/measurement/capability/IPC contracts and synthetic fixtures |
 | `docs/` | Markdown | Architecture, backlog and verification records |
 | `infra/` | Infrastructure configuration, introduced as needed | Setup boundaries; no services provisioned yet |
@@ -57,6 +57,8 @@ Agent commands require an existing Go 1.23+ toolchain. Native build/signing comm
 - [Phase 3 verification](docs/validation/phase-3.md)
 - [Phase 4 verification](docs/validation/phase-4.md)
 - [Phase 5 verification](docs/validation/phase-5.md)
+- [Phase 6 verification](docs/validation/phase-6.md)
+- [Local developer service controls](docs/architecture/local-service-controls.md)
 - [Agent runtime and pairing](agent/README.md)
 - [Agent package/service decision](docs/architecture/agent-distribution.md)
 - [Responsive web dashboard](docs/features/dashboard.md)
@@ -111,3 +113,5 @@ Configure the dashboard's server-only API base and exact browser origin using `d
 ## Phase 5 agent integration checks
 
 Build the Go executable separately as described in [agent/README.md](agent/README.md). Set `TEST_AGENT_BINARY` to its absolute path when running `npm run test:api` to include the actual Go process/backend outage and revocation scenario. After desktop build, `TEST_AGENT_BINARY=/absolute/path/to/netsentry-agent npm run test:desktop-agent` checks Node–Go IPC without installing or launching Electron. These checks use temporary, private, loopback-only fixture credentials. They do not install a persistent service or verify native Keychain/Electron acceptance.
+
+Phase 6 developer integration can be checked after building Go and desktop with `TEST_AGENT_BINARY=/absolute/path/to/netsentry-agent npm --prefix desktop run test:developer`. It starts controlled sample services on supported macOS, verifies local gates/outcomes and cleans them up. Linux verifies an unavailable native adapter. It uses an explicit loopback backend fixture and never installs a persistent service.

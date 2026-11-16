@@ -226,6 +226,8 @@ Completion: exercise the core as a development process and verify pairing, revoc
 
 ### Phase 6 Desktop discovery and local controls
 
+Status: initial macOS native discovery/local shutdown and React desktop workflow implemented and integration-tested with controlled Node/Python services. See `docs/validation/phase-6.md` for build/runtime distinctions, platform limits and pending packaged/native acceptance. Remote commands remain Phase 7.
+
 - Build the React/TypeScript desktop interface and selected desktop runtime integration.
 - Discover local listening TCP services with process/runtime, port/address, duration and freshness information where available.
 - Infer project associations, show uncertainty, allow manual correction, group services and add search/filtering.

@@ -31,7 +31,7 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 23 Data and privacy | 1, 2, 3 and each domain | Phase 2 disclosures/history, export, deletion, revocation/generation and account-mail cleanup implemented; Phase 3 retention and raw/derived-data erasure and Phase 4 web privacy controls implemented; offline-client enforcement pending |
 | 24 Platform administration | 3, 14 | Phase 3 workspace monitoring diagnostics implemented; platform administration/billing tools pending |
 | 25 Excluded functionality | All | Preserve catalogue boundaries; no inbox access |
-| 26 Developer tools and mobile stop | 5–8, 12 | Phase 5 pairing, core runtime and authenticated desktop status/settings implemented; discovery/local control and mobile command delivery remain Phases 6–8/12 |
+| 26 Developer tools and mobile stop | 5–8, 12 | Phase 6 owned macOS TCP discovery, project corrections, local graceful/force outcomes and desktop workflow implemented/tested; remote command delivery and native mobile controls remain Phases 7–8/12 |
 | Optional platform/container/AI integrations | 16 | Deferred |
 
 Use separate source/build/integration/hardware verification states. Do not mark a whole group complete because its project directory or initial UI exists. Before each feature begins, review its catalogue scope, prerequisites, authorization and verification requirements. Commit coherent features separately with plain-language messages describing what changed.
