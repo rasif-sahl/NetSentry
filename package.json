@@ -22,6 +22,7 @@
     "test:api": "npm --prefix backend run test:api",
     "build:dashboard": "npm --prefix dashboard run build",
     "lint:dashboard": "npm --prefix dashboard run lint",
-    "test:dashboard": "npm --prefix dashboard run test:e2e"
+    "test:dashboard": "npm --prefix dashboard run test:e2e",
+    "test:desktop-agent": "npm --prefix desktop run test:agent"
   }
 }
