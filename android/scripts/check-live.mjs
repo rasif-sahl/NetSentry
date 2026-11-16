@@ -11,10 +11,12 @@ import http from 'node:http';
 const execute = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 assert.ok(process.env.TEST_DATABASE_URL && new URL(process.env.TEST_DATABASE_URL).pathname.endsWith('_test'));
-const { JAVA_HOME, KOTLINC, JSON_JAR } = process.env;
-assert.ok(JAVA_HOME && KOTLINC && JSON_JAR, 'Supply existing standalone JVM tools.');
+const { JAVA_HOME, KOTLINC, JSON_JAR, OKHTTP_JAR, OKIO_JAR } = process.env;
+assert.ok(JAVA_HOME && KOTLINC && JSON_JAR && OKHTTP_JAR && OKIO_JAR, 'Supply existing standalone JVM tools.');
+const clientClasspath=`${JSON_JAR}:${OKHTTP_JAR}:${OKIO_JAR}`;
 const temp = await mkdtemp(resolve(tmpdir(), 'netsentry-android-live-'));
 let fixture, server;
+let redirectHits=0, retryHits=0;
 try {
   const key = resolve(temp, 'key.pem'), cert = resolve(temp, 'cert.pem'), trust = resolve(temp, 'trust.p12');
   await execute('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', key, '-out', cert, '-days', '1', '-subj', '/CN=localhost', '-addext', 'subjectAltName=DNS:localhost,IP:127.0.0.1']);
@@ -28,6 +30,9 @@ try {
   ]);
   assert.ok(ready, `Fixture API did not start: ${failure}`);
   server = https.createServer({ key: await readFile(key), cert: await readFile(cert) }, (request, response) => {
+    if (request.url === '/api/v1/__redirect') { response.writeHead(302,{location:'/api/v1/__redirect-target','content-type':'application/json'}); response.end('{}'); return; }
+    if (request.url === '/api/v1/__redirect-target') { redirectHits++; response.writeHead(200); response.end('{}'); return; }
+    if (request.url === '/api/v1/__retry') { retryHits++; request.resume(); response.writeHead(503,{'retry-after':'0','content-type':'application/json'}); response.end('{"code":"SYNTHETIC_RETRY","message":"Synthetic retry"}'); return; }
     const upstream = http.request({ hostname: '127.0.0.1', port: 54110, path: request.url, method: request.method, headers: { ...request.headers, host: '127.0.0.1:54110' } }, (result) => {
       response.writeHead(result.statusCode, result.headers); result.pipe(response);
     });
@@ -36,8 +41,10 @@ try {
   await new Promise((ready) => server.listen(0, '127.0.0.1', ready));
   const jar = resolve(temp, 'live.jar');
   const source = resolve(root, 'android/app/src/main/java/com/netsentry/app');
-  await execute(KOTLINC, [resolve(source, 'core/Policy.kt'), ...['Api', 'Wire', 'Repository'].map((name) => resolve(source, `data/${name}.kt`)), resolve(root, 'android/test/LiveChecks.kt'), '-cp', JSON_JAR, '-include-runtime', '-d', jar], { env: process.env });
-  const result = await execute(resolve(JAVA_HOME, 'bin/java'), [`-Djavax.net.ssl.trustStore=${trust}`, '-Djavax.net.ssl.trustStorePassword=fixture-only-password', '-cp', `${jar}:${JSON_JAR}`, 'LiveChecksKt', `https://127.0.0.1:${server.address().port}/api/v1`, resolve(root, 'dashboard/.test/fixtures.json')], { env: process.env });
+  await execute(KOTLINC, [resolve(source, 'core/Policy.kt'), resolve(source, 'core/UsageTimeline.kt'), ...['Api', 'Wire', 'ApplicationWire', 'Repository'].map((name) => resolve(source, `data/${name}.kt`)), resolve(root, 'android/test/LiveChecks.kt'), '-cp', clientClasspath, '-include-runtime', '-d', jar], { env: process.env });
+  const result = await execute(resolve(JAVA_HOME, 'bin/java'), [`-Djavax.net.ssl.trustStore=${trust}`, '-Djavax.net.ssl.trustStorePassword=fixture-only-password', '-cp', `${jar}:${clientClasspath}`, 'LiveChecksKt', `https://127.0.0.1:${server.address().port}/api/v1`, resolve(root, 'dashboard/.test/fixtures.json')], { env: process.env });
+  assert.equal(redirectHits,0,'Redirect target must never be followed.');
+  assert.equal(retryHits,1,'One-shot mutations must not be automatically retried after 503.');
   console.log(result.stdout.trim());
 } finally {
   if (server) await new Promise((done) => server.close(done));

@@ -25,6 +25,22 @@ private class Memory : PrivateStore {
 }
 private class Usage : UsageSource {
     var allowed = true
+    var appCalls = 0
+    var wide = false
+    override fun applications(start: Long, end: Long, checkpoint: com.netsentry.app.core.UsageCheckpoint?): ApplicationObservation {
+        appCalls++
+        if (wide) {
+            val ids=(0 until 32).map { "com.example."+"a".repeat(230)+it }
+            val step=(end-start)/4
+            val sessions=ids.flatMap { id -> (0 until 4).map { part -> com.netsentry.app.core.UsageSegment(start+part*step,if(part==3) end else start+(part+1)*step,id) } }
+            val launches=ids.flatMap { id -> (0 until 8).map { com.netsentry.app.core.UsageLaunch(start+it,id) } }
+            val data=com.netsentry.app.core.UsageTimeline(sessions,emptyList(),launches,true,true,emptyList(),com.netsentry.app.core.UsageCheckpoint(end,emptyMap(),emptyMap(),false,false,true))
+            return ApplicationObservation(data,ids.map { ApplicationMetadata(it,"x".repeat(100),"unknown") })
+        }
+        val id = "com.example.reader"
+        val timeline = com.netsentry.app.core.TimelineReducer.reduce(start,end,listOf(com.netsentry.app.core.UsageEvent(start,"resumed",id,"private.Class")),checkpoint ?: com.netsentry.app.core.UsageCheckpoint(start,emptyMap(),emptyMap(),true,true,true),true,true)
+        return ApplicationObservation(timeline,listOf(ApplicationMetadata(id,"Synthetic Reader","productivity")))
+    }
     override fun granted() = allowed
     override fun read(start: Long, end: Long) = listOf(UsageReading("mobile_data_bytes", if (allowed) 123L else null, "Synthetic test adapter"), UsageReading("wifi_data_bytes", if (allowed) 456L else null, "Synthetic test adapter"))
     override fun metadata() = json("applicationVersion" to "0.8.0", "batteryOptimizationStatus" to "restricted")
@@ -36,14 +52,17 @@ private class Harness {
     var enabled = false
     var serverMonitoring = false
     var generation = 1
+    var serverScopes = listOf("network_usage")
     var offline = false
     var expireAccess = false
     var loseRefresh = false
+    var forbidAfterRefresh = false
     var loseUpload = false
     var revokedDevice = false
     var control = true
     val calls = mutableListOf<Triple<String, String, String?>>()
     val uploads = mutableListOf<String>()
+    val appUploads = mutableListOf<String>()
     var remoteCount = 0
     val user = json("id" to U, "displayName" to "Test owner", "emailVerifiedAt" to Policy.timestamp(now))
     fun service() = json("serviceId" to "a".repeat(64), "observationId" to O, "observedAt" to Policy.timestamp(now), "canStop" to true)
@@ -57,18 +76,24 @@ private class Harness {
                 expireAccess = false
                 return json("accessToken" to "new-access", "refreshToken" to "new-refresh", "user" to user)
             }
+            if (token == "new-access" && forbidAfterRefresh) throw ApiFailure(403,"DENIED","Role changed")
             if (token == "access" && expireAccess) throw ApiFailure(401, "EXPIRED", "Expired")
             return when {
                 path == "/auth/login" || path == "/auth/register" -> json("accessToken" to "access", "refreshToken" to "refresh", "user" to user)
                 path == "/auth/me" -> user
                 path == "/workspaces" -> JSONArray(listOf(json("id" to W, "timezone" to "America/New_York", "name" to "Test", "role" to "OWNER")))
-                path == "/privacy/disclosures" -> json("enrolment" to json("version" to "device-enrolment-v1", "text" to "Test disclosure"), "monitoring" to json("version" to "monitoring-v3", "text" to "Test disclosure"))
+                path == "/privacy/disclosures" -> json("enrolment" to json("version" to "device-enrolment-v1", "text" to "Test disclosure"), "monitoring" to json("version" to "monitoring-v3", "text" to "Test disclosure"), "applications" to json("version" to "app-usage-v1", "text" to "Synthetic application disclosure"))
                 path == "/notifications/preferences" -> json("inApp" to true, "push" to false)
                 path == "/devices/enrolments" -> json("token" to "code")
                 path == "/devices/enrol" -> json("device" to json("id" to D, "workspaceId" to W, "name" to "Test phone"), "deviceToken" to "device-secret")
-                path == "/devices/$D/consent" && method == "POST" -> { serverMonitoring = true; generation++; JSONObject() }
+                path == "/devices/$D/consent" && method == "POST" -> { serverMonitoring = true; serverScopes = (0 until body!!.getJSONArray("scopes").length()).map { body.getJSONArray("scopes").getString(it) }; generation++; JSONObject() }
                 path == "/devices/$D/pause" -> { serverMonitoring = false; generation++; JSONObject() }
-                path == "/devices/$D/configuration" || path == "/devices/$D/heartbeat" -> json("deviceId" to D, "workspaceId" to W, "generation" to generation, "monitoringEnabled" to serverMonitoring, "consentScopes" to JSONArray(listOf("network_usage")))
+                path == "/devices/$D/configuration" || path == "/devices/$D/heartbeat" -> json("deviceId" to D, "workspaceId" to W, "generation" to generation, "monitoringEnabled" to serverMonitoring, "consentScopes" to JSONArray(serverScopes))
+                path == "/devices/$D/application-usage" -> {
+                    check(token == "device-secret"); appUploads.add(body!!.toString())
+                    if (loseUpload) throw IOException("Lost detailed acknowledgement")
+                    json("accepted" to 2)
+                }
                 path == "/devices/$D/measurements" -> {
                     check(token == "device-secret") { "Account credential reached device route" }
                     uploads.add(body!!.toString())
@@ -85,7 +110,7 @@ private class Harness {
     val repo = Repository(store, usage, { enabled = it }, { now }, { transport })
     fun login() = repo.signIn("https://api.example.test/api/v1", "a@example.test", "password")
     fun enrol() { login(); repo.enrol("Phone", true) }
-    fun consent() { enrol(); repo.consent(true); now += 15 * 60_000 }
+    fun consent(apps: Boolean = false) { enrol(); repo.consent(true, apps); now += 15 * 60_000 }
 }
 fun main(args: Array<String>) {
     test("HTTPS address scope and credentials") {
@@ -160,7 +185,8 @@ fun main(args: Array<String>) {
     test("permission withdrawal stops work and purges pending measurements") {
         val h = Harness(); h.consent(); h.offline = true; denied { h.repo.sync() }
         h.usage.allowed = false; denied { h.repo.sync() }
-        check(!h.enabled && h.repo.view().queueSize == 0)
+        check(!h.repo.view().localEnabled && h.enabled && h.repo.view().queueSize == 0)
+        h.offline = false; h.repo.sync(); check(!h.enabled)
     }
     test("server pause discards offline measurements") {
         val h = Harness(); h.consent(); h.offline = true; denied { h.repo.sync() }
@@ -185,6 +211,10 @@ fun main(args: Array<String>) {
         val h = Harness(); h.consent(); h.expireAccess = true; h.loseRefresh = true
         denied { h.repo.refresh() }; check(!h.repo.view().signedIn && !h.enabled && h.repo.view().ownDevice == null)
     }
+    test("authorization loss after token renewal clears protected views and stops collection") {
+        val h = Harness(); h.consent(); h.expireAccess=true; h.forbidAfterRefresh=true
+        denied { h.repo.remote(intent) }; check(h.repo.view().computers.isEmpty() && !h.repo.view().localEnabled)
+    }
     test("remote commands are never added to offline upload queue") {
         val h = Harness(); h.login(); h.offline = true
         denied { h.repo.remote(intent) }; check(h.repo.view().queueSize == 0 && h.remoteCount == 0)
@@ -202,6 +232,55 @@ fun main(args: Array<String>) {
     test("sign-out clears local credentials even on network failure") {
         val h = Harness(); h.consent(); h.offline = true
         denied { h.repo.signOut() }; check(!h.repo.view().signedIn && h.store.state.length() == 0)
+    }
+    test("network-only consent never queries application event history") {
+        val h = Harness(); h.consent(); h.repo.sync(); check(h.usage.appCalls == 0 && h.appUploads.isEmpty())
+    }
+    test("detailed app consent queues separate immutable windows and drains both sources") {
+        val h = Harness(); h.consent(true); h.offline = true
+        denied { h.repo.sync() }; check(h.repo.view().queueSize == 2)
+        val original = h.store.state.getJSONArray("queue").getJSONObject(1).getJSONObject("body").toString()
+        check(!original.contains("private.Class"))
+        h.offline = false; h.repo.sync(manual=true)
+        check(h.uploads.size == 1 && h.appUploads.single() == original && h.repo.view().queueSize == 0)
+    }
+    test("lost detailed acknowledgement preserves exact body and checkpoint") {
+        val h = Harness(); h.consent(true); h.offline = true; denied { h.repo.sync() }
+        // First item is a valid already-retried network batch; mark it acknowledged to isolate detailed retry.
+        val queued = h.store.state.getJSONArray("queue").getJSONObject(1)
+        h.store.state.put("queue", JSONArray(listOf(queued)))
+        val repo = Repository(h.store,h.usage,{h.enabled=it},{h.now},{h.transport})
+        h.offline=false; h.loseUpload=true; denied { repo.sync(manual=true) }
+        h.loseUpload=false; repo.sync(manual=true)
+        check(h.appUploads.size == 2 && h.appUploads[0] == h.appUploads[1])
+    }
+    test("generation changes purge detailed data and reducer context together") {
+        val h = Harness(); h.consent(true); h.offline=true; denied { h.repo.sync() }
+        check(h.store.state.has("appCheckpoint"))
+        h.offline=false; h.generation++; h.repo.sync()
+        check(h.repo.view().queueSize == 0 && !h.store.state.has("appCheckpoint") && h.appUploads.isEmpty())
+    }
+    test("scope withdrawal disables detailed collection while preserving network consent") {
+        val h = Harness(); h.consent(true); h.serverScopes=listOf("network_usage"); h.generation++
+        h.repo.sync(); check(!h.repo.view().appUsageEnabled && h.repo.view().localEnabled)
+    }
+    test("permission-health acknowledgement survives process recreation without restarting collection") {
+        val h = Harness(); h.consent(true); h.usage.allowed=false; h.offline=true; denied { h.repo.sync() }
+        check(h.store.state.optBoolean("pendingPermissionHealth") && !h.repo.view().localEnabled)
+        val restarted=Repository(h.store,h.usage,{h.enabled=it},{h.now},{h.transport})
+        h.offline=false; restarted.sync()
+        check(!h.store.state.has("pendingPermissionHealth") && !restarted.view().localEnabled && !h.enabled)
+    }
+    test("large detailed frames obey the byte budget without overwriting pending work") {
+        val h = Harness(); h.consent(true); h.usage.wide=true; h.offline=true
+        repeat(40) { denied { h.repo.sync() }; h.now+=15*60_000 }
+        check(h.store.state.getJSONArray("queue").toString().toByteArray().size <= 1_000_000)
+        check(h.repo.view().queueSize < Policy.MAX_QUEUE && h.repo.view().queueSize > 0)
+    }
+    test("renewed consent clears obsolete offline permission-health work") {
+        val h = Harness(); h.consent(); h.usage.allowed=false; h.offline=true; denied { h.repo.sync() }
+        h.usage.allowed=true; h.offline=false; h.repo.consent(true)
+        check(!h.store.state.has("pendingPermissionHealth") && h.repo.view().localEnabled)
     }
     val readings = Usage().read(BASE_TIME - 60_000, BASE_TIME)
     val evidence = json("batch" to Wire.batch(W, D, 2, BASE_TIME - 60_000, BASE_TIME, readings, BASE_TIME),

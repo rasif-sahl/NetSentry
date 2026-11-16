@@ -10,7 +10,7 @@ The repository uses one synchronized process-scoped instance for worker and fore
 
 ## Collection and retry
 
-AndroidUsageSource owns AppOps usage access, NetworkStatsManager and safe build/battery metadata. Absence, denial and transient failure remain distinct missing-data reasons. Network aggregates are estimated because OS bucket attribution is coarse; screen/app collectors are Phase 9. Hotspot/client data is unavailable on this API 35 baseline. There is no hidden/privileged tether API or traffic attribution to another device.
+AndroidUsageSource owns AppOps usage access, NetworkStatsManager and safe build/battery metadata. Absence, denial and transient failure remain distinct missing-data reasons. Network aggregates are estimated because OS bucket attribution is coarse; Phase 9 adds separately consented app/screen event adapters; see [advanced monitoring](android-application-monitoring.md). Hotspot/client data is unavailable on this API 35 baseline. There is no hidden/privileged tether API or traffic attribution to another device.
 
 Consent starts the cursor after server acknowledgement and schedules best-effort periodic work. Intervals lag two minutes and last at most 24 hours. A bounded encrypted queue holds immutable payload IDs; cursor advancement and append are committed together before upload. A lost acknowledgement retries the same payload. Only measurement data is queued. Offline capture is limited by a 24-hour cached authorization horizon; reconciliation checks the current generation before upload. Old generation/expired data is discarded, never retagged. Permission loss, local stop, sign-out or erasure clears queued work. Collection is not promised to run continuously through battery restrictions, force-stop or reboot.
 
@@ -29,3 +29,5 @@ Remote intents freeze the captured service/observation, mode, optional descendan
 - [TetheringManager](https://developer.android.com/reference/android/net/TetheringManager): the public callback is API 36; this API 35 client does not claim it.
 
 Native compilation, API-level resolution, KeyStore behavior, UI/a11y/layout, signing, OEM network-accounting differences and physical-device/background/network behavior remain acceptance gates, not JVM test results.
+
+Phase 9 extends this source with the detailed application addendum, bounded reducer/queue and OkHttp one-shot mutation transport. The Phase 8 verification record remains historical; current limits and native acceptance gates are in the Phase 9 record.

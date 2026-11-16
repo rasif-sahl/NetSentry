@@ -5,7 +5,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, type EntityManager } from 'typeorm';
 import { RegisteredDevice } from '../workspaces/registered-device.entity';
 import { workspacePolicy } from '../workspaces/workspace-policy';
 import { WorkspacePermission } from '../workspaces/workspace-access.service';
@@ -27,9 +27,19 @@ import { validateBatch } from './validation';
 @Injectable()
 export class IngestionService {
   constructor(private readonly source: DataSource) {}
-  async ingest(authenticated: RegisteredDevice, input: unknown) {
+  async ingest(
+    authenticated: RegisteredDevice,
+    input: unknown,
+    extension?: {
+      payloadHash: string;
+      commit: (
+        manager: EntityManager,
+        device: RegisteredDevice,
+      ) => Promise<void>;
+    },
+  ) {
     try {
-      return await this.process(authenticated, input);
+      return await this.process(authenticated, input, extension);
     } catch (error) {
       await recordFailure(
         this.source,
@@ -40,7 +50,17 @@ export class IngestionService {
       throw error;
     }
   }
-  private async process(authenticated: RegisteredDevice, input: unknown) {
+  private async process(
+    authenticated: RegisteredDevice,
+    input: unknown,
+    extension?: {
+      payloadHash: string;
+      commit: (
+        manager: EntityManager,
+        device: RegisteredDevice,
+      ) => Promise<void>;
+    },
+  ) {
     validateBatch(input);
     return this.source.transaction(async (manager) => {
       const { workspace } = await workspacePolicy(
@@ -85,7 +105,7 @@ export class IngestionService {
         deviceId: device.id,
         batchId: input.batchId,
       });
-      const payloadHash = fingerprint(input);
+      const payloadHash = extension?.payloadHash ?? fingerprint(input);
       if (previous) {
         if (previous.payloadHash !== payloadHash)
           throw new ConflictException(
@@ -310,6 +330,7 @@ export class IngestionService {
         );
         gaps++;
       }
+      if (extension) await extension.commit(manager, device);
       await manager.save(
         manager.create(SyncBatch, {
           deviceId: device.id,

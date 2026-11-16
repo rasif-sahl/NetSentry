@@ -264,6 +264,8 @@ Completion during this stage: Kotlin source and contracts are implemented/review
 
 ### Phase 9 Advanced Android monitoring
 
+Status: event reducer/OS adapter source, separate detailed consent, bounded synchronization, app/category reports and corrections, descriptive insights and missing-report alerts implemented with SDK-free Kotlin/API/database checks. See `docs/validation/phase-9.md`. Android compilation, event/count accuracy, native UI, battery and permission transitions remain pending physical-device acceptance. Counts are defined as observed foreground entries, not verified cold starts.
+
 - Add screen time, app foreground duration, first/last use, reliable launch counts, daily/weekly/monthly totals, timelines and late-night usage.
 - Add permitted app metadata/icons, classification/confidence, manual correction, custom categories and unknown-app handling.
 - Implement per-app/device/category reports, comparisons, exports, trends and limit progress when policies exist.

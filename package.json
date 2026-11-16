@@ -24,7 +24,7 @@
     "lint:dashboard": "npm --prefix dashboard run lint",
     "test:dashboard": "npm --prefix dashboard run test:e2e",
     "test:desktop-agent": "npm --prefix desktop run test:agent",
-    "check:android": "node android/scripts/check-contracts.mjs",
+    "check:android": "node android/scripts/check-contracts.mjs && node android/scripts/check-applications.mjs",
     "test:android-core": "bash android/scripts/check-jvm.sh"
   }
 }

@@ -1,3 +1,8 @@
+import { ApplicationService } from './application.service';
+import {
+  ApplicationController,
+  ApplicationIngestionController,
+} from './application.controller';
 import {
   AlertController,
   NotificationPreferenceController,
@@ -21,11 +26,19 @@ class IngestionController {
 @Module({
   imports: [AuthModule],
   controllers: [
+    ApplicationController,
+    ApplicationIngestionController,
     IngestionController,
     ReportController,
     AlertController,
     NotificationPreferenceController,
   ],
-  providers: [DeviceGuard, IngestionService, ReportService, AlertService],
+  providers: [
+    ApplicationService,
+    DeviceGuard,
+    IngestionService,
+    ReportService,
+    AlertService,
+  ],
 })
 export class MonitoringModule {}

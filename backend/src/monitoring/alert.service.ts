@@ -136,7 +136,7 @@ export class AlertService {
           'Quiet hours must have different start and end times.',
         );
       if (
-        input.kind === 'device_offline' &&
+        ['device_offline', 'not_reporting'].includes(input.kind) &&
         (input.threshold < 60 || input.threshold > 604800)
       )
         throw new BadRequestException(
@@ -341,7 +341,20 @@ export async function evaluateWorkspace(
         contributors = [device.id];
         if (config.kind === 'permission_revoked')
           active = ['denied', 'revoked'].includes(device.permissionStatus);
-        else {
+        else if (config.kind === 'not_reporting') {
+          const [latest]: { report: Date | null; consent: Date | null }[] =
+            await manager.query(
+              `SELECT (SELECT max("receivedAt") FROM measurement_batches WHERE "deviceId"=$1) AS report,(SELECT max("createdAt") FROM device_events WHERE "deviceId"=$1 AND generation=$2 AND kind='consent_granted') AS consent`,
+              [device.id, device.generation],
+            );
+          const baseline = Math.max(
+            (latest.report ?? device.enrolledAt ?? device.createdAt).getTime(),
+            (latest.consent ?? device.enrolledAt ?? device.createdAt).getTime(),
+          );
+          const seconds = Math.max(0, (now.getTime() - baseline) / 1000);
+          active = device.monitoringEnabled && seconds >= config.threshold;
+          value = seconds.toFixed(6);
+        } else {
           const seconds = Math.max(
             0,
             (now.getTime() -
@@ -377,7 +390,9 @@ export async function evaluateWorkspace(
               severity: config.severity,
               value,
               windowKey,
-              ...(config.kind === 'threshold' ? { quality: config.quality ?? 'measured' } : {}),
+              ...(config.kind === 'threshold'
+                ? { quality: config.quality ?? 'measured' }
+                : {}),
             },
             acknowledgedAt: null,
             resolvedAt: null,

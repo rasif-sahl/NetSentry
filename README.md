@@ -60,6 +60,8 @@ Agent commands require an existing Go 1.23+ toolchain. Native build/signing comm
 - [Phase 6 verification](docs/validation/phase-6.md)
 - [Phase 7 verification](docs/validation/phase-7.md)
 - [Phase 8 verification and device handoff](docs/validation/phase-8.md)
+- [Phase 9 verification and device handoff](docs/validation/phase-9.md)
+- [Advanced Android application monitoring](docs/architecture/android-application-monitoring.md)
 - [Android personal-client design](docs/architecture/android-personal-client.md)
 - [Remote service commands](docs/architecture/remote-service-commands.md)
 - [Local developer service controls](docs/architecture/local-service-controls.md)
@@ -125,3 +127,5 @@ Phase 7 adds explicit sharing/controller grants, outbound remote commands and co
 ## Phase 8 Android source checks
 
 Android personal-client source is implemented; native compilation and phone validation remain pending. `npm run check:android` validates synthetic Kotlin-emitted wire fixtures. `npm run test:android-core` uses explicitly supplied standalone JDK/Kotlin/JSON tooling to compile actual portable client code and parse native source, without Android SDKs or emulators. See [Android setup and signing handoff](android/README.md). Allowance alerts now explicitly select measured or estimated quality; existing rules default to measured.
+
+Phase 9 adds separately consented Android event-history source, per-app/category reporting and corrections, deterministic descriptive insights and missing-usage alerts. Apply the eleventh explicit migration and schedule monitoring retention/evaluation. SDK-free Kotlin tests now also exercise detailed usage and one-shot HTTPS mutations; native compilation and real-phone accuracy/background/UI checks remain pending.

@@ -1,4 +1,9 @@
 import {
+  ApplicationCatalog,
+  ApplicationWindow,
+  ApplicationDay,
+} from '../monitoring/application.entities';
+import {
   AgentDeveloper,
   DeveloperCommand,
   DeveloperAudit,
@@ -44,6 +49,9 @@ export function databaseOptions(
     type: 'postgres',
     url: config.DATABASE_URL,
     entities: [
+      ApplicationCatalog,
+      ApplicationWindow,
+      ApplicationDay,
       AgentDeveloper,
       DeveloperCommand,
       DeveloperAudit,

@@ -73,3 +73,7 @@ This performs one bounded evaluation/delivery/retention pass. It prints only sta
 The live API fixtures cover atomic ingestion, replay/conflicts, UTC midnight, DST boundaries, gaps, source attribution, reports/CSV, isolation, independent raw expiry, retention failure recovery, exact interval protection, threshold/health rules, acknowledgement, quiet hours, unavailable providers, retries/preferences, network scope, role revocation and deletion. See `docs/validation/phase-3.md` for the verification record.
 
 Phase 8 Android source implements encrypted, bounded persistent buffering and OS network-statistics adapters. JVM/HTTPS/API checks use synthetic OS adapters; no phone collector accuracy or background behavior is claimed verified. See [Android handoff](../validation/phase-8.md).
+
+## Phase 9 detailed Android history
+
+`POST devices/:id/application-usage` adds strictly bounded, separately consented detailed windows and atomic daily/measurement summaries. Scoped application reports, CSV, owner classifications and custom categories are documented in [advanced Android monitoring](../architecture/android-application-monitoring.md). OpenAPI 1.9.0 has 92 operations. The new `not_reporting` rule evaluates accepted usage receipts/current consent rather than heartbeat metadata, and suppresses intentional pause. Schedule the existing maintenance worker for delivery/retention. Native OS validation remains pending.

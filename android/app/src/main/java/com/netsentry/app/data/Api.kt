@@ -5,62 +5,62 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.IOException
-import java.net.URL
-import javax.net.ssl.HttpsURLConnection
+import java.util.concurrent.TimeUnit
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody
+import okio.BufferedSink
 
 class ApiFailure(val status: Int, val code: String, message: String, val retryAfterMs: Long? = null) : IOException(message)
 
-/** Blocking adapter: call on IO only. No redirects, permissive TLS, payload logging or auto POST retry. */
+/** IO only. Verified TLS, no redirect/log/cookie/cache, connection recovery off, one-shot mutations. */
 class Api(base: String) : Transport {
     private val base = Policy.apiBase(base)
     override fun request(method: String, path: String, token: String?, body: JSONObject?): Any {
         require(path.startsWith("/") && !path.startsWith("//") && !path.contains('#'))
-        val connection = URL(base + path).openConnection() as HttpsURLConnection
-        try {
-            connection.instanceFollowRedirects = false
-            connection.requestMethod = method
-            connection.connectTimeout = 10_000
-            connection.readTimeout = 15_000
-            connection.setRequestProperty("Accept", "application/json")
-            connection.setRequestProperty("User-Agent", "NetSentry-Android/0.8.0")
-            token?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
-            body?.let {
-                val bytes = it.toString().toByteArray(Charsets.UTF_8)
-                require(bytes.size <= 1_000_000)
-                connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setFixedLengthStreamingMode(bytes.size)
-                connection.outputStream.use { stream -> stream.write(bytes) }
-            }
-            val status = connection.responseCode
-            val stream = if (status in 200..299) connection.inputStream else connection.errorStream
-            val bytes = stream?.use {
+        val bytes = body?.toString()?.toByteArray(Charsets.UTF_8)
+        require(bytes == null || bytes.size <= 1_000_000)
+        val content = bytes ?: if (method !in setOf("GET","HEAD")) "{}".toByteArray() else null
+        val payload = content?.let { raw -> object : RequestBody() {
+            override fun contentType() = JSON
+            override fun contentLength() = raw.size.toLong()
+            override fun isOneShot() = true
+            override fun writeTo(sink: BufferedSink) { sink.write(raw) }
+        } }
+        val request = Request.Builder().url(base + path).method(method, payload)
+            .header("Accept", "application/json").header("User-Agent", "NetSentry-Android/0.9.0")
+        token?.let { request.header("Authorization", "Bearer $it") }
+        client.newCall(request.build()).execute().use { response ->
+            val content = response.body?.byteStream()?.use { stream ->
                 val output = java.io.ByteArrayOutputStream()
                 val buffer = ByteArray(8192)
                 while (true) {
-                    val count = it.read(buffer)
+                    val count = stream.read(buffer)
                     if (count < 0) break
-                    require(output.size() + count <= 1_000_000) { "API response exceeds the supported size." }
-                    output.write(buffer, 0, count)
+                    require(output.size()+count <= 1_000_000) { "API response exceeds the supported size." }
+                    output.write(buffer,0,count)
                 }
                 output.toByteArray()
             } ?: byteArrayOf()
-            require(bytes.size <= 1_000_000) { "API response exceeds the supported size." }
-            val result = if (bytes.isEmpty()) JSONObject() else JSONTokener(String(bytes, Charsets.UTF_8)).nextValue()
-            if (status !in 200..299) {
+            val result = if (content.isEmpty()) JSONObject() else JSONTokener(String(content,Charsets.UTF_8)).nextValue()
+            if (!response.isSuccessful) {
                 val error = result as? JSONObject
-                throw ApiFailure(status, error?.optString("code") ?: "HTTP_ERROR",
-                    error?.optString("message")?.take(400) ?: "Request failed ($status).",
-                    connection.getHeaderField("Retry-After")?.toLongOrNull()?.coerceIn(1, 300)?.times(1000))
+                throw ApiFailure(response.code,error?.optString("code") ?: "HTTP_ERROR",
+                    error?.optString("message")?.take(400) ?: "Request failed (${response.code}).",
+                    response.header("Retry-After")?.toLongOrNull()?.coerceIn(1,300)?.times(1000))
             }
             require(result is JSONObject || result is JSONArray) { "Invalid API response." }
             return result
-        } finally { connection.disconnect() }
+        }
+    }
+    private companion object {
+        val JSON = "application/json; charset=utf-8".toMediaType()
+        val client: OkHttpClient by lazy { OkHttpClient.Builder().followRedirects(false).followSslRedirects(false)
+            .retryOnConnectionFailure(false).connectTimeout(10,TimeUnit.SECONDS).readTimeout(15,TimeUnit.SECONDS)
+            .writeTimeout(15,TimeUnit.SECONDS).callTimeout(30,TimeUnit.SECONDS).build() }
     }
 }
-
-fun json(vararg entries: Pair<String, Any?>): JSONObject = JSONObject().apply {
-    entries.forEach { (key, value) -> put(key, value ?: JSONObject.NULL) }
-}
+fun json(vararg entries: Pair<String, Any?>): JSONObject = JSONObject().apply { entries.forEach { (key,value) -> put(key,value ?: JSONObject.NULL) } }
 fun JSONArray.objects(): List<JSONObject> = (0 until length()).map { getJSONObject(it) }
 fun JSONObject.array(key: String): List<JSONObject> = optJSONArray(key)?.objects() ?: emptyList()

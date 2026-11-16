@@ -252,7 +252,9 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     .click();
   await expect(page.getByText(/Acknowledged/).first()).toBeVisible();
   await page.getByLabel("Rule device").selectOption(data.deviceId);
-  await expect(page.getByLabel("Threshold data quality")).toHaveValue("measured");
+  await expect(page.getByLabel("Threshold data quality")).toHaveValue(
+    "measured",
+  );
   await page.getByLabel("Threshold data quality").selectOption("estimated");
   await page.getByLabel("Threshold (bytes)", { exact: true }).fill("20000000");
   await page.getByLabel("Use quiet hours", { exact: true }).check();
@@ -268,7 +270,9 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
   await expect(created).toBeVisible();
   await expect(created).toContainText("estimated");
   await created.getByRole("button", { name: "Edit rule", exact: true }).click();
-  await expect(page.getByLabel("Threshold data quality")).toHaveValue("estimated");
+  await expect(page.getByLabel("Threshold data quality")).toHaveValue(
+    "estimated",
+  );
   await page.getByLabel("Severity", { exact: true }).selectOption("critical");
   await page
     .getByLabel(
@@ -281,7 +285,9 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
   await expect(
     page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" }),
   ).toContainText("critical");
-  await expect(page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" })).toContainText("estimated");
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" }),
+  ).toContainText("estimated");
   await page.getByLabel("In-app notifications", { exact: true }).uncheck();
   await page
     .getByRole("button", { name: "Save notification preferences", exact: true })
@@ -802,9 +808,9 @@ test("developer commands show pending/cancelled outcomes and keep viewers read-o
     .getByRole("heading", { name: "Paired developer computers" })
     .scrollIntoViewIfNeeded();
   await expect
-    .poll(() => page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ))
+    .poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+    )
     .toBeTruthy();
   await page.screenshot({ path: ".test/developer-remote.png", fullPage: true });
   const viewer = await browser.newContext();
@@ -829,4 +835,26 @@ test("developer commands show pending/cancelled outcomes and keep viewers read-o
   } finally {
     await viewer.close();
   }
+});
+
+test("missing-report rules preserve their device scope and seconds threshold", async ({
+  page,
+}) => {
+  const data = await login(page);
+  await page.getByRole("button", { name: "Alerts", exact: true }).click();
+  await page.getByLabel("Rule type").selectOption("not_reporting");
+  await page.getByLabel("Rule device").selectOption(data.deviceId);
+  await page.getByLabel("Reporting/heartbeat threshold (seconds)").fill("600");
+  await page
+    .getByRole("button", { name: "Create alert rule", exact: true })
+    .click();
+  await expect(page.getByText(/Rule saved/)).toBeVisible();
+  const rule = page.getByRole("listitem").filter({ hasText: "not reporting" });
+  await expect(rule).toBeVisible();
+  await rule.getByRole("button", { name: "Edit rule", exact: true }).click();
+  await expect(page.getByLabel("Rule type")).toHaveValue("not_reporting");
+  await expect(page.getByLabel("Rule device")).toHaveValue(data.deviceId);
+  await expect(
+    page.getByLabel("Reporting/heartbeat threshold (seconds)"),
+  ).toHaveValue("600");
 });

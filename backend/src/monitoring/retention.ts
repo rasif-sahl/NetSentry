@@ -22,6 +22,16 @@ export async function retainWorkspace(
     const counts: Record<string, number> = {};
     for (const [table, condition, args] of [
       [
+        'application_windows',
+        '"deviceId" IN (SELECT id FROM registered_devices WHERE "workspaceId"=$1) AND "intervalEnd"<=$2',
+        [workspaceId, raw],
+      ],
+      [
+        'application_days',
+        '"deviceId" IN (SELECT id FROM registered_devices WHERE "workspaceId"=$1) AND "localDate"<($2::timestamptz AT TIME ZONE $3)::date',
+        [workspaceId, aggregate, workspace.timezone],
+      ],
+      [
         'alerts',
         '"ruleId" IN (SELECT id FROM alert_rules WHERE "workspaceId"=$1) AND "createdAt"<$2',
         [workspaceId, new Date(now.getTime() - policy.alertDays * 86400000)],

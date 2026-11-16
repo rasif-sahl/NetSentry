@@ -21,6 +21,7 @@ class PersonalViewModel(application: Application) : AndroidViewModel(application
     var busy by mutableStateOf(false); private set
     var message by mutableStateOf(""); private set
     var exported by mutableStateOf<String?>(null); private set
+    var exportKind by mutableStateOf("personal"); private set
     init {
         run("Ready") {
             view() // Does not start collection on application launch.
@@ -48,7 +49,9 @@ class PersonalViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
+    fun exportApplications() { exportKind = "applications"; run("Application CSV ready") { exported = exportApplications() } }
     fun export(password: String) {
+        exportKind = "personal"
         run("Personal export ready. Save it privately or close it.") { exported = export(password) }
     }
     fun closeExport() { exported = null }

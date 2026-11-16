@@ -22,6 +22,8 @@ class Repository(
     private var computers = emptyList<JSONObject>()
     private var commands = emptyMap<String, List<JSONObject>>()
     private var report: JSONObject? = null
+    private var applicationReport: JSONObject? = null
+    private var applicationQuery: String? = null
     private var rules = emptyList<JSONObject>()
     private var alerts = emptyList<JSONObject>()
     private var notifications = emptyList<JSONObject>()
@@ -32,13 +34,13 @@ class Repository(
     data class View(
         val signedIn: Boolean, val base: String, val profile: JSONObject?, val workspaces: List<JSONObject>,
         val workspaceId: String, val devices: List<JSONObject>, val ownDevice: JSONObject?, val localEnabled: Boolean,
-        val report: JSONObject?, val computers: List<JSONObject>, val commands: Map<String, List<JSONObject>>,
+        val report: JSONObject?, val applicationReport: JSONObject?, val appUsageEnabled: Boolean, val computers: List<JSONObject>, val commands: Map<String, List<JSONObject>>,
         val rules: List<JSONObject>, val alerts: List<JSONObject>, val notifications: List<JSONObject>,
         val preferences: JSONObject, val disclosures: JSONObject, val queueSize: Int, val syncStatus: String,
     )
     @Synchronized fun view(): View = View(state.has("session"), state.optString("base"), profile,
         workspaces, state.optString("workspaceId"), devices, ownDevice(), state.optBoolean("collect"),
-        report, computers, commands, rules, alerts, notifications, preferences, disclosures,
+        report, applicationReport, state.optBoolean("appUsage"), computers, commands, rules, alerts, notifications, preferences, disclosures,
         state.optJSONArray("queue")?.length() ?: 0, lastSync)
     private fun save() = store.write(state)
     private fun api(): Transport = transport(state.getString("base"))
@@ -66,6 +68,7 @@ class Repository(
         try { return api().request(method, path, state.getJSONObject("session").getString("accessToken"), body) }
         catch (error: ApiFailure) {
             if (error.status == 401) clearLocal()
+            if (error.status == 403) { clearViews(); stopCollection() }
             throw error
         }
     }
@@ -79,7 +82,7 @@ class Repository(
     }
     private fun clearViews() {
         profile = null; devices = emptyList(); computers = emptyList(); commands = emptyMap()
-        report = null; rules = emptyList(); alerts = emptyList(); notifications = emptyList(); preferences = JSONObject()
+        report = null; applicationReport = null; applicationQuery = null; rules = emptyList(); alerts = emptyList(); notifications = emptyList(); preferences = JSONObject()
     }
     @Synchronized fun clearLocal() {
         schedule(false); store.clear(); state = JSONObject(); workspaces = emptyList(); clearViews(); disclosures = JSONObject()
@@ -162,7 +165,8 @@ class Repository(
         save(); refresh()
     }
     private fun stopCollection() {
-        state.put("collect", false).put("queue", JSONArray()).remove("cursor")
+        state.put("collect", false).put("appUsage", false).put("queue", JSONArray()).remove("cursor")
+        state.remove("appCheckpoint"); state.remove("pendingPermissionHealth")
         schedule(false); save()
     }
     private fun forgetDevice() { stopCollection(); state.remove("device"); save() }
@@ -182,16 +186,19 @@ class Repository(
         if (action in setOf("erase", "unenrol", "remove")) forgetDevice()
         refresh()
     }
-    @Synchronized fun consent(accepted: Boolean) {
+    @Synchronized fun consent(accepted: Boolean, appsAccepted: Boolean = false) {
         require(accepted && disclosures.getJSONObject("monitoring").getString("version") == "monitoring-v3")
         require(usage.granted()) { "Grant usage access in Android Settings first." }
         require(state.getJSONObject("device").getString("workspaceId") == workspace())
+        if (appsAccepted) require(disclosures.getJSONObject("applications").getString("version") == "app-usage-v1")
         stopCollection()
-        account("POST", "/devices/${deviceId()}/consent", json("accepted" to true,
-            "disclosureVersion" to "monitoring-v3", "scopes" to JSONArray(listOf("network_usage"))))
+        val grant = json("accepted" to true, "disclosureVersion" to "monitoring-v3", "scopes" to JSONArray(if (appsAccepted) listOf("network_usage", "app_usage") else listOf("network_usage")))
+        if (appsAccepted) grant.put("appUsageDisclosureVersion", "app-usage-v1")
+        account("POST", "/devices/${deviceId()}/consent", grant)
         val configuration = device("GET", "/configuration")
         applyConfiguration(configuration)
-        state.put("collect", true).put("cursor", clock()).put("generation", configuration.getInt("generation"))
+        state.put("consentStart", clock())
+        state.put("collect", true).put("appUsage", appsAccepted).put("cursor", clock()).put("generation", configuration.getInt("generation"))
         save(); schedule(true); refresh()
     }
     private fun applyConfiguration(configuration: JSONObject) {
@@ -199,35 +206,66 @@ class Repository(
         require(configuration.getString("deviceId") == binding.getString("id") &&
             configuration.getString("workspaceId") == binding.getString("workspaceId"))
         state.put("configurationCheckedAt", clock())
+        if (!(0 until configuration.getJSONArray("consentScopes").length()).any { configuration.getJSONArray("consentScopes").getString(it) == "app_usage" }) {
+            state.put("appUsage", false); state.remove("appCheckpoint")
+        }
         val gen = configuration.getInt("generation")
         if (gen != state.optInt("generation") || !configuration.getBoolean("monitoringEnabled")) {
             state.put("queue", JSONArray()).put("cursor", clock()).put("generation", gen)
+            state.remove("appCheckpoint")
         }
         if (!configuration.getBoolean("monitoringEnabled") ||
             !configuration.getJSONArray("consentScopes").toString().contains("\"network_usage\"")) stopCollection()
     }
     private fun healthBatteryRestricted(): Boolean = usage.metadata().optString("batteryOptimizationStatus") == "restricted"
     @Synchronized fun sync(manual: Boolean = false) {
-        if (!state.has("session") || !state.has("device") || !state.optBoolean("collect")) return
+        if (!state.has("session") || !state.has("device")) return
+        if (state.optBoolean("pendingPermissionHealth")) {
+            val config = device("GET", "/configuration")
+            device("POST", "/heartbeat", usage.metadata().put("generation", config.getInt("generation")).put("permissionStatus", "revoked").put("monitoringHealth", "permission_required"))
+            state.remove("pendingPermissionHealth"); save(); schedule(false)
+            return
+        }
+        if (!state.optBoolean("collect")) return
         try {
             if (!usage.granted()) {
                 val health = usage.metadata().put("generation", state.getInt("generation"))
                     .put("permissionStatus", "revoked").put("monitoringHealth", "permission_required")
                 stopCollection()
-                lastSync = "Usage access withdrawn; local collection and queue cleared."
+                state.put("pendingPermissionHealth", true); save(); schedule(true)
+                lastSync = "Usage access withdrawn; local collection cleared. Health report awaits acknowledgement."
                 device("POST", "/heartbeat", health)
+                state.remove("pendingPermissionHealth"); save(); schedule(false)
                 return
             }
             val now = clock()
-            if (state.optLong("cursor") < now - Policy.QUEUE_AGE_MS) state.put("cursor", now - Policy.QUEUE_AGE_MS)
+            val historyAge = if (state.optBoolean("appUsage")) 86_400_000L else Policy.QUEUE_AGE_MS
+            if (state.optLong("cursor") < now-historyAge) { state.put("cursor",now-historyAge); state.remove("appCheckpoint") }
             val queue = state.optJSONArray("queue")?.objects()?.filter { Policy.retained(it.getLong("createdAt"), now) }?.toMutableList() ?: mutableListOf()
-            if (queue.size < Policy.MAX_QUEUE && now >= state.optLong("configurationCheckedAt") &&
+            if (queue.size <= Policy.MAX_QUEUE - (if (state.optBoolean("appUsage")) 2 else 1) && now >= state.optLong("configurationCheckedAt") &&
                 now - state.optLong("configurationCheckedAt") <= 86_400_000L) {
                 Policy.interval(state.optLong("cursor"), now)?.let { window ->
-                    val readings = usage.read(window.first, window.last)
-                    val batch = Wire.batch(state.getJSONObject("device").getString("workspaceId"), deviceId(), state.getInt("generation"), window.first, window.last, readings, now)
+                    val oldCursor = state.optLong("cursor")
+                    val oldCheckpoint = state.optJSONObject("appCheckpoint")
+                    val oldSize = queue.size
+                    val end = if (state.optBoolean("appUsage")) minOf(window.last, window.first + 6*3_600_000L) else window.last
+                    val readings = usage.read(window.first, end)
+                    val batch = Wire.batch(state.getJSONObject("device").getString("workspaceId"), deviceId(), state.getInt("generation"), window.first, end, readings, now)
                     queue.add(json("createdAt" to now, "attempts" to 0, "nextAt" to 0, "body" to batch))
-                    state.put("cursor", window.last)
+                    if (state.optBoolean("appUsage")) {
+                        val observation = usage.applications(window.first, end, ApplicationWire.checkpoint(state.optJSONObject("appCheckpoint")))
+                            ?: ApplicationObservation(com.netsentry.app.core.TimelineReducer.unavailable(window.first, end), emptyList())
+                        val rich = ApplicationWire.batch(state.getJSONObject("device").getString("workspaceId"), deviceId(), state.getInt("generation"), window.first, end, now, observation)
+                        queue.add(json("kind" to "applications", "createdAt" to now, "attempts" to 0, "nextAt" to 0, "body" to rich))
+                        state.put("appCheckpoint", ApplicationWire.checkpoint(observation.timeline.checkpoint))
+                    }
+                    state.put("cursor", end)
+                    if (JSONArray(queue).toString().toByteArray(Charsets.UTF_8).size > 1_000_000) {
+                        while (queue.size > oldSize) queue.removeAt(queue.lastIndex)
+                        state.put("cursor", oldCursor)
+                        if (oldCheckpoint == null) state.remove("appCheckpoint") else state.put("appCheckpoint", oldCheckpoint)
+                        lastSync = "Queue byte capacity reached; collection waits for uploads."
+                    }
                 }
             }
             state.put("queue", JSONArray(queue)); save()
@@ -241,31 +279,40 @@ class Repository(
             }
             // Fresh capability evidence is obtained on each attempt; permission loss never becomes zero usage.
             val probe = usage.read(now - 60_000, now)
+            val probeStart = maxOf(now-60_000, state.optLong("consentStart", now-60_000))
+            val appProbe = if (state.optBoolean("appUsage") && now>probeStart) usage.applications(probeStart, now, null) else null
+            val capabilities = Wire.capabilities(config.getString("workspaceId"), deviceId(), probe, now)
+            if (state.optBoolean("appUsage")) {
+                val available = appProbe != null && appProbe.timeline.issues.none { it in setOf("stream_unavailable", "event_limit", "window_limit") }
+                ApplicationWire.capabilities(now, available, available && appProbe?.timeline?.issues?.contains("screen_api_unavailable") == false).forEach { capabilities.getJSONArray("capabilities").put(it) }
+            }
             val needsPermission = !usage.granted() || probe.any { it.bytes == null && it.failure == "permission_unavailable" }
             val health = usage.metadata().put("generation", config.getInt("generation"))
                 .put("permissionStatus", if (needsPermission) "denied" else "granted")
                 .put("monitoringHealth", when {
                     needsPermission -> "permission_required"
-                    probe.none { it.bytes != null } -> "unknown"
+                    probe.none { it.bytes != null } || (state.optBoolean("appUsage") && (appProbe == null || appProbe.timeline.issues.contains("stream_unavailable"))) -> "unknown"
                     healthBatteryRestricted() -> "battery_setup_required"
                     else -> "healthy"
                 })
-                .put("capabilityReport", Wire.capabilities(config.getString("workspaceId"), deviceId(), probe, now))
+                .put("capabilityReport", capabilities)
             applyConfiguration(device("POST", "/heartbeat", health))
             if (!state.optBoolean("collect")) { lastSync = "Permission or consent withdrawn; local queue cleared."; return }
-            val first = queue.firstOrNull() ?: run { lastSync = "No completed collection interval yet."; return }
-            val body = first.getJSONObject("body")
-            val stamp = QueueStamp(body.getString("batchId"), body.getInt("generation"), first.getLong("createdAt"), first.getInt("attempts"))
-            if (manual && stamp.attempts >= Policy.MAX_ATTEMPTS) first.put("attempts", 0)
-            if ((!manual && first.getLong("nextAt") > now) ||
-                !stamp.copy(attempts = first.getInt("attempts")).eligible(config.getInt("generation"), true, now)) { lastSync = "Upload waiting for retry; oldest exhausted batch needs manual retry."; return }
-            require(stamp.generation == config.getInt("generation"))
-            first.put("attempts", first.getInt("attempts") + 1)
-                .put("nextAt", now + minOf(300_000L, Policy.retryDelay(first.getInt("attempts")) + kotlin.random.Random.nextLong(1000)))
-            save() // Persist the exact UUID/payload and attempt before sending.
-            device("POST", "/measurements", body)
-            queue.removeAt(0); state.put("queue", JSONArray(queue)); save()
-            lastSync = "Last confirmed upload: ${Policy.timestamp(clock())}. ${queue.size} queued."
+            repeat(4) {
+                val first = queue.firstOrNull() ?: run { lastSync = "No completed collection interval yet."; return }
+                val body = first.getJSONObject("body")
+                val stamp = QueueStamp(body.getString("batchId"), body.getInt("generation"), first.getLong("createdAt"), first.getInt("attempts"))
+                if (manual && stamp.attempts >= Policy.MAX_ATTEMPTS) first.put("attempts", 0)
+                if ((!manual && first.getLong("nextAt") > now) ||
+                    !stamp.copy(attempts = first.getInt("attempts")).eligible(config.getInt("generation"), true, now)) { lastSync = "Upload waiting for retry; oldest exhausted batch needs manual retry."; return }
+                require(stamp.generation == config.getInt("generation"))
+                first.put("attempts", first.getInt("attempts") + 1)
+                    .put("nextAt", now + minOf(300_000L, Policy.retryDelay(first.getInt("attempts")) + kotlin.random.Random.nextLong(1000)))
+                save() // Persist the exact UUID/payload and attempt before sending.
+                device("POST", if (first.optString("kind") == "applications") "/application-usage" else "/measurements", body)
+                queue.removeAt(0); state.put("queue", JSONArray(queue)); save()
+                lastSync = "Last confirmed upload: ${Policy.timestamp(clock())}. ${queue.size} queued."
+            }
         } catch (error: ApiFailure) {
             lastSync = "Sync not confirmed (${error.code})."
             error.retryAfterMs?.let { delay ->
@@ -291,6 +338,43 @@ class Repository(
         account("POST", "${path()}/rules", json("kind" to "threshold", "metric" to metric,
             "deviceId" to deviceId(), "period" to period, "threshold" to bytes, "quality" to quality, "severity" to "warning",
             "channels" to JSONArray(listOf("in_app")), "enabled" to true)); refresh()
+    }
+    private fun ownWorkspaceDevice() {
+        require(state.getJSONObject("device").getString("workspaceId") == workspace()) { "Select this phone's workspace first." }
+    }
+    @Synchronized fun loadApplications(period: String, applicationId: String? = null, categoryId: String? = null, device: String? = null) {
+        val id = Policy.uuid(device ?: deviceId())
+        require(devices.any { it.getString("id") == id } || id == deviceId())
+        val zone = workspaces.first { it.getString("id") == workspace() }.getString("timezone")
+        val (from, to) = Policy.reportDates(period, zone, clock())
+        val app = applicationId?.takeIf { it.isNotBlank() }?.let { "&applicationId=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
+        val category = categoryId?.takeIf { it.isNotBlank() }?.let { "&categoryId=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
+        applicationReport = null; applicationQuery = null
+        val query = "deviceId=$id&from=$from&to=$to&period=$period$app$category"
+        applicationReport = account("GET", "${path()}/application-usage?$query") as JSONObject
+        applicationQuery = query
+    }
+    @Synchronized fun exportApplications(): String {
+        requireNotNull(applicationReport) { "Load an application report first." }
+        val query = requireNotNull(applicationQuery)
+        val result = account("GET", "${path()}/application-export?$query") as JSONObject
+        return result.getString("content")
+    }
+    @Synchronized fun createCategory(name: String) { ownWorkspaceDevice(); account("POST", "${path()}/application-categories", json("deviceId" to deviceId(),"name" to name)) }
+    @Synchronized fun removeCategory(id: String) { ownWorkspaceDevice(); account("DELETE", "${path()}/application-categories/${Policy.uuid(id)}?deviceId=${deviceId()}") }
+    @Synchronized fun correctApplication(id: String, category: String?) { ownWorkspaceDevice(); account("PATCH", "${path()}/application-classification", json("deviceId" to deviceId(),"applicationId" to id,"categoryId" to category)) }
+    @Synchronized fun usageLimit(metric: String, period: String, seconds: Long, applicationId: String? = null) {
+        ownWorkspaceDevice()
+        require(metric in setOf("screen_time_seconds","application_foreground_seconds") && period in setOf("day","week","month") && seconds > 0)
+        require((metric == "application_foreground_seconds") == !applicationId.isNullOrBlank())
+        val input = json("kind" to "threshold","metric" to metric,"period" to period,"threshold" to seconds,"deviceId" to deviceId(),"quality" to "estimated","severity" to "warning","channels" to JSONArray(listOf("in_app")),"enabled" to true)
+        if (applicationId != null) input.put("applicationId", applicationId)
+        account("POST", "${path()}/rules", input); refresh()
+    }
+    @Synchronized fun healthAlert(kind: String, seconds: Long = 3600) {
+        ownWorkspaceDevice(); require(kind in setOf("device_offline","permission_revoked","not_reporting"))
+        account("POST", "${path()}/rules", json("kind" to kind,"period" to "day","threshold" to if (kind == "permission_revoked") 1 else seconds,
+            "deviceId" to deviceId(),"severity" to "warning","channels" to JSONArray(listOf("in_app")),"enabled" to true)); refresh()
     }
     @Synchronized fun removeRule(id: String) { account("DELETE", "${path()}/rules/${Policy.uuid(id)}"); refresh() }
     @Synchronized fun acknowledge(id: String) { account("POST", "${path()}/alerts/${Policy.uuid(id)}/acknowledge"); refresh() }

@@ -1,5 +1,9 @@
 import { createHash } from 'node:crypto';
 export const disclosures = {
+  applications: {
+    version: 'app-usage-v1',
+    text: 'Additionally share observed application identifiers, permitted display labels and platform categories, foreground/screen intervals, observed foreground-entry counts and first/last use with authorized workspace report viewers. No activity class names, content or icons are uploaded. Raw timelines use the existing raw retention; daily summaries use aggregate retention. Classification is uncertain unless manually corrected. Counts describe observed foreground entries, not verified cold launches. You can pause, revoke or erase these records. Native accuracy remains subject to device validation.',
+  },
   enrolment: {
     version: 'device-enrolment-v1',
     text: 'Pair this installation with your account and workspace. NetSentry may receive device/app version, permission, capability and synchronization-health information. Pairing does not enable usage monitoring or prove hardware identity.',

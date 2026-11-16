@@ -14,29 +14,58 @@ private class EphemeralStore : PrivateStore {
 fun main(args: Array<String>) {
     val base = args[0]
     val fixture = JSONObject(File(args[1]).readText())
+    val transport: Transport=Api(base)
+    val redirect=runCatching { transport.request("GET","/__redirect") }.exceptionOrNull()
+    check(redirect is ApiFailure && redirect.status==302)
+    val retry=runCatching { transport.request("POST","/__retry",body=json("synthetic" to true)) }.exceptionOrNull()
+    check(retry is ApiFailure && retry.status==503)
     val usage = object : UsageSource {
         override fun granted() = true
         override fun read(start: Long, end: Long) = listOf(UsageReading("mobile_data_bytes", 123L, "Synthetic JVM adapter; not phone data"), UsageReading("wifi_data_bytes", 456L, "Synthetic JVM adapter; not phone data"))
+        override fun applications(start: Long, end: Long, checkpoint: com.netsentry.app.core.UsageCheckpoint?): ApplicationObservation {
+            val id="com.example.reader"
+            val known=checkpoint ?: com.netsentry.app.core.UsageCheckpoint(start,emptyMap(),emptyMap(),true,true,true)
+            val timeline=com.netsentry.app.core.TimelineReducer.reduce(start,end,listOf(com.netsentry.app.core.UsageEvent(start,"resumed",id,"local.private.Class")),known,true,true)
+            return ApplicationObservation(timeline,listOf(ApplicationMetadata(id,"Synthetic JVM app","unknown")))
+        }
         override fun metadata() = json("applicationVersion" to "0.8.0-jvm-fixture", "batteryOptimizationStatus" to "unknown")
     }
     var clockOffset = 0L
-    val repository = Repository(EphemeralStore(), usage, {}, { System.currentTimeMillis() + clockOffset })
+    var frozenClock: Long? = null
+    val repository = Repository(EphemeralStore(), usage, {}, { frozenClock ?: (System.currentTimeMillis() + clockOffset) })
     repository.signIn(base, fixture.getJSONObject("accounts").getJSONObject("owner").getString("email"), fixture.getString("password"))
+    repository.updateProfile("Kotlin HTTPS fixture")
+    repository.notificationPreferences(true)
     repository.selectWorkspace(fixture.getString("workspaceId"))
     check(repository.view().profile != null && !repository.view().localEnabled)
     repository.enrol("Synthetic Kotlin integration phone", true)
-    repository.consent(true)
+    repository.consent(true, true)
     // Deterministic accounting delay only: end remains in the real server's past; no historical consent is invented.
     Thread.sleep(500)
     clockOffset = 119_900
+    frozenClock = System.currentTimeMillis() + clockOffset
     repository.sync(manual = true)
     check(repository.view().queueSize == 0)
     repository.loadReport("day", "mobile_data_bytes")
     check(repository.view().report!!.array("buckets").any { it.optString("estimated").toDoubleOrNull() == 123.0 })
     repository.saveAllowance("mobile_data_bytes", "day", 100, "estimated")
     check(repository.view().rules.any { it.getJSONObject("config").optString("quality") == "estimated" })
+    repository.loadApplications("day", "com.example.reader")
+    check(repository.view().applicationReport!!.array("applications").single().optDouble("seconds") > 0)
+    repository.createCategory("JVM reading")
+    repository.loadApplications("day")
+    val category = repository.view().applicationReport!!.array("customCategories").first()
+    repository.correctApplication("com.example.reader", category.getString("id"))
+    repository.loadApplications("day", "com.example.reader")
+    check(repository.view().applicationReport!!.array("applications").single().getString("source") == "manual")
+    check(repository.exportApplications().contains("com.example.reader"))
+    repository.usageLimit("application_foreground_seconds", "day", 60, "com.example.reader")
+    repository.healthAlert("permission_revoked")
+    repository.healthAlert("device_offline", 3600)
+    repository.healthAlert("not_reporting", 3600)
     // Remote observations use the real wall clock, independent of the synthetic accounting delay.
     clockOffset = 0
+    frozenClock = null
     repository.refreshDeveloper()
     val computer = repository.view().computers.first { it.optBoolean("canControl") && it.array("services").isNotEmpty() }
     val service = computer.array("services").first()
@@ -51,5 +80,5 @@ fun main(args: Array<String>) {
     check(repository.view().ownDevice == null && !repository.view().localEnabled)
     repository.signOut()
     check(!repository.view().signedIn)
-    println("Actual Kotlin HTTPS/NestJS/PostgreSQL account, enrolment, consent, estimated upload/report, allowance, remote request/cancel and erasure passed. OS/desktop observations were synthetic; no phone or native signal was tested.")
+    println("Actual Kotlin HTTPS/NestJS/PostgreSQL account, enrolment, consent, network/detailed app upload/report, categories/corrections/CSV/health rules, allowance, remote request/cancel and erasure passed. OS/desktop observations were synthetic; no phone or native signal was tested.")
 }
