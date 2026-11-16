@@ -17,7 +17,7 @@
     "test:agent": "cd agent && GOTOOLCHAIN=local go test ./...",
     "check:contracts": "npm --prefix contracts run check",
     "test:contracts": "npm --prefix contracts test",
-    "check": "npm run check:scaffolds && npm run check:infra && npm run test:infra && npm run check:contracts && npm run test:contracts && npm run check:android && npm run check:ios && npm run build:backend && npm run test:backend && npm run build:desktop && npm run lint:dashboard && npm run build:dashboard",
+    "check": "npm run check:scaffolds && npm run check:release && npm run test:release && npm run check:infra && npm run test:infra && npm run check:contracts && npm run test:contracts && npm run check:android && npm run check:ios && npm run build:backend && npm run test:backend && npm run build:desktop && npm run lint:dashboard && npm run build:dashboard",
     "test:database": "npm --prefix backend run test:database",
     "test:api": "npm --prefix backend run test:api",
     "build:dashboard": "npm --prefix dashboard run build",
@@ -31,6 +31,8 @@
     "test:ios-live": "node ios/scripts/check-live.mjs",
     "check:infra": "node infra/scripts/check-source.mjs",
     "test:infra": "node --test infra/test/*.test.mjs",
-    "test:recovery": "node infra/scripts/check-recovery.mjs"
+    "test:recovery": "node infra/scripts/check-recovery.mjs",
+    "check:release": "node scripts/release/acceptance.mjs plan",
+    "test:release": "node --test scripts/release/*.test.mjs"
   }
 }
