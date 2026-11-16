@@ -58,6 +58,8 @@ jobs:
       - name: Check shared contracts and backend
         run: |
           npm run check:scaffolds
+          npm run check:release
+          npm run test:release
           npm run check:infra
           npm run test:infra
           npm run check:contracts

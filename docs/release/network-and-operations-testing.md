@@ -1,0 +1,22 @@
+# Router, deployment and recovery acceptance
+
+Use profile `network` for owner-authorized hardware, exact agent/server-manifest hashes and the exact router model/firmware/adapter. No physical router is certified yet. Synthetic TLS/ubus fixtures establish protocol behavior only. Do not scan arbitrary networks, configure credentials or change router firmware as part of this handoff.
+
+## Router evidence
+
+`network.hardware`: record manufacturer/model, firmware, adapter/version, dedicated read-only authentication method, certificate trust, named network and collector scope. The initial source candidate is `openwrt-ubus-v1`; do not imply other routers work. An owner must explicitly select the network/collector and authorize collection. Verify only implemented readings against that router's own reference counters within the same time window. Record exact raw RX/TX counters, interval/deltas, coverage and limitations. First observations, resets and gaps must remain missing where no valid delta exists. WAN interface health is not proof of public internet reachability or per-client traffic attribution.
+
+`network.revocation`: disconnect/reconnect the router/collector; test credential rejection and verified-TLS failure without insecure bypass, source staleness, counter reset, configuration revision, sharing withdrawal and collector revocation. Only the assigned collector may retrieve secrets or report that router. Redact all credentials/certificates/private host addresses in shared evidence. Existing adapter calls are read-only; do not claim firewall/parental enforcement or per-device traffic that has no verified source. Keep unsupported controls unavailable.
+
+Operator compatibility entries are metadata. A `verified` label in an administrative record is not hardware acceptance, adapter code or permission. Publish support only for the exact tested combination and capabilities with reviewed evidence. See [network architecture](../architecture/network-monitoring.md).
+
+## Server candidate and operational gates
+
+Every release profile includes these gates with a reviewed nonsecret `server-manifest` file. Include exact backend/dashboard commit and image digests, all sixteen migration names, runtime version, environment alias, worker configuration, TLS and provider availability. Never attach `.env`, database dumps, encryption/signing keys, personal exports or router credentials.
+
+- `server.build`: build and test the exact source and actual digest-pinned backend/dashboard images. Record static checks and actual image build logs separately. Docker Compose parsing alone is insufficient. Review dependencies/secrets and verify nonroot/read-only runtime behavior and Next.js cache needs under the intended workload.
+- `server.boundaries`: rerun actual API/database authorization, cross-workspace/role/session/grant isolation, generation/consent withdrawal, retention/deletion and password-confirmed export checks. Verify disabled live billing, unavailable providers and permissions distinct from entitlements. Also test the deployed HTTPS/cookie/ingress configuration; local synthetic API tests do not establish that configuration.
+- `server.recovery`: follow [the encrypted recovery runbook](../../infra/phase-14-runbook.md) against a separately provisioned empty recovery database. Verify full backup authentication, schema parity, known-row counts and actual isolated login/report access before a reviewed cutover. Record matching PostgreSQL tools, key recovery procedure, measured backup/restore duration and failure handling. A development fixture restore is not production backup scheduling or recovery-time acceptance.
+- `server.deployment`: inspect actual reachable HTTPS, verified-TLS PostgreSQL, exact browser origin, proxy/rate/body limits, private ports, protected keys, migration-aware readiness and logs without secrets. Schedule and observe all applicable bounded domain workers, grant/audit cleanup, notification failures and backup retention/storage. Test DB loss/readiness failure, worker backlog and recovery. No scheduler/provider/production hosting is installed here.
+
+Paid billing, real SMTP/push delivery, approved native store distribution and background service/update installation remain separate unresolved gates. Do not create paid accounts, send real messages or enable providers just to turn a pending case green. For release evidence, verify configured in-app/unavailable behavior and explicitly restrict the offered feature scope.

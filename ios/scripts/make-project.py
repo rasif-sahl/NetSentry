@@ -9,8 +9,11 @@ def add(isa, fields):
     count += 1; key = f'B{count:023X}'; objects[key] = 'isa = ' + isa + '; ' + fields; return key
 def sequence(ids): return '(' + ', '.join(ids) + ')'
 def q(s): return '"' + str(s).replace('\\', '\\\\').replace('"', '\\"') + '"'
-def configlist(settings):
-    ids = [add('XCBuildConfiguration', 'buildSettings = {' + ' '.join(f'{key} = {q(value)};' for key,value in settings.items()) + '}; name = ' + mode + ';') for mode in ['Debug','Release']]
+def configlist(settings, debug_settings=None):
+    ids = []
+    for mode in ['Debug','Release']:
+        values = {**settings, **((debug_settings or {}) if mode == 'Debug' else {})}
+        ids.append(add('XCBuildConfiguration', 'buildSettings = {' + ' '.join(f'{key} = {q(value)};' for key,value in values.items()) + '}; name = ' + mode + ';'))
     return add('XCConfigurationList',f'buildConfigurations = {sequence(ids)}; defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;')
 files = {}; products = []; targets = []
 allpaths = sorted(str(p.relative_to(ROOT)) for p in ROOT.rglob('*.swift') if 'Tests' not in p.parts)
@@ -25,10 +28,10 @@ def target(name, paths, bundle, info, extension=False, feature=False, dependenci
         copies = [add('PBXBuildFile',f'fileRef = {p}; settings = {{ATTRIBUTES = (RemoveHeadersOnCopy);}};') for p in embedded]
         phases.append(add('PBXCopyFilesBuildPhase',f'buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = {sequence(copies)}; name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0;'))
     product = add('PBXFileReference',f'explicitFileType = {"wrapper.app-extension" if extension else "wrapper.application"}; includeInIndex = 0; path = {q(name + (".appex" if extension else ".app"))}; sourceTree = BUILT_PRODUCTS_DIR;'); products.append(product)
-    settings = dict(CODE_SIGN_STYLE='Automatic', CURRENT_PROJECT_VERSION='12',GENERATE_INFOPLIST_FILE='NO',INFOPLIST_FILE=info,MARKETING_VERSION='0.12.0',PRODUCT_BUNDLE_IDENTIFIER=bundle,PRODUCT_NAME='$(TARGET_NAME)',SUPPORTED_PLATFORMS='iphoneos',SUPPORTS_MACCATALYST='NO',TARGETED_DEVICE_FAMILY='1,2',NETSENTRY_APP_GROUP='')
+    settings = dict(CODE_SIGN_STYLE='Automatic', CURRENT_PROJECT_VERSION='12',GENERATE_INFOPLIST_FILE='NO',INFOPLIST_FILE=info,MARKETING_VERSION='0.12.0',NETSENTRY_BUNDLE_PREFIX='com.netsentry.app',PRODUCT_BUNDLE_IDENTIFIER=bundle.replace('com.netsentry.app','$(NETSENTRY_BUNDLE_PREFIX)',1),PRODUCT_NAME='$(TARGET_NAME)',SUPPORTED_PLATFORMS='iphoneos',SUPPORTS_MACCATALYST='NO',TARGETED_DEVICE_FAMILY='1,2',NETSENTRY_APP_GROUP='')
     if extension: settings.update(APPLICATION_EXTENSION_API_ONLY='YES',SKIP_INSTALL='YES')
     if feature: settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = '$(inherited) NETSENTRY_SCREEN_TIME'
-    configs = configlist(settings)
+    configs = configlist(settings, {'NETSENTRY_BUNDLE_PREFIX': 'com.netsentry.app.native.dev'})
     tid = add('PBXNativeTarget',f'buildConfigurationList = {configs}; buildPhases = {sequence(phases)}; buildRules = (); dependencies = {sequence(dependencies or [])}; name = {name}; productName = {name}; productReference = {product}; productType = "com.apple.product-type.{"app-extension" if extension else "application"}";'); targets.append(tid)
     return tid,product
 extensions = []; deps = []

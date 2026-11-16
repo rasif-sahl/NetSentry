@@ -346,6 +346,8 @@ Implemented scope: provider-neutral sandbox selected by the user. Editions, cale
 
 Completion: acceptance evidence identifies which platforms/features are source-complete, built, integrated and hardware-verified. No pending critical platform check is hidden behind a claim of a complete release. The user performs device tests; development includes the correction cycle after their results.
 
+Current status: **in progress; physical acceptance pending**. Phase 15 adds candidate-bound release evidence tooling, read-only existing-tool prerequisite checks, platform-specific build/testing handoffs and an explicit support matrix. iOS Debug identifiers are isolated from the Flutter reference. Native builds/signing, phone/router observations, production runtime and installer/update acceptance remain pending; no mobile tooling is installed and Flutter is not retired. See `docs/release/README.md` and `docs/validation/phase-15.md`.
+
 ### Phase 16 Optional later extensions
 
 - Expand Windows and supported Linux desktop targets, plus explicit Docker/WSL support.

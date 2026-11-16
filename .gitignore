@@ -39,3 +39,7 @@ xcuserdata/
 # Go outputs and local agent state.
 /agent/bin/
 /agent/.local/
+
+# Private candidate receipts, device evidence and redacted logs.
+/release-evidence/
+*.xcarchive/
