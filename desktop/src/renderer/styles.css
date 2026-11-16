@@ -27,3 +27,4 @@ input:not([type="checkbox"]), select { display: block; width: 100%; padding: 9px
 .history { padding-left: 20px; }.history li { padding: 12px 0; border-bottom: 1px solid var(--border); }
 dialog { max-width: min(600px,calc(100vw - 40px)); color: var(--text); background: var(--surface); padding: 28px; border: 1px solid var(--border); border-radius: 14px; }dialog::backdrop { background: #20152a99; }
 @media(max-width:700px) { main { padding: 28px 16px; } section { padding: 18px; } .service-card { padding: 12px; } }
+.project-group h3, .service-card h4, .history strong, .developer-section p, dialog p { overflow-wrap: anywhere; }

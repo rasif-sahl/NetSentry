@@ -52,11 +52,25 @@ func DispatchDeveloper(ctx context.Context, request Request, agent *runner.Runne
 			response.Data = map[string]bool{"saved": true}
 		}
 	case "get_action_history":
-		var input struct{}
-		if core.StrictJSON(payload, &input) != nil {
+		var input struct {
+			Offset *int `json:"offset"`
+		}
+		if core.StrictJSON(payload, &input) != nil || (input.Offset != nil && (*input.Offset < 0 || *input.Offset > 75)) {
 			return invalid()
 		}
-		response.Data, err = agent.ServiceHistory(ctx)
+		var entries []developer.Action
+		entries, err = agent.ServiceHistory(ctx)
+		if err == nil {
+			offset := 0
+			if input.Offset != nil {
+				offset = *input.Offset
+			}
+			if offset >= len(entries) {
+				response.Data = []developer.Action{}
+			} else {
+				response.Data = entries[offset:min(offset+25, len(entries))]
+			}
+		}
 	case "set_local_control":
 		var input struct {
 			Allowed *bool `json:"allowed"`

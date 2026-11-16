@@ -180,6 +180,9 @@ func (r *Runner) Unpair() error {
 func (r *Runner) Cycle(ctx context.Context) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if err := r.developer.Retain(); err != nil {
+		return err
+	}
 	if r.binding.Token == "" {
 		return nil
 	}

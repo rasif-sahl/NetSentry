@@ -54,6 +54,8 @@ export function Services({
 }) {
   const [inventory, setInventory] = useState<Inventory>();
   const [history, setHistory] = useState<Action[]>([]);
+  const [historyOffset, setHistoryOffset] = useState(0);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const [query, setQuery] = useState("");
   const [activeQuery, setActiveQuery] = useState("");
   const [filter, setFilter] = useState("all");
@@ -75,6 +77,8 @@ export function Services({
     generation.current++;
     setInventory(undefined);
     setHistory([]);
+    setHistoryLoaded(false);
+    setHistoryOffset(0);
     setSelected(undefined);
     setMessage("");
     return () => {
@@ -114,14 +118,17 @@ export function Services({
       if (epoch === generation.current) setBusy(false);
     }
   }
-  async function loadHistory() {
+  async function loadHistory(offset = 0) {
     const epoch = generation.current;
     setBusy(true);
     try {
-      const result = await window.netsentry?.getServiceHistory();
+      const result = await window.netsentry?.getServiceHistory(offset);
       if (epoch !== generation.current) return;
-      if (result?.ok) setHistory(result.data);
-      else {
+      if (result?.ok) {
+        setHistory(result.data);
+        setHistoryOffset(offset);
+        setHistoryLoaded(true);
+      } else {
         setHistory([]);
         setInventory(undefined);
         setMessage(errorText(result?.code || "AGENT_UNAVAILABLE"));
@@ -198,9 +205,13 @@ export function Services({
         setHistory((previous) =>
           [
             result.data,
-            ...previous.filter((a) => a.actionId !== result.data.actionId),
-          ].slice(0, 100),
+            ...(historyOffset === 0 ? previous : []).filter(
+              (a) => a.actionId !== result.data.actionId,
+            ),
+          ].slice(0, 25),
         );
+        setHistoryOffset(0);
+        setHistoryLoaded(true);
         setMessage(
           outcomeText[result.data.outcome] ||
             "Inspect history for the action outcome.",
@@ -421,12 +432,12 @@ export function Services({
               )}
             </>
           )}
-          {history.length > 0 && (
+          {historyLoaded && (
             <div>
               <h3>Local action history</h3>
               <p>
-                Most recent 100 actions within seven days. A sent signal is not
-                a confirmed shutdown.
+                Up to 100 actions within seven days, 25 per page. A sent signal
+                is not a confirmed shutdown.
               </p>
               <ol className="history">
                 {history.map((action) => (
@@ -445,6 +456,25 @@ export function Services({
                   </li>
                 ))}
               </ol>
+              {!history.length && <p>No action receipts on this page.</p>}
+              <div className="actions">
+                <button
+                  className="secondary"
+                  disabled={busy || historyOffset === 0}
+                  onClick={() =>
+                    void loadHistory(Math.max(0, historyOffset - 25))
+                  }
+                >
+                  Previous history page
+                </button>
+                <button
+                  className="secondary"
+                  disabled={busy || history.length < 25 || historyOffset >= 75}
+                  onClick={() => void loadHistory(historyOffset + 25)}
+                >
+                  Next history page
+                </button>
+              </div>
             </div>
           )}
         </>

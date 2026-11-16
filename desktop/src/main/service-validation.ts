@@ -57,7 +57,7 @@ export function servicePayload(method: string, v: unknown): boolean {
         text(v.label)
       );
     case "get_action_history":
-      return keys(v, []);
+      return keys(v, []) || (keys(v, ["offset"]) && integer(v.offset, 0, 75));
     case "set_local_control":
       return keys(v, ["allowed"]) && typeof v.allowed === "boolean";
     default:

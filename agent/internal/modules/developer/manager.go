@@ -481,3 +481,19 @@ func (m *Manager) Reset() error {
 	}
 	return m.save()
 }
+
+// Retain runs with the agent's normal connection loop, even while a module is off.
+func (m *Manager) Retain() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	before := append([]savedAction(nil), m.value.History...)
+	m.prune()
+	if len(before) == len(m.value.History) {
+		return nil
+	}
+	if err := m.save(); err != nil {
+		m.value.History = before
+		return err
+	}
+	return nil
+}

@@ -251,3 +251,19 @@ func TestTemporaryInspectionFailureDuringExit(t *testing.T) {
 		t.Fatal("transient exit inspection was treated as a final result", action, err)
 	}
 }
+
+func TestRetentionRemovesOldReceiptsFromDisk(t *testing.T) {
+	m, f, dir := fixture(t)
+	m.value.History = []savedAction{{Action{ActionID: core.UUID(), RequestedAt: core.Timestamp(time.Now()), Outcome: "stopped"}, identifier("old")}}
+	if err := m.save(); err != nil {
+		t.Fatal(err)
+	}
+	m.now = func() time.Time { return time.Now().Add(8 * 24 * time.Hour) }
+	if err := m.Retain(); err != nil {
+		t.Fatal(err)
+	}
+	reloaded, err := New(dir, f)
+	if err != nil || len(history(t, reloaded)) != 0 {
+		t.Fatal("expired receipt remained", err)
+	}
+}

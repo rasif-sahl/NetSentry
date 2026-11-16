@@ -206,6 +206,10 @@ try {
     const history = await call("get_action_history", {});
     assert.equal(history.ok, true);
     assert.equal(history.data.length, 3);
+    assert.deepEqual(
+      (await call("get_action_history", { offset: 25 })).data,
+      [],
+    );
     const serialized = await readFile(join(stateDir, "developer.json"), "utf8");
     assert.ok(!serialized.includes(root));
     assert.ok(!serialized.includes(token));
@@ -228,6 +232,11 @@ try {
   const erased = JSON.parse(raw);
   assert.equal(erased.history.length, 0);
   assert.deepEqual(erased.labels, {});
+  assert.equal(
+    JSON.parse(await readFile(join(stateDir, "config.json"), "utf8"))
+      .localControlAllowed,
+    false,
+  );
   assert.equal((await request(options, "get_status", {})).status.paired, false);
   console.log(
     "Passed authenticated developer IPC, wire schemas, independent local/workspace gates, native discovery/project corrections/graceful and force outcomes, deduplication, unrelated-process preservation and revocation erasure.",

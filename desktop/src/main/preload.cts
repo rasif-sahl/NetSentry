@@ -11,8 +11,8 @@ const bridge: AgentBridge = {
       observationId,
       label,
     }),
-  getServiceHistory: () =>
-    ipcRenderer.invoke("netsentry:agent", "get_action_history", {}),
+  getServiceHistory: (offset = 0) =>
+    ipcRenderer.invoke("netsentry:agent", "get_action_history", { offset }),
   setLocalControl: (allowed) =>
     ipcRenderer.invoke("netsentry:agent", "set_local_control", { allowed }),
   getRuntimeInfo: () => ({

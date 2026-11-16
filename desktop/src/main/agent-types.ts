@@ -36,7 +36,7 @@ export type AgentBridge = {
     observationId: string,
     label: string,
   ): Promise<ServiceResult<{ saved: true }>>;
-  getServiceHistory(): Promise<ServiceResult<Action[]>>;
+  getServiceHistory(offset?: number): Promise<ServiceResult<Action[]>>;
   setLocalControl(
     allowed: boolean,
   ): Promise<ServiceResult<{ allowed: boolean }>>;
