@@ -37,6 +37,18 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          cache: false
+      - name: Build the development agent for live API checks
+        env:
+          GOTOOLCHAIN: local
+        run: |
+          mkdir -p artifacts
+          cd agent
+          go build -o ../artifacts/netsentry-agent ./cmd/netsentry-agent
+          echo "TEST_AGENT_BINARY=$GITHUB_WORKSPACE/artifacts/netsentry-agent" >> "$GITHUB_ENV"
       - name: Prepare contracts and backend dependencies without install scripts
         run: |
           npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
@@ -61,13 +73,29 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          cache: false
+      - name: Build the development agent for desktop IPC checks
+        env:
+          GOTOOLCHAIN: local
+        run: |
+          mkdir -p artifacts
+          cd agent
+          go build -o ../artifacts/netsentry-agent ./cmd/netsentry-agent
+          echo "TEST_AGENT_BINARY=$GITHUB_WORKSPACE/artifacts/netsentry-agent" >> "$GITHUB_ENV"
       - name: Build desktop source without downloading Electron runtime
         run: |
           npm --prefix desktop ci --ignore-scripts --no-audit --no-fund
           npm run build:desktop
+          npm run test:desktop-agent
 
   agent:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -88,9 +116,11 @@ jobs:
           gofmt -d .
           test -z "$(gofmt -l .)"
           go vet ./...
-          go test ./...
+          go test -race ./...
           go build -o ../artifacts/netsentry-agent ./cmd/netsentry-agent
           ../artifacts/netsentry-agent > ../artifacts/agent-report.json
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o ../artifacts/agent-windows.exe ./cmd/netsentry-agent
+          GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -o ../artifacts/agent-macos-no-keychain ./cmd/netsentry-agent
           cd ..
           node contracts/scripts/check-agent-report.mjs artifacts/agent-report.json
 

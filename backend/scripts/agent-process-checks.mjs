@@ -35,10 +35,15 @@ export async function checkAgentProcess({ request, source, alice, workspace, api
     const codeFile = join(root, 'code'); await writeFile(codeFile, code.token, { mode: 0o600 });
     assert.equal((await cli(['pair', '--code-file', codeFile])).paired, true);
     await rm(codeFile);
-    assert.equal((await cli(['run', '--once'])).connection, 'online');
+    await cli(['settings', '--network=true', '--developer=true', '--allow-background=true']);
+    const connected = await cli(['run', '--once']);
+    assert.equal(connected.connection, 'online');
+    assert.deepEqual(connected.requested, { network: true, developer: true });
+    assert.deepEqual(connected.effective, { network: true, developer: false });
+    assert.equal(connected.backgroundRequested, true); assert.equal(connected.backgroundAllowed, false);
     const agents = await request('GET', base, 200, null, null, alice.accessToken);
     const agent = agents.find(a => a.installationId === initialized.installationId);
-    assert.ok(agent.lastSeenAt); assert.equal(agent.capabilities.developer.enabled, false);
+    assert.ok(agent.lastSeenAt); assert.equal(agent.capabilities.network.enabled, true); assert.equal(agent.capabilities.developer.enabled, false);
     offline = true;
     const failed = await cli(['run', '--once'], false);
     assert.equal(failed.connection, 'offline'); assert.equal(failed.bufferedEvents, 1);
@@ -49,6 +54,7 @@ export async function checkAgentProcess({ request, source, alice, workspace, api
     assert.ok(stored.some(e => e.eventId === queued.events[0].eventId));
     await request('PATCH', `${base}/${agent.id}`, 200, 'Agent', { modules: { network: false, developer: false }, backgroundAllowed: false, accepted: true, disclosureVersion: disclosure.version }, alice.accessToken);
     assert.equal((await cli(['run', '--once'])).connection, 'online');
+    assert.deepEqual((await cli(['run', '--once'])).effective, { network: false, developer: false });
     await request('DELETE', `${base}/${agent.id}`, 200, 'Agent', null, alice.accessToken);
     const revoked = await cli(['run', '--once'], false);
     assert.equal(revoked.connection, 'revoked'); assert.equal(revoked.paired, false); assert.equal(revoked.bufferedEvents, 0);
