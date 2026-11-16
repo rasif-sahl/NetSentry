@@ -1,0 +1,86 @@
+{
+  "capabilities": {
+    "reportedAt": "2026-11-16T12:00:00.000Z",
+    "schemaVersion": 1,
+    "capabilities": [
+      {
+        "availableActions": ["measure"],
+        "reason": "Synthetic test adapter",
+        "checkedAt": "2026-11-16T12:00:00.000Z",
+        "id": "network.mobile_data",
+        "source": "os",
+        "requiredSetup": [],
+        "status": "supported"
+      },
+      {
+        "availableActions": ["measure"],
+        "reason": "Synthetic test adapter",
+        "checkedAt": "2026-11-16T12:00:00.000Z",
+        "id": "network.wifi_data",
+        "source": "os",
+        "requiredSetup": [],
+        "status": "supported"
+      },
+      {
+        "availableActions": [],
+        "reason": "No verified public per-client source on this API 35 application baseline.",
+        "checkedAt": "2026-11-16T12:00:00.000Z",
+        "id": "network.hotspot_clients",
+        "source": "os",
+        "requiredSetup": [],
+        "status": "restricted_by_os"
+      }
+    ],
+    "deviceId": "00000000-0000-4000-8000-000000000003",
+    "workspaceId": "00000000-0000-4000-8000-000000000001"
+  },
+  "batch": {
+    "generation": 2,
+    "schemaVersion": 1,
+    "batchId": "29ec63ff-4904-4bd3-a8e4-60c62379c009",
+    "gaps": [],
+    "events": [
+      {
+        "eventId": "f98ae6c2-8d32-4e55-aef4-a24d3bb0a849",
+        "unit": "bytes",
+        "collectedAt": "2026-11-16T12:00:00.000Z",
+        "schemaVersion": 1,
+        "metric": "mobile_data_bytes",
+        "intervalEnd": "2026-11-16T12:00:00.000Z",
+        "source": {
+          "kind": "android",
+          "collectorVersion": "0.8.0"
+        },
+        "intervalStart": "2026-11-16T11:59:00.000Z",
+        "deviceId": "00000000-0000-4000-8000-000000000003",
+        "value": 123,
+        "workspaceId": "00000000-0000-4000-8000-000000000001",
+        "quality": "estimated"
+      },
+      {
+        "eventId": "e29fcd28-d4db-4e95-9464-943fc3da5c71",
+        "unit": "bytes",
+        "collectedAt": "2026-11-16T12:00:00.000Z",
+        "schemaVersion": 1,
+        "metric": "wifi_data_bytes",
+        "intervalEnd": "2026-11-16T12:00:00.000Z",
+        "source": {
+          "kind": "android",
+          "collectorVersion": "0.8.0"
+        },
+        "intervalStart": "2026-11-16T11:59:00.000Z",
+        "deviceId": "00000000-0000-4000-8000-000000000003",
+        "value": 456,
+        "workspaceId": "00000000-0000-4000-8000-000000000001",
+        "quality": "estimated"
+      }
+    ]
+  },
+  "command": {
+    "mode": "graceful",
+    "observationId": "00000000-0000-4000-8000-000000000005",
+    "includeChildren": false,
+    "requestId": "cb7ab97c-7807-49b1-8f6e-497b59141c8a",
+    "serviceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+}

@@ -17,12 +17,14 @@
     "test:agent": "cd agent && GOTOOLCHAIN=local go test ./...",
     "check:contracts": "npm --prefix contracts run check",
     "test:contracts": "npm --prefix contracts test",
-    "check": "npm run check:scaffolds && npm run check:contracts && npm run test:contracts && npm run build:backend && npm run test:backend && npm run build:desktop && npm run lint:dashboard && npm run build:dashboard",
+    "check": "npm run check:scaffolds && npm run check:contracts && npm run test:contracts && npm run check:android && npm run build:backend && npm run test:backend && npm run build:desktop && npm run lint:dashboard && npm run build:dashboard",
     "test:database": "npm --prefix backend run test:database",
     "test:api": "npm --prefix backend run test:api",
     "build:dashboard": "npm --prefix dashboard run build",
     "lint:dashboard": "npm --prefix dashboard run lint",
     "test:dashboard": "npm --prefix dashboard run test:e2e",
-    "test:desktop-agent": "npm --prefix desktop run test:agent"
+    "test:desktop-agent": "npm --prefix desktop run test:agent",
+    "check:android": "node android/scripts/check-contracts.mjs",
+    "test:android-core": "bash android/scripts/check-jvm.sh"
   }
 }
