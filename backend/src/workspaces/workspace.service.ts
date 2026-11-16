@@ -76,9 +76,18 @@ export class WorkspaceService {
       workspaceId,
       WorkspacePermission.READ_DEVICES,
     );
+    const workspace = await this.workspaces.findOneBy({ id: workspaceId });
+    const member = await this.memberships.findOneBy({ workspaceId, userId });
     return (
       await this.devices.find({
-        where: { workspaceId, removedAt: IsNull() },
+        where: {
+          workspaceId,
+          removedAt: IsNull(),
+          ...(workspace?.type === WorkspaceType.BUSINESS &&
+          [WorkspaceRole.EMPLOYEE, WorkspaceRole.MEMBER].includes(member!.role)
+            ? { registeredById: userId }
+            : {}),
+        },
         order: { updatedAt: 'DESC' },
       })
     ).map(publicDevice);

@@ -13,7 +13,7 @@ import { Workspace } from '../workspaces/workspace.entity';
 import { User } from '../users/user.entity';
 import { RegisteredDevice } from '../workspaces/registered-device.entity';
 import { UsageNetwork } from '../monitoring/entities';
-import { NetworkEvent } from '../networks/network.entities';
+import { NetworkEvent, NetworkEndpoint } from '../networks/network.entities';
 
 @Entity('business_locations')
 @Unique(['workspaceId', 'name'])
@@ -135,6 +135,22 @@ export class BusinessAlertAssignment {
   @Column('integer', { default: 1 }) revision!: number;
   @Column('timestamptz', { nullable: true }) resolvedAt!: Date | null;
 }
+@Entity('business_endpoint_departments')
+export class BusinessEndpointDepartment {
+  @PrimaryColumn('uuid') endpointId!: string;
+  @ManyToOne(() => NetworkEndpoint, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'endpointId' })
+  endpoint!: NetworkEndpoint;
+  @Column('uuid') workspaceId!: string;
+  @ManyToOne(() => Workspace, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'workspaceId' })
+  workspace!: Workspace;
+  @Column('uuid', { nullable: true }) departmentId!: string | null;
+  @ManyToOne(() => BusinessDepartment, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'departmentId' })
+  department!: BusinessDepartment | null;
+  @Column('integer', { default: 1 }) revision!: number;
+}
 @Entity('business_audit')
 @Index(['workspaceId', 'occurredAt'])
 export class BusinessAudit {
@@ -152,6 +168,7 @@ export class BusinessAudit {
   @CreateDateColumn({ type: 'timestamptz' }) occurredAt!: Date;
 }
 export const businessEntities = [
+  BusinessEndpointDepartment,
   BusinessLocation,
   BusinessDepartment,
   BusinessEmployee,

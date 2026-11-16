@@ -1,3 +1,4 @@
+import { eraseBusinessUser } from '../business/business.lifecycle';
 import { eraseFamilyUser, exportFamilyUser } from '../family/family.lifecycle';
 import { eraseNetworkAgent } from '../networks/network-lifecycle';
 import {
@@ -100,6 +101,20 @@ export class PrivacyService {
           })
         : [];
       return {
+        business: {
+          employees: await manager.query(
+            'SELECT id,"workspaceId","departmentId",revision,"offboardedAt" FROM business_employees WHERE "userId"=$1',
+            [userId],
+          ),
+          sharing: await manager.query(
+            'SELECT a."deviceId",a."workspaceId",a.generation,a.revision,a."consentedAt",a."reportFrom" FROM business_assignments a JOIN business_employees e ON e.id=a."employeeId" WHERE e."userId"=$1',
+            [userId],
+          ),
+          events: await manager.query(
+            'SELECT id,"workspaceId",action,"occurredAt" FROM business_audit WHERE "actorId"=$1 ORDER BY "occurredAt" DESC LIMIT 1000',
+            [userId],
+          ),
+        },
         family: await exportFamilyUser(
           manager,
           userId,
@@ -221,6 +236,10 @@ export class PrivacyService {
       'SELECT DISTINCT p."workspaceId" FROM family_profiles p LEFT JOIN family_policies pol ON pol."profileId"=p.id LEFT JOIN family_requests r ON r."profileId"=p.id WHERE p."userId"=$1 OR p.guardians ? $2 OR pol."authorId"=$1 OR r."requesterId"=$1 OR r."decidedBy"=$1',
       [userId, userId],
     );
+    const businessRefs: { workspaceId: string }[] = await manager.query(
+      'SELECT "workspaceId" FROM business_employees WHERE "userId"=$1 UNION SELECT "workspaceId" FROM business_audit WHERE "actorId"=$1',
+      [userId],
+    );
     const networkRefs: { workspaceId: string }[] = await manager.query(
       'SELECT DISTINCT n."workspaceId" FROM network_endpoints e JOIN usage_networks n ON n.id=e."networkId" WHERE e."assignedUserId"=$1',
       [userId],
@@ -231,6 +250,7 @@ export class PrivacyService {
     );
     return [
       ...new Set([
+        ...businessRefs.map((row) => row.workspaceId),
         ...familyRefs.map((row) => row.workspaceId),
         ...networkRefs.map((row) => row.workspaceId),
         ...developerRefs.map((row: { workspaceId: string }) => row.workspaceId),
@@ -297,6 +317,7 @@ export class PrivacyService {
       );
       for (const agent of await manager.findBy(Agent, { userId }))
         await eraseNetworkAgent(manager, agent.id);
+      await eraseBusinessUser(manager, userId);
       await eraseFamilyUser(manager, userId);
       await manager.delete(User, userId);
     });
