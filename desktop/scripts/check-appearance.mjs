@@ -298,6 +298,81 @@ try {
     await controls.evaluate(() => window.__fixtureBackgroundActions),
     ["status", "register", "remove"],
   );
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Repair stale socket", exact: true })
+      .isDisabled(),
+    true,
+  );
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Export redacted diagnostics", exact: true })
+      .isDisabled(),
+    true,
+  );
+  await controls.evaluate(() => {
+    window.__fixtureDiagnostics = [];
+    window.netsentry.desktopDiagnostics = async (action) => {
+      window.__fixtureDiagnostics.push(action);
+      return {
+        schemaVersion: 1,
+        checkedAt: new Date().toISOString(),
+        environment: {
+          platform: "darwin",
+          architecture: "arm64",
+          appVersion: "fixture",
+        },
+        checks: [
+          {
+            code: "SOCKET_STALE",
+            message: "Fixture: private socket without a listener.",
+            nextStep: "Explicit recovery only.",
+          },
+        ],
+        canRepair: action === "check",
+        ...(action === "repair"
+          ? { outcome: "REPAIR_CANCELLED" }
+          : action === "export"
+            ? { outcome: "EXPORT_CANCELLED" }
+            : {}),
+      };
+    };
+  });
+  assert.deepEqual(
+    await controls.evaluate(() => window.__fixtureDiagnostics),
+    [],
+  );
+  await controls
+    .getByRole("button", { name: "Check desktop diagnostics", exact: true })
+    .click();
+  await controls
+    .getByText("Fixture: private socket without a listener.", { exact: true })
+    .waitFor();
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Repair stale socket", exact: true })
+      .isDisabled(),
+    false,
+  );
+  await controls
+    .getByRole("button", { name: "Repair stale socket", exact: true })
+    .click();
+  await controls
+    .getByText("Socket recovery was cancelled. No socket was changed.", {
+      exact: true,
+    })
+    .waitFor();
+  await controls
+    .getByRole("button", { name: "Export redacted diagnostics", exact: true })
+    .click();
+  await controls
+    .getByText("Diagnostic export was cancelled.", { exact: true })
+    .waitFor();
+  assert.deepEqual(await controls.evaluate(() => window.__fixtureDiagnostics), [
+    "check",
+    "repair",
+    "export",
+  ]);
   const layout = () =>
     controls.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
   assert.equal(await layout(), true);

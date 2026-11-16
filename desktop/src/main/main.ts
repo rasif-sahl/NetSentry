@@ -1,4 +1,9 @@
 import { app, BrowserWindow, session, ipcMain, dialog } from "electron";
+import { DesktopDiagnostics, redactedReport } from "./diagnostics.js";
+import {
+  agentDiagnostics,
+  saveDiagnosticReport,
+} from "./diagnostics-native.js";
 import { BackgroundService } from "./background-service.js";
 import { nativeBackgroundPorts } from "./background-native.js";
 import { mkdirSync } from "node:fs";
@@ -34,6 +39,7 @@ const agentState = () => join(app.getPath("appData"), "NetSentry", "agent");
 const bundle = () => join(process.resourcesPath, "../..");
 let updates: UpdateController | undefined;
 let background: BackgroundService | undefined;
+let diagnostics: DesktopDiagnostics | undefined;
 let lifecycleBusy = false;
 async function lifecycle<T>(operation: () => Promise<T>): Promise<T> {
   if (lifecycleBusy || updates?.status().state === "installing")
@@ -155,6 +161,47 @@ ipcMain.handle("netsentry:background", async (event, action: unknown) => {
     : lifecycle(() => background!.act(action, () => confirmBackground(action)));
 });
 
+ipcMain.handle("netsentry:diagnostics", async (event, action: unknown) => {
+  if (
+    event.senderFrame !== event.sender.mainFrame ||
+    event.senderFrame.url !== rendererURL ||
+    typeof action !== "string" ||
+    !["check", "repair", "export"].includes(action)
+  )
+    throw new Error("Invalid diagnostic request.");
+  if (!diagnostics) throw new Error("Diagnostics unavailable.");
+  return lifecycle(async () => {
+    if (action === "repair")
+      return diagnostics!.repair(async () => {
+        const result = await dialog.showMessageBox({
+          type: "warning",
+          buttons: ["Cancel", "Repair stale socket"],
+          defaultId: 0,
+          cancelId: 0,
+          message: "Remove the verified stale NetSentry socket?",
+          detail:
+            "Recovery rechecks service state and takes the agent runtime lock. It removes only the unchanged private socket if no process is listening. It does not start or stop processes or change pairing, preferences or stored data.",
+        });
+        return result.response === 1;
+      });
+    const report = await diagnostics!.scan();
+    if (action === "check") return report;
+    const save = await dialog.showSaveDialog({
+      title: "Save redacted desktop diagnostics",
+      defaultPath: `NetSentry-diagnostics-${Date.now()}.json`,
+      filters: [{ name: "JSON report", extensions: ["json"] }],
+    });
+    if (save.canceled || !save.filePath)
+      return { ...report, outcome: "EXPORT_CANCELLED" as const };
+    try {
+      await saveDiagnosticReport(save.filePath, redactedReport(report));
+      return { ...report, outcome: "EXPORT_SAVED" as const };
+    } catch {
+      return { ...report, outcome: "EXPORT_FAILED" as const };
+    }
+  });
+});
+
 ipcMain.handle("netsentry:update", async (event, action: unknown) => {
   if (
     event.senderFrame !== event.sender.mainFrame ||
@@ -243,6 +290,33 @@ async function prepareUpdates() {
       () => policy.teamId,
       app.isPackaged,
     ),
+  );
+  const diagnosticPorts = nativeBackgroundPorts(
+    app.getPath("home"),
+    bundle(),
+    process.resourcesPath,
+    agentState(),
+    () => policy.teamId,
+    app.isPackaged,
+  );
+  diagnostics = new DesktopDiagnostics(
+    {
+      trusted: diagnosticPorts.trusted,
+      service: () => background!.status(),
+      agent: async (repair) => {
+        await diagnosticPorts.trusted();
+        return agentDiagnostics(
+          join(process.resourcesPath, "agent", "netsentry-agent"),
+          agentState(),
+          repair,
+        );
+      },
+    },
+    {
+      platform: process.platform,
+      architecture: process.arch,
+      appVersion: app.getVersion(),
+    },
   );
   await updates.restore();
 }

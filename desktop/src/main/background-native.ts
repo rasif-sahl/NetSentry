@@ -1,3 +1,8 @@
+import {
+  DiagnosticFailure,
+  agentCodes,
+  isDiagnosticCode,
+} from "./diagnostic-codes.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { lstat, realpath } from "node:fs/promises";
@@ -50,21 +55,29 @@ export function launchdPorts(label: string = backgroundLabel) {
   return {
     inspect,
     async load(path: string) {
-      await command(["bootstrap", domain, path]);
+      try {
+        await command(["bootstrap", domain, path]);
+      } catch {
+        throw new DiagnosticFailure("START_FAILED");
+      }
     },
     async start() {
-      await command(["kickstart", target]);
+      try {
+        await command(["kickstart", target]);
+      } catch {
+        throw new DiagnosticFailure("START_FAILED");
+      }
     },
     async unload() {
       try {
         await command(["bootout", target]);
       } catch {
         if (!(await inspect()).loaded) return;
-        throw new Error("Service bootout failed.");
+        throw new DiagnosticFailure("STOP_FAILED");
       }
       const end = Date.now() + 15000;
       while ((await inspect()).loaded) {
-        if (Date.now() >= end) throw new Error("Service stop not confirmed.");
+        if (Date.now() >= end) throw new DiagnosticFailure("STOP_FAILED");
         await sleep(100);
       }
     },
@@ -85,23 +98,39 @@ export function nativeBackgroundPorts(
       (process.getuid?.() ?? 0) <= 0 ||
       !packaged
     )
-      throw new Error("Signed per-user macOS application required.");
-    const location = await realpath(bundle);
+      throw new DiagnosticFailure("PLATFORM_UNSUPPORTED");
+    const location = await realpath(bundle).catch(() => {
+      throw new DiagnosticFailure("APP_PLACEMENT");
+    });
     if (
       ![
         join("/Applications", "NetSentry.app"),
         join(home, "Applications", "NetSentry.app"),
       ].includes(location)
     )
-      throw new Error("Install in Applications first.");
-    await verifyDesktopTrust(location, resources, teamId());
+      throw new DiagnosticFailure("APP_PLACEMENT");
+    try {
+      await verifyDesktopTrust(location, resources, teamId());
+    } catch {
+      throw new DiagnosticFailure("SIGNING_REQUIRED");
+    }
   };
   const helper = async (mode: string, expected: string) => {
     await trusted();
-    const { stdout } = await run(binary, [mode, "--state-dir", stateDir], {
-      timeout: 15000,
-      maxBuffer: 4096,
-    });
+    let stdout: string;
+    try {
+      ({ stdout } = await run(binary, [mode, "--state-dir", stateDir], {
+        timeout: 15000,
+        maxBuffer: 4096,
+      }));
+    } catch (error) {
+      const code = (error as { stderr?: string }).stderr
+        ?.trim()
+        .match(/^NetSentry agent: ([A-Z_]+)$/)?.[1];
+      if (isDiagnosticCode(code) && agentCodes.has(code))
+        throw new DiagnosticFailure(code);
+      throw new DiagnosticFailure("OPERATION_FAILED");
+    }
     if (stdout !== expected) throw new Error("Unexpected lifecycle response.");
   };
   return {

@@ -1,3 +1,4 @@
+import { Diagnostics } from "./Diagnostics";
 import { BackgroundService } from "./BackgroundService";
 import { Updates } from "./Updates";
 import { Appearance } from "./Appearance";
@@ -44,6 +45,7 @@ export function App() {
       <h1>Connect this computer</h1>
       <Appearance />
       <Updates />
+      <Diagnostics />
       <BackgroundService
         refreshKey={`${status?.backgroundRequested}-${status?.connection}`}
       />

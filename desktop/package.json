@@ -18,7 +18,8 @@
     "package:release": "npm run build && node scripts/package-desktop.mjs release",
     "test:updates": "node --test test/*.test.mjs",
     "test:background": "node --test test/background.test.mjs",
-    "test:launchd": "node scripts/check-launchd.mjs"
+    "test:launchd": "node scripts/check-launchd.mjs",
+    "test:diagnostics": "node --test test/diagnostics.test.mjs"
   },
   "dependencies": {
     "builder-util-runtime": "9.7.0",

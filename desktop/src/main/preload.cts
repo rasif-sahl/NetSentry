@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { AgentBridge } from "./agent-types.js";
 const bridge: AgentBridge = {
+  desktopDiagnostics: (action) => ipcRenderer.invoke("netsentry:diagnostics", action),
   backgroundService: (action) => ipcRenderer.invoke("netsentry:background", action),
   desktopUpdate: (action) => ipcRenderer.invoke("netsentry:update", action),
   getNetworkPreferences: () => ipcRenderer.invoke("netsentry:agent", "get_network_preferences", {}),

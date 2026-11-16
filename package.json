@@ -37,6 +37,7 @@
     "test:desktop-appearance": "node desktop/scripts/check-appearance.mjs",
     "test:desktop-updates": "npm --prefix desktop run test:updates",
     "test:desktop-background": "npm --prefix desktop run test:background",
-    "test:desktop-launchd": "npm --prefix desktop run test:launchd"
+    "test:desktop-launchd": "npm --prefix desktop run test:launchd",
+    "test:desktop-diagnostics": "npm --prefix desktop run test:diagnostics"
   }
 }

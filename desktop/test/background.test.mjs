@@ -347,38 +347,133 @@ test(
     }),
 );
 
-test("explicit Go background opt-in saves consent only after a fresh workspace grant", { skip: !process.env.TEST_AGENT_BINARY }, async () => fixture(async ({ state }) => {
-  const { createServer } = await import("node:http");
-  const { randomUUID } = await import("node:crypto");
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const run = promisify(execFile), binary = process.env.TEST_AGENT_BINARY;
-  const agentId = randomUUID(), workspaceId = randomUUID(), token = "t".repeat(43);
-  let allowed = false, calls = 0;
-  const server = createServer((req, res) => {
-    calls++;
-    assert.equal(req.method, "GET");
-    assert.equal(req.url, `/agents/${agentId}/configuration`);
-    assert.equal(req.headers.authorization, `Bearer ${token}`);
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({schemaVersion:1, agentId, workspaceId, generation:1, modules:{network:true,developer:true}, backgroundAllowed:allowed, remoteControlAllowed:false, heartbeatSeconds:30, maxBufferedEvents:1000,maxBufferBytes:1048576,maxEventAgeSeconds:86400,maxBatchEvents:50,maxAttempts:8,maxBackoffSeconds:300}));
-  });
-  await new Promise((yes, no) => { server.once("error", no); server.listen(0,"127.0.0.1",yes); });
-  try {
-    const apiUrl = `http://127.0.0.1:${server.address().port}`;
-    await run(binary,["init","--state-dir",state,"--api",apiUrl,"--development-store"]);
-    const configPath = join(state,"config.json"), original = JSON.parse(await readFile(configPath,"utf8"));
-    const bindingPath = join(state,"development-backend.json");
-    await writeFile(bindingPath,JSON.stringify({value:JSON.stringify({agentId,workspaceId,generation:1,token,apiUrl})}),{mode:0o600});
-    const binding = await readFile(bindingPath);
-    await assert.rejects(run(binary,["background-check","--state-dir",state]));
-    assert.equal(calls,0);
-    await assert.rejects(run(binary,["background-enable","--state-dir",state]));
-    assert.deepEqual(JSON.parse(await readFile(configPath,"utf8")),original);
-    allowed=true;
-    assert.equal((await run(binary,["background-enable","--state-dir",state])).stdout,'{"allowed":true}\n');
-    assert.deepEqual(JSON.parse(await readFile(configPath,"utf8")),{...original,backgroundAllowed:true});
-    assert.deepEqual(await readFile(bindingPath),binding);
-    assert.equal(calls,2);
-  } finally { await new Promise(yes => server.close(yes)); }
-}));
+test(
+  "explicit Go background opt-in saves consent only after a fresh workspace grant",
+  { skip: !process.env.TEST_AGENT_BINARY },
+  async () =>
+    fixture(async ({ state }) => {
+      const { createServer } = await import("node:http");
+      const { randomUUID } = await import("node:crypto");
+      const { execFile } = await import("node:child_process");
+      const { promisify } = await import("node:util");
+      const run = promisify(execFile),
+        binary = process.env.TEST_AGENT_BINARY;
+      const agentId = randomUUID(),
+        workspaceId = randomUUID(),
+        token = "t".repeat(43);
+      let allowed = false,
+        calls = 0;
+      const server = createServer((req, res) => {
+        calls++;
+        assert.equal(req.method, "GET");
+        assert.equal(req.url, `/agents/${agentId}/configuration`);
+        assert.equal(req.headers.authorization, `Bearer ${token}`);
+        res.setHeader("Content-Type", "application/json");
+        res.end(
+          JSON.stringify({
+            schemaVersion: 1,
+            agentId,
+            workspaceId,
+            generation: 1,
+            modules: { network: true, developer: true },
+            backgroundAllowed: allowed,
+            remoteControlAllowed: false,
+            heartbeatSeconds: 30,
+            maxBufferedEvents: 1000,
+            maxBufferBytes: 1048576,
+            maxEventAgeSeconds: 86400,
+            maxBatchEvents: 50,
+            maxAttempts: 8,
+            maxBackoffSeconds: 300,
+          }),
+        );
+      });
+      await new Promise((yes, no) => {
+        server.once("error", no);
+        server.listen(0, "127.0.0.1", yes);
+      });
+      try {
+        const apiUrl = `http://127.0.0.1:${server.address().port}`;
+        await run(binary, [
+          "init",
+          "--state-dir",
+          state,
+          "--api",
+          apiUrl,
+          "--development-store",
+        ]);
+        const configPath = join(state, "config.json"),
+          original = JSON.parse(await readFile(configPath, "utf8"));
+        const bindingPath = join(state, "development-backend.json");
+        await writeFile(
+          bindingPath,
+          JSON.stringify({
+            value: JSON.stringify({
+              agentId,
+              workspaceId,
+              generation: 1,
+              token,
+              apiUrl,
+            }),
+          }),
+          { mode: 0o600 },
+        );
+        const binding = await readFile(bindingPath);
+        await assert.rejects(
+          run(binary, ["background-check", "--state-dir", state]),
+        );
+        assert.equal(calls, 0);
+        await assert.rejects(
+          run(binary, ["background-enable", "--state-dir", state]),
+        );
+        assert.deepEqual(
+          JSON.parse(await readFile(configPath, "utf8")),
+          original,
+        );
+        allowed = true;
+        assert.equal(
+          (await run(binary, ["background-enable", "--state-dir", state]))
+            .stdout,
+          '{"allowed":true}\n',
+        );
+        assert.deepEqual(JSON.parse(await readFile(configPath, "utf8")), {
+          ...original,
+          backgroundAllowed: true,
+        });
+        assert.deepEqual(await readFile(bindingPath), binding);
+        assert.equal(calls, 2);
+      } finally {
+        await new Promise((yes) => server.close(yes));
+      }
+    }),
+);
+
+test("service failures return a fixed actionable reason without leaking raw errors", async () =>
+  fixture(async ({ manager, ports }) => {
+    const { DiagnosticFailure } =
+      await import("../dist/main/diagnostic-codes.js");
+    ports.eligible = async () => {
+      throw new DiagnosticFailure("WORKSPACE_BACKGROUND_DENIED");
+    };
+    const denied = await manager.act("register", async () => true);
+    assert.equal(denied.code, "WORKSPACE_BACKGROUND_DENIED");
+    assert.match(denied.message, /workspace has not authorized/);
+    ports.eligible = async () => {
+      throw new Error("token-secret /Users/private");
+    };
+    const failed = await manager.act("register", async () => true);
+    assert.equal(failed.code, "OPERATION_FAILED");
+    assert.doesNotMatch(failed.message, /token-secret|\/Users/);
+  }));
+
+test("receipt-only interrupted registration provides explicit removal guidance", async () =>
+  fixture(async ({ manager, flags }) => {
+    await manager.act("register", async () => true);
+    flags.job = { loaded: false, running: false };
+    await rm(manager.plistPath);
+    const partial = await manager.status();
+    assert.equal(partial.recoveryRequired, true);
+    assert.match(partial.message, /Partial service registration/);
+    await manager.act("remove", async () => true);
+    assert.equal((await manager.status()).recoveryRequired, false);
+  }));

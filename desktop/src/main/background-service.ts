@@ -1,3 +1,8 @@
+import {
+  diagnosticMessage,
+  failureCode,
+  DiagnosticFailure,
+} from "./diagnostic-codes.js";
 import { createHash } from "node:crypto";
 import { lstat, mkdir, open, link, rm } from "node:fs/promises";
 import { join, isAbsolute } from "node:path";
@@ -21,7 +26,9 @@ export interface BackgroundPorts {
   unload(): Promise<void>;
 }
 export type BackgroundView = {
+  code?: string;
   checkedAt?: string;
+  recoveryRequired?: boolean;
   verified: boolean;
   registered: boolean;
   loaded: boolean;
@@ -119,7 +126,7 @@ export class BackgroundService {
         (await privateRead(this.plistPath, 8192)).toString() !==
           agentPlist(receipt.binary, receipt.stateDir)
       )
-        throw new Error("Service file conflict.");
+        throw new DiagnosticFailure("SERVICE_CONFLICT");
     }
     if (
       job.loaded &&
@@ -127,12 +134,12 @@ export class BackgroundService {
         job.program !== receipt.binary ||
         job.path !== this.plistPath)
     )
-      throw new Error("Service job conflict.");
+      throw new DiagnosticFailure("SERVICE_CONFLICT");
     return { receipt, exists, job };
   }
   async status(): Promise<BackgroundView> {
     try {
-      const { exists, job } = await this.owned();
+      const { exists, job, receipt } = await this.owned();
       const checkedAt = new Date().toISOString();
       let canRegister = false;
       try {
@@ -141,6 +148,7 @@ export class BackgroundService {
       } catch {}
       return {
         checkedAt,
+        recoveryRequired: !!receipt && !exists,
         verified: true,
         registered: exists || job.loaded,
         loaded: job.loaded,
@@ -148,11 +156,13 @@ export class BackgroundService {
         canRegister,
         message: job.running
           ? "The managed service process is running. Monitoring still requires its own consent and workspace permissions."
-          : exists
-            ? "Registered for login; the process is stopped. Use Start after resolving authorization, connection or socket errors."
-            : canRegister
-              ? "No managed background service is registered."
-              : "Registration requires the signed macOS app installed in Applications. Removal of an owned job remains available.",
+          : receipt && !exists
+            ? "Partial service registration records remain. Remove the background service to clear owned records, then register again explicitly."
+            : exists
+              ? "Registered for login; the process is stopped. Use Start after resolving authorization, connection or socket errors."
+              : canRegister
+                ? "No managed background service is registered."
+                : "Registration requires the signed macOS app installed in Applications. Removal of an owned job remains available.",
       };
     } catch {
       return {
@@ -198,22 +208,20 @@ export class BackgroundService {
       }
       await this.ports.trusted();
       if (current.receipt && current.receipt.binary !== this.binary)
-        throw new Error("Remove the old app registration first.");
+        throw new DiagnosticFailure("APP_PLACEMENT");
       if (action === "start" && !current.exists)
         throw new Error("Register the service first.");
       if (current.job.running) return this.status();
       if (!(await confirm())) return this.status();
       current = await this.owned();
       if (current.receipt && current.receipt.binary !== this.binary)
-        throw new Error("Remove the old app registration first.");
+        throw new DiagnosticFailure("APP_PLACEMENT");
       if (current.job.running) return this.status();
       await this.ports.eligible();
       const lease = await this.ports.reserve();
       try {
         if (await present(join(this.stateDir, "agent.sock")))
-          throw new Error(
-            "Stop the foreground agent and review any stale socket first.",
-          );
+          throw new DiagnosticFailure("SOCKET_UNKNOWN");
         if (action === "register") {
           const library = join(this.home, "Library"),
             agents = join(library, "LaunchAgents");
@@ -258,11 +266,14 @@ export class BackgroundService {
           ? "Background service registered and its process is running. Login startup is enabled; no restart loop is installed."
           : "Registration is saved. Process startup is not confirmed; refresh status and review consent, connectivity or stale sockets before retrying.",
       };
-    } catch {
+    } catch (error) {
+      const code = failureCode(error);
       return {
         ...(await this.status()),
+        code,
         message:
-          "Background operation could not complete. Stop any foreground agent, verify local/workspace consent and signed app placement, then retry. Existing ownership records were retained for safe recovery.",
+          diagnosticMessage(code) +
+          " Existing ownership records were retained for safe recovery.",
       };
     } finally {
       this.busy = false;
