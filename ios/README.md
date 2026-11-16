@@ -40,3 +40,5 @@ Phase 13 adds a Business employee view with explicit, generation-bound organizat
 Phase 14 adds a read-only SwiftUI Subscription tab with entitlement status and limits. No native or external purchase flow is enabled. Host Foundation/HTTPS checks and syntax parsing do not establish an iOS/SwiftUI build or device acceptance.
 
 Phase 15 makes Debug bundle identifiers use `com.netsentry.app.native.dev` with matching extension prefixes; Release retains `com.netsentry.app`. `NETSENTRY_BUNDLE_PREFIX` can be set consistently on the separately prepared build host. No signing authority is added. Follow [the physical-device handoff](../docs/release/ios-device-testing.md); iOS compilation, privacy manifest review, provisioning and hardware acceptance remain pending.
+
+Phase 16 adds optional email-alert preference editing alongside existing account themes. Updates from older callers preserve email opt-in. Delivery remains hard-disabled with no active alert transport; SwiftUI/device validation remains pending.

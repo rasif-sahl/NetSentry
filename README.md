@@ -141,3 +141,5 @@ Phase 13 adds Business organizations, location/network/department structure, emp
 ## Phase 15 acceptance handoff
 
 [Physical-device workflow](docs/release/README.md) includes Android/iOS build handoffs, controlled cross-network shutdown tests, router/deployment/recovery checks and a [support evidence matrix](docs/release/supported-environments.md). `npm run check:release` and `npm run test:release` validate the evidence helper; they do not pass physical tests. Native builds/signing/device acceptance remain pending. No mobile tooling is installed and Flutter remains preserved.
+
+Phase 16 first increment adds Android/account and desktop/local themes plus opt-in alert email preferences with delivery hard-disabled. The web dashboard uses Tailwind CSS 4 alongside custom CSS; desktop uses CSS, Android Compose and iOS SwiftUI. See [Phase 16 evidence and boundaries](docs/validation/phase-16.md). Other optional extensions and Phase 15 hardware acceptance remain separate.

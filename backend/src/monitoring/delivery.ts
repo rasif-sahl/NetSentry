@@ -14,6 +14,14 @@ export interface NotificationAdapter {
 // Push registration, secure tokens and provider credentials belong to the native delivery phase.
 export const defaultAdapters: NotificationAdapter[] = [
   {
+    channel: 'email',
+    // Intentional hard stop: account mail/SMTP configuration cannot enable alerts.
+    deliver: async () => ({
+      status: 'unavailable',
+      code: 'EMAIL_DELIVERY_DISABLED',
+    }),
+  },
+  {
     channel: 'in_app',
     deliver: async () => ({ status: 'delivered', code: null }),
   },

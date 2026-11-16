@@ -41,3 +41,5 @@ Paired Developer Tools exposes independent summary-sharing and remote-shutdown c
 Phase 10 adds Network observation sharing with a named network UUID and separate `network-sharing-v1` acceptance. The web dashboard must grant the same installation/network; enabling a module alone is insufficient. Authenticated local IPC v5 exposes only get/set network preferences. Developer control remains independently gated. Renderer builds and Node-Go IPC fixtures are checked; packaged Electron/real-host collection remains pending.
 
 Phase 15 provides [packaged desktop and cross-network phone acceptance steps](../docs/release/desktop-and-remote-testing.md). Existing renderer/Go checks do not establish Electron/Keychain, installers, signatures or phone acceptance. Distribution/update gates stay pending until an actual candidate passes.
+
+Phase 16 adds local SYSTEM/LIGHT/DARK appearance, OS/cross-window updates and blocked-storage fallback. It uses ordinary CSS, not Tailwind. `npm run test:desktop-appearance` uses the existing dashboard Playwright/Chromium installation against the built renderer; it does not launch Electron or an agent.

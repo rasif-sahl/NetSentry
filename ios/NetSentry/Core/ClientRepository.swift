@@ -196,7 +196,11 @@ actor ClientRepository {
         if !deviceID.isEmpty { body["deviceId"] = .string(try Wire.uuid(deviceID)) }
         _ = try await account("POST", try workspacePath() + "/monitoring/rules", body: .object(body)); try await loadAlerts()
     }
-    func notificationPreference(inApp: Bool) async throws { _ = try await account("PATCH", "/notifications/preferences", body: .object(["inApp": .bool(inApp), "push": .bool(false)])); try await loadAlerts() }
+    func notificationPreference(inApp: Bool, email: Bool? = nil) async throws {
+        var body: [String: JSONValue] = ["inApp": .bool(inApp), "push": .bool(false)]
+        if let email { body["email"] = .bool(email) }
+        _ = try await account("PATCH", "/notifications/preferences", body: .object(body)); try await loadAlerts()
+    }
     func acknowledge(_ id: String) async throws { _ = try await account("POST", try workspacePath() + "/monitoring/alerts/\(Wire.uuid(id))/acknowledge"); try await loadAlerts() }
     func removeRule(_ id: String) async throws { _ = try await account("DELETE", try workspacePath() + "/monitoring/rules/\(Wire.uuid(id))"); try await loadAlerts() }
     func refreshSubscription() async throws {

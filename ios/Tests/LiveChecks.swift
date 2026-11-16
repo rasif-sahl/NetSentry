@@ -41,7 +41,12 @@ func ensure(_ condition: Bool, _ message: String) throws { if !condition { throw
         let paired = await repo.snapshot().device!
         try await repo.usage(deviceID: paired.id, period: "day", metric: "screen_time_seconds")
         try ensure(!(await repo.snapshot().report.isNull), "Report missing")
+        try await repo.notificationPreference(inApp: true, email: true)
+        try ensure(await repo.snapshot().preferences["email"].flag, "Email preference not saved")
+        try ensure(!(await repo.snapshot().preferences["emailDeliveryAvailable"].flag), "Email delivery must stay disabled")
         try await repo.notificationPreference(inApp: true)
+        try ensure(await repo.snapshot().preferences["email"].flag, "Old-client update lost email preference")
+        try await repo.notificationPreference(inApp: true, email: false)
         try await repo.familyOverview(profileID: fixture["familyProfileId"].text)
         try ensure(!(await repo.snapshot().child.isNull), "Family scope missing")
         try await repo.shareWithChild(accepted: true)

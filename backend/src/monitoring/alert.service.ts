@@ -192,7 +192,13 @@ export class AlertService {
       const existing =
         (await manager.findOneBy(NotificationPreference, { userId })) ??
         manager.create(NotificationPreference, { userId });
-      return input ? manager.save(Object.assign(existing, input)) : existing;
+      if (input) {
+        existing.inApp = input.inApp;
+        existing.push = input.push;
+        if (typeof input.email === 'boolean') existing.email = input.email;
+        await manager.save(existing);
+      }
+      return { ...existing, emailDeliveryAvailable: false };
     });
   }
   list(userId: string, workspaceId: string, notifications = false) {
@@ -491,7 +497,7 @@ export async function deliverWorkspace(
           userId: rule.userId,
         })) ?? manager.create(NotificationPreference, { userId: rule.userId });
       if (
-        delivery.channel === 'in_app' ? !preferences.inApp : !preferences.push
+        delivery.channel === 'in_app' ? !preferences.inApp : delivery.channel === 'email' ? !preferences.email : !preferences.push
       ) {
         delivery.status = 'suppressed';
         await manager.save(delivery);

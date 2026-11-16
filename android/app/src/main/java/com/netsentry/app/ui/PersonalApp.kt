@@ -5,6 +5,9 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,6 +57,11 @@ import org.json.JSONObject
 import java.time.Instant
 
 @Composable fun PersonalApp(model: PersonalViewModel = viewModel()) {
+    val theme = model.view.profile?.optJSONObject("preferences")?.optString("theme", "SYSTEM") ?: "SYSTEM"
+    val dark = theme == "DARK" || (theme != "LIGHT" && isSystemInDarkTheme())
+    MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme()) { PersonalContent(model) }
+}
+@Composable private fun PersonalContent(model: PersonalViewModel) {
     val state = model.view
     val context = LocalContext.current
     val exportFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
@@ -350,7 +358,14 @@ import java.time.Instant
         Input("Display name", name, { name = it })
         Action("Save profile", model) { updateProfile(name) }
         Text("Email: ${state.profile?.optString("email")}")
+        Text("Color theme: ${state.profile?.optJSONObject("preferences")?.optString("theme", "SYSTEM") ?: "SYSTEM"}")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (theme in listOf("SYSTEM", "LIGHT", "DARK")) OutlinedButton(onClick = { model.run("Appearance saved") { appearance(theme) } }, enabled = !model.busy) { Text(theme.lowercase().replaceFirstChar { it.uppercase() }) }
+        }
         Text("In-app delivery: ${state.preferences.optBoolean("inApp")} · Push providers unavailable.")
+        Text("Email alert delivery is disabled. Preferences do not send emails.")
+        Action(if (state.preferences.optBoolean("email")) "Turn off email alerts" else "Opt in to email alerts", model) { notificationPreferences(state.preferences.optBoolean("inApp"), !state.preferences.optBoolean("email")) }
+
         Action(if (state.preferences.optBoolean("inApp")) "Disable in-app notifications" else "Enable in-app notifications", model) { notificationPreferences(!state.preferences.optBoolean("inApp")) }
         Input("Email verification token", token, { token = it }, secret = true)
         Button(onClick = { val code = token; token = ""; model.run("Verification submitted") { publicAction(state.base, "/auth/verification/confirm", json("token" to code)); refresh() } }, enabled = !model.busy && token.isNotBlank()) { Text("Confirm verification token") }

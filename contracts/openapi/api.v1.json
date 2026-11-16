@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "NetSentry API",
-    "version": "1.10.0",
+    "version": "1.11.0",
     "description": "Versioned account, workspace, device consent/health, monitoring/report/alert, agent/remote-command and detailed Android event-history APIs. Technical capability does not grant consent or control. Platform source, API integration and actual device validation are tracked separately. POST endpoints retain 201 defaults; direct legacy device registration is disabled."
   },
   "servers": [
@@ -19519,13 +19519,14 @@
           "channels": {
             "type": "array",
             "minItems": 1,
-            "maxItems": 3,
+            "maxItems": 4,
             "uniqueItems": true,
             "items": {
               "enum": [
                 "in_app",
                 "android_push",
-                "ios_push"
+                "ios_push",
+                "email"
               ]
             }
           },
@@ -19655,13 +19656,14 @@
               "channels": {
                 "type": "array",
                 "minItems": 1,
-                "maxItems": 3,
+                "maxItems": 4,
                 "uniqueItems": true,
                 "items": {
                   "enum": [
                     "in_app",
                     "android_push",
-                    "ios_push"
+                    "ios_push",
+                    "email"
                   ]
                 }
               },
@@ -19839,7 +19841,8 @@
             "enum": [
               "in_app",
               "android_push",
-              "ios_push"
+              "ios_push",
+              "email"
             ]
           },
           "status": {
@@ -20002,6 +20005,9 @@
           },
           "push": {
             "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -20022,6 +20028,13 @@
           },
           "push": {
             "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
+          },
+          "emailDeliveryAvailable": {
+            "type": "boolean",
+            "const": false
           }
         },
         "required": [

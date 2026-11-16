@@ -1145,3 +1145,21 @@ test("sandbox billing is owner-only and operator flags require separate authorit
  await viewer.getByRole('button',{name:'Operations',exact:true}).click();
  await expect(viewer.getByText(/Workspace ownership does not grant/)).toBeVisible();await context.close();
 });
+
+// Opt-in records intent only. This increment contains no active email transport.
+test("email alert opt-in stays visibly disabled and saved themes follow account preference", async ({page}) => {
+  await login(page);
+  await page.getByRole("button", {name:"Settings & privacy", exact:true}).click();
+  await page.getByLabel("Color theme").selectOption("DARK");
+  await page.getByRole("button", {name:"Save display preferences", exact:true}).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+  await page.getByLabel("Opt in to email alerts (delivery disabled)").check();
+  await page.getByRole("button", {name:"Save notification preferences", exact:true}).click();
+  await page.reload();
+  await page.getByRole("button", {name:"Settings & privacy", exact:true}).click();
+  await expect(page.getByLabel("Opt in to email alerts (delivery disabled)")).toBeChecked();
+  await expect(page.getByText("Email alert delivery is disabled. Saving preferences sends no email.")).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+  await page.getByLabel("Opt in to email alerts (delivery disabled)").uncheck();
+  await page.getByRole("button", {name:"Save notification preferences", exact:true}).click();
+});

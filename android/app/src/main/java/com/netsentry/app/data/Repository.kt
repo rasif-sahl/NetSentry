@@ -223,9 +223,15 @@ class Repository(
         try { account("POST", "/auth/logout") } finally { clearLocal() }
     }
     @Synchronized fun updateProfile(name: String) { account("PATCH", "/auth/me", json("displayName" to name)); refresh() }
-    @Synchronized fun notificationPreferences(inApp: Boolean) {
+    @Synchronized fun appearance(theme: String) {
+        require(theme in listOf("SYSTEM", "LIGHT", "DARK"))
+        account("PATCH", "/auth/preferences", json("theme" to theme, "reducedMotion" to (profile?.optJSONObject("preferences")?.optBoolean("reducedMotion") ?: false))); refresh()
+    }
+    @Synchronized fun notificationPreferences(inApp: Boolean, email: Boolean? = null) {
         // Push delivery is unavailable until registration/provider phases.
-        account("PATCH", "/notifications/preferences", json("inApp" to inApp, "push" to false)); refresh()
+        val body = json("inApp" to inApp, "push" to false)
+        if (email != null) body.put("email", email)
+        account("PATCH", "/notifications/preferences", body); refresh()
     }
     @Synchronized fun requestVerification() { account("POST", "/auth/verification/request") }
     @Synchronized fun export(password: String): String = (account("POST", "/privacy/export", json("password" to password)) as JSONObject).toString(2)

@@ -77,3 +77,5 @@ Phase 13 adds a Business employee view and account-scoped sharing acceptance/wit
 Phase 14 adds a read-only Subscription tab for selected-workspace entitlement status and limits. It does not initiate native or external purchases or grant monitoring permissions. SDK-free repository/HTTPS checks are separate from pending Android/Compose builds and physical-device acceptance.
 
 Phase 15 adds [the physical-device build/test handoff](../docs/release/android-device-testing.md), candidate-bound evidence and a read-only existing-tool prerequisite inspector. No APK or Android native build is claimed; use an independently prepared build host while this repository retains its no-install constraint.
+
+Phase 16 applies the account SYSTEM/LIGHT/DARK preference to Material 3 and adds appearance choices plus opt-in alert email settings. Email delivery remains hard-disabled; saving preferences sends no email. Native Compose builds/device acceptance remain pending.

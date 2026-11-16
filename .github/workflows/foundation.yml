@@ -180,6 +180,11 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Exercise browser flows against isolated PostgreSQL
         run: npm --prefix dashboard run test:e2e
+      - name: Verify desktop appearance in the existing Chromium browser
+        run: |
+          npm --prefix desktop ci --ignore-scripts --no-audit --no-fund
+          npm run build:desktop
+          npm run test:desktop-appearance
       - name: Keep failure screenshots and traces from synthetic browser fixtures
         if: failure()
         uses: actions/upload-artifact@v7.0.2
