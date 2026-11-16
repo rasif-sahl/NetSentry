@@ -1,3 +1,4 @@
+import { Agent, AgentEnrolment } from '../agents/agent.entities';
 import { AlertRule } from '../monitoring/alert.entities';
 import {
   BadRequestException,
@@ -270,6 +271,42 @@ export class CollaborationService {
       }
       if (!role || !roleAllows(role, WorkspacePermission.HANDLE_ALERTS))
         await manager.delete(AlertRule, { workspaceId, userId: targetId });
+      const agents = await manager.findBy(Agent, {
+        workspaceId,
+        userId: targetId,
+      });
+      for (const agent of agents) {
+        const registration =
+          !!role && roleAllows(role, WorkspacePermission.REGISTER_DEVICE);
+        const modules = {
+          network:
+            registration &&
+            agent.modules.network &&
+            roleAllows(role!, WorkspacePermission.MANAGE_NETWORKS),
+          developer:
+            registration &&
+            agent.modules.developer &&
+            roleAllows(role!, WorkspacePermission.VIEW_SERVICES),
+        };
+        if (
+          !registration ||
+          JSON.stringify(modules) !== JSON.stringify(agent.modules)
+        ) {
+          agent.modules = modules;
+          agent.generation++;
+          if (!registration) {
+            agent.state = 'REVOKED';
+            agent.credentialHash = null;
+            agent.backgroundAllowed = false;
+          }
+          await manager.save(agent);
+        }
+      }
+      await manager.update(
+        AgentEnrolment,
+        { workspaceId, userId: targetId, consumedAt: IsNull() },
+        { consumedAt: new Date() },
+      );
       const targetUser = await manager.findOneBy(User, { id: targetId });
       if (targetUser)
         await manager.update(
