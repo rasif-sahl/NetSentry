@@ -120,3 +120,20 @@ test("offline batches cap their contents and bind a configuration generation",()
   batch.events=[];batch.generation=0;
   assert.throws(()=>validatePayload("measurement-batch.v1.schema.json",batch));
 });
+
+test("desktop setup IPC accepts only typed preferences and pairing codes", () => {
+  const request = readJSON("fixtures/local-ipc.v2.json");
+  request.method = "set_modules";
+  request.payload = { network: true, developer: false };
+  validatePayload("local-ipc.v2.schema.json", request);
+  request.payload.shell = "anything";
+  assert.throws(() => validatePayload("local-ipc.v2.schema.json", request));
+  request.method = "pair";
+  request.payload = { token: "x".repeat(43) };
+  validatePayload("local-ipc.v2.schema.json", request);
+  request.payload.token = "short";
+  assert.throws(() => validatePayload("local-ipc.v2.schema.json", request));
+  request.method = "request_stop";
+  request.payload = {};
+  assert.throws(() => validatePayload("local-ipc.v2.schema.json", request));
+});

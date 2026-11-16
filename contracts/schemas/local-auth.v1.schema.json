@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/local-auth.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "secret",
+    "challenge",
+    "clientNonce",
+    "proof",
+    "acknowledgement"
+  ],
+  "properties": {
+    "secret": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "challenge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "version",
+        "nonce",
+        "instanceId"
+      ],
+      "properties": {
+        "protocol": {
+          "const": "netsentry-local"
+        },
+        "version": {
+          "const": 1
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "instanceId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "clientNonce": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "proof": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "acknowledgement": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "description": "Synthetic HMAC vector; secret is a test value and is never sent on the wire. Each frame is UTF-8 JSON prefixed by an unsigned 4-byte big-endian length in 1..65536.",
+  "$defs": {
+    "challenge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "version",
+        "nonce",
+        "instanceId"
+      ],
+      "properties": {
+        "protocol": {
+          "const": "netsentry-local"
+        },
+        "version": {
+          "const": 1
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "instanceId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "clientNonce",
+        "proof"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "clientNonce": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "proof": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "accepted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authenticated",
+        "proof"
+      ],
+      "properties": {
+        "authenticated": {
+          "const": true
+        },
+        "proof": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}
