@@ -19,8 +19,8 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 11 Network inventory | 10, 11, 13 | Passive inventory/spans and labels/association hooks implemented; actual connectivity/identity unknown, profile/department workflows later |
 | 12 Wi-Fi monitoring | 10 | WAN counters/history/coverage, freshness and dashboard implemented with fixtures; physical accuracy pending |
 | 13 Network security | 10, 13 | Inventory/auth/health events and severity/acknowledgement implemented; provider notifications and Business assignment later |
-| 14 Family profiles | 11 | Pending |
-| 15 Parental controls | 11, 12 | Pending supported enforcement mechanisms |
+| 14 Family profiles | 11 | Profiles, explicit guardian/child scope, consent/assignments, reports and web/Android source implemented; native/device checks pending |
+| 15 Parental controls | 11, 12 | Policy intent/schedules/warnings/revisions/requests/overrides implemented; executing Android/router restrictions and native notifications unavailable pending supported authority/mechanisms |
 | 16 iOS Family Controls | 12 | Pending authorization/entitlements and implementation |
 | 17 Wellbeing insights | 9, 11 | Pending; deterministic rules first |
 | 18 Authorized YouTube insights | 16 | Deferred; legitimate source required |
@@ -41,3 +41,5 @@ Phase 8 status: native Android personal-client source and SDK-free Kotlin/HTTPS/
 Phase 9 status: advanced Android source, detailed consent/ingestion/reports, categories/corrections, evidence-based descriptive insights, bounded synchronization and missing-report alerts are implemented. Count/OS/UI/background correctness remains a physical-device gate; see `validation/phase-9.md`. Launch figures mean observed foreground entries, never an inferred cold-start or wellbeing score.
 
 Phase 10 status: named networks, independent desktop consent/grants, passive cache observations, source-aware inventory/spans, encrypted router credentials, read-only OpenWrt ubus protocol fixtures, WAN history/coverage and network event review are implemented. Hardware/firmware certification is pending; unsupported traffic/identity remains unavailable. See `validation/phase-10.md`. Family/department assignment workflows stay in Phases 11/13.
+
+Phase 11 adds scoped family sharing and digital wellbeing source with synthetic verification. Restrictions remain unsupported by the current consumer Android/read-only router adapters; no configured policy is represented as applied. See `validation/phase-11.md`.

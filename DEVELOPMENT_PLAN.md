@@ -289,6 +289,8 @@ Completion: adapter contracts and fixtures pass locally. Actual router compatibi
 
 ### Phase 11 Family and digital wellbeing
 
+Status (16 November 2026): family profile/grant/consent source, policy models and schedules, requests/overrides, scoped reports/insights, web workflows and Android family synchronization/UI source implemented. Build/API/JVM/browser verification is tracked in [Phase 11 validation](docs/validation/phase-11.md). Current consumer Android and read-only router mechanisms report unsupported restrictions; no executing enforcement adapter or applied receipt is provided. Native builds, notifications, provisioned enforcement mechanisms and physical-device behavior remain pending/unavailable as detailed in [family architecture](docs/architecture/family-wellbeing.md).
+
 - Implement family/guardian/child profiles, invitations, avatars, assignments, consent, role permissions, dashboards, timeline and reports.
 - Implement policy models for daily/app/category allowances, bedtime/study/weekend schedules, supported pauses/filtering and allowed/restricted apps.
 - Add policy warnings, synchronization/versioning, enforcement states, overrides, child requests, guardian decisions and action history.

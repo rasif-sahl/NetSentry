@@ -17,3 +17,5 @@ Phase 7 implements separate viewing/control gates. Passing the workspace control
 This is a foundation for the existing role enum, not the complete Family/Business role model. Phase 2 adds invitations, member role changes, ownership transfer and device lifecycle gates. Owner-only billing and elevated-role grants are enforced; full children/organization profiles, policies and domain-specific grants remain Phase 11/13 work. See docs/features/workspaces.md for the current collaboration rules.
 
 Unit and live API tests cover denied cross-workspace access, read-only viewers, invalid roles, no device queries after access denial, installation ownership, and membership revocation. No mobile build or agent runtime is needed for these checks.
+
+Phase 11 adds explicit family profile grants. In Family workspaces, a GUARDIAN can use only the new scoped child views for other people’s usage; generic report/application routes remain limited to independently owned devices and shared legacy alert scopes are denied. Current guardian membership alone grants no child access or enforcement authority. See [family architecture](family-wellbeing.md).
