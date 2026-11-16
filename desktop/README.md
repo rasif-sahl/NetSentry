@@ -53,3 +53,7 @@ Build with `npm run build:desktop`; verify appearance with the existing Chromium
 ## Desktop background-service follow-up
 
 Explicit per-user macOS registration, start, removal and update interlocking are implemented. Registration requires native confirmation, fresh workspace authorization and a signed application installed in Applications. No production service was registered during development. Signed packaged-agent/Keychain and actual login acceptance remain pending. See [validation](../docs/validation/desktop-background-service.md).
+
+## Desktop diagnostics and recovery
+
+Explicit current-state diagnostics, user-confirmed stale-socket recovery and redacted JSON export are implemented. Repair requires verified trust, no managed job/registration, private state and exclusive runtime locking; it preserves credentials, settings and data and never starts/stops a process. Partial-registration and failure guidance is included. Signed native acceptance remains pending. See [validation and operation](../docs/validation/desktop-diagnostics.md).

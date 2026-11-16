@@ -26,3 +26,5 @@ Local results: repository `npm run check`, Go race tests, all 21 desktop lifecyc
 With a real Developer ID identity and signed/notarized build, test credential prompts/locked Keychain, user login and logout/reboot, workspace denial/revocation, offline login followed by explicit Start, module isolation, runtime exclusivity, crash/stale-socket recovery and removal while the agent is active. Verify the correct user's job disappears and unrelated jobs survive. Test cancellation and interrupted registration/removal, signed update refusal until removal and explicit registration afterward. Record actual running/monitoring outcomes separately; a loaded job or live process is insufficient evidence.
 
 No Android Studio, mobile SDKs, Xcode, simulators or emulators were installed. The Flutter reference is unchanged.
+
+Desktop diagnostics and guarded socket recovery are now implemented separately. See [diagnostics validation](desktop-diagnostics.md). Existing historical native acceptance requirements remain pending.
