@@ -858,3 +858,67 @@ test("missing-report rules preserve their device scope and seconds threshold", a
     page.getByLabel("Reporting/heartbeat threshold (seconds)"),
   ).toHaveValue("600");
 });
+
+test("network inventory exposes uncertain observations and editable labels without enforcement", async ({
+  page,
+}) => {
+  await login(page);
+  await page.getByRole("button", { name: "Networks", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Observed devices", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("fixture0: 192.168.40.20/24", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "WAN interface state does not prove internet reachability.",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  const endpoint = page.locator("details").filter({
+    has: page.locator("summary").filter({ hasText: "02:00:00:40:00:01" }),
+  });
+  await endpoint.locator("summary").click();
+  await endpoint
+    .getByLabel("Device label", { exact: true })
+    .fill("Browser synthetic workstation");
+  await endpoint.getByLabel("Trust label").selectOption("blocked_label");
+  await endpoint
+    .getByRole("button", { name: "Save changes", exact: true })
+    .click();
+  await expect(
+    page.getByText("Inventory labels saved.", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Browser synthetic workstation · recently observed · blocked_label",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await page
+    .getByText("Configure read-only OpenWrt ubus connection", { exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Router password", { exact: true }),
+  ).toHaveAttribute("type", "password");
+  await expect(
+    page.getByRole("button", { name: "Request connection test", exact: true }),
+  ).toHaveCount(0);
+});
+test("network viewers cannot grant collectors or configure router secrets", async ({
+  page,
+}) => {
+  await login(page, "viewer");
+  await page.getByRole("button", { name: "Networks", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Observed devices", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Assign collector", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Router password", { exact: true })).toHaveCount(
+    0,
+  );
+  await expect(page.getByLabel("Trust label")).toHaveCount(0);
+});
