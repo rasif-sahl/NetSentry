@@ -9,3 +9,9 @@ p { max-width: 64ch; }
 section { margin-top: 32px; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
 h2 { margin-top: 0; font-size: 1.2rem; }
 li + li { margin-top: 8px; }
+button { padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--primary); color: var(--background); font: inherit; cursor: pointer; }
+button:disabled { opacity: .6; cursor: wait; }
+input[type="password"] { display: block; width: 100%; margin: 8px 0 16px; padding: 10px; color: var(--text); background: var(--background); border: 1px solid var(--border); border-radius: 8px; font: inherit; }
+input[type="checkbox"] { margin-right: 8px; }
+code { overflow-wrap: anywhere; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }

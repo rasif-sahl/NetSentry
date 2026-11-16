@@ -1,3 +1,5 @@
+import { Agent, AgentEvent } from '../agents/agent.entities';
+import { publicAgent } from '../agents/agent.service';
 import { NotificationPreference } from '../monitoring/alert.entities';
 import { eraseMonitoring } from '../monitoring/privacy';
 import { Measurement, DailyUsage, CollectionGap } from '../monitoring/entities';
@@ -78,7 +80,15 @@ export class PrivacyService {
       const memberships = (await manager.findBy(Membership, { userId })).map(
         (member) => ({ workspaceId: member.workspaceId, role: member.role }),
       );
+      const agents = await manager.findBy(Agent, { userId });
+      const agentEvents = agents.length
+        ? await manager.findBy(AgentEvent, {
+            agentId: In(agents.map((agent) => agent.id)),
+          })
+        : [];
       return {
+        agents: agents.map(publicAgent),
+        agentEvents,
         schemaVersion: 1,
         generatedAt: new Date().toISOString(),
         user: this.auth.safeUser(user),
@@ -136,8 +146,10 @@ export class PrivacyService {
     const devices = await manager.findBy(RegisteredDevice, {
       registeredById: userId,
     });
+    const agents = await manager.findBy(Agent, { userId });
     return [
       ...new Set([
+        ...agents.map((agent) => agent.workspaceId),
         ...owned.map((workspace) => workspace.id),
         ...memberships.map((member) => member.workspaceId),
         ...devices.map((device) => device.workspaceId),
@@ -170,6 +182,10 @@ export class PrivacyService {
       for (const workspace of owned) {
         if (
           (await manager.existsBy(Membership, {
+            workspaceId: workspace.id,
+            userId: Not(userId),
+          })) ||
+          (await manager.existsBy(Agent, {
             workspaceId: workspace.id,
             userId: Not(userId),
           })) ||

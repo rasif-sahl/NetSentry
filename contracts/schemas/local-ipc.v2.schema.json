@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/local-ipc.v2.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 2
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "get_status"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {}
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 2
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "set_modules"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "network",
+            "developer"
+          ],
+          "properties": {
+            "network": {
+              "type": "boolean"
+            },
+            "developer": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 2
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "set_background"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowed"
+          ],
+          "properties": {
+            "allowed": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 2
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "pair"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "token"
+          ],
+          "properties": {
+            "token": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "description": "Phase 5 desktop allowlist. Discovery and stop are unavailable and are not exposed by Electron."
+}

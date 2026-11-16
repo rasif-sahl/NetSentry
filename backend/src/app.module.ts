@@ -1,3 +1,4 @@
+import { AgentModule } from './agents/agent.controller';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { PrivacyModule } from './account/privacy.module';
 import { DeviceModule } from './devices/device.module';
@@ -35,6 +36,7 @@ import { WorkspaceModule } from './workspaces/workspace.module';
         }),
     }),
     AuthModule,
+    AgentModule,
     DeviceModule,
     PrivacyModule,
     MonitoringModule,

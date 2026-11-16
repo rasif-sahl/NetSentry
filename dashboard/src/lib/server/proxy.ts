@@ -22,14 +22,19 @@ const publicPaths = new Set([
   "/auth/verification/confirm",
   "/privacy/disclosures",
 ]);
-const forbidden = new Set(["/devices/enrol", "/workspaces/devices"]);
+const forbidden = new Set([
+  "/devices/enrol",
+  "/agents/enrol",
+  "/workspaces/devices",
+]);
 const operations = Object.entries(contract.paths).flatMap(([path, methods]) =>
   Object.entries(methods)
     .filter(
       ([, operation]) =>
         !(
           "security" in operation &&
-          JSON.stringify(operation.security).includes("deviceTokenAuth")
+          (JSON.stringify(operation.security).includes("deviceTokenAuth") ||
+            JSON.stringify(operation.security).includes("agentTokenAuth"))
         ) && !forbidden.has(path),
     )
     .map(([method]) => ({

@@ -1,18 +1,48 @@
+import { useEffect, useState } from "react";
+import type { AgentResult, AgentStatus } from "../main/agent-types";
 export function App() {
-  return (
-    <main>
-      <p className="eyebrow">NETSENTRY DESKTOP</p>
-      <h1>Your devices and development services, together.</h1>
-      <p>Pair this computer to manage its development services and supported network monitoring.</p>
-      <section aria-labelledby="setup-heading">
-        <h2 id="setup-heading">Setup is not available yet</h2>
-        <p>The agent is not connected. No services or network devices are being monitored.</p>
-        <ul>
-          <li>Network monitoring: not configured</li>
-          <li>Developer tools: not configured</li>
-          <li>Mobile controls: not configured</li>
-        </ul>
+  const [status, setStatus] = useState<AgentStatus>();
+  const [message, setMessage] = useState("Checking the local agent…");
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function perform(action: () => Promise<AgentResult> | undefined) {
+    setBusy(true);
+    try {
+      const result = await action();
+      if (result?.ok) { setStatus(result.status); setMessage("Local agent connected."); }
+      else { setStatus(undefined); setMessage(result?.code === "PAIRING_FAILED" ? "Pairing failed. Check the code and backend connection." : "Agent unavailable. Initialize and run the Go agent, then retry."); }
+    } catch { setStatus(undefined); setMessage("Could not contact the local agent."); }
+    finally { setBusy(false); }
+  }
+  useEffect(() => { void perform(() => window.netsentry?.getAgentStatus()); }, []);
+  return <main>
+    <p className="eyebrow">NETSENTRY DESKTOP</p>
+    <h1>Connect this computer</h1>
+    <p>Manage the shared agent’s pairing and local preferences. Network collection, service discovery and server shutdown arrive in later phases.</p>
+    <p role="status">{message}</p>
+    <button disabled={busy} onClick={() => void perform(() => window.netsentry?.getAgentStatus())}>Refresh agent status</button>
+    {status && <>
+      <section aria-labelledby="identity"><h2 id="identity">Agent identity</h2>
+        <p>Installation: <code>{status.installationId}</code></p>
+        <p>Version {status.version} · {status.platform} · Backend {status.connection}</p>
+        <p>Buffered diagnostics: {status.bufferedEvents} · Dropped: {status.droppedEvents}</p>
+        {status.lastContact && <p>Last backend contact: {status.lastContact}</p>}
+        {!status.paired && <form onSubmit={(event) => { event.preventDefault(); const token = code; setCode(""); void perform(() => window.netsentry?.pairAgent(token)); }}>
+          <label>Single-use workspace enrolment code <input type="password" autoComplete="off" value={code} onChange={(event) => setCode(event.target.value)} maxLength={43} required /></label>
+          <p>Create a code for this installation in your workspace. Pairing identifies software; it does not authorize server control.</p>
+          <button disabled={busy || !/^[A-Za-z0-9_-]{43}$/.test(code)}>Pair computer</button>
+        </form>}
       </section>
-    </main>
-  );
+      <section aria-labelledby="modules"><h2 id="modules">Local preferences</h2>
+        <p>Workspace authorization is also required. Both modules currently report their collectors as unavailable.</p>
+        {(["network", "developer"] as const).map(module => <p key={module}><label>
+          <input type="checkbox" checked={status.requested[module]} disabled={busy} onChange={event => void perform(() => window.netsentry?.setAgentModules({ ...status.requested, [module]: event.target.checked }))} />
+          {module === "network" ? "Network Monitoring" : "Developer Tools"}</label> — workspace {status.authorized[module] ? "authorized" : "not authorized"}
+        </p>)}
+        <label><input type="checkbox" checked={status.backgroundRequested} disabled={busy} onChange={event => void perform(() => window.netsentry?.setAgentBackground(event.target.checked))} /> Allow background operation locally</label>
+        <p>Workspace background authorization: {status.backgroundAllowed ? "allowed" : "not active"}. This setting does not install or start a system service.</p>
+        <p>Remote control: unavailable. Revoke pairing or erase agent data from workspace settings/API.</p>
+      </section>
+    </>}
+  </main>;
 }

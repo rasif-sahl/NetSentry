@@ -1,8 +1,17 @@
-import { app, BrowserWindow, session } from "electron";
+import { app, BrowserWindow, session, ipcMain } from "electron";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { request } from "./agent-client.js";
+import { pathToFileURL, fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
+const rendererURL = pathToFileURL(join(here, "../renderer/index.html")).href;
+ipcMain.handle("netsentry:agent", async (event, method: unknown, payload: unknown) => {
+  if (event.senderFrame !== event.sender.mainFrame || event.senderFrame.url !== rendererURL || typeof method !== "string") return { ok: false, code: "INVALID_REQUEST" };
+  return request({
+    stateDir: !app.isPackaged && process.env.NETSENTRY_AGENT_STATE_DIR || join(app.getPath("appData"), "NetSentry", "agent"),
+    binary: !app.isPackaged && process.env.NETSENTRY_AGENT_BINARY || join(process.resourcesPath, "agent", "netsentry-agent"),
+  }, method, payload);
+});
 
 async function createWindow(): Promise<void> {
   const window = new BrowserWindow({

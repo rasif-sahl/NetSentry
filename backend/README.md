@@ -23,3 +23,9 @@ Phase 3 ingestion requires the current `monitoring-v3` disclosure, source-specif
 See `../docs/features/monitoring.md` for ingestion, reporting, privacy and alert APIs. Apply explicit migrations before use; the latest Phase 3 disclosure requires renewed consent. No native collector is enabled.
 
 `npm run monitoring:work -- WORKSPACE_UUID` runs one bounded alert evaluation, delivery and retention pass using the backend environment. Arrange recurring passes per workspace in deployment; starting the API alone does not schedule jobs. In-app delivery is implemented; Android/iOS push adapters explicitly report unavailable. Live API tests use synthetic data and injected adapters only.
+
+## Shared Go agent foundation
+
+Phase 5 adds installation/workspace-bound software-agent enrolment, separate opaque credentials, module/background authorization, heartbeat/configuration, bounded diagnostic synchronization and revocation/export/erasure. Apply the new migration explicitly. There are no traffic collectors, process observations or stop commands yet. See [agent setup](../agent/README.md) and [verification](../docs/validation/phase-5.md).
+
+`npm run agents:cleanup -- WORKSPACE_UUID` runs one bounded diagnostic/code retention pass; arrange recurring passes in deployment. `TEST_AGENT_BINARY=/absolute/path/to/netsentry-agent npm run test:api` includes actual Go-process pairing, outage/restart recovery, module isolation and revocation against the disposable test database.

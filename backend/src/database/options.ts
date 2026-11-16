@@ -1,3 +1,4 @@
+import { Agent, AgentEnrolment, AgentEvent } from '../agents/agent.entities';
 import {
   AlertRule,
   AlertOccurrence,
@@ -38,6 +39,9 @@ export function databaseOptions(
     type: 'postgres',
     url: config.DATABASE_URL,
     entities: [
+      Agent,
+      AgentEnrolment,
+      AgentEvent,
       User,
       Session,
       Workspace,

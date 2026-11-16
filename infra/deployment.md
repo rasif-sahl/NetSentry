@@ -1,12 +1,12 @@
-# Shared contracts
+# Deployment and API maintenance
 
 Backend, Kotlin, Swift, Go and TypeScript clients use language-neutral schemas. Platform source and generated client bindings stay with their applications. No mobile build tool is needed to check these contracts.
 
 ## Implemented API
 
-`openapi/api.v1.json` describes the 46 documented account, workspace, device, health and privacy operations (including disabled legacy registration) at the default `/api/v1` base. It includes request/response schemas, bearer authentication, path parameters, status codes and structured errors. The deployment base URL and prefix remain configurable. The legacy starter root response is not a product API.
+`openapi/api.v1.json` describes the 74 documented account, workspace, device, agent, health, privacy, monitoring and notification operations (including disabled legacy registration) at the default `/api/v1` base. It includes request/response schemas, bearer authentication, path parameters, status codes and structured errors. The deployment base URL and prefix remain configurable. The legacy starter root response is not a product API.
 
-POST responses retain NestJS's existing 201 status. Session refresh revokes the previous session. Personal workspaces are created at signup; manual PERSONAL creation returns 403. Existing optional input fields accept null where their DTO uses `IsOptional`. Direct legacy device registration is disabled. One-time enrolment returns a separate opaque device credential; capability/permission history and reported metadata use scoped lifecycle endpoints. Capability declarations never grant permissions. The pre-release API is v1.2.0; native/web consumers are still being implemented.
+POST responses retain NestJS's existing 201 status. Session refresh revokes the previous session. Personal workspaces are created at signup; manual PERSONAL creation returns 403. Existing optional input fields accept null where their DTO uses `IsOptional`. Direct legacy device registration is disabled. One-time enrolment returns a separate opaque device credential; capability/permission history and reported metadata use scoped lifecycle endpoints. Capability declarations never grant permissions. The pre-release API is v1.5.0; native/web consumers are still being implemented.
 
 Errors include `statusCode`, stable `code`, user-facing `message`, optional validation `details`, query-free `path`, UTC `timestamp` and server-generated `requestId`. The same correlation ID is returned in `x-request-id`; arbitrary caller IDs are not trusted. Internal errors never expose exception messages or query strings. Health is liveness only, not a dependency-readiness guarantee.
 
@@ -14,12 +14,12 @@ Errors include `statusCode`, stable `code`, user-facing `message`, optional vali
 
 | Schema | Purpose | Implementation boundary |
 | --- | --- | --- |
-| `capability-report.schema.json` | Original Phase 0 local agent startup report | Agent only prints disabled module status and exits |
+| `capability-report.schema.json` | Original Phase 0 local agent startup report | No-argument command prints disabled collectors; explicit Phase 5 commands start the shared core |
 | `device-capabilities.v1.schema.json` | Per-feature status/reason, source, setup steps, action availability and check/report times | Implemented for authenticated device health/capability reports; no usage-measurement ingestion yet |
 | `measurement.v1.schema.json` | Event/workspace/device IDs, source/version, interval, UTC times, units, measured/estimated quality and optional application ID | Future monitoring ingestion |
 | `service-permissions.v1.schema.json` | Server-evaluated viewing/control rights for a paired agent | Future control authorization; capabilities cannot grant these rights |
 | `service-command.v1.schema.json` | Typed stop/force-stop command, target identity, request time and expiry | Future remote execution, never arbitrary shell input |
-| `local-ipc.v1.schema.json` | Typed local status/list/stop request envelope | Future authenticated desktop-agent transport; not a listening socket |
+| `local-ipc.v1.schema.json` | Typed local status/list/stop request envelope | Future service-control design; active setup IPC uses v2 |
 
 All examples in `fixtures/` are synthetic. They do not establish real monitoring support. Unsupported/permission/setup states expose no executable actions. Command checks enforce a positive lifetime of at most 60 seconds; real execution must additionally check current time, current authorization, duplicate state and the actual process identity. Measurement intervals must be positive, collection cannot precede the interval end, and serialized timestamps must be UTC with a `Z` suffix.
 
@@ -54,3 +54,11 @@ Android/iOS push providers remain unconfigured and report unavailable. Configure
 Phase 4 requires the dashboard server to reach `NETSENTRY_API_URL` and an exact `DASHBOARD_ORIGIN` matching the user's HTTPS browser origin. No JWT signing or encryption secret is copied into the dashboard; tokens remain HTTP-only cookies and backend authorization remains authoritative. See `dashboard/README.md` for cookie names, body/download limits, timeouts and the current shared-IP rate-limit consideration. Configure reviewed trusted ingress and rate policies before a multi-user rollout; do not solve it by forwarding arbitrary client-controlled IP headers.
 
 The dashboard CI job runs Webpack/Tailwind/PostCSS production builds and desktop Chromium tests against isolated PostgreSQL. It is verification only and does not deploy the site, start monitoring daemons, configure paid services or install mobile platforms.
+
+## Agent operations
+
+Apply the Phase 5 agent-identity migration explicitly after backup and schema checks. Account JWTs, mobile-device credentials and Go-agent credentials are separate. Terminate HTTPS at trusted ingress and retain throttling/body limits; the agent refuses redirects and untrusted TLS. The browser gateway intentionally cannot redeem agent codes or proxy opaque-agent routes.
+
+Schedule `npm --prefix backend run agents:cleanup -- WORKSPACE_UUID` for each workspace to remove diagnostic rows older than seven days and expired ten-minute enrolment codes, at most 1,000 rows from each store per pass. Repeat bounded passes if a backlog remains; monitor failures. API startup installs no scheduler. Erasure immediately removes owned enrolment-code details and diagnostics, while retaining the minimal revoked identity/generation. Account deletion cascades owned agent records. Unpairing on a computer removes local credentials; workspace revocation invalidates copied credentials and is a separate API action.
+
+Deploy the Go core as an explicit foreground development process now. Do not register a LaunchAgent/service automatically. Release packaging must supply independently pinned signing keys, code signing/notarization, a protected monotonic-release high-water mark and tested atomic upgrade/rollback before automatic updates are enabled. See [agent setup](../agent/README.md), [service/package decision](../docs/architecture/agent-distribution.md) and [Phase 5 validation](../docs/validation/phase-5.md). Production Windows/Linux secure-service support remains pending.

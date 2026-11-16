@@ -69,6 +69,14 @@ try {
     [workspace.id, user.id],
   );
   // Upgrade a previously running Phase 3 pipeline, including a receipt whose raw row expired.
+  while (
+    (
+      await source.query(
+        'SELECT name FROM netsentry_migrations ORDER BY id DESC LIMIT 1',
+      )
+    )[0].name !== 'RetainedIntervalIndex1794747169411'
+  )
+    await source.undoLastMigration();
   await source.undoLastMigration();
   const eventId = randomUUID();
   await source.query(

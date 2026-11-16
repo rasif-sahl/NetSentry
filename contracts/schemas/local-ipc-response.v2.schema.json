@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/local-ipc-response.v2.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "ok",
+        "code",
+        "data"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 2
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ok": {
+          "const": true
+        },
+        "code": {
+          "const": "OK"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schemaVersion",
+            "installationId",
+            "version",
+            "platform",
+            "paired",
+            "connection",
+            "requested",
+            "authorized",
+            "effective",
+            "backgroundRequested",
+            "backgroundAllowed",
+            "bufferedEvents",
+            "droppedEvents",
+            "lastContact",
+            "code",
+            "serviceControlAvailable"
+          ],
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "installationId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "version": {
+              "type": "string"
+            },
+            "platform": {
+              "enum": [
+                "darwin",
+                "windows",
+                "linux"
+              ]
+            },
+            "paired": {
+              "type": "boolean"
+            },
+            "connection": {
+              "enum": [
+                "unpaired",
+                "offline",
+                "online",
+                "revoked"
+              ]
+            },
+            "requested": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "network",
+                "developer"
+              ],
+              "properties": {
+                "network": {
+                  "type": "boolean"
+                },
+                "developer": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "authorized": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "network",
+                "developer"
+              ],
+              "properties": {
+                "network": {
+                  "type": "boolean"
+                },
+                "developer": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "effective": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "network",
+                "developer"
+              ],
+              "properties": {
+                "network": {
+                  "type": "boolean"
+                },
+                "developer": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "backgroundRequested": {
+              "type": "boolean"
+            },
+            "backgroundAllowed": {
+              "type": "boolean"
+            },
+            "bufferedEvents": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            },
+            "droppedEvents": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lastContact": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            },
+            "serviceControlAvailable": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "ok",
+        "code",
+        "data"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 2
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ok": {
+          "const": false
+        },
+        "code": {
+          "enum": [
+            "INVALID_REQUEST",
+            "SETTINGS_WRITE_FAILED",
+            "PAIRING_FAILED",
+            "MODULE_DISABLED",
+            "UNAVAILABLE_PHASE"
+          ]
+        },
+        "data": {
+          "type": "null"
+        }
+      }
+    }
+  ]
+}

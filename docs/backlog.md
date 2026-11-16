@@ -14,7 +14,7 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 6 Application catalogue | 9 | Pending |
 | 7 Reports and exports | 3, 4, 9 | Phase 3 scoped reports, comparisons, source/quality/coverage indicators and CSV APIs implemented; Phase 4 dashboard integration implemented; native integration pending |
 | 8 Alerts and notifications | 3 and each domain | Phase 3 measured thresholds, health rules, quiet hours, acknowledgement, in-app delivery, preferences and retries implemented; Phase 4 web management integrated; real push/providers pending |
-| 9 Wi-Fi discovery and agent | 5, 10 | Go module boundary only; discovery pending |
+| 9 Wi-Fi discovery and agent | 5, 10 | Phase 5 shared identity/heartbeat/buffer/module gating implemented and integration-tested; actual discovery remains Phase 10 |
 | 10 Router compatibility | 10 | Pending; select hardware support matrix |
 | 11 Network inventory | 10, 11, 13 | Pending |
 | 12 Wi-Fi monitoring | 10 | Pending |
@@ -31,7 +31,7 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 23 Data and privacy | 1, 2, 3 and each domain | Phase 2 disclosures/history, export, deletion, revocation/generation and account-mail cleanup implemented; Phase 3 retention and raw/derived-data erasure and Phase 4 web privacy controls implemented; offline-client enforcement pending |
 | 24 Platform administration | 3, 14 | Phase 3 workspace monitoring diagnostics implemented; platform administration/billing tools pending |
 | 25 Excluded functionality | All | Preserve catalogue boundaries; no inbox access |
-| 26 Developer tools and mobile stop | 5–8, 12 | Desktop/agent source scaffolds; discovery/control pending |
+| 26 Developer tools and mobile stop | 5–8, 12 | Phase 5 pairing, core runtime and authenticated desktop status/settings implemented; discovery/local control and mobile command delivery remain Phases 6–8/12 |
 | Optional platform/container/AI integrations | 16 | Deferred |
 
 Use separate source/build/integration/hardware verification states. Do not mark a whole group complete because its project directory or initial UI exists. Before each feature begins, review its catalogue scope, prerequisites, authorization and verification requirements. Commit coherent features separately with plain-language messages describing what changed.
