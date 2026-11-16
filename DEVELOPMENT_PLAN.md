@@ -352,6 +352,8 @@ Desktop packaging/update follow-up: local macOS preview packaging and the signed
 
 Desktop diagnostics/recovery follow-up: explicit current-state checks, fixed public failure reasons, guarded stale-socket repair and redacted diagnostic export are implemented. Recovery never kills/restarts processes or resets pairing/settings. Signed packaged Electron/Keychain acceptance remains pending. See `docs/validation/desktop-diagnostics.md`.
 
+Production deployment/recovery follow-up: digest-gated single-host container rollout, HTTPS ingress, explicit schema operations, a durable bounded maintenance worker and authenticated backup scheduling/health are implemented. Migration eighteen adds operational worker state. No hosting is provisioned; real DNS/TLS/registry/DB roles, off-site storage and measured live acceptance remain pending. See `infra/production/README.md` and `docs/validation/production-deployment.md`.
+
 ### Phase 16 Optional later extensions
 
 - Expand Windows and supported Linux desktop targets, plus explicit Docker/WSL support.

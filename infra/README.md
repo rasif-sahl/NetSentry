@@ -15,3 +15,7 @@ Phase 14 adds container source, encrypted PostgreSQL recovery and signed release
 Phase 15 adds [deployed runtime/router/recovery acceptance](../docs/release/network-and-operations-testing.md). Compose parsing, fixture recovery and offline package verification remain separate from production runtime, hardware and installer acceptance.
 
 Phase 16 requires migration seventeen before the updated backend. Alert-email delivery is hard-disabled independently of SMTP account mail. Existing monitoring maintenance records unavailable/suppressed email outcomes without sending.
+
+## Production deployment and recovery follow-up
+
+Explicit digest-gated rollout and HTTPS/runtime checks, all-workspace maintenance with durable cursor/health and authenticated scheduled backup retention/health are implemented. Apply all **eighteen** migrations explicitly; migration eighteen stores only operational worker state. No production hosting/provider is configured. Earlier phase evidence remains historical; source, isolated container verification and live acceptance are separate. See [current operation and verification](production/README.md).

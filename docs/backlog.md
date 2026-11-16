@@ -63,3 +63,7 @@ Explicit per-user macOS registration, start, removal and update interlocking are
 ## Desktop diagnostics and recovery
 
 Explicit current-state diagnostics, user-confirmed stale-socket recovery and redacted JSON export are implemented. Repair requires verified trust, no managed job/registration, private state and exclusive runtime locking; it preserves credentials, settings and data and never starts/stops a process. Partial-registration and failure guidance is included. Signed native acceptance remains pending. See [validation and operation](validation/desktop-diagnostics.md).
+
+## Production deployment and recovery follow-up
+
+Explicit digest-gated rollout and HTTPS/runtime checks, all-workspace maintenance with durable cursor/health and authenticated scheduled backup retention/health are implemented. Apply all **eighteen** migrations explicitly; migration eighteen stores only operational worker state. No production hosting/provider is configured. Earlier phase evidence remains historical; source, isolated container verification and live acceptance are separate. See [current operation and verification](validation/production-deployment.md).
