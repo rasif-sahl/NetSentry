@@ -7,7 +7,7 @@ import { configureHttp } from './common/configure-http';
 process.env.TZ = 'UTC';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule,{rawBody:true});
   const config = app.get(ConfigService);
   configureHttp(app, config);
   await app.listen(config.get<number>('PORT', 3000));

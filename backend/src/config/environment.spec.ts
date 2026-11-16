@@ -25,6 +25,13 @@ describe('environment configuration', () => {
       ACCOUNT_MAIL_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
       JWT_ACCESS_TOKEN_SECRET: Buffer.alloc(32, 7).toString('base64'),
     },
+    { BILLING_MODE: 'live' },
+    { BILLING_MODE: 'sandbox', BILLING_EVENT_SECRET: 'short' },
+    {
+      BILLING_MODE: 'sandbox',
+      BILLING_EVENT_SECRET: input.JWT_ACCESS_TOKEN_SECRET,
+    },
+    { BILLING_ENFORCEMENT: 'perhaps' },
     { API_RATE_LIMIT: '0' },
     { PORT: '0' },
     { PORT: 'NaN' },

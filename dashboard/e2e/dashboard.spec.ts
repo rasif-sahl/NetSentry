@@ -667,7 +667,7 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
   await expect(
     page.getByRole("heading", { name: "Network Security", exact: true }),
   ).toBeVisible();
-  expect(await page.getByText("Planned", { exact: true }).count()).toBe(4);
+  expect(await page.getByText("Planned", { exact: true }).count()).toBe(3);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -1119,4 +1119,29 @@ test("Business roles review organization structure and employees explicitly acce
     analyst.getByRole("button", { name: "Add location", exact: true }),
   ).toHaveCount(0);
   await analystContext.close();
+});
+
+test("sandbox billing is owner-only and operator flags require separate authority",async({page,browser})=>{
+ const data=await login(page);
+ await page.getByRole('button',{name:'Subscription',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Subscription and editions',exact:true})).toBeVisible();
+ await expect(page.getByText(/Provider-neutral sandbox: no real charge/)).toBeVisible();
+ page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Start sandbox trial',exact:true}).click();
+ await expect(page.getByText(/Edition: family · status: trialing/)).toBeVisible();
+ await page.getByRole('button',{name:'Prepare sandbox plan change',exact:true}).click();
+ page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Simulate sandbox payment',exact:true}).click();
+ await expect(page.getByText(/Edition: family · status: active/)).toBeVisible();
+ await expect(page.getByText(/TST test minor units/)).toBeVisible();
+ await page.getByRole('button',{name:'Operations',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Platform operations',exact:true})).toBeVisible();
+ await page.getByLabel('Feature key',{exact:true}).selectOption('developer');
+ await page.getByLabel('Confirm operator password',{exact:true}).first().fill(data.password);
+ await page.getByRole('button',{name:'Save feature setting',exact:true}).click();
+ await expect(page.getByText(/developer · Disabled · revision 1/)).toBeVisible();
+ const context=await browser.newContext();const viewer=await context.newPage();await login(viewer,'viewer');
+ await viewer.getByRole('button',{name:'Subscription',exact:true}).click();
+ await expect(viewer.getByRole('heading',{name:'Subscription and editions',exact:true})).toBeVisible();
+ await expect(viewer.getByRole('button',{name:'Start sandbox trial',exact:true})).toHaveCount(0);
+ await viewer.getByRole('button',{name:'Operations',exact:true}).click();
+ await expect(viewer.getByText(/Workspace ownership does not grant/)).toBeVisible();await context.close();
 });

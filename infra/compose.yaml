@@ -1,0 +1,37 @@
+# Explicit digest-pinned images, external verified-TLS PostgreSQL and HTTPS ingress required.
+# No database credentials, host Docker socket, mobile toolchain or automatic migrations.
+services:
+  backend:
+    image: ${BACKEND_IMAGE:?Provide a reviewed digest-pinned backend image}
+    read_only: true
+    user: "10001:10001"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:size=32m,mode=1777]
+    ports: ["127.0.0.1:3000:3000"]
+    env_file: ${SERVER_ENV_FILE:?Provide private backend configuration}
+    environment:
+      NODE_ENV: production
+      APP_KIND: backend
+      BILLING_MODE: disabled
+      DATABASE_SSL: "true"
+      DB_SYNCHRONIZE: "false"
+    volumes:
+      - ${SERVER_SECRET_DIR:?Provide a private readable secrets directory}:/run/secrets:ro
+    restart: unless-stopped
+  dashboard:
+    depends_on:
+      backend:
+        condition: service_healthy
+    image: ${DASHBOARD_IMAGE:?Provide a reviewed digest-pinned dashboard image}
+    read_only: true
+    user: "10001:10001"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:size=32m,mode=1777]
+    ports: ["127.0.0.1:3001:3001"]
+    env_file: ${DASHBOARD_ENV_FILE:?Provide exact HTTPS origins and API URL}
+    environment:
+      NODE_ENV: production
+      APP_KIND: dashboard
+    restart: unless-stopped

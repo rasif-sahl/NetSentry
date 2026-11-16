@@ -1,3 +1,4 @@
+import { assertCapacity, assertFeature } from '../billing/policy';
 import { eraseNetworkAgent } from '../networks/network-lifecycle';
 import { AgentDeveloper, DeveloperCommand } from './developer.entities';
 import { Workspace } from '../workspaces/workspace.entity';
@@ -67,6 +68,8 @@ export async function modulePolicy(
     throw new ForbiddenException(
       'Developer module authorization is not permitted.',
     );
+  if (modules.network) await assertFeature(manager, workspaceId, 'network');
+  if (modules.developer) await assertFeature(manager, workspaceId, 'developer');
   return context;
 }
 @Injectable()
@@ -166,6 +169,8 @@ export class AgentService {
           await manager.delete(DeveloperCommand, { agentId: agent.id });
           await manager.delete(AgentEvent, { agentId: agent.id });
         }
+        if (!agent || agent.state !== 'ACTIVE')
+          await assertCapacity(manager, code.workspaceId, 'agents');
         agent = await manager.save(
           manager.merge(Agent, agent ?? manager.create(Agent), {
             installationId: code.installationId,

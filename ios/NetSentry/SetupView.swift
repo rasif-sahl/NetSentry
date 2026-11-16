@@ -10,11 +10,12 @@ struct SetupView: View {
                 if model.busy { ProgressView().accessibilityLabel("Contacting NetSentry") }
                 if !model.message.isEmpty { Text(model.message).font(.callout).foregroundStyle(.red).padding().accessibilityAddTraits(.updatesFrequently) }
                 if model.snapshot?.signedIn == true {
-                    Picker("Section", selection: $tab) { ForEach(["Overview", "Computers", "Family", "Business", "Settings"], id: \.self) { Text($0) } }.pickerStyle(.menu).padding(.horizontal)
+                    Picker("Section", selection: $tab) { ForEach(["Overview", "Computers", "Family", "Business", "Subscription", "Settings"], id: \.self) { Text($0) } }.pickerStyle(.menu).padding(.horizontal)
                     Group { switch tab {
                     case "Computers": ComputersView()
                     case "Family": FamilyView()
                     case "Business": BusinessView()
+                    case "Subscription": SubscriptionView()
                     case "Settings": AccountSettingsView()
                     default: OverviewView()
                     } }.disabled(model.busy)

@@ -1,3 +1,4 @@
+import { assertFeature } from '../billing/policy';
 import {
   BadRequestException,
   ConflictException,
@@ -108,8 +109,11 @@ export class BusinessService {
     uid: string,
     wid: string,
     p = P.READ,
+    featureRequired = true,
   ) {
     const c = await workspacePolicy(m, uid, wid, p);
+    if (featureRequired && p !== P.READ)
+      await assertFeature(m, wid, 'business');
     if (c.workspace.type !== 'BUSINESS')
       throw new ForbiddenException('Choose a Business organization.');
     return c;
@@ -152,7 +156,7 @@ export class BusinessService {
   }
   offboardTarget(uid: string, wid: string, id: string) {
     return this.source.transaction(async (m) => {
-      await this.context(m, uid, wid, P.MANAGE_MEMBERS);
+      await this.context(m, uid, wid, P.MANAGE_MEMBERS, false);
       return (await this.employee(m, wid, id)).userId;
     });
   }
@@ -537,7 +541,7 @@ export class BusinessService {
   }
   withdraw(uid: string, wid: string, id: string) {
     return this.source.transaction(async (m) => {
-      const { member } = await this.context(m, uid, wid),
+      const { member } = await this.context(m, uid, wid, P.READ, false),
         d = await this.device(m, wid, id),
         a = await m.findOneBy(Assignment, { deviceId: id, workspaceId: wid });
       const e = a ? await this.employee(m, wid, a.employeeId) : null;
@@ -554,7 +558,7 @@ export class BusinessService {
   }
   unenrol(uid: string, wid: string, id: string) {
     return this.source.transaction(async (m) => {
-      await this.context(m, uid, wid, P.MANAGE_DEVICES);
+      await this.context(m, uid, wid, P.MANAGE_DEVICES, false);
       const d = await this.device(m, wid, id);
       await revokeBusinessDevice(m, d, uid);
       return { unenrolled: true, personalDataErased: false };

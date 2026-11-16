@@ -293,3 +293,11 @@ test("Business sharing needs a displayed generation and cannot claim another emp
   assert.throws(()=>validateApiPayload("BusinessAssignmentInput",{employeeId:"11111111-1111-4111-8111-111111111111",expectedRevision:0,ownership:"organization"}));
   assert.throws(()=>validateApiPayload("BusinessCustodyInput",{accepted:false,disclosureVersion:"business-custody-v1"}));
 });
+
+test('billing events and operator mutations reject customer-side privilege and payment forgeries',()=>{
+ const id='11111111-1111-4111-8111-111111111111';
+ validateApiPayload('BillingPlanInput',{requestId:id,expectedRevision:0,plan:'premium',interval:'annual'});
+ assert.throws(()=>validateApiPayload('BillingPlanInput',{requestId:id,expectedRevision:0,plan:'premium',interval:'annual',paid:true}));
+ assert.throws(()=>validateApiPayload('OperatorFlagInput',{scope:'workspace',workspaceId:id,key:'shell',enabled:true,expectedRevision:0,password:'fixture'}));
+ assert.throws(()=>validateApiPayload('BillingEventInput',{id,workspaceId:id,sequence:1,plan:'enterprise'}));
+});

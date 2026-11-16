@@ -26,6 +26,8 @@ Object.assign(process.env, {
   JWT_REFRESH_TOKEN_SECRET:
     'dashboard-fixture-refresh-secret-never-use-in-production',
   MAIL_ENABLED: 'false',
+  BILLING_MODE: 'sandbox',
+  BILLING_EVENT_SECRET: 'synthetic-dashboard-billing-secret-123456789',
 });
 const { DataSource } = require('typeorm');
 const { databaseOptions } = require('../dist/database/options.js');
@@ -88,6 +90,7 @@ try {
   ownsSchema = true;
   app = await NestFactory.create(require('../dist/app.module.js').AppModule, {
     logger: false,
+    rawBody: true,
     abortOnError: false,
   });
   // Browser tests share loopback IPs; only this isolated server uses an unbounded counter.
@@ -617,6 +620,7 @@ try {
   });
   const { seedBusiness } = await import("./business-dashboard-fixtures.mjs");
   const business = await seedBusiness({call,source,owner,accounts});
+  await source.getRepository(require('../dist/operations/operations.entities.js').OperatorGrant).save({userId:owner.user.id,role:'ADMIN',workspaceIds:[workspace.id,business.workspaceId],globalAccounts:false,globalCatalog:true,expiresAt:new Date(Date.now()+3600000)});
   await writeFile(
     file,
     JSON.stringify({

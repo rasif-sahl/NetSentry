@@ -1,3 +1,4 @@
+import { assertFeature } from '../billing/policy';
 import { applicationInsights } from './application-insights';
 import {
   BadRequestException,
@@ -167,6 +168,7 @@ export class ApplicationService {
       {
         payloadHash: fingerprint(batch),
         commit: async (manager, current) => {
+          await assertFeature(manager, current.workspaceId, 'advanced_apps');
           const consent = await manager.findOneBy(DeviceEvent, {
             deviceId: current.id,
             generation: current.generation,
@@ -427,6 +429,7 @@ export class ApplicationService {
         query.deviceId,
         exporting,
       );
+      await assertFeature(manager, workspaceId, 'advanced_apps');
       const first = Date.parse(query.from + 'T00:00:00Z'),
         last = Date.parse(query.to + 'T00:00:00Z');
       if (

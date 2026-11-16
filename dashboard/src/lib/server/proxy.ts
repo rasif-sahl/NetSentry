@@ -23,6 +23,7 @@ const publicPaths = new Set([
   "/privacy/disclosures",
 ]);
 const forbidden = new Set([
+  "/billing/events",
   "/devices/enrol",
   "/agents/enrol",
   "/workspaces/devices",

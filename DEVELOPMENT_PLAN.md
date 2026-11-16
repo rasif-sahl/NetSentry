@@ -332,6 +332,8 @@ Verification: backend/web/contract/PostgreSQL workflows pass organization-isolat
 
 Completion: available billing sandbox, entitlement, administration, recovery and operational checks pass. Native purchase/distribution requirements are resolved before a paid mobile launch. Move this phase's required billing work earlier if an earlier edition is monetized.
 
+Implemented scope: provider-neutral sandbox selected by the user. Editions, calendar-month/year test checkout, one-time trials, cancellation/resumption, grace/expiry, immutable payment history, signed replay-safe events and capacity/feature checks are implemented. Web provides owner billing and separately authorized operations; native clients provide read-only entitlement views. Operator grants expire and are scoped independently of workspace ownership. Deployment source, encrypted recovery and signed package verification are included. Production billing stays disabled; prices, a live provider and native purchase/distribution decisions remain paid-launch gates. See `docs/architecture/subscriptions-and-operations.md` and `docs/validation/phase-14.md` for evidence and pending acceptance.
+
 ### Phase 15 Physical-device validation and release
 
 - Provide the user with native build/distribution instructions and the required tooling options when requested; do not install tooling automatically.
