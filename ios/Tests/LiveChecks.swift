@@ -58,6 +58,18 @@ func ensure(_ condition: Bool, _ message: String) throws { if !condition { throw
         try await repo.deviceAction("unenrol", id: paired.id)
         try await repo.signOut()
         try ensure(!(await repo.snapshot().signedIn), "Logout failed")
+        let businessRepo = try ClientRepository(vault: LiveVault(), transport: transport)
+        try await businessRepo.authenticate(base: base, email: fixture["accounts"]["employee"]["email"].text, password: fixture["password"].text)
+        try await businessRepo.selectWorkspace(fixture["business"]["workspaceId"].text)
+        try await businessRepo.businessOverview()
+        let business = await businessRepo.snapshot().business
+        guard let assignment = business["assignments"].values.first, let businessDevice = business["devices"].values.first else { throw ClientError.invalid("Business fixture missing") }
+        try await businessRepo.acceptBusinessSharing(deviceID: businessDevice["id"].text, revision: assignment["revision"].integer!, generation: businessDevice["generation"].integer!, accepted: true)
+        try ensure(!(await businessRepo.snapshot().business["assignments"].values[0]["consentedAt"].isNull), "Business consent missing")
+        try await businessRepo.withdrawBusinessSharing(deviceID: businessDevice["id"].text)
+        try ensure(await businessRepo.snapshot().business["assignments"].values.isEmpty, "Business withdrawal missing")
+        try await businessRepo.signOut()
+        print("Business employee Swift API sharing/withdrawal passed with monitoring unchanged.")
         print("Swift HTTPS + Nest + PostgreSQL integration passed: account/profile, workspace, iOS enrolment, conservative heartbeat, empty report, notifications, family sharing/withdrawal, confirmed synthetic remote stop/cancel/history, sessions, export, privacy erase and unenrolment. No Apple framework/device behavior or actual process stop was exercised.")
     }
 }
