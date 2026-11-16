@@ -88,9 +88,13 @@ try {
   );
   assert.equal((await cleanupAccountMail(source)).messagesRemoved, 1000);
   assert.equal((await cleanupAccountMail(source)).messagesRemoved, 5);
-  await source.query(`CREATE TABLE deployment_drift_fixture(id integer)`);
+  await source.query(
+    `ALTER TABLE workspaces ALTER COLUMN name TYPE varchar(99)`,
+  );
   await assert.rejects(checkSchema(source));
-  await source.query('DROP TABLE deployment_drift_fixture');
+  await source.query(
+    'ALTER TABLE workspaces ALTER COLUMN name TYPE varchar(100)',
+  );
   console.log(
     'Deployment migration/schema parity, all-workspace cursor/restart, advisory exclusion, health staleness/failure and bounded cleanup checks passed with synthetic records.',
   );

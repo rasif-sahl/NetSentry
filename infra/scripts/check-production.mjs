@@ -150,6 +150,7 @@ try {
   );
   ids.push(pgId.trim());
   await ready(pgId.trim());
+  console.log("Fixture: TLS PostgreSQL ready.");
   const pgPort = (await docker("port", pgId.trim(), "5432/tcp")).stdout
     .trim()
     .split(":")
@@ -174,6 +175,9 @@ try {
     timeout: 180000,
     maxBuffer: 1024 * 1024,
   });
+  console.log(
+    "Fixture: database migrations, maintenance and recovery guards passed.",
+  );
   const secretValues = {
     "database-url": `postgresql://netsentry:${password}@postgres:5432/netsentry_runtime_test`,
     "database-ca": ca,
@@ -257,6 +261,7 @@ try {
   ).stdout.trim();
   ids.push(backendId);
   await ready(backendId);
+  console.log("Fixture: production API ready with mounted secrets.");
   // Read-only root, private runtime user, mounted secrets and actual verified PostgreSQL TLS.
   await assert.rejects(
     docker(
@@ -310,6 +315,7 @@ try {
   ).stdout.trim();
   ids.push(dashboardId);
   await ready(dashboardId);
+  console.log("Fixture: read-only dashboard ready.");
   const template = await readFile(
     resolve("infra/production/nginx.template.conf"),
     "utf8",
