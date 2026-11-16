@@ -238,6 +238,8 @@ Completion: discover and stop controlled sample services while preserving unrela
 
 ### Phase 7 Remote service commands
 
+Status: backend/outbound Go/macOS execution, desktop consent, web controls and shared native-mobile contracts implemented and integration-tested. See `docs/validation/phase-7.md`. Native phone UI, packaged desktop acceptance and wider operational soak remain pending. Optional long-running reminders are deferred until soak and notification design are complete.
+
 - Add paired-computer inventory, service synchronization, explicit control permissions and remote-command APIs.
 - Add expiring commands, audit records, duplicate protection, cancellation rules and accepted/succeeded/failed/expired states.
 - Route requests over agent-initiated authenticated connections; verify process identity and current authorization at execution time.

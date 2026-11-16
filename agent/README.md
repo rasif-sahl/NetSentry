@@ -1,6 +1,6 @@
 # NetSentry Go agent
 
-Phase 5 implements a separately enrolled, revocable software identity, outbound backend connection, heartbeats, bounded diagnostic buffering, independently gated modules, and authenticated desktop IPC. Phase 6 additionally discovers owned macOS TCP services and performs explicitly confirmed local shutdown through the desktop. It does not collect traffic or receive remote commands.
+Phase 5 implements a separately enrolled, revocable software identity, outbound backend connection, heartbeats, bounded diagnostic buffering, independently gated modules, and authenticated desktop IPC. Phase 6 additionally discovers owned macOS TCP services and performs explicitly confirmed local shutdown through the desktop. Phase 7 adds separately consented summary sharing and authorized outbound remote commands. It does not collect traffic.
 
 ## Build and test
 
@@ -72,3 +72,7 @@ Pairing, unpairing and revocation reset that choice. Select a fresh service obse
 Node, Python, Bun, Deno, Ruby, PHP and Java executable names are initially eligible. Unknown/native/Go runtimes remain view-only. A marker or capability does not grant control. Signals are bound to the stored process incarnation; changed sockets/trees and expired observations are rejected. A supervisor may replace a process; the agent reports observed replacement without targeting it automatically.
 
 Action receipts and manual labels are private local data, not backend telemetry. Receipts are bounded to 100 within seven days, pruned on active agent passes/start/read/write; they are cleared with labels on unpair/revocation. Full paths and process arguments are not sent to the renderer/backend. See [architecture and limits](../docs/architecture/local-service-controls.md) and [Phase 6 verification](../docs/validation/phase-6.md). Windows/Linux controls and packaged Electron/Keychain acceptance remain pending.
+
+## Phase 7 remote service commands
+
+Sharing and remote shutdown default off. After pairing, explicit CLI flags are `--developer=true --share-services=true --allow-remote-control=true --accept-remote-disclosure`, or use desktop consent controls. The computer owner must separately accept the server disclosure and name current verified owner/admin controllers in the web dashboard. Local shutdown consent never enables remote access. Commands use outbound polling, fresh execution permits and bounded durable receipts; no inbound listener or shell execution is exposed. See [remote architecture](../docs/architecture/remote-service-commands.md) and [verification](../docs/validation/phase-7.md).

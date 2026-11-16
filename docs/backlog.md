@@ -25,13 +25,13 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 17 Wellbeing insights | 9, 11 | Pending; deterministic rules first |
 | 18 Authorized YouTube insights | 16 | Deferred; legitimate source required |
 | 19 Business organizations | 13 | Pending |
-| 20 Roles and permissions | 1, 2, 7, 11, 13 | Workspace roles, invitations, lifecycle/consent ownership and separate service gates implemented; remote-control/Family/Business resource grants pending |
+| 20 Roles and permissions | 1, 2, 7, 11, 13 | Workspace roles, invitations, lifecycle/consent ownership and separate service gates implemented; Phase 7 named computer-controller grants implemented; full Family/Business resource grants pending |
 | 21 Subscriptions and editions | 14, earlier if paid launch | Pending |
 | 22 Responsive web dashboard | 4 and each domain | Phase 4 account/workspace, device, report, alert, team and privacy/settings UI integrated and browser-tested; later domains explicitly planned |
 | 23 Data and privacy | 1, 2, 3 and each domain | Phase 2 disclosures/history, export, deletion, revocation/generation and account-mail cleanup implemented; Phase 3 retention and raw/derived-data erasure and Phase 4 web privacy controls implemented; offline-client enforcement pending |
 | 24 Platform administration | 3, 14 | Phase 3 workspace monitoring diagnostics implemented; platform administration/billing tools pending |
 | 25 Excluded functionality | All | Preserve catalogue boundaries; no inbox access |
-| 26 Developer tools and mobile stop | 5–8, 12 | Phase 6 owned macOS TCP discovery, project corrections, local graceful/force outcomes and desktop workflow implemented/tested; remote command delivery and native mobile controls remain Phases 7–8/12 |
+| 26 Developer tools and mobile stop | 5–8, 12 | Phase 6 owned macOS TCP discovery, project corrections, local graceful/force outcomes and desktop workflow implemented/tested; Phase 7 remote delivery, explicit grants, desktop consent and web outcomes implemented/tested; native mobile controls remain Phases 8/12 and reminders await soak |
 | Optional platform/container/AI integrations | 16 | Deferred |
 
 Use separate source/build/integration/hardware verification states. Do not mark a whole group complete because its project directory or initial UI exists. Before each feature begins, review its catalogue scope, prerequisites, authorization and verification requirements. Commit coherent features separately with plain-language messages describing what changed.

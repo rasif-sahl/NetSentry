@@ -26,6 +26,10 @@ See `../docs/features/monitoring.md` for ingestion, reporting, privacy and alert
 
 ## Shared Go agent foundation
 
-Phase 5 adds installation/workspace-bound software-agent enrolment, separate opaque credentials, module/background authorization, heartbeat/configuration, bounded diagnostic synchronization and revocation/export/erasure. Apply the new migration explicitly. There are no traffic collectors, process observations or stop commands yet. See [agent setup](../agent/README.md) and [verification](../docs/validation/phase-5.md).
+Phase 5 adds installation/workspace-bound software-agent enrolment, separate opaque credentials, module/background authorization, heartbeat/configuration, bounded diagnostic synchronization and revocation/export/erasure. Apply the new migration explicitly. Phase 7 adds consented summaries and expiring developer commands; traffic collectors remain unavailable. See [agent setup](../agent/README.md) and [verification](../docs/validation/phase-5.md).
 
 `npm run agents:cleanup -- WORKSPACE_UUID` runs one bounded diagnostic/code retention pass; arrange recurring passes in deployment. `TEST_AGENT_BINARY=/absolute/path/to/netsentry-agent npm run test:api` includes actual Go-process pairing, outage/restart recovery, module isolation and revocation against the disposable test database.
+
+## Phase 7 remote commands
+
+Apply the tenth migration explicitly. Paired-computer policy and command endpoints use current workspace roles plus named computer-owner grants; agent claim/start/result endpoints use separate opaque credentials. Schedule `agents:cleanup` per workspace for seven-day command/audit retention and stale snapshot cleanup; no scheduler starts with the API. On supported macOS, `TEST_AGENT_BINARY` enables actual remote shutdown of controlled sample listeners in `test:api`. See [remote architecture](../docs/architecture/remote-service-commands.md).

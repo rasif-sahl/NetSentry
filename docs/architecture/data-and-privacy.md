@@ -33,3 +33,7 @@ Never log passwords, bearer/refresh/pairing tokens, raw router credentials, priv
 Record event ID, workspace, actor type/ID, target type/ID, action, outcome/reason code, request/command correlation and occurred/received timestamps. Use append-oriented records with explicit authorization and retention; audit storage is not a secret or message-content archive. Cover enrolment/revocation, permissions, consent/policies, exports/deletion, billing changes and service-control outcomes. A command accepted for delivery and a command confirmed successful are distinct events.
 
 Workspace isolation applies to API queries, ingestion, reports/exports, audit access, agents and commands. Phase 1 enforces existing workspace device-access gates and tests isolation. Full organization/guardian/device-specific grants and audit persistence arrive with their domains; no implemented full audit pipeline is claimed here.
+
+## Phase 7 developer state
+
+Consented summaries exclude paths, arguments, addresses and traffic. Commands/audit expire through seven-day scheduled maintenance, stale reports are hidden after fifteen seconds and stored summaries are cleared by bounded maintenance. Own policies/requested commands are included in export without lease secrets. Erasure clears remote snapshots/commands/audit; account deletion also scrubs controller grants. Private agent receipts are bounded and cleared on unpair/revocation. See [remote lifecycle](remote-service-commands.md) for exact limits and operation.
