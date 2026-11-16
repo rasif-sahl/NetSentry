@@ -67,14 +67,19 @@ const backend = createServer(async (req, res) => {
 const options = { stateDir, binary };
 const call = async (method, payload) => {
   const result = await requestServices(options, method, payload);
-  validatePayload("local-ipc.v3.schema.json", {
-    schemaVersion: 3,
+  const version = ["get_remote_preferences", "set_remote_preferences"].includes(
+    method,
+  )
+    ? 4
+    : 3;
+  validatePayload(`local-ipc.v${version}.schema.json`, {
+    schemaVersion: version,
     requestId: randomUUID(),
     method,
     payload,
   });
-  validatePayload("local-ipc-response.v3.schema.json", {
-    schemaVersion: 3,
+  validatePayload(`local-ipc-response.v${version}.schema.json`, {
+    schemaVersion: version,
     requestId: randomUUID(),
     ok: result.ok,
     code: result.ok ? "OK" : result.code,
@@ -140,6 +145,17 @@ try {
       break;
     await delay(25);
   }
+  const remotePreferences = await call("get_remote_preferences", {});
+  assert.equal(remotePreferences.ok, true);
+  assert.equal(remotePreferences.data.sharing, false);
+  assert.equal(remotePreferences.data.control, false);
+  const unaccepted = await requestServices(options, "set_remote_preferences", {
+    sharing: true,
+    control: true,
+    accepted: false,
+    disclosureVersion: "developer-sharing-v1",
+  });
+  assert.equal(unaccepted.code, "REMOTE_SETTINGS_FAILED");
   let inventory = await call("list_services", { query: "", offset: 0 });
   assert.equal(inventory.ok, true);
   assert.equal(inventory.data.localControlAllowed, false);

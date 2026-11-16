@@ -1,3 +1,4 @@
+import { RemoteSharing } from "./RemoteSharing";
 import { Services } from "./Services";
 import { useEffect, useState } from "react";
 import type { AgentResult, AgentStatus } from "../main/agent-types";
@@ -38,7 +39,8 @@ export function App() {
       <p>
         Manage the shared agent’s pairing and local preferences. Inspect
         development services and confirm local shutdown on supported macOS
-        agents. Network collection and remote commands arrive later.
+        agents. Network collection remains a later phase. Remote service access
+        requires separate opt-in.
       </p>
       <p role="status">{message}</p>
       <button
@@ -145,12 +147,16 @@ export function App() {
               setting does not install or start a system service.
             </p>
             <p>
-              Remote control: unavailable. Revoke pairing or erase agent data
-              from workspace settings/API.
+              Remote access is off until explicitly enabled below and authorized
+              in the workspace. Revoke pairing or erase agent data from
+              workspace settings/API.
             </p>
           </section>
         </>
       )}
+      <RemoteSharing
+        enabled={Boolean(status?.paired && status.requested.developer)}
+      />
       <Services
         enabled={Boolean(status?.paired && status.requested.developer)}
         installationId={status?.installationId || ""}

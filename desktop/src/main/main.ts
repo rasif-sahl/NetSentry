@@ -15,6 +15,8 @@ ipcMain.handle(
     )
       return { ok: false, code: "INVALID_REQUEST" };
     const call = [
+      "get_remote_preferences",
+      "set_remote_preferences",
       "list_services",
       "request_stop",
       "set_project",

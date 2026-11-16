@@ -1,3 +1,4 @@
+import type { RemotePreferences } from "./service-types.js";
 import type {
   Inventory,
   Action,
@@ -26,6 +27,12 @@ export type AgentStatus = {
 export type AgentResult =
   { ok: true; status: AgentStatus } | { ok: false; code: string };
 export type AgentBridge = {
+  getRemotePreferences(): Promise<ServiceResult<RemotePreferences>>;
+  setRemotePreferences(
+    sharing: boolean,
+    control: boolean,
+    accepted: boolean,
+  ): Promise<ServiceResult<RemotePreferences>>;
   listServices(
     query: string,
     offset: number,
