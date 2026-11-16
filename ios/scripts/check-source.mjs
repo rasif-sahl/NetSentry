@@ -27,6 +27,14 @@ if (process.platform === 'darwin') {
   const objects = parsed.objects;
   const targets = Object.values(objects).filter(o=>o.isa==='PBXNativeTarget');
   for (const target of targets) {
+    const configurations = objects[target.buildConfigurationList].buildConfigurations.map(id=>objects[id]);
+    for (const configuration of configurations) {
+      const s = configuration.buildSettings;
+      assert.equal(s.NETSENTRY_BUNDLE_PREFIX, configuration.name === 'Debug' ? 'com.netsentry.app.native.dev' : 'com.netsentry.app');
+      assert.equal(s.PRODUCT_BUNDLE_IDENTIFIER, '$(NETSENTRY_BUNDLE_PREFIX)' + (target.productType === 'com.apple.product-type.app-extension' ? '.'+target.name : ''));
+      assert.ok(!s.DEVELOPMENT_TEAM && !s.CODE_SIGN_ENTITLEMENTS, 'No signing authority is provisioned by project generation.');
+    }
+
     const sources = target.buildPhases.map(id=>objects[id]).filter(p=>p.isa==='PBXSourcesBuildPhase').flatMap(p=>p.files.map(id=>objects[objects[id].fileRef].path));
     if(target.name==='ActivityReport') assert.deepEqual(sources.sort(),['Extensions/ActivityReport/ActivityReport.swift','Shared/ReportContext.swift']);
     if(target.name==='NetSentry') assert.equal(target.dependencies.length,0);
