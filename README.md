@@ -10,9 +10,9 @@ NetSentry is being built for device/network monitoring, family digital wellbeing
 | `dashboard/` | Next.js, React, TypeScript, Tailwind CSS | Connected account/workspace, monitoring, team and privacy UI; later domains are explicitly planned |
 | `android/` | Kotlin, Jetpack Compose | New independent native source/build scaffold |
 | `ios/` | Swift, SwiftUI | New independent native source/Xcode project scaffold |
-| `desktop/` | Electron, React, TypeScript, Vite | New desktop interface and isolated native shell |
-| `agent/` | Go | Shared core and independent network/developer module boundaries |
-| `contracts/` | JSON Schema and synthetic fixtures | Initial versioned capability-report contract |
+| `desktop/` | Electron, React, TypeScript, Vite | Agent pairing/status/preferences through authenticated local IPC |
+| `agent/` | Go | Revocable identity, heartbeat, offline buffer and independently gated module foundation |
+| `contracts/` | JSON Schema and synthetic fixtures | Versioned API/measurement/capability/IPC contracts and synthetic fixtures |
 | `docs/` | Markdown | Architecture, backlog and verification records |
 | `infra/` | Infrastructure configuration, introduced as needed | Setup boundaries; no services provisioned yet |
 | `mobile/` | Flutter/Dart | Preserved reference application; not the target mobile stack |
@@ -56,6 +56,9 @@ Agent commands require an existing Go 1.23+ toolchain. Native build/signing comm
 - [Phase 2 verification](docs/validation/phase-2.md)
 - [Phase 3 verification](docs/validation/phase-3.md)
 - [Phase 4 verification](docs/validation/phase-4.md)
+- [Phase 5 verification](docs/validation/phase-5.md)
+- [Agent runtime and pairing](agent/README.md)
+- [Agent package/service decision](docs/architecture/agent-distribution.md)
 - [Responsive web dashboard](docs/features/dashboard.md)
 - [Measurements, reports and notifications](docs/features/monitoring.md)
 - [Account verification and recovery](docs/features/accounts.md)
@@ -83,7 +86,7 @@ npm run test:api
 
 The database check verifies clean migration, rollback, constraints, schema drift refusal and existing-data adoption. The API check validates actual operation responses against OpenAPI and exercises session, workspace, device-ownership and viewer-permission boundaries. Both use only fixture data and remove their fixture schema afterward. Neither provisions a database server.
 
-The Foundation checks workflow uses isolated PostgreSQL on GitHub Actions, checks backend/contracts/desktop, and builds/runs the Go scaffold on a CI Go toolchain. It has no mobile setup/build/simulator steps and does not deploy the application. Native builds and real-device tests remain deferred.
+The Foundation checks workflow uses isolated PostgreSQL on GitHub Actions, checks backend/contracts/desktop, and builds/runs the Go agent foundation on a CI Go toolchain. It has no mobile setup/build/simulator steps and does not deploy the application. Native builds and real-device tests remain deferred.
 
 ## Phase 2 setup
 
@@ -104,3 +107,7 @@ Measurement batches, usage reports/CSV, retention, manual network labels, alert 
 Configure the dashboard's server-only API base and exact browser origin using `dashboard/.env.example`, then run `npm run dev:dashboard` (port 3001). Real account/workspace, device, report, alert, team, profile and privacy flows now replace the preview data. Future modules are explicitly marked planned. See [dashboard setup and browser checks](dashboard/README.md).
 
 `npm run test:dashboard` runs desktop-browser flows against a disposable PostgreSQL fixture server after backend/dashboard builds. An existing desktop Chrome may be selected with `PLAYWRIGHT_CHROME_EXECUTABLE`; CI prepares desktop Chromium only. Native SDKs, emulators and real-device acceptance remain deferred.
+
+## Phase 5 agent integration checks
+
+Build the Go executable separately as described in [agent/README.md](agent/README.md). Set `TEST_AGENT_BINARY` to its absolute path when running `npm run test:api` to include the actual Go process/backend outage and revocation scenario. After desktop build, `TEST_AGENT_BINARY=/absolute/path/to/netsentry-agent npm run test:desktop-agent` checks Node–Go IPC without installing or launching Electron. These checks use temporary, private, loopback-only fixture credentials. They do not install a persistent service or verify native Keychain/Electron acceptance.

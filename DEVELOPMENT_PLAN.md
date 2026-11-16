@@ -214,6 +214,8 @@ Completion: browser-based end-to-end flows pass for implemented domains; future 
 
 ### Phase 5 Shared Go agent
 
+Status: shared core, backend agent identity and authenticated desktop IPC implemented and development-process integration verified. See `docs/validation/phase-5.md` for platform/build/runtime distinctions and signing/service/native acceptance gates. No collectors, service-stop commands or persistent service were enabled.
+
 - Implement enrolment/revocable identity, workspace association, authenticated outbound connection, heartbeats, capability reporting and diagnostics.
 - Add bounded local buffering, synchronization/reconnect behavior, configuration and version reporting.
 - Keep Network Monitoring and Developer Tools independently enabled and separately authorized.
