@@ -29,6 +29,9 @@ class Repository(
     private var notifications = emptyList<JSONObject>()
     private var preferences = JSONObject()
     private var disclosures = JSONObject()
+    private var familyOverview: JSONObject? = null
+    private var familyDetail: JSONObject? = null
+    private var familySync = "Family policy not checked"
     private var lastSync = "Not synchronized"
 
     data class View(
@@ -37,11 +40,12 @@ class Repository(
         val report: JSONObject?, val applicationReport: JSONObject?, val appUsageEnabled: Boolean, val computers: List<JSONObject>, val commands: Map<String, List<JSONObject>>,
         val rules: List<JSONObject>, val alerts: List<JSONObject>, val notifications: List<JSONObject>,
         val preferences: JSONObject, val disclosures: JSONObject, val queueSize: Int, val syncStatus: String,
+        val familyOverview: JSONObject?, val familyDetail: JSONObject?, val familySync: String,
     )
     @Synchronized fun view(): View = View(state.has("session"), state.optString("base"), profile,
         workspaces, state.optString("workspaceId"), devices, ownDevice(), state.optBoolean("collect"),
         report, applicationReport, state.optBoolean("appUsage"), computers, commands, rules, alerts, notifications, preferences, disclosures,
-        state.optJSONArray("queue")?.length() ?: 0, lastSync)
+        state.optJSONArray("queue")?.length() ?: 0, lastSync, familyOverview, familyDetail, familySync)
     private fun save() = store.write(state)
     private fun api(): Transport = transport(state.getString("base"))
     private fun ownDevice(): JSONObject? = state.optJSONObject("device")?.optJSONObject("public")
@@ -81,6 +85,7 @@ class Repository(
         }
     }
     private fun clearViews() {
+        familyOverview = null; familyDetail = null; familySync = "Family policy not checked"
         profile = null; devices = emptyList(); computers = emptyList(); commands = emptyMap()
         report = null; applicationReport = null; applicationQuery = null; rules = emptyList(); alerts = emptyList(); notifications = emptyList(); preferences = JSONObject()
     }
@@ -126,6 +131,54 @@ class Repository(
                 state.getJSONObject("device").put("public", it); save()
             }
         }
+    }
+    @Synchronized fun refreshFamily(profileId: String? = null) {
+        val requestedProfile = profileId ?: familyDetail?.optJSONObject("profile")?.optString("id")
+        familyOverview = null; familyDetail = null
+        if (workspaces.firstOrNull { it.getString("id") == state.optString("workspaceId") }?.optString("type") != "FAMILY") return
+        val base = "/workspaces/${workspace()}/family"
+        val overview = account("GET", base) as JSONObject
+        familyOverview = overview
+        val profiles = overview.getJSONArray("profiles").objects()
+        val selected = profiles.firstOrNull { it.getString("id") == requestedProfile } ?: profiles.firstOrNull()
+        if (selected != null) familyDetail = account("GET", "$base/profiles/${Policy.uuid(selected.getString("id"))}") as JSONObject
+    }
+    private fun familyPath(): String = "/workspaces/${workspace()}/family/profiles/${Policy.uuid(familyDetail?.getJSONObject("profile")?.getString("id") ?: error("Choose a child profile."))}"
+    @Synchronized fun withdrawOwnFamily(id: String) {
+        account("DELETE", "/devices/${Policy.uuid(id)}/family-assignment"); refreshFamily()
+    }
+    @Synchronized fun consentFamily() {
+        val selected = familyDetail!!.getJSONObject("profile").getString("id")
+        account("POST", "${familyPath()}/devices", json("deviceId" to deviceId(), "accepted" to true, "disclosureVersion" to "family-sharing-v1"))
+        refreshFamily(selected)
+    }
+    @Synchronized fun withdrawFamily(id: String) {
+        val selected = familyDetail!!.getJSONObject("profile").getString("id")
+        account("DELETE", "${familyPath()}/devices/${Policy.uuid(id)}"); refreshFamily(selected)
+    }
+    @Synchronized fun familyTime(id: String, minutes: Int, reason: String, direct: Boolean) {
+        require(minutes in 1..120 && reason.isNotBlank() && reason.length <= 200)
+        val selected = familyDetail!!.getJSONObject("profile").getString("id")
+        val revision = familyDetail!!.getJSONObject("policy").getInt("revision")
+        account("POST", "${familyPath()}/${if (direct) "overrides" else "requests"}", json("id" to Policy.uuid(id), "minutes" to minutes,
+            "reason" to reason, "policyRevision" to revision)); refreshFamily(selected)
+    }
+    @Synchronized fun decideFamily(requestId: String, decision: String) {
+        require(decision in listOf("approved", "rejected", "cancelled"))
+        val selected = familyDetail!!.getJSONObject("profile").getString("id")
+        account("PATCH", "${familyPath()}/requests/${Policy.uuid(requestId)}", json("decision" to decision)); refreshFamily(selected)
+    }
+    @Synchronized fun checkFamilyPolicy() {
+        familySync = "Family policy unavailable; no restriction is applied"
+        if (!state.has("device")) return
+        val config = device("GET", "/configuration")
+        val generation = config.getInt("generation")
+        val response = device("POST", "/family/configuration", json("generation" to generation))
+        val receipt = FamilyWire.receipt(response, generation)
+        if (receipt != null) {
+            device("POST", "/family/receipt", receipt)
+            familySync = "Policy revision ${receipt.getInt("policyRevision")}: ${receipt.getString("status")}. No device restriction is claimed applied."
+        } else familySync = "No current authorized family policy for this device"
     }
     @Synchronized fun refreshDeveloper() {
         computers = emptyList(); commands = emptyMap()
@@ -220,6 +273,11 @@ class Repository(
     private fun healthBatteryRestricted(): Boolean = usage.metadata().optString("batteryOptimizationStatus") == "restricted"
     @Synchronized fun sync(manual: Boolean = false) {
         if (!state.has("session") || !state.has("device")) return
+        try { checkFamilyPolicy() } catch (error: ApiFailure) {
+            familySync = "Policy synchronization unavailable; no restriction is applied"
+            if (error.status == 401) throw error
+        } catch (_: Exception) { familySync = "Policy synchronization unavailable; no restriction is applied" }
+        if (!state.has("device")) return
         if (state.optBoolean("pendingPermissionHealth")) {
             val config = device("GET", "/configuration")
             device("POST", "/heartbeat", usage.metadata().put("generation", config.getInt("generation")).put("permissionStatus", "revoked").put("monitoringHealth", "permission_required"))

@@ -70,6 +70,14 @@ import java.time.Instant
     var tab by remember { mutableStateOf("Phone") }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(state?.signedIn, state?.workspaceId, tab) {
+        if (state?.signedIn == true && tab == "Family") {
+            model.run("Family observations refreshed") { refreshFamily() }
+            while (true) {
+                delay(30000)
+                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && !model.busy)
+                    model.run("Family observations refreshed") { refreshFamily() }
+            }
+        }
         if (state?.signedIn == true && tab == "Computers") {
             while (true) {
                 delay(5000)
@@ -94,7 +102,7 @@ import java.time.Instant
                     Action("Send verification email", model) { requestVerification() }
                 }
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Phone", "Usage", "Apps", "Computers", "Settings").forEach { label ->
+                    listOf("Phone", "Usage", "Apps", "Family", "Computers", "Settings").forEach { label ->
                         OutlinedButton(onClick = { tab = label }, enabled = !model.busy) { Text(label) }
                     }
                 }
@@ -110,6 +118,7 @@ import java.time.Instant
                     "Phone" -> Phone(state, model)
                     "Usage" -> Usage(state, model)
                     "Apps" -> ApplicationScreen(state, model)
+                    "Family" -> FamilyScreen(state, model)
                     "Computers" -> Computers(state, model)
                     else -> SettingsScreen(state, model)
                 }

@@ -12,10 +12,11 @@ ANDROID_CHECK_TEMP="$(mktemp -d)"
 trap 'rm -rf "$ANDROID_CHECK_TEMP"' EXIT
 ANDROID_COMPILER_LIB="$(cd "$(dirname "$KOTLINC")/../lib" && pwd)"
 "$KOTLINC" "$ANDROID_CHECK_ROOT"/android/app/src/main/java/com/netsentry/app/core/*.kt \
-  "$ANDROID_CHECK_ROOT"/android/app/src/main/java/com/netsentry/app/data/{Api,Wire,ApplicationWire,Repository}.kt \
-  "$ANDROID_CHECK_ROOT"/android/test/PersonalChecks.kt "$ANDROID_CHECK_ROOT"/android/test/AdvancedChecks.kt -cp "$ANDROID_CLIENT_CP" -include-runtime -d "$ANDROID_CHECK_TEMP/checks.jar"
+  "$ANDROID_CHECK_ROOT"/android/app/src/main/java/com/netsentry/app/data/{Api,Wire,ApplicationWire,FamilyWire,Repository}.kt \
+  "$ANDROID_CHECK_ROOT"/android/test/PersonalChecks.kt "$ANDROID_CHECK_ROOT"/android/test/AdvancedChecks.kt "$ANDROID_CHECK_ROOT"/android/test/FamilyChecks.kt -cp "$ANDROID_CLIENT_CP" -include-runtime -d "$ANDROID_CHECK_TEMP/checks.jar"
 "$JAVA_HOME/bin/java" -cp "$ANDROID_CHECK_TEMP/checks.jar:$ANDROID_CLIENT_CP" PersonalChecksKt "$ANDROID_CHECK_TEMP/wire.json"
 "$JAVA_HOME/bin/java" -cp "$ANDROID_CHECK_TEMP/checks.jar:$ANDROID_CLIENT_CP" AdvancedChecksKt "$ANDROID_CHECK_TEMP/app-usage.json"
+"$JAVA_HOME/bin/java" -cp "$ANDROID_CHECK_TEMP/checks.jar:$ANDROID_CLIENT_CP" FamilyChecksKt
 node "$ANDROID_CHECK_ROOT/android/scripts/check-applications.mjs" "$ANDROID_CHECK_TEMP/app-usage.json"
 node "$ANDROID_CHECK_ROOT/android/scripts/check-contracts.mjs" "$ANDROID_CHECK_TEMP/wire.json"
 "$KOTLINC" "$ANDROID_CHECK_ROOT/android/test/SyntaxChecks.kt" -cp "$ANDROID_COMPILER_LIB/kotlin-compiler.jar" -include-runtime -d "$ANDROID_CHECK_TEMP/syntax.jar"

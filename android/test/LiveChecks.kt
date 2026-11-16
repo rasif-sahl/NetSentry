@@ -66,6 +66,27 @@ fun main(args: Array<String>) {
     // Remote observations use the real wall clock, independent of the synthetic accounting delay.
     clockOffset = 0
     frozenClock = null
+    val familyProfileId=fixture.getString("familyProfileId")
+    repository.refreshFamily(familyProfileId)
+    check(repository.view().familyDetail!!.getBoolean("canManage"))
+    repository.consentFamily()
+    repository.checkFamilyPolicy()
+    check(repository.view().familySync.contains("unsupported"))
+    repository.refreshFamily(familyProfileId)
+    check(repository.view().familyDetail!!.array("devices").any { it.getString("enforcement")=="unsupported" })
+    val child=Repository(EphemeralStore(),usage,{})
+    child.signIn(base,fixture.getJSONObject("accounts").getJSONObject("child").getString("email"),fixture.getString("password"))
+    child.selectWorkspace(fixture.getString("workspaceId"));child.refreshFamily(familyProfileId)
+    check(child.view().familyDetail!!.getBoolean("canRequest"))
+    val familyRequest=java.util.UUID.randomUUID().toString()
+    child.familyTime(familyRequest,15,"Synthetic Kotlin homework",false)
+    val guardian=Repository(EphemeralStore(),usage,{})
+    guardian.signIn(base,fixture.getJSONObject("accounts").getJSONObject("guardian").getString("email"),fixture.getString("password"))
+    guardian.selectWorkspace(fixture.getString("workspaceId"));guardian.refreshFamily(familyProfileId)
+    guardian.decideFamily(familyRequest,"approved")
+    child.refreshFamily(familyProfileId)
+    check(child.view().familyDetail!!.getJSONObject("desired").getString("state")=="overridden")
+    child.signOut();guardian.signOut()
     repository.refreshDeveloper()
     val computer = repository.view().computers.first { it.optBoolean("canControl") && it.array("services").isNotEmpty() }
     val service = computer.array("services").first()
@@ -76,9 +97,12 @@ fun main(args: Array<String>) {
     check(pending.getString("state") == "pending") // Synthetic publisher never executes a signal.
     repository.cancel(computer.getString("id"), pending.getString("id"))
     check(repository.view().commands[computer.getString("id")]!!.first { it.getString("id") == pending.getString("id") }.getString("state") == "cancelled")
+    repository.withdrawOwnFamily(repository.view().ownDevice!!.getString("id"))
+    repository.checkFamilyPolicy()
+    check(repository.view().familySync.contains("No current authorized family policy"))
     repository.deviceAction("erase")
     check(repository.view().ownDevice == null && !repository.view().localEnabled)
     repository.signOut()
     check(!repository.view().signedIn)
-    println("Actual Kotlin HTTPS/NestJS/PostgreSQL account, enrolment, consent, network/detailed app upload/report, categories/corrections/CSV/health rules, allowance, remote request/cancel and erasure passed. OS/desktop observations were synthetic; no phone or native signal was tested.")
+    println("Actual Kotlin HTTPS/NestJS/PostgreSQL account, enrolment, consent, network/detailed app upload/report, categories/corrections/CSV/health rules, allowance, scoped family consent/unsupported receipt/child request/guardian approval, remote request/cancel and erasure passed. OS/desktop observations were synthetic; no phone or native signal was tested.")
 }
