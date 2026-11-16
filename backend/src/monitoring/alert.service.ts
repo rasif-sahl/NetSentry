@@ -127,7 +127,8 @@ export class AlertService {
         (!input.deviceId ||
           input.networkId ||
           input.metric ||
-          input.applicationId)
+          input.applicationId ||
+          input.quality)
       )
         throw new BadRequestException('Health rules require a single device.');
       if (input.quietHours?.start === input.quietHours?.end && input.quietHours)
@@ -313,11 +314,12 @@ export async function evaluateWorkspace(
               .getRepository(DailyUsage)
               .createQueryBuilder('u')
               .where(
-                'u.workspaceId=:wid AND u.deviceId IN (:...ids) AND u.metric=:metric AND u.applicationId=:app AND u.quality=\'measured\' AND u."localDate" >= :start AND u."localDate" < :finish',
+                'u.workspaceId=:wid AND u.deviceId IN (:...ids) AND u.metric=:metric AND u.applicationId=:app AND u.quality=:quality AND u."localDate" >= :start AND u."localDate" < :finish',
                 {
                   wid: workspaceId,
                   ids: devices.map((d) => d.id),
                   metric: config.metric,
+                  quality: config.quality ?? 'measured',
                   app: config.applicationId ?? '',
                   start: window.start,
                   finish: window.finish,
@@ -375,6 +377,7 @@ export async function evaluateWorkspace(
               severity: config.severity,
               value,
               windowKey,
+              ...(config.kind === 'threshold' ? { quality: config.quality ?? 'measured' } : {}),
             },
             acknowledgedAt: null,
             resolvedAt: null,

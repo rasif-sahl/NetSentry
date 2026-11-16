@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "NetSentry API",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "description": "Implemented account, workspace, device enrolment/lifecycle, health/capability reporting and privacy APIs. Measurement ingestion, router actions and service-command execution remain future contracts. POST endpoints retain 201 defaults. Direct device registration is disabled in favor of explicit enrolment."
   },
   "servers": [
@@ -11583,6 +11583,14 @@
           "networkId": {
             "type": "string",
             "format": "uuid"
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "estimated"
+            ],
+            "description": "Threshold source quality. Defaults to measured; estimated is a separate explicit rule and is never summed with measured."
           }
         },
         "required": [
@@ -11702,6 +11710,14 @@
               },
               "enabled": {
                 "type": "boolean"
+              },
+              "quality": {
+                "type": "string",
+                "enum": [
+                  "measured",
+                  "estimated"
+                ],
+                "description": "Threshold source quality. Defaults to measured; estimated is a separate explicit rule and is never summed with measured."
               }
             },
             "required": [
@@ -11782,6 +11798,13 @@
               },
               "windowKey": {
                 "type": "string"
+              },
+              "quality": {
+                "type": "string",
+                "enum": [
+                  "measured",
+                  "estimated"
+                ]
               }
             },
             "required": [
@@ -11938,6 +11961,13 @@
               },
               "windowKey": {
                 "type": "string"
+              },
+              "quality": {
+                "type": "string",
+                "enum": [
+                  "measured",
+                  "estimated"
+                ]
               }
             },
             "required": [

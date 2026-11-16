@@ -35,6 +35,7 @@ export class AlertRuleDto {
   ])
   metric?: string;
   @IsOptional() @IsString() @MaxLength(255) applicationId?: string;
+  @IsOptional() @IsIn(['measured', 'estimated']) quality?: 'measured' | 'estimated';
   @IsOptional() @IsUUID() deviceId?: string;
   @IsOptional() @IsUUID() networkId?: string;
   @IsIn(['day', 'week', 'month']) period!: 'day' | 'week' | 'month';
