@@ -86,12 +86,13 @@ type captured struct {
 	at        time.Time
 }
 type Manager struct {
-	mu           sync.Mutex
-	adapter      Adapter
-	path         string
-	value        state
-	observations map[string]captured
-	now          func() time.Time
+	mu                 sync.Mutex
+	adapter            Adapter
+	path               string
+	value              state
+	remoteObservations map[string]captured
+	observations       map[string]captured
+	now                func() time.Time
 }
 
 func New(dir string, adapter Adapter) (*Manager, error) {
@@ -172,6 +173,9 @@ func protected(all []Process, pid int) bool {
 func (m *Manager) Scan(ctx context.Context, query string, offset int, control bool) (Inventory, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	return m.scan(ctx, query, offset, control)
+}
+func (m *Manager) scan(ctx context.Context, query string, offset int, control bool) (Inventory, error) {
 	now := m.now()
 	out := Inventory{SchemaVersion: 1, Services: []Service{}, ObservedAt: core.Timestamp(now), ExpiresAt: core.Timestamp(now.Add(ObservationTTL)), PlatformSupported: m.adapter.Supported(), LocalControlAllowed: control, NextOffset: -1}
 	if !m.adapter.Supported() {
@@ -304,6 +308,9 @@ func (m *Manager) History() ([]Action, error) {
 func (m *Manager) Stop(ctx context.Context, input StopInput) (Action, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	return m.stop(ctx, input)
+}
+func (m *Manager) stop(ctx context.Context, input StopInput) (Action, error) {
 	if !core.ValidUUID(input.ActionID) || len(input.ServiceID) != 64 || !core.ValidUUID(input.ObservationID) || (input.Mode != "graceful" && input.Mode != "force") {
 		return Action{}, errors.New("INVALID_REQUEST")
 	}
@@ -475,6 +482,7 @@ func (m *Manager) Reset() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.observations = map[string]captured{}
+	m.remoteObservations = map[string]captured{}
 	m.value = state{1, map[string]string{}, []savedAction{}}
 	if _, err := os.Lstat(m.path); os.IsNotExist(err) {
 		return nil
@@ -496,4 +504,52 @@ func (m *Manager) Retain() error {
 		return err
 	}
 	return nil
+}
+
+// Independent remote observations do not invalidate a local confirmation dialog.
+func (m *Manager) RemoteScan(ctx context.Context, control bool) ([]Service, int, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	local := m.observations
+	inventory, err := m.scan(ctx, "", 0, control)
+	capturedSet := m.observations
+	m.observations = local
+	if err != nil {
+		return nil, 0, err
+	}
+	if m.remoteObservations == nil {
+		m.remoteObservations = map[string]captured{}
+	}
+	for id, c := range m.remoteObservations {
+		if !m.fresh(c) {
+			delete(m.remoteObservations, id)
+		}
+	}
+	values := []captured{}
+	for _, c := range capturedSet {
+		values = append(values, c)
+	}
+	sort.Slice(values, func(i, j int) bool { return values[i].process.PID < values[j].process.PID })
+	out := []Service{}
+	for _, c := range values[:min(32, len(values))] {
+		m.remoteObservations[c.service.ObservationID] = c
+		out = append(out, c.service)
+	}
+	if len(m.remoteObservations) > 512 {
+		m.remoteObservations = map[string]captured{}
+		return nil, 0, errors.New("remote observation limit")
+	}
+	return out, inventory.Total, nil
+}
+func (m *Manager) RemoteStop(ctx context.Context, input StopInput) (Action, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	local := m.observations
+	defer func() { m.observations = local }()
+	m.observations = map[string]captured{}
+	if c, ok := m.remoteObservations[input.ObservationID]; ok && c.service.ID == input.ServiceID {
+		m.observations[input.ServiceID] = c
+	}
+	delete(m.remoteObservations, input.ObservationID)
+	return m.stop(ctx, input)
 }

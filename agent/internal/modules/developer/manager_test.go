@@ -267,3 +267,20 @@ func TestRetentionRemovesOldReceiptsFromDisk(t *testing.T) {
 		t.Fatal("expired receipt remained", err)
 	}
 }
+
+func TestRemoteObservationsDoNotReplaceLocalConfirmation(t *testing.T) {
+	m, f, _ := fixture(t)
+	local := observed(t, m, true)
+	remote, _, err := m.RemoteScan(context.Background(), true)
+	if err != nil || len(remote) != 1 {
+		t.Fatal(err)
+	}
+	action, err := m.Stop(context.Background(), input(local))
+	if err != nil || action.Outcome != "stopped" {
+		t.Fatal("remote scan invalidated local confirmation", action, err)
+	}
+	action, err = m.RemoteStop(context.Background(), input(remote[0]))
+	if err != nil || action.Outcome != "already_stopped" || len(f.signals) != 1 {
+		t.Fatal("remote observation retargeted a stopped process", action, err)
+	}
+}

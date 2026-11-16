@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/local-ipc.v4.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 4
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "get_remote_preferences"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {}
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 4
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "set_remote_preferences"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sharing",
+            "control",
+            "accepted",
+            "disclosureVersion"
+          ],
+          "properties": {
+            "sharing": {
+              "type": "boolean"
+            },
+            "control": {
+              "type": "boolean"
+            },
+            "accepted": {
+              "type": "boolean"
+            },
+            "disclosureVersion": {
+              "const": "developer-sharing-v1"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "control": {
+                    "const": true
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "sharing": {
+                    "const": true
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "sharing": {
+                        "const": true
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "control": {
+                        "const": true
+                      }
+                    }
+                  }
+                ]
+              },
+              "then": {
+                "properties": {
+                  "accepted": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

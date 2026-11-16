@@ -54,6 +54,9 @@ func command(args []string) error {
 	networkEnabled := flags.Bool("network", false, "")
 	developerEnabled := flags.Bool("developer", false, "")
 	allowBackground := flags.Bool("allow-background", false, "")
+	shareServices := flags.Bool("share-services", false, "")
+	allowRemote := flags.Bool("allow-remote-control", false, "")
+	acceptRemote := flags.Bool("accept-remote-disclosure", false, "")
 	allowLocalControl := flags.Bool("allow-local-control", false, "")
 	if flags.Parse(args[1:]) != nil || flags.NArg() != 0 {
 		return errors.New("invalid command options; see agent/README.md")
@@ -111,6 +114,23 @@ func command(args []string) error {
 	}
 	switch args[0] {
 	case "settings":
+		remoteChanged := false
+		share, remoteControl := config.ShareServices, config.RemoteControlAllowed
+		flags.Visit(func(option *flag.Flag) {
+			switch option.Name {
+			case "share-services":
+				share = *shareServices
+				remoteChanged = true
+			case "allow-remote-control":
+				remoteControl = *allowRemote
+				remoteChanged = true
+			}
+		})
+		if remoteChanged {
+			if err := agent.RemotePreferences(share, remoteControl, *acceptRemote); err != nil {
+				return err
+			}
+		}
 		modules := config.Requested
 		var bg *bool
 		flags.Visit(func(option *flag.Flag) {

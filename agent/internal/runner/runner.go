@@ -68,6 +68,9 @@ func New(dir string, config core.Config, store securestore.Store) (*Runner, erro
 	r := &Runner{developer: services, Dir: dir, Config: config, Store: store, Client: client, Queue: queue, connection: "unpaired"}
 	binding, err := securestore.Binding(store)
 	if errors.Is(err, securestore.ErrNotFound) {
+		if err := r.clearRemoteReceipts(); err != nil {
+			return nil, err
+		}
 		if err := r.developer.Reset(); err != nil {
 			return nil, err
 		}
@@ -112,10 +115,16 @@ func (r *Runner) Pair(ctx context.Context, token string) error {
 	if err := remote.Validate(result.Configuration, binding); err != nil {
 		return err
 	}
+	if err := r.clearRemoteReceipts(); err != nil {
+		return err
+	}
 	if err := r.developer.Reset(); err != nil {
 		return err
 	}
 	r.Config.LocalControlAllowed = false
+	r.Config.RemotePausePending = false
+	r.Config.ShareServices = false
+	r.Config.RemoteControlAllowed = false
 	if err := core.WritePrivate(filepath.Join(r.Dir, "config.json"), r.Config); err != nil {
 		return err
 	}
@@ -146,6 +155,11 @@ func (r *Runner) Settings(modules *core.Modules, background *bool) error {
 	next := r.Config
 	if modules != nil {
 		next.Requested = *modules
+		if r.Config.Requested.Developer && !modules.Developer {
+			next.RemotePausePending = next.RemotePausePending || next.ShareServices || next.RemoteControlAllowed
+			next.ShareServices = false
+			next.RemoteControlAllowed = false
+		}
 	}
 	if background != nil {
 		next.BackgroundAllowed = *background
@@ -159,6 +173,9 @@ func (r *Runner) Settings(modules *core.Modules, background *bool) error {
 func (r *Runner) Unpair() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if err := r.clearRemoteReceipts(); err != nil {
+		return err
+	}
 	if err := r.developer.Reset(); err != nil {
 		return err
 	}
@@ -169,6 +186,9 @@ func (r *Runner) Unpair() error {
 		return err
 	}
 	r.Config.LocalControlAllowed = false
+	r.Config.RemotePausePending = false
+	r.Config.ShareServices = false
+	r.Config.RemoteControlAllowed = false
 	if err := core.WritePrivate(filepath.Join(r.Dir, "config.json"), r.Config); err != nil {
 		return err
 	}
@@ -260,7 +280,13 @@ func (r *Runner) failed(err error) error {
 			r.code = "CREDENTIAL_REVOKED"
 			r.remote = core.RemoteConfig{}
 			r.Config.LocalControlAllowed = false
+			r.Config.RemotePausePending = false
+			r.Config.ShareServices = false
+			r.Config.RemoteControlAllowed = false
 			if clear := core.WritePrivate(filepath.Join(r.Dir, "config.json"), r.Config); clear != nil {
+				return clear
+			}
+			if clear := r.clearRemoteReceipts(); clear != nil {
 				return clear
 			}
 			if clear := r.developer.Reset(); clear != nil {
@@ -305,6 +331,11 @@ func Delay(attempt int) time.Duration {
 	return base + time.Duration(jitter.Int64())
 }
 func (r *Runner) Run(ctx context.Context, background bool) error {
+	remoteCtx, cancelRemote := context.WithCancel(ctx)
+	remoteDone := make(chan struct{})
+	go func() { defer close(remoteDone); r.remoteLoop(remoteCtx) }()
+	defer func() { cancelRemote(); <-remoteDone }()
+
 	if background && !r.Config.BackgroundAllowed {
 		return errors.New("background operation is not locally enabled")
 	}
