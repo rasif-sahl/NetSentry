@@ -54,6 +54,7 @@ func command(args []string) error {
 	networkEnabled := flags.Bool("network", false, "")
 	developerEnabled := flags.Bool("developer", false, "")
 	allowBackground := flags.Bool("allow-background", false, "")
+	allowLocalControl := flags.Bool("allow-local-control", false, "")
 	if flags.Parse(args[1:]) != nil || flags.NArg() != 0 {
 		return errors.New("invalid command options; see agent/README.md")
 	}
@@ -122,6 +123,17 @@ func command(args []string) error {
 				bg = allowBackground
 			}
 		})
+		var control *bool
+		flags.Visit(func(option *flag.Flag) {
+			if option.Name == "allow-local-control" {
+				control = allowLocalControl
+			}
+		})
+		if control != nil {
+			if err := agent.LocalControl(*control); err != nil {
+				return err
+			}
+		}
 		if err := agent.Settings(&modules, bg); err != nil {
 			return err
 		}

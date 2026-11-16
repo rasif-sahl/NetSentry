@@ -391,7 +391,8 @@ export class AgentService {
         developer: {
           enabled: input.requested.developer && agent.modules.developer,
           status: 'temporarily_unavailable',
-          reason: 'Service discovery and control are not implemented.',
+          reason:
+            'Remote service inventory and commands are unavailable. Local tools depend on agent platform support and explicit local permission.',
         },
         backgroundAllowed: input.backgroundAllowed && agent.backgroundAllowed,
         droppedEvents: input.droppedEvents,
