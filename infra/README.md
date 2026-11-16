@@ -11,3 +11,5 @@ Network operations: apply migration twelve explicitly, store the independent rou
 Family operations: migration thirteen is explicit. Schedule `family:work -- <workspace-uuid>` to remove up to 1,000 requests older than thirty days and 1,000 family events older than ninety days per run; repeat cleanup batches after downtime. No scheduler, restriction service or managed-device provisioning is installed.
 
 Phase 14 adds container source, encrypted PostgreSQL recovery and signed release-candidate verification. Follow [the operational runbook](phase-14-runbook.md); image runtime, production hosting and signing are separate acceptance gates.
+
+Phase 15 adds [deployed runtime/router/recovery acceptance](../docs/release/network-and-operations-testing.md). Compose parsing, fixture recovery and offline package verification remain separate from production runtime, hardware and installer acceptance.
