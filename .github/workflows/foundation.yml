@@ -268,3 +268,34 @@ jobs:
         run: npm run check:ios
       - name: Compile portable Swift repository and validate emitted contracts
         run: npm run test:ios-core
+
+  production-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Prepare verification dependencies
+        run: |
+          npm --prefix backend ci --ignore-scripts --no-audit --no-fund
+          npm --prefix backend run build
+      - name: Resolve disposable test base images once
+        run: |
+          docker pull node:24-bookworm-slim
+          docker pull postgres:17-bookworm
+          docker pull nginx:stable
+          echo "TEST_SERVER_NODE_IMAGE=$(docker image inspect node:24-bookworm-slim --format '{{index .RepoDigests 0}}')" >> "$GITHUB_ENV"
+          echo "TEST_POSTGRES_IMAGE=$(docker image inspect postgres:17-bookworm --format '{{index .RepoDigests 0}}')" >> "$GITHUB_ENV"
+          echo "TEST_INGRESS_IMAGE=$(docker image inspect nginx:stable --format '{{index .RepoDigests 0}}')" >> "$GITHUB_ENV"
+      - name: Build candidate images from the resolved Node digest
+        run: |
+          docker build --build-arg SERVER_NODE_IMAGE="$TEST_SERVER_NODE_IMAGE" -f infra/backend.Dockerfile -t netsentry-fixture-backend:ci .
+          docker build --build-arg SERVER_NODE_IMAGE="$TEST_SERVER_NODE_IMAGE" -f infra/dashboard.Dockerfile -t netsentry-fixture-dashboard:ci .
+      - name: Verify isolated production-mode runtime and recovery
+        env:
+          RUN_PRODUCTION_FIXTURE: '1'
+          TEST_BACKEND_IMAGE: netsentry-fixture-backend:ci
+          TEST_DASHBOARD_IMAGE: netsentry-fixture-dashboard:ci
+        run: node infra/scripts/check-production.mjs

@@ -1,0 +1,21 @@
+services:
+  ingress:
+    image: ${INGRESS_IMAGE:?Provide a reviewed digest-pinned nginx image}
+    depends_on:
+      backend:
+        condition: service_healthy
+      dashboard:
+        condition: service_healthy
+    read_only: true
+    user: "10001:10001"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    ports: ["${HTTPS_BIND_ADDRESS:-127.0.0.1}:443:8443"]
+    volumes:
+      - ${INGRESS_CONFIG_FILE:?Provide generated nginx configuration}:/etc/netsentry/nginx.conf:ro
+      - ${TLS_CERT_DIR:?Provide private trusted TLS certificate directory}:/run/tls:ro
+    entrypoint: [nginx, -c, /etc/netsentry/nginx.conf, -g, "daemon off;"]
+    stop_grace_period: 30s
+    restart: unless-stopped

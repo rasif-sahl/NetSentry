@@ -38,6 +38,9 @@
     "test:desktop-updates": "npm --prefix desktop run test:updates",
     "test:desktop-background": "npm --prefix desktop run test:background",
     "test:desktop-launchd": "npm --prefix desktop run test:launchd",
-    "test:desktop-diagnostics": "npm --prefix desktop run test:diagnostics"
+    "test:desktop-diagnostics": "npm --prefix desktop run test:diagnostics",
+    "test:deployment": "node backend/scripts/check-deployment.mjs",
+    "test:production-runtime": "node infra/scripts/check-production.mjs",
+    "check:deployment": "node infra/scripts/deployment.mjs check"
   }
 }
