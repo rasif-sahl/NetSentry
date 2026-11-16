@@ -220,6 +220,12 @@ jobs:
           echo '85d4c1ab192d3117fd02c7fff1ec0fe63ade45cf56def7fe950ef060cf06e99f  json.jar' | sha256sum -c -
           echo "KOTLINC=$RUNNER_TEMP/android-jvm-tools/kotlinc/bin/kotlinc" >> "$GITHUB_ENV"
           echo "JSON_JAR=$RUNNER_TEMP/android-jvm-tools/json.jar" >> "$GITHUB_ENV"
+          curl -fL --retry 2 -o okhttp.jar https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.12.0/okhttp-4.12.0.jar
+          echo 'b1050081b14bb7a3a7e55a4d3ef01b5dcfabc453b4573a4fc019767191d5f4e0  okhttp.jar' | sha256sum -c -
+          curl -fL --retry 2 -o okio.jar https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.6.0/okio-jvm-3.6.0.jar
+          echo '67543f0736fc422ae927ed0e504b98bc5e269fda0d3500579337cb713da28412  okio.jar' | sha256sum -c -
+          echo "OKHTTP_JAR=$RUNNER_TEMP/android-jvm-tools/okhttp.jar" >> "$GITHUB_ENV"
+          echo "OKIO_JAR=$RUNNER_TEMP/android-jvm-tools/okio.jar" >> "$GITHUB_ENV"
       - name: Prepare shared contracts and actual fixture backend
         run: |
           npm --prefix contracts ci --ignore-scripts --no-audit --no-fund

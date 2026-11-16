@@ -18,6 +18,7 @@ data class UsageReading(val metric: String, val bytes: Long?, val reason: String
 interface UsageSource {
     fun granted(): Boolean
     fun read(start: Long, end: Long): List<UsageReading>
+    fun applications(start: Long, end: Long, checkpoint: com.netsentry.app.core.UsageCheckpoint?): ApplicationObservation? = null
     fun metadata(): JSONObject
 }
 object Wire {

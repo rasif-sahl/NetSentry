@@ -43,9 +43,10 @@ class AndroidUsageSource(private val context: Context) : UsageSource {
             catch (_: Exception) { UsageReading(metric, null, "OS statistics query failed; the interval is missing.") }
         }
     }
+    override fun applications(start: Long, end: Long, checkpoint: com.netsentry.app.core.UsageCheckpoint?) = AndroidApplicationUsage(context).read(start, end, checkpoint)
     override fun metadata(): JSONObject {
         val power = context.getSystemService(PowerManager::class.java)
-        return json("applicationVersion" to "0.8.0", "deviceModel" to "${Build.MANUFACTURER} ${Build.MODEL}".take(100),
+        return json("applicationVersion" to "0.9.0", "deviceModel" to "${Build.MANUFACTURER} ${Build.MODEL}".take(100),
             "operatingSystemVersion" to "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})".take(100),
             "batteryOptimizationStatus" to if (power?.isIgnoringBatteryOptimizations(context.packageName) == true) "unrestricted" else "restricted")
     }

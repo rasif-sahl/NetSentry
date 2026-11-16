@@ -1,0 +1,31 @@
+{
+  "generation": 2,
+  "collectedAt": "2026-11-16T12:00:10.000Z",
+  "sessions": [{
+    "start": "2026-11-16T12:00:01.000Z",
+    "end": "2026-11-16T12:00:09.000Z",
+    "applicationId": "com.example.reader"
+  }],
+  "schemaVersion": 1,
+  "screenKnown": true,
+  "screen": [{
+    "start": "2026-11-16T12:00:00.000Z",
+    "end": "2026-11-16T12:00:10.000Z"
+  }],
+  "batchId": "f0b0653f-47f1-4243-9deb-703c7fe65c57",
+  "deviceId": "00000000-0000-4000-8000-000000000003",
+  "issues": [],
+  "intervalEnd": "2026-11-16T12:00:10.000Z",
+  "intervalStart": "2026-11-16T12:00:00.000Z",
+  "appKnown": true,
+  "launches": [{
+    "at": "2026-11-16T12:00:01.000Z",
+    "applicationId": "com.example.reader"
+  }],
+  "workspaceId": "00000000-0000-4000-8000-000000000001",
+  "applications": [{
+    "platformCategory": "productivity",
+    "label": "Synthetic Reader",
+    "applicationId": "com.example.reader"
+  }]
+}

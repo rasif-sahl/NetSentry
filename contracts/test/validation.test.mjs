@@ -165,3 +165,21 @@ test("mobile/web remote commands cannot substitute a PID or shell command",()=>{
  delete request.pid;request.command='arbitrary shell text';
  assert.throws(()=>validateApiPayload('RemoteCommandInput',request));
 });
+
+test("detailed Android usage excludes activity classes and bounds metadata", () => {
+  const batch = readJSON("../android/test/fixtures/application-usage.v1.json");
+  validatePayload("app-usage-batch.v1.schema.json", batch);
+  validateApiPayload("ApplicationUsageBatch", batch);
+  assert.throws(() => validatePayload("app-usage-batch.v1.schema.json", { ...batch, activityClass: "private.Class" }));
+  const oversized = structuredClone(batch);
+  oversized.applications = Array(33).fill(batch.applications[0]);
+  assert.throws(() => validatePayload("app-usage-batch.v1.schema.json", oversized));
+  batch.intervalStart = batch.intervalStart.replace(".000Z", "Z");
+  assert.throws(() => validatePayload("app-usage-batch.v1.schema.json", batch));
+});
+
+test("detailed application consent is an explicit versioned addition", () => {
+  const input = { accepted: true, disclosureVersion: "monitoring-v3", scopes: ["app_usage"], appUsageDisclosureVersion: "app-usage-v1" };
+  validateApiPayload("DeviceConsentRequest", input);
+  assert.throws(() => validateApiPayload("DeviceConsentRequest", { ...input, appUsageDisclosureVersion: "future-or-invented" }));
+});
