@@ -35,15 +35,17 @@ export function App() {
     void perform(() => window.netsentry?.getAgentStatus());
   }, []);
   return (
-    <main>
-      <p className="eyebrow">NETSENTRY DESKTOP</p>
+    <main className="mx-auto max-w-[760px] px-6 py-16 max-[700px]:px-4 max-[700px]:py-7">
+      <p className="text-[0.8rem] font-bold tracking-[0.12em] text-primary">
+        NETSENTRY DESKTOP
+      </p>
       <h1>Connect this computer</h1>
       <Appearance />
       <p>
         Manage the shared agent’s pairing and local preferences. Inspect
         development services and confirm local shutdown on supported macOS
-        agents. Network observation sharing requires separate named-network setup below. Remote service access
-        requires separate opt-in.
+        agents. Network observation sharing requires separate named-network
+        setup below. Remote service access requires separate opt-in.
       </p>
       <p role="status">{message}</p>
       <button
@@ -54,7 +56,10 @@ export function App() {
       </button>
       {status && (
         <>
-          <section aria-labelledby="identity">
+          <section
+            className="mt-8 rounded-2xl border border-line bg-surface p-6 max-[700px]:p-[18px]"
+            aria-labelledby="identity"
+          >
             <h2 id="identity">Agent identity</h2>
             <p>
               Installation: <code>{status.installationId}</code>
@@ -100,7 +105,10 @@ export function App() {
               </form>
             )}
           </section>
-          <section aria-labelledby="modules">
+          <section
+            className="mt-8 rounded-2xl border border-line bg-surface p-6 max-[700px]:p-[18px]"
+            aria-labelledby="modules"
+          >
             <h2 id="modules">Local preferences</h2>
             <p>
               Workspace authorization is also required. Network collection
@@ -157,7 +165,9 @@ export function App() {
           </section>
         </>
       )}
-      <NetworkSharing enabled={Boolean(status?.paired && status.requested.network)} />
+      <NetworkSharing
+        enabled={Boolean(status?.paired && status.requested.network)}
+      />
       <RemoteSharing
         enabled={Boolean(status?.paired && status.requested.developer)}
       />

@@ -243,7 +243,10 @@ export function Services({
     ]);
   }
   return (
-    <section aria-labelledby="services-heading" className="developer-section">
+    <section
+      aria-labelledby="services-heading"
+      className="mt-8 break-words rounded-2xl border border-line bg-surface p-6 max-[700px]:p-[18px]"
+    >
       <h2 id="services-heading">Development services</h2>
       <p>
         Local TCP listeners owned by your user. Runtime labels are inferred from
@@ -259,7 +262,7 @@ export function Services({
       ) : (
         <>
           <form
-            className="toolbar"
+            className="my-4 flex flex-wrap items-end gap-3 [&_label]:min-w-[200px] [&_label]:flex-1"
             onSubmit={(event) => {
               event.preventDefault();
               setActiveQuery(query);
@@ -277,7 +280,7 @@ export function Services({
             <button disabled={busy}>Refresh services</button>
           </form>
           <button
-            className="secondary"
+            className="bg-surface text-primary"
             disabled={busy}
             onClick={() => void loadHistory()}
           >
@@ -343,14 +346,17 @@ export function Services({
                     </p>
                   )}
                   {[...groups.entries()].map(([id, services]) => (
-                    <div key={id} className="project-group">
+                    <div key={id} className="break-words">
                       <h3>{services[0].project.name}</h3>
                       <p>
                         {services[0].project.evidence} ·{" "}
                         {services[0].project.confidence.replaceAll("_", " ")}
                       </p>
                       {services.map((service) => (
-                        <article key={service.id} className="service-card">
+                        <article
+                          key={service.id}
+                          className="my-3 rounded-[10px] border border-line p-[18px] max-[700px]:p-3"
+                        >
                           <h4>
                             {service.runtime === "unknown"
                               ? service.executable
@@ -363,7 +369,7 @@ export function Services({
                             {Math.floor(service.uptimeSeconds / 60)} min ·{" "}
                             {service.childCount} child processes
                           </p>
-                          <p className="endpoints">
+                          <p className="break-words font-mono">
                             {service.endpoints
                               .map(
                                 (e) =>
@@ -386,7 +392,7 @@ export function Services({
                             disabled={busy || expired}
                             save={(label) => void associate(service, label)}
                           />
-                          <div className="actions">
+                          <div className="mt-4 flex flex-wrap gap-2.5">
                             <button
                               disabled={busy || expired || !service.canStop}
                               onClick={() => {
@@ -397,7 +403,7 @@ export function Services({
                               Stop gracefully
                             </button>
                             <button
-                              className="danger"
+                              className="border-danger-line bg-danger-surface text-danger"
                               disabled={busy || expired || !service.canStop}
                               onClick={() => {
                                 setChildren(false);
@@ -411,9 +417,9 @@ export function Services({
                       ))}
                     </div>
                   ))}
-                  <div className="actions">
+                  <div className="mt-4 flex flex-wrap gap-2.5">
                     <button
-                      className="secondary"
+                      className="bg-surface text-primary"
                       disabled={busy || inventory.offset === 0}
                       onClick={() =>
                         void refresh(Math.max(0, inventory.offset - 10))
@@ -422,7 +428,7 @@ export function Services({
                       Previous page
                     </button>
                     <button
-                      className="secondary"
+                      className="bg-surface text-primary"
                       disabled={busy || inventory.nextOffset < 0}
                       onClick={() => void refresh(inventory.nextOffset)}
                     >
@@ -440,7 +446,7 @@ export function Services({
                 Up to 100 actions within seven days, 25 per page. A sent signal
                 is not a confirmed shutdown.
               </p>
-              <ol className="history">
+              <ol className="[&_li]:border-b [&_li]:border-line [&_li]:py-3 [&_strong]:break-words">
                 {history.map((action) => (
                   <li key={action.actionId}>
                     <strong>
@@ -458,9 +464,9 @@ export function Services({
                 ))}
               </ol>
               {!history.length && <p>No action receipts on this page.</p>}
-              <div className="actions">
+              <div className="mt-4 flex flex-wrap gap-2.5">
                 <button
-                  className="secondary"
+                  className="bg-surface text-primary"
                   disabled={busy || historyOffset === 0}
                   onClick={() =>
                     void loadHistory(Math.max(0, historyOffset - 25))
@@ -469,7 +475,7 @@ export function Services({
                   Previous history page
                 </button>
                 <button
-                  className="secondary"
+                  className="bg-surface text-primary"
                   disabled={busy || history.length < 25 || historyOffset >= 75}
                   onClick={() => void loadHistory(historyOffset + 25)}
                 >
@@ -481,6 +487,7 @@ export function Services({
         </>
       )}
       <dialog
+        className="m-auto max-h-[calc(100dvh_-_40px)] max-w-[min(600px,calc(100vw_-_40px))] overflow-y-auto break-words rounded-[14px] border border-line bg-surface p-7 text-foreground backdrop:bg-[#20152a99]"
         ref={dialog}
         aria-labelledby="stop-title"
         onCancel={(event) => {
@@ -519,9 +526,13 @@ export function Services({
             {expired && (
               <p role="alert">This observation expired. Cancel and refresh.</p>
             )}
-            <div className="actions">
+            <div className="mt-4 flex flex-wrap gap-2.5">
               <button
-                className={selected.mode === "force" ? "danger" : ""}
+                className={
+                  selected.mode === "force"
+                    ? "border-danger-line bg-danger-surface text-danger"
+                    : ""
+                }
                 disabled={busy || expired}
                 onClick={() => void stop()}
               >
@@ -532,7 +543,7 @@ export function Services({
                     : "Confirm graceful stop"}
               </button>
               <button
-                className="secondary"
+                className="bg-surface text-primary"
                 disabled={busy}
                 onClick={() => setSelected(undefined)}
               >
@@ -564,7 +575,7 @@ function ProjectForm({
   );
   return (
     <form
-      className="project-form"
+      className="my-4 flex flex-wrap items-end gap-3 [&_label]:min-w-[200px] [&_label]:flex-1"
       onSubmit={(event) => {
         event.preventDefault();
         save(label);
@@ -580,12 +591,12 @@ function ProjectForm({
           placeholder="Your project name"
         />
       </label>
-      <button className="secondary" disabled={disabled}>
+      <button className="bg-surface text-primary" disabled={disabled}>
         Save association
       </button>
       {service.project.source === "manual" && (
         <button
-          className="secondary"
+          className="bg-surface text-primary"
           disabled={disabled}
           type="button"
           onClick={() => save("")}

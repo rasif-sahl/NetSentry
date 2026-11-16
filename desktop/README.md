@@ -42,4 +42,10 @@ Phase 10 adds Network observation sharing with a named network UUID and separate
 
 Phase 15 provides [packaged desktop and cross-network phone acceptance steps](../docs/release/desktop-and-remote-testing.md). Existing renderer/Go checks do not establish Electron/Keychain, installers, signatures or phone acceptance. Distribution/update gates stay pending until an actual candidate passes.
 
-Phase 16 adds local SYSTEM/LIGHT/DARK appearance, OS/cross-window updates and blocked-storage fallback. It uses ordinary CSS, not Tailwind. `npm run test:desktop-appearance` uses the existing dashboard Playwright/Chromium installation against the built renderer; it does not launch Electron or an agent.
+Phase 16 adds local SYSTEM/LIGHT/DARK appearance, OS/cross-window updates and blocked-storage fallback. The subsequent Tailwind migration uses Tailwind CSS 4 for desktop layout and controls. `npm run test:desktop-appearance` uses the existing dashboard Playwright/Chromium installation against the built renderer; it does not launch Electron or an agent.
+
+## Desktop Tailwind styling
+
+The desktop renderer compiles Tailwind CSS 4.3.3 through `postcss.config.mjs` with pinned PostCSS 8.5.23. `styles.css` explicitly scans renderer TSX, maps runtime colors with `@theme inline` and uses Tailwind base rules for shared form/typography defaults. Components use utilities for responsive layouts, cards, actions, focus and dialogs. `theme.css` contains runtime light/dark tokens. CSS is bundled locally by Vite; no CDN, remote fonts, inline style permission or runtime compiler is added.
+
+Build with `npm run build:desktop`; verify appearance with the existing Chromium setup via `npm run test:desktop-appearance`. Browser agent data is synthetic and no stop action is submitted. Native Electron/Keychain/signing/device acceptance remains pending. See [migration evidence](../docs/validation/desktop-tailwind.md).

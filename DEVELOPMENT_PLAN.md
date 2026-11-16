@@ -23,7 +23,7 @@ Real Android packaging still requires compatible Android build tools, and iOS de
 | Android application | Kotlin, Jetpack Compose and native Android APIs | Registration, permissions, monitoring, reports, alerts, family workflows, and desktop service controls |
 | iOS application | Swift and SwiftUI with native Apple frameworks | Registration, reports, alerts, mobile desktop controls, and approved Family Controls capabilities |
 | Responsive web dashboard | TypeScript, React, Next.js, Tailwind CSS | Personal, Family, Business, reporting, administration, and developer views |
-| Desktop interface | Electron, React and TypeScript with Vite | Pairing, capabilities, project/service inventory, monitoring settings, local controls, and action history |
+| Desktop interface | Electron, React, TypeScript and Tailwind CSS 4 with Vite | Pairing, capabilities, project/service inventory, monitoring settings, local controls, and action history |
 | Backend | TypeScript and NestJS | Authentication, workspaces, enrolment, ingestion, reporting, policies, alerts, subscriptions, audit records, and command routing |
 | Database | PostgreSQL with TypeORM and versioned migrations | Application records, measurements, aggregates, commands, and retention policies |
 | Shared agent foundation | Go | Device identity, secure backend connection, enrolment, heartbeat, local buffering, updates, and diagnostics |
@@ -359,7 +359,7 @@ Current status: **in progress; physical acceptance pending**. Phase 15 adds cand
 
 Completion: scope and dependencies are reviewed separately for each extension; later features do not block core validation.
 
-Selected first increment: **themes and opt-in alert emails**, explicitly requested by the user. Android now applies account themes; desktop adds local SYSTEM/LIGHT/DARK choices. Web/iOS retain existing account theme support. Email opt-in and per-rule channel are implemented with a hard-disabled transport and visible unavailable states; no live sending, inbox access or sorting is enabled. Other Phase 16 extensions remain deferred, and Phase 15 physical/native acceptance remains pending. See `docs/architecture/themes-and-alert-email.md` and `docs/validation/phase-16.md`.
+Selected first increment: **themes and opt-in alert emails**, explicitly requested by the user. Android now applies account themes; desktop adds local SYSTEM/LIGHT/DARK choices and now uses Tailwind CSS 4 per the user’s follow-up request. Web/iOS retain existing account theme support. Email opt-in and per-rule channel are implemented with a hard-disabled transport and visible unavailable states; no live sending, inbox access or sorting is enabled. Other Phase 16 extensions remain deferred, and Phase 15 physical/native acceptance remains pending. See `docs/architecture/themes-and-alert-email.md` and `docs/validation/phase-16.md`.
 
 ## Complete feature catalogue
 

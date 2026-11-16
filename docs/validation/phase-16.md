@@ -30,3 +30,5 @@ The web dashboard uses **Tailwind CSS 4.3.3** from the installed dependency, imp
 ## Rollout
 
 Apply migration seventeen explicitly before this backend. Keep alert email delivery disabled; there is no configuration switch enabling its transport in this increment. Account opt-in alone does not select email on rules or send messages. Do not advertise working email delivery, native builds or device acceptance from these checks. See [architecture](../architecture/themes-and-alert-email.md) and the Phase 15 handoff for remaining release evidence.
+
+Follow-up: the user subsequently requested Tailwind for desktop. The renderer has now migrated to locally compiled Tailwind CSS 4; the original design-stack assessment above describes the state before that request. See [desktop migration evidence](desktop-tailwind.md).

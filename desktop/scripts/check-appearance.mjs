@@ -108,8 +108,163 @@ try {
     () => document.documentElement.dataset.theme === "light",
   );
   await restricted.close();
+  // UI fixtures only: no agent, network discovery or process signalling.
+  const paired = await browser.newContext({
+    colorScheme: "dark",
+    viewport: { width: 360, height: 800 },
+  });
+  await paired.addInitScript(() => {
+    window.__fixtureStops = 0;
+    window.netsentry = {
+      getAgentStatus: async () => ({
+        ok: true,
+        status: {
+          schemaVersion: 1,
+          installationId: "synthetic-installation",
+          version: "0.1.0",
+          platform: "darwin",
+          paired: true,
+          connection: "online",
+          requested: { network: true, developer: true },
+          authorized: { network: true, developer: true },
+          effective: { network: true, developer: true },
+          backgroundRequested: false,
+          backgroundAllowed: false,
+          bufferedEvents: 0,
+          droppedEvents: 0,
+          lastContact: "",
+          code: "",
+          serviceControlAvailable: false,
+        },
+      }),
+      getNetworkPreferences: async () => ({
+        ok: true,
+        data: { sharing: false, networkId: "", supported: true },
+      }),
+      getRemotePreferences: async () => ({
+        ok: true,
+        data: { sharing: false, control: false, supported: true },
+      }),
+      listServices: async () => {
+        const time = new Date().toISOString();
+        return {
+          ok: true,
+          data: {
+            schemaVersion: 1,
+            services: [
+              {
+                id: "fixture-service",
+                observationId: "fixture-observation",
+                pid: 12345,
+                parentPid: 1234,
+                runtime: "node",
+                executable: "node",
+                startedAt: time,
+                uptimeSeconds: 60,
+                observedAt: time,
+                endpoints: [
+                  {
+                    address: "127.0.0.1",
+                    port: 43210,
+                    socketId: "fixture-socket",
+                  },
+                ],
+                additionalEndpoints: 0,
+                project: {
+                  id: "fixture-project",
+                  name: "Synthetic project " + "A".repeat(100),
+                  source: "inferred",
+                  confidence: "inferred",
+                  evidence: "Synthetic renderer fixture only",
+                },
+                childCount: 2,
+                canStop: true,
+                blockReason: "",
+              },
+            ],
+            total: 1,
+            offset: 0,
+            nextOffset: -1,
+            truncated: false,
+            skippedProcesses: 0,
+            observedAt: time,
+            expiresAt: new Date(Date.now() + 15000).toISOString(),
+            platformSupported: true,
+            localControlAllowed: true,
+          },
+        };
+      },
+      getServiceHistory: async () => ({ ok: true, data: [] }),
+      stopService: async () => {
+        window.__fixtureStops++;
+        throw new Error("Tests must never submit a stop");
+      },
+    };
+  });
+  const controls = await paired.newPage();
+  await controls.goto(`http://127.0.0.1:${server.address().port}/`);
+  await controls
+    .getByRole("button", { name: "Refresh services", exact: true })
+    .click();
+  await controls
+    .getByRole("button", { name: "Stop gracefully", exact: true })
+    .waitFor();
+  const layout = () =>
+    controls.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
+  assert.equal(await layout(), true);
+  for (const [option, background, dangerText] of [
+    ["DARK", "rgb(37, 33, 44)", "rgb(255, 212, 220)"],
+    ["LIGHT", "rgb(255, 255, 255)", "rgb(146, 43, 53)"],
+  ]) {
+    await controls
+      .getByLabel("Appearance on this computer")
+      .selectOption(option);
+    await controls
+      .getByRole("button", { name: "Force stop…", exact: true })
+      .click();
+    const modal = controls.getByRole("dialog");
+    await modal.waitFor();
+    assert.equal(
+      await modal.evaluate((el) => getComputedStyle(el).backgroundColor),
+      background,
+    );
+    assert.equal(
+      await controls
+        .getByRole("button", { name: "Confirm force-stop", exact: true })
+        .evaluate((el) => getComputedStyle(el).color),
+      dangerText,
+    );
+    assert.equal(await layout(), true);
+    await controls.getByRole("button", { name: "Cancel", exact: true }).click();
+    await controls
+      .getByRole("button", { name: "Stop gracefully", exact: true })
+      .click();
+    await controls
+      .getByRole("button", { name: "Confirm graceful stop", exact: true })
+      .waitFor();
+    await controls.keyboard.press("Escape");
+  }
+  await controls.setViewportSize({ width: 1040, height: 800 });
+  assert.equal(await layout(), true);
+  assert.equal(await controls.evaluate(() => window.__fixtureStops), 0);
+  await controls
+    .getByRole("button", { name: "Refresh services", exact: true })
+    .focus();
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Refresh services", exact: true })
+      .evaluate((el) => getComputedStyle(el).outlineStyle),
+    "solid",
+  );
+  await controls.screenshot({
+    path:
+      process.env.DESKTOP_THEME_SCREENSHOT ||
+      "/tmp/netsentry-desktop-tailwind.png",
+    fullPage: true,
+  });
+  await paired.close();
   console.log(
-    "Desktop Chromium appearance checks passed: system changes, explicit overrides, reload, cross-window sync, blocked storage and narrow layout. Electron/Keychain packaging remains unverified.",
+    "Desktop Chromium appearance checks passed: system changes, explicit overrides, reload, cross-window sync, blocked storage, responsive service cards, themed confirmation dialogs, keyboard focus and no stop submission. Electron/Keychain packaging remains unverified.",
   );
 } finally {
   await browser?.close();
