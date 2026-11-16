@@ -116,6 +116,15 @@ try {
   await paired.addInitScript(() => {
     window.__fixtureStops = 0;
     window.netsentry = {
+      backgroundService: async () => ({
+        verified: true,
+        registered: false,
+        loaded: false,
+        running: false,
+        canRegister: false,
+        message:
+          "Fixture: registration requires a signed installed application.",
+      }),
       desktopUpdate: async () => ({
         state: "disabled",
         version: "0.1.0",
@@ -227,6 +236,67 @@ try {
       .getByRole("button", { name: "Check for updates", exact: true })
       .isDisabled(),
     true,
+  );
+  await controls
+    .getByRole("heading", { name: "Run at login", exact: true })
+    .waitFor();
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Register background service", exact: true })
+      .isDisabled(),
+    true,
+  );
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Remove background service", exact: true })
+      .isDisabled(),
+    false,
+  );
+  await controls.evaluate(() => {
+    let registered = false;
+    window.__fixtureBackgroundActions = [];
+    window.netsentry.backgroundService = async (action) => {
+      window.__fixtureBackgroundActions.push(action);
+      if (action === "register") registered = true;
+      if (action === "remove") registered = false;
+      return {
+        verified: true,
+        registered,
+        loaded: registered,
+        running: registered,
+        canRegister: true,
+        message: registered
+          ? "Fixture: managed background service registered."
+          : "Fixture: no managed service remains.",
+      };
+    };
+  });
+  await controls
+    .getByRole("button", { name: "Refresh background status", exact: true })
+    .click();
+  await controls
+    .getByRole("button", { name: "Register background service", exact: true })
+    .click();
+  await controls
+    .getByText("Fixture: managed background service registered.", {
+      exact: true,
+    })
+    .waitFor();
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Register background service", exact: true })
+      .isDisabled(),
+    true,
+  );
+  await controls
+    .getByRole("button", { name: "Remove background service", exact: true })
+    .click();
+  await controls
+    .getByText("Fixture: no managed service remains.", { exact: true })
+    .waitFor();
+  assert.deepEqual(
+    await controls.evaluate(() => window.__fixtureBackgroundActions),
+    ["status", "register", "remove"],
   );
   const layout = () =>
     controls.evaluate(() => document.documentElement.scrollWidth <= innerWidth);

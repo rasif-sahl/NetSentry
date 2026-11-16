@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { AgentBridge } from "./agent-types.js";
 const bridge: AgentBridge = {
+  backgroundService: (action) => ipcRenderer.invoke("netsentry:background", action),
   desktopUpdate: (action) => ipcRenderer.invoke("netsentry:update", action),
   getNetworkPreferences: () => ipcRenderer.invoke("netsentry:agent", "get_network_preferences", {}),
   setNetworkPreferences: (sharing, networkId, accepted) => ipcRenderer.invoke("netsentry:agent", "set_network_preferences", { sharing, networkId, accepted, disclosureVersion: "network-sharing-v1" }),

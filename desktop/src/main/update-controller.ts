@@ -76,7 +76,7 @@ export class UpdateController {
       state: "error",
       version: this.currentVersion,
       message:
-        "Update could not continue. Stop any running agent, check the host and signed release, then check again. No downgrade was authorized.",
+        "Update could not continue. Stop any foreground agent, remove the background service, check the host and signed release, then check again. No downgrade was authorized.",
     };
   }
   status() {
@@ -143,7 +143,7 @@ export class UpdateController {
           state: "downloaded",
           version: this.candidate.version,
           message:
-            "Download verified. Stop the separate agent before restarting to install.",
+            "Download verified. Stop the foreground agent and remove any registered background service before installing.",
         };
       } else {
         if (this.view.state !== "downloaded" || !this.candidate)

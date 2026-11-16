@@ -1,4 +1,6 @@
 import { app, BrowserWindow, session, ipcMain, dialog } from "electron";
+import { BackgroundService } from "./background-service.js";
+import { nativeBackgroundPorts } from "./background-native.js";
 import { mkdirSync } from "node:fs";
 import { holdAgentUpdateLock } from "./update-lock.js";
 import { dirname, join } from "node:path";
@@ -31,6 +33,43 @@ let policy: ReleasePolicy = {
 const agentState = () => join(app.getPath("appData"), "NetSentry", "agent");
 const bundle = () => join(process.resourcesPath, "../..");
 let updates: UpdateController | undefined;
+let background: BackgroundService | undefined;
+let lifecycleBusy = false;
+async function lifecycle<T>(operation: () => Promise<T>): Promise<T> {
+  if (lifecycleBusy || updates?.status().state === "installing")
+    throw new Error("Another desktop lifecycle operation is in progress.");
+  lifecycleBusy = true;
+  try {
+    return await operation();
+  } finally {
+    lifecycleBusy = false;
+  }
+}
+async function confirmBackground(action: string) {
+  const answer = await dialog.showMessageBox({
+    type: "question",
+    buttons: [
+      "Cancel",
+      action === "remove"
+        ? "Remove service"
+        : action === "start"
+          ? "Start service"
+          : "Register service",
+    ],
+    defaultId: 0,
+    cancelId: 0,
+    message:
+      action === "remove"
+        ? "Stop and remove NetSentry’s background service?"
+        : "Run NetSentry in the background for this user?",
+    detail:
+      action === "remove"
+        ? "Only NetSentry’s managed job is stopped. Pairing, module choices and stored data are preserved. Local background permission will be disabled when the trusted agent is available."
+        : "Stop the foreground agent first. Confirming allows local background operation only after a fresh workspace grant is verified. The service starts at login with no automatic restart loop; it grants no new monitoring or shutdown permissions.",
+  });
+  return answer.response === 1;
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const rendererURL = pathToFileURL(join(here, "../renderer/index.html")).href;
 ipcMain.handle(
@@ -52,6 +91,27 @@ ipcMain.handle(
       } catch {
         return { ok: false, code: "SIGNED_INSTALL_REQUIRED" };
       }
+    }
+    if (
+      method === "set_background" &&
+      payload &&
+      typeof payload === "object" &&
+      (payload as { allowed?: unknown }).allowed === false &&
+      Object.keys(payload).length === 1 &&
+      app.isPackaged &&
+      background
+    ) {
+      await lifecycle(() =>
+        background!.act("remove", () => confirmBackground("remove")),
+      );
+      return request(
+        {
+          binary: join(process.resourcesPath, "agent", "netsentry-agent"),
+          stateDir: agentState(),
+        },
+        "get_status",
+        {},
+      );
     }
     const call = [
       "get_network_preferences",
@@ -81,6 +141,20 @@ ipcMain.handle(
   },
 );
 
+ipcMain.handle("netsentry:background", async (event, action: unknown) => {
+  if (
+    event.senderFrame !== event.sender.mainFrame ||
+    event.senderFrame.url !== rendererURL ||
+    typeof action !== "string" ||
+    !["status", "register", "start", "remove"].includes(action)
+  )
+    throw new Error("Invalid background request.");
+  if (!background) throw new Error("Background controls unavailable.");
+  return action === "status"
+    ? background.status()
+    : lifecycle(() => background!.act(action, () => confirmBackground(action)));
+});
+
 ipcMain.handle("netsentry:update", async (event, action: unknown) => {
   if (
     event.senderFrame !== event.sender.mainFrame ||
@@ -90,26 +164,28 @@ ipcMain.handle("netsentry:update", async (event, action: unknown) => {
   )
     throw new Error("Invalid update request.");
   if (!updates) throw new Error("Update controls unavailable.");
-  return updates.act(action, async () => {
-    const answer = await dialog.showMessageBox({
-      type: "question",
-      buttons: [
-        "Cancel",
-        action === "install" ? "Restart and install" : "Download update",
-      ],
-      defaultId: 0,
-      cancelId: 0,
-      message:
-        action === "install"
-          ? "Restart NetSentry to install this update?"
-          : "Download the verified desktop update?",
-      detail:
-        action === "install"
-          ? "Stop the separately running agent first. Credentials are preserved; monitoring permissions are not changed."
-          : "This downloads a signed release candidate. Installation requires another confirmation.",
+  const operation = () =>
+    updates!.act(action, async () => {
+      const answer = await dialog.showMessageBox({
+        type: "question",
+        buttons: [
+          "Cancel",
+          action === "install" ? "Restart and install" : "Download update",
+        ],
+        defaultId: 0,
+        cancelId: 0,
+        message:
+          action === "install"
+            ? "Restart NetSentry to install this update?"
+            : "Download the verified desktop update?",
+        detail:
+          action === "install"
+            ? "Stop the foreground agent and remove any registered background service first. Credentials are preserved; monitoring permissions are not changed."
+            : "This downloads a signed release candidate. Installation requires another confirmation.",
+      });
+      return answer.response === 1;
     });
-    return answer.response === 1;
-  });
+  return action === "status" ? operation() : lifecycle(operation);
 });
 async function prepareUpdates() {
   if (app.isPackaged) {
@@ -147,11 +223,26 @@ async function prepareUpdates() {
     undefined,
     async () => {
       await verifyDesktopTrust(bundle(), process.resourcesPath, policy.teamId);
+      await background?.assertRemovedForUpdate();
       return holdAgentUpdateLock(
         join(process.resourcesPath, "agent", "netsentry-agent"),
         agentState(),
       );
     },
+  );
+  background = new BackgroundService(
+    app.getPath("home"),
+    join(process.resourcesPath, "agent", "netsentry-agent"),
+    agentState(),
+    desktopData,
+    nativeBackgroundPorts(
+      app.getPath("home"),
+      bundle(),
+      process.resourcesPath,
+      agentState(),
+      () => policy.teamId,
+      app.isPackaged,
+    ),
   );
   await updates.restore();
 }
