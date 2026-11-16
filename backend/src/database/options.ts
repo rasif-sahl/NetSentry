@@ -1,3 +1,4 @@
+import { businessEntities } from '../business/business.entities';
 import {
   FamilyProfile,
   FamilyAssignment,
@@ -68,6 +69,7 @@ export function databaseOptions(
     type: 'postgres',
     url: config.DATABASE_URL,
     entities: [
+      ...businessEntities,
       FamilyProfile,
       FamilyAssignment,
       FamilyPolicy,

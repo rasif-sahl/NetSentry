@@ -11,6 +11,9 @@ import { User } from '../users/user.entity';
 import { Workspace } from './workspace.entity';
 
 export enum WorkspaceRole {
+  NETWORK_ADMIN = 'NETWORK_ADMIN',
+  ANALYST = 'ANALYST',
+  EMPLOYEE = 'EMPLOYEE',
   OWNER = 'OWNER',
   ADMIN = 'ADMIN',
   GUARDIAN = 'GUARDIAN',
