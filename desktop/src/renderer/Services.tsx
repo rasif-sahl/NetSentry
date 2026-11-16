@@ -247,8 +247,9 @@ export function Services({
       <h2 id="services-heading">Development services</h2>
       <p>
         Local TCP listeners owned by your user. Runtime labels are inferred from
-        executable names. Full paths, command arguments and service inventory
-        stay on this computer. Remote controls are unavailable.
+        executable names. Full paths and command arguments stay on this
+        computer. Summary sharing and remote shutdown require separate consent
+        above.
       </p>
       {!enabled ? (
         <p>

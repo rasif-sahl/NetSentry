@@ -285,7 +285,14 @@ async function exchange(
     )
       throw new Error("agent proof rejected");
     const requestId = randomUUID();
-    const version = services ? 3 : 2;
+    const version = [
+      "get_remote_preferences",
+      "set_remote_preferences",
+    ].includes(method)
+      ? 4
+      : services
+        ? 3
+        : 2;
     frames.write({ schemaVersion: version, requestId, method, payload });
     const reply = await frames.read();
     if (
@@ -322,6 +329,7 @@ async function exchange(
       "PROTECTED_PROCESS",
       "UNSUPPORTED_RUNTIME",
       "DEVELOPER_UNAVAILABLE",
+      "REMOTE_SETTINGS_FAILED",
     ];
     return {
       ok: false,

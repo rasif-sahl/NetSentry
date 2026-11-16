@@ -62,3 +62,7 @@ The optional executable variable selects an existing desktop Chrome. CI prepares
 The test server binds only loopback ports 54110/54111, refuses populated databases, seeds clearly synthetic accounts/capabilities/usage, waits for complete fixture readiness and removes the fixture schema on graceful shutdown. `.test/fixtures.json`, screenshots, browser downloads and traces are ignored artifacts. Never use real user accounts or production database URLs. Run builds before browser tests, not concurrently with the production server serving that build output.
 
 See `../docs/features/dashboard.md` and `../docs/validation/phase-4.md` for behavior, boundaries and verification.
+
+## Phase 7 Developer Tools
+
+Connected paired-computer inventory, owner-managed controller grants, separately confirmed graceful/force requests, cancellation and audited outcomes use the real API. Pending/accepted never mean confirmed shutdown. The browser regression publisher is explicitly synthetic; native execution is verified separately. See [verification](../docs/validation/phase-7.md).

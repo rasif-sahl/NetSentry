@@ -147,3 +147,21 @@ test("local shutdown binds a fresh observation and explicit force/child choices"
   delete request.payload.observationId;
   assert.throws(() => validatePayload("local-ipc.v3.schema.json", request));
 });
+
+test("remote desktop consent cannot be inferred from local controls",()=>{
+ const request=readJSON('fixtures/local-ipc.v4.json');
+ validatePayload('local-ipc.v4.schema.json',request);
+ request.payload.accepted=false;
+ assert.throws(()=>validatePayload('local-ipc.v4.schema.json',request));
+ request.payload.accepted=true;request.payload.sharing=false;
+ assert.throws(()=>validatePayload('local-ipc.v4.schema.json',request));
+});
+
+test("mobile/web remote commands cannot substitute a PID or shell command",()=>{
+ const request=readJSON('fixtures/remote-command.v1.json');
+ validateApiPayload('RemoteCommandInput',request);
+ request.pid=12345;
+ assert.throws(()=>validateApiPayload('RemoteCommandInput',request));
+ delete request.pid;request.command='arbitrary shell text';
+ assert.throws(()=>validateApiPayload('RemoteCommandInput',request));
+});

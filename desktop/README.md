@@ -16,7 +16,7 @@ npm run dev:renderer
 
 Build and initialize the agent separately using [its README](../agent/README.md), then run it in the foreground. Development-only Electron main environment overrides are `NETSENTRY_AGENT_BINARY` (absolute path to your built executable) and optional `NETSENTRY_AGENT_STATE_DIR` (private directory). Packaged builds ignore overrides and resolve the executable at `resources/agent/netsentry-agent`, with state under the user's application-data `NetSentry/agent` directory. The current repository does not produce a signed installer or bundle that binary automatically.
 
-The UI shows the installation UUID needed to issue a workspace-bound enrolment code through the backend API. Paste the single-use code, then enable the desired local preferences. Pairing and module eligibility do not grant process-control authority. Backend online status proves a recent heartbeat only. Network collectors and remote controls remain unavailable; local macOS service eligibility is reported separately by v3 inventory. Background preference is separate from a registered service and requires workspace allowance as well.
+The UI shows the installation UUID needed to issue a workspace-bound enrolment code through the backend API. Paste the single-use code, then enable the desired local preferences. Pairing and module eligibility do not grant process-control authority. Backend online status proves a recent heartbeat only. Network collectors remain unavailable; macOS service eligibility is reported separately by v3 inventory. Phase 7 remote consent uses v4 and additionally requires explicit backend controller grants. Background preference is separate from a registered service and requires workspace allowance as well.
 
 Cross-language integration check after building both source projects:
 
@@ -33,3 +33,7 @@ After pairing and enabling Developer Tools locally and in the workspace, refresh
 Results distinguish still running, identity/tree changes, denied/unknown/partial outcomes, original exit and observed replacement listeners. The latter may indicate a supervisor or port reuse; no automatic follow-up kill occurs. Load action history before retrying a lost response. Revocation/disabled authorization clears visible service data; backend outages deny fresh access/actions.
 
 `TEST_AGENT_BINARY=/absolute/path/to/netsentry-agent npm run test:developer` validates actual authenticated Go IPC, all v3 wire responses, native controlled samples on macOS and fail-closed platform behavior elsewhere. The backend is an explicit loopback fixture. Existing desktop Chrome fixture checks separately cover UI/dialogs; native Electron/Keychain packaging acceptance remains pending. See [Phase 6 verification](../docs/validation/phase-6.md).
+
+## Phase 7 sharing and remote consent
+
+Paired Developer Tools exposes independent summary-sharing and remote-shutdown choices, initially off. Read and accept the disclosure before enabling; disabling sharing clears control. Workspace/controller grants are managed in the web dashboard and are required separately. No background service is installed. See [remote architecture](../docs/architecture/remote-service-commands.md) and [verification](../docs/validation/phase-7.md).

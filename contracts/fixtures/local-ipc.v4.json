@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 4,
+  "requestId": "10000000-0000-4000-8000-000000000001",
+  "method": "set_remote_preferences",
+  "payload": {
+    "sharing": true,
+    "control": true,
+    "accepted": true,
+    "disclosureVersion": "developer-sharing-v1"
+  }
+}

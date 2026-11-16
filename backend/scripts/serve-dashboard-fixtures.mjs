@@ -34,6 +34,9 @@ const { configureHttp } = require('../dist/common/configure-http.js');
 const { decryptMail } = require('../dist/mail/mail-crypto.js');
 const source = await new DataSource(databaseOptions(process.env)).initialize();
 let ready = false;
+let developerTimer;
+let developerBusy = false;
+let developerRunning;
 let app,
   ownsSchema = false,
   stopping = false;
@@ -41,6 +44,8 @@ const file = new URL('../../dashboard/.test/fixtures.json', import.meta.url);
 async function stop() {
   if (stopping) return;
   stopping = true;
+  clearInterval(developerTimer);
+  if (developerRunning) await developerRunning;
   if (app) await app.close();
   if (ownsSchema)
     while (
@@ -354,6 +359,102 @@ try {
       rows[0].id,
     ).token;
   }
+  // Explicit synthetic service publisher only; no process is discovered or signalled.
+  const agentDefinition = {
+    installationId: randomUUID(),
+    platform: 'darwin',
+    name: 'Fixture developer computer',
+    modules: { network: false, developer: true },
+    backgroundAllowed: false,
+    accepted: true,
+    disclosureVersion: 'agent-enrolment-v1',
+  };
+  const agentCode = await call(
+    `/workspaces/${workspace.id}/agents/enrolments`,
+    'POST',
+    agentDefinition,
+    owner.accessToken,
+  );
+  const developerPair = await call('/agents/enrol', 'POST', {
+    token: agentCode.token,
+    installationId: agentDefinition.installationId,
+    platform: 'darwin',
+  });
+  await call(
+    `/workspaces/${workspace.id}/agents/${developerPair.agent.id}/developer-policy`,
+    'PATCH',
+    {
+      sharingAllowed: true,
+      controllers: [owner.user.id],
+      accepted: true,
+      disclosureVersion: 'developer-sharing-v1',
+    },
+    owner.accessToken,
+  );
+  async function publishDeveloper() {
+    if (stopping || developerBusy) return;
+    developerBusy = true;
+    try {
+      const remote = `/agents/${developerPair.agent.id}/developer`;
+      const config = await call(
+        `${remote}/configuration`,
+        'GET',
+        undefined,
+        developerPair.agentToken,
+      );
+      await call(
+        `/agents/${developerPair.agent.id}/heartbeat`,
+        'POST',
+        {
+          schemaVersion: 1,
+          generation: config.generation,
+          version: '0.7.0',
+          architecture: 'arm64',
+          reportedAt: new Date().toISOString(),
+          requested: { network: false, developer: true },
+          backgroundAllowed: false,
+          droppedEvents: 0,
+        },
+        developerPair.agentToken,
+      );
+      if (config.sharingAllowed)
+        await call(
+          `${remote}/snapshot`,
+          'POST',
+          {
+            schemaVersion: 1,
+            generation: config.generation,
+            revision: config.revision,
+            localControlReady: true,
+            platformSupported: true,
+            total: 1,
+            services: [
+              {
+                serviceId: 'd'.repeat(64),
+                observationId: randomUUID(),
+                pid: 30001,
+                startedAt: new Date(Date.now() - 7200000).toISOString(),
+                observedAt: new Date().toISOString(),
+                runtime: 'Node.js',
+                project: 'Fixture remote project',
+                ports: [3000],
+                canStop: true,
+                childCount: 0,
+              },
+            ],
+          },
+          developerPair.agentToken,
+        );
+    } catch {
+      /* account deletion or explicit revocation may end this fixture */
+    } finally {
+      developerBusy = false;
+    }
+  }
+  await publishDeveloper();
+  developerTimer = setInterval(() => {
+    developerRunning = publishDeveloper();
+  }, 2000);
   await mkdir(new URL('../../dashboard/.test/', import.meta.url), {
     recursive: true,
   });
@@ -364,6 +465,7 @@ try {
       workspaceId: workspace.id,
       emptyId: empty.id,
       deviceId: pair.device.id,
+      developerAgentId: developerPair.agent.id,
       networkId: label.id,
       accounts: Object.fromEntries(
         Object.entries(accounts).map(([name, session]) => [

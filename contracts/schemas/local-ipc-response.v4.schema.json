@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/local-ipc-response.v4.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "ok",
+        "code",
+        "data"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 4
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ok": {
+          "const": true
+        },
+        "code": {
+          "const": "OK"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sharing",
+            "control",
+            "supported"
+          ],
+          "properties": {
+            "sharing": {
+              "type": "boolean"
+            },
+            "control": {
+              "type": "boolean"
+            },
+            "supported": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "ok",
+        "code",
+        "data"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 4
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ok": {
+          "const": false
+        },
+        "code": {
+          "enum": [
+            "INVALID_REQUEST",
+            "REMOTE_SETTINGS_FAILED"
+          ]
+        },
+        "data": {
+          "type": "null"
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,15 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { AgentBridge } from "./agent-types.js";
 const bridge: AgentBridge = {
+  getRemotePreferences: () =>
+    ipcRenderer.invoke("netsentry:agent", "get_remote_preferences", {}),
+  setRemotePreferences: (sharing, control, accepted) =>
+    ipcRenderer.invoke("netsentry:agent", "set_remote_preferences", {
+      sharing,
+      control,
+      accepted,
+      disclosureVersion: "developer-sharing-v1",
+    }),
   listServices: (query, offset) =>
     ipcRenderer.invoke("netsentry:agent", "list_services", { query, offset }),
   stopService: (input) =>

@@ -1,3 +1,4 @@
+import { AgentDeveloper, DeveloperCommand } from '../agents/developer.entities';
 import { Agent, AgentEvent } from '../agents/agent.entities';
 import { publicAgent } from '../agents/agent.service';
 import { NotificationPreference } from '../monitoring/alert.entities';
@@ -87,6 +88,14 @@ export class PrivacyService {
           })
         : [];
       return {
+        developerCommands: await manager.findBy(DeveloperCommand, {
+          requesterId: userId,
+        }),
+        developerPolicies: agents.length
+          ? await manager.findBy(AgentDeveloper, {
+              agentId: In(agents.map((a) => a.id)),
+            })
+          : [],
         agents: agents.map(publicAgent),
         agentEvents,
         schemaVersion: 1,
@@ -147,8 +156,13 @@ export class PrivacyService {
       registeredById: userId,
     });
     const agents = await manager.findBy(Agent, { userId });
+    const developerRefs: { workspaceId: string }[] = await manager.query(
+      'SELECT DISTINCT a."workspaceId" FROM agents a LEFT JOIN agent_developer d ON d."agentId"=a.id LEFT JOIN developer_commands c ON c."agentId"=a.id WHERE d.controllers ? $1 OR c."requesterId"=$1::uuid',
+      [userId],
+    );
     return [
       ...new Set([
+        ...developerRefs.map((row: { workspaceId: string }) => row.workspaceId),
         ...agents.map((agent) => agent.workspaceId),
         ...owned.map((workspace) => workspace.id),
         ...memberships.map((member) => member.workspaceId),
@@ -206,6 +220,10 @@ export class PrivacyService {
         await manager.delete(Workspace, workspace.id);
       // FKs remove sessions, actions, outbox, enrolments, owned devices/history and
       // privacy records. Other people's device events retain only a null actor ID.
+      await manager.query(
+        'UPDATE agent_developer SET controllers=controllers-$1, revision=revision+1 WHERE controllers ? $1',
+        [userId],
+      );
       await manager.delete(User, userId);
     });
     return { deleted: true };

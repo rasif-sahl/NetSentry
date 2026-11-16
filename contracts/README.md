@@ -48,4 +48,6 @@ Phase 3 implements the mobile-authenticated measurement batch endpoint and scope
 
 Phase 5 adds separate agent enrolment/configuration/heartbeat/diagnostic-sync APIs. Only enumerated diagnostic codes are accepted; generic traffic/process observations are still rejected. Revocation, generations, privacy and bounded retention apply independently of mobile-device ingestion.
 
-Phase 6 adds separately versioned `local-ipc.v3.schema.json` / `local-ipc-response.v3.schema.json` for local discovery, observation-bound graceful/force actions, project labels, action receipts and local consent. Earlier v1/v2 contracts are preserved. There are no new remote service/command HTTP endpoints. See [local controls](../docs/architecture/local-service-controls.md).
+Phase 6 adds separately versioned `local-ipc.v3.schema.json` / `local-ipc-response.v3.schema.json` for local discovery, observation-bound graceful/force actions, project labels, action receipts and local consent. Earlier v1/v2 contracts are preserved. Phase 7 supersedes that local-only boundary with the remote HTTP components in OpenAPI 1.7.0. See [local controls](../docs/architecture/local-service-controls.md).
+
+Phase 7 documents 86 HTTP operations and adds strict local IPC v4 remote-preference envelopes while preserving earlier versions. Current remote requests use `RemoteCommandInput`, not the earlier design-only service-command fixture. See [native mobile flow](REMOTE_MOBILE_FLOW.md) for request retry, expiry, cancellation, uncertainty and privacy rules. Native bindings/UI/device checks remain pending.

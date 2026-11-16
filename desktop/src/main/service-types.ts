@@ -70,7 +70,17 @@ export type Action = {
   outcome: (typeof outcomes)[number];
   targetCount: number;
 };
+export type RemotePreferences = {
+  sharing: boolean;
+  control: boolean;
+  supported: boolean;
+};
 export type DeveloperData =
-  Inventory | Action | Action[] | { saved: true } | { allowed: boolean };
+  | RemotePreferences
+  | Inventory
+  | Action
+  | Action[]
+  | { saved: true }
+  | { allowed: boolean };
 export type ServiceResult<T extends DeveloperData = DeveloperData> =
   { ok: true; data: T } | { ok: false; code: string };

@@ -817,8 +817,31 @@ try {
   await checkMonitoring({ request, source, alice: recovered, bob, workspace });
   const { checkAgents } = await import('./agent-checks.mjs');
   await checkAgents({ request, source, alice: recovered, bob, workspace });
+  const { checkRemoteCommands } = await import('./remote-command-checks.mjs');
+  await checkRemoteCommands({
+    request,
+    source,
+    alice: recovered,
+    bob,
+    workspace,
+  });
+  const { checkRemoteAgentProcess } =
+    await import('./remote-agent-process-checks.mjs');
+  await checkRemoteAgentProcess({
+    request,
+    source,
+    alice: recovered,
+    workspace,
+    apiURL: base,
+  });
   const { checkAgentProcess } = await import('./agent-process-checks.mjs');
-  await checkAgentProcess({ request, source, alice: recovered, workspace, apiURL: base });
+  await checkAgentProcess({
+    request,
+    source,
+    alice: recovered,
+    workspace,
+    apiURL: base,
+  });
   const { checkPrivacy } = await import('./privacy-checks.mjs');
   await checkPrivacy({ request, source, alice: recovered, bob, workspace });
   console.log(

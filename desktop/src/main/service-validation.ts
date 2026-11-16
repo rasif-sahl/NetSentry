@@ -28,6 +28,16 @@ function keys(v: unknown, names: string[]): v is Record<string, unknown> {
 }
 export function servicePayload(method: string, v: unknown): boolean {
   switch (method) {
+    case "get_remote_preferences":
+      return keys(v, []);
+    case "set_remote_preferences":
+      return (
+        keys(v, ["sharing", "control", "accepted", "disclosureVersion"]) &&
+        typeof v.sharing === "boolean" &&
+        typeof v.control === "boolean" &&
+        typeof v.accepted === "boolean" &&
+        v.disclosureVersion === "developer-sharing-v1"
+      );
     case "list_services":
       return (
         keys(v, ["query", "offset"]) &&
@@ -149,6 +159,14 @@ function action(v: unknown): boolean {
 }
 export function serviceData(method: string, v: unknown): v is DeveloperData {
   switch (method) {
+    case "get_remote_preferences":
+    case "set_remote_preferences":
+      return (
+        keys(v, ["sharing", "control", "supported"]) &&
+        typeof v.sharing === "boolean" &&
+        typeof v.control === "boolean" &&
+        typeof v.supported === "boolean"
+      );
     case "list_services":
       return (
         keys(v, [

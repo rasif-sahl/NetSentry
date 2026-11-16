@@ -17,6 +17,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { DeveloperPanel } from "./developer-panel";
 import { SettingsPanel } from "./settings-panel";
 import { TeamPanel } from "./team-panel";
 import { AlertsPanel } from "./alerts-panel";
@@ -48,6 +49,7 @@ const navigation = [
   { label: "Usage & reports", icon: Gauge },
   { label: "Alerts", icon: Bell },
   { label: "Networks", icon: Network },
+  { label: "Developer Tools", icon: Laptop },
   { label: "Team", icon: Users },
   { label: "Settings & privacy", icon: Settings },
   { label: "More modules", icon: Laptop },
@@ -274,7 +276,6 @@ function WorkspaceShell({
     "Locations",
     "Audit",
     "Subscription",
-    "Developer Tools",
     "Network Security",
     "Insights",
   ];
@@ -577,8 +578,6 @@ function WorkspaceShell({
                                 "Supported network health and security observations, once available.",
                               Insights:
                                 "Digital wellbeing summaries based on authorized observations.",
-                              "Developer Tools":
-                                "Paired computer services, project association and authorized stop actions.",
                             }[label]
                           }
                         </p>
@@ -612,6 +611,7 @@ function ConnectedSection({
   workspacesChanged: () => void;
   signedOut: () => Promise<void>;
 }) {
+  if (section === "Developer Tools") return <DeveloperPanel {...context} />;
   if (section === "Devices") return <DevicesPanel {...context} />;
   if (section === "Usage & reports") return <ReportsPanel {...context} />;
   if (section === "Networks") return <NetworksPanel {...context} />;

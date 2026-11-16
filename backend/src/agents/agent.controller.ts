@@ -1,3 +1,8 @@
+import { DeveloperService } from './developer.service';
+import {
+  WorkspaceDeveloperController,
+  DeveloperAgentController,
+} from './developer.controller';
 import {
   Body,
   Controller,
@@ -106,7 +111,12 @@ export class AgentController {
 }
 @Module({
   imports: [AuthModule],
-  controllers: [WorkspaceAgentController, AgentController],
-  providers: [AgentService],
+  controllers: [
+    WorkspaceAgentController,
+    AgentController,
+    WorkspaceDeveloperController,
+    DeveloperAgentController,
+  ],
+  providers: [AgentService, DeveloperService],
 })
 export class AgentModule {}

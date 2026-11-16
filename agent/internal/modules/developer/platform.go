@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+var ErrExpired = errors.New("execution deadline expired")
 var ErrGone = errors.New("process exited or identity changed")
 var ErrDenied = errors.New("process inspection or signalling denied")
 var ErrUnsupported = errors.New("developer adapter unavailable on this platform")

@@ -1,3 +1,4 @@
+import { AgentDeveloper, DeveloperCommand } from './developer.entities';
 import { Workspace } from '../workspaces/workspace.entity';
 import {
   BadRequestException,
@@ -158,7 +159,11 @@ export class AgentService {
         )
           throw new BadRequestException('Workspace agent limit reached.');
         const token = randomBytes(32).toString('base64url');
-        if (agent) await manager.delete(AgentEvent, { agentId: agent.id });
+        if (agent) {
+          await manager.delete(AgentDeveloper, { agentId: agent.id });
+          await manager.delete(DeveloperCommand, { agentId: agent.id });
+          await manager.delete(AgentEvent, { agentId: agent.id });
+        }
         agent = await manager.save(
           manager.merge(Agent, agent ?? manager.create(Agent), {
             installationId: code.installationId,
@@ -308,6 +313,8 @@ export class AgentService {
         { consumedAt: new Date() },
       );
       if (erase) {
+        await manager.delete(AgentDeveloper, { agentId: id });
+        await manager.delete(DeveloperCommand, { agentId: id });
         await manager.delete(AgentEnrolment, {
           installationId: agent.installationId,
           userId: agent.userId,
@@ -392,7 +399,7 @@ export class AgentService {
           enabled: input.requested.developer && agent.modules.developer,
           status: 'temporarily_unavailable',
           reason:
-            'Remote service inventory and commands are unavailable. Local tools depend on agent platform support and explicit local permission.',
+            'Developer capabilities are reported separately through service sharing. Local and remote actions require explicit independent permissions.',
         },
         backgroundAllowed: input.backgroundAllowed && agent.backgroundAllowed,
         droppedEvents: input.droppedEvents,
