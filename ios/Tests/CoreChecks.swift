@@ -125,9 +125,11 @@ actor FakeAPI: APITransport {
         try await businessRepo.refresh(); try await businessRepo.businessOverview()
         try require(!(await businessRepo.snapshot().business.isNull), "Business view loaded")
         try await rejects("Business sharing requires explicit acceptance") { try await businessRepo.acceptBusinessSharing(deviceID: deviceID, revision: 1, generation: 1, accepted: false) }
+        try await businessRepo.refreshSubscription()
         await businessAPI.configure(deny: true)
         try await rejects("Business membership denied") { try await businessRepo.refresh() }
-        try require(await businessRepo.snapshot().business.isNull, "Denied membership clears organization data")
+        let deniedBusinessSnapshot = await businessRepo.snapshot()
+        try require(deniedBusinessSnapshot.business.isNull && deniedBusinessSnapshot.subscription.isNull, "Denied membership clears organization and subscription data")
         let emit = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
         try JSONEncoder().encode(Wire.capabilities(workspaceID: workspaceID, deviceID: deviceID, now: now)).write(to: emit.appendingPathComponent("capabilities.json"))
         try JSONEncoder().encode(intent.body).write(to: emit.appendingPathComponent("command.json"))

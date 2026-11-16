@@ -10,6 +10,7 @@ actor ClientRepository {
     private var user: JSONValue = .null, disclosures: JSONValue = .null, preferences: JSONValue = .null
     private var workspaces: [JSONValue] = [], devices: [JSONValue] = [], computers: [PairedComputer] = []
     private var commands: [String: [JSONValue]] = [:]
+    private var subscription: JSONValue = .null
     private var business: JSONValue = .null
     private var report: JSONValue = .null, family: JSONValue = .null, child: JSONValue = .null
     private var rules: [JSONValue] = [], alerts: [JSONValue] = [], notifications: [JSONValue] = []
@@ -29,7 +30,7 @@ actor ClientRepository {
     private func save() throws { try vault.write(JSONEncoder().encode(state)) }
     private func scope() throws -> ScopeTicket { guard let session = state.session else { throw ClientError.signedOut }; return ScopeTicket(epoch: epoch, userID: session.userID, workspaceID: state.workspaceID) }
     private func check(_ ticket: ScopeTicket) throws { guard ticket.epoch == epoch, ticket.userID == state.session?.userID, ticket.workspaceID == state.workspaceID else { throw ClientError.changedScope } }
-    private func clearViews() { user = .null; workspaces = []; devices = []; computers = []; commands = [:]; report = .null; business = .null; family = .null; child = .null; rules = []; alerts = []; notifications = []; preferences = .null }
+    private func clearViews() { user = .null; workspaces = []; devices = []; computers = []; commands = [:]; report = .null; subscription = .null; business = .null; family = .null; child = .null; rules = []; alerts = []; notifications = []; preferences = .null }
     func clearLocal() throws {
         epoch += 1; refreshTask?.cancel(); refreshTask = nil; clearViews()
         let base = state.base, installation = state.installationID
@@ -40,7 +41,7 @@ actor ClientRepository {
     func snapshot() -> ClientSnapshot {
         ClientSnapshot(signedIn: state.session != nil, base: state.base, user: user.isNull ? (state.session?.user ?? .null) : user, workspaceID: state.workspaceID,
                        workspaces: workspaces, devices: devices, computers: computers, commands: commands, report: report, rules: rules, alerts: alerts, notifications: notifications,
-                       disclosures: disclosures, preferences: preferences, business: business, family: family, child: child,
+                       disclosures: disclosures, preferences: preferences, subscription: subscription, business: business, family: family, child: child,
                        pendingStop: state.pendingStop?.workspaceID == state.workspaceID ? state.pendingStop : nil,
                        device: state.device?.workspaceID == state.workspaceID ? state.device : nil)
     }
@@ -108,7 +109,7 @@ actor ClientRepository {
         let me = try await account("GET", "/auth/me"); try check(ticket); user = me
         let spaces = try await account("GET", "/workspaces"); try check(ticket); workspaces = spaces.values
         let disclosure = try result(try await raw("GET", "/privacy/disclosures")); try check(ticket); disclosures = disclosure
-        if !state.workspaceID.isEmpty && !workspaces.contains(where: { $0["id"].text == state.workspaceID }) { epoch += 1; state.workspaceID = ""; devices = []; computers = []; commands = [:]; business = .null; family = .null; child = .null; report = .null; try save(); return }
+        if !state.workspaceID.isEmpty && !workspaces.contains(where: { $0["id"].text == state.workspaceID }) { epoch += 1; state.workspaceID = ""; devices = []; computers = []; commands = [:]; subscription = .null; business = .null; family = .null; child = .null; report = .null; try save(); return }
         guard !state.workspaceID.isEmpty else { return }
         let list = try await account("GET", "/workspaces/\(try Wire.uuid(state.workspaceID))/devices"); try check(ticket); devices = list.values
         if let binding = state.device, let current = devices.first(where: { $0["id"].text == binding.id }), let gen = current["generation"].integer {
@@ -198,6 +199,11 @@ actor ClientRepository {
     func notificationPreference(inApp: Bool) async throws { _ = try await account("PATCH", "/notifications/preferences", body: .object(["inApp": .bool(inApp), "push": .bool(false)])); try await loadAlerts() }
     func acknowledge(_ id: String) async throws { _ = try await account("POST", try workspacePath() + "/monitoring/alerts/\(Wire.uuid(id))/acknowledge"); try await loadAlerts() }
     func removeRule(_ id: String) async throws { _ = try await account("DELETE", try workspacePath() + "/monitoring/rules/\(Wire.uuid(id))"); try await loadAlerts() }
+    func refreshSubscription() async throws {
+        subscription = .null
+        let ticket = try scope(), path = try workspacePath()
+        let value = try await account("GET", path + "/billing/entitlements"); try check(ticket); subscription = value
+    }
     func businessOverview() async throws {
         business = .null
         let ticket = try scope(), path = try workspacePath()

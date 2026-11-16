@@ -61,6 +61,8 @@ func ensure(_ condition: Bool, _ message: String) throws { if !condition { throw
         let businessRepo = try ClientRepository(vault: LiveVault(), transport: transport)
         try await businessRepo.authenticate(base: base, email: fixture["accounts"]["employee"]["email"].text, password: fixture["password"].text)
         try await businessRepo.selectWorkspace(fixture["business"]["workspaceId"].text)
+        try await businessRepo.refreshSubscription()
+        try ensure(await businessRepo.snapshot().subscription["edition"].text == "free", "Subscription read missing")
         try await businessRepo.businessOverview()
         let business = await businessRepo.snapshot().business
         guard let assignment = business["assignments"].values.first, let businessDevice = business["devices"].values.first else { throw ClientError.invalid("Business fixture missing") }
