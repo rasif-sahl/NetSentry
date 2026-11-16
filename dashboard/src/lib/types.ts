@@ -63,6 +63,7 @@ export type Retention = {
 export type RuleConfig = {
   kind: "threshold" | "device_offline" | "permission_revoked";
   metric?: string;
+  quality?: "measured" | "estimated";
   applicationId?: string;
   period: string;
   threshold: number;
@@ -86,6 +87,7 @@ export type Alert = {
     value: string | null;
     severity: string;
     windowKey: string;
+    quality?: "measured" | "estimated";
   };
   acknowledgedAt: string | null;
   resolvedAt: string | null;
