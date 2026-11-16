@@ -11,6 +11,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -305,4 +307,39 @@ func TestNativeSupervisorReplacementIsReported(t *testing.T) {
 	if _, err = Native().Inspect(second.PID); err != nil {
 		t.Fatal("replacement was affected", err)
 	}
+}
+
+func TestNativeIPv6Listener(t *testing.T) {
+	node, err := exec.LookPath("node")
+	if err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command(node, "-e", `const s=require('node:net').createServer();s.on('error',()=>process.exit(2));s.listen(0,'::1',()=>console.log(s.address().port));`)
+	stdout, _ := command.StdoutPipe()
+	if err = command.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() { command.Process.Kill(); command.Wait() }()
+	line, err := bufio.NewReader(stdout).ReadString('\n')
+	if err != nil {
+		t.Skip("IPv6 loopback unavailable")
+	}
+	port, err := strconv.Atoi(strings.TrimSpace(line))
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := Native().Inspect(command.Process.Pid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	endpoints, err := Native().Listeners(context.Background(), p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, endpoint := range endpoints {
+		if endpoint.Address == "::1" && endpoint.Port == port {
+			return
+		}
+	}
+	t.Fatal("IPv6 listener address missing", endpoints)
 }

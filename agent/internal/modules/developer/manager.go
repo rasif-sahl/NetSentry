@@ -418,16 +418,17 @@ func (m *Manager) Stop(ctx context.Context, input StopInput) (Action, error) {
 	defer ticker.Stop()
 	for {
 		alive := false
+		unknown := false
 		for _, target := range targets {
 			p, err := m.adapter.Inspect(target.PID)
 			if err != nil && !errors.Is(err, ErrGone) {
-				return finish("inspection_failed")
+				unknown = true
 			}
 			if err == nil && same(p, target) {
 				alive = true
 			}
 		}
-		if !alive {
+		if !alive && !unknown {
 			until := time.Now().Add(500 * time.Millisecond)
 			for {
 				all, err := m.adapter.Processes(ctx)
@@ -461,6 +462,9 @@ func (m *Manager) Stop(ctx context.Context, input StopInput) (Action, error) {
 		case <-ctx.Done():
 			return finish("unknown")
 		case <-deadline.C:
+			if unknown {
+				return finish("inspection_failed")
+			}
 			return finish("still_running")
 		case <-ticker.C:
 		}

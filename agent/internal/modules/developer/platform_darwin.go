@@ -24,14 +24,14 @@ static int ns_inspect(int,struct ns_process *);
 static int ns_supported(void) { struct ns_process p; return getuid()!=0&&dlsym(RTLD_DEFAULT,"proc_signal_with_audittoken")!=NULL&&ns_inspect(getpid(),&p)==0; }
 static int ns_inspect(int pid,struct ns_process *out) {
  struct proc_bsdinfo b; struct ns_unique a,z; memset(out,0,sizeof(*out));
- if(proc_pidinfo(pid,17,0,&a,sizeof(a))!=sizeof(a))return ESRCH;
- if(proc_pidinfo(pid,PROC_PIDTBSDINFO,0,&b,sizeof(b))!=sizeof(b)||b.pbi_status==5)return ESRCH;
+ errno=0;if(proc_pidinfo(pid,17,0,&a,sizeof(a))!=sizeof(a))return errno==ESRCH?ESRCH:EPERM;
+ errno=0;if(proc_pidinfo(pid,PROC_PIDTBSDINFO,0,&b,sizeof(b))!=sizeof(b))return errno==ESRCH?ESRCH:EPERM;if(b.pbi_status==5)return ESRCH;
  if(b.pbi_uid!=getuid()||b.pbi_ruid!=getuid()||b.pbi_svuid!=getuid())return EPERM;
  out->pid=pid;out->ppid=b.pbi_ppid;out->uid=b.pbi_uid;out->version=a.version;
  out->sec=b.pbi_start_tvsec;out->usec=b.pbi_start_tvusec;out->privileged=(b.pbi_flags&(PROC_FLAG_SYSTEM|PROC_FLAG_PSUGID))!=0;
  if(proc_pidpath(pid,out->executable,sizeof(out->executable))<=0)return EPERM;
  struct proc_vnodepathinfo v; if(proc_pidinfo(pid,PROC_PIDVNODEPATHINFO,0,&v,sizeof(v))==sizeof(v))strlcpy(out->cwd,v.pvi_cdir.vip_path,sizeof(out->cwd));
- if(proc_pidinfo(pid,17,0,&z,sizeof(z))!=sizeof(z)||a.version!=z.version||a.unique!=z.unique)return ESRCH;
+ errno=0;if(proc_pidinfo(pid,17,0,&z,sizeof(z))!=sizeof(z))return errno==ESRCH?ESRCH:EPERM;if(a.version!=z.version||a.unique!=z.unique)return ESRCH;
  return 0;
 }
 static int ns_listeners(int pid,struct ns_endpoint *out,int capacity) {
@@ -45,8 +45,8 @@ static int ns_listeners(int pid,struct ns_endpoint *out,int capacity) {
   if(count>=capacity)return -2;
   struct in_sockinfo *in=&s.psi.soi_proto.pri_tcp.tcpsi_ini;
   const void *address=NULL;int family=0;
-  if(in->insi_vflag&INI_IPV4){family=AF_INET;address=&in->insi_laddr.ina_46.i46a_addr4;}
-  else if(in->insi_vflag&INI_IPV6){family=AF_INET6;address=&in->insi_laddr.ina_6;}
+  if(s.psi.soi_family==AF_INET6&&(in->insi_vflag&INI_IPV6)){family=AF_INET6;address=&in->insi_laddr.ina_6;}
+  else if(in->insi_vflag&INI_IPV4){family=AF_INET;address=&in->insi_laddr.ina_46.i46a_addr4;}
   if(!address||!inet_ntop(family,address,out[count].address,sizeof(out[count].address)))continue;
   out[count].generation=in->insi_gencnt;out[count].port=ntohs((uint16_t)in->insi_lport);count++;
  }

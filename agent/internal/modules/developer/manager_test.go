@@ -16,6 +16,7 @@ type fakeAdapter struct {
 	signals     []int
 	denied      bool
 	replacement bool
+	transient   int
 }
 
 func (f *fakeAdapter) Supported() bool { return true }
@@ -27,6 +28,10 @@ func (f *fakeAdapter) Processes(context.Context) ([]Process, error) {
 	return out, nil
 }
 func (f *fakeAdapter) Inspect(pid int) (Process, error) {
+	if len(f.signals) > 0 && f.transient > 0 {
+		f.transient--
+		return Process{}, ErrDenied
+	}
 	if p, ok := f.all[pid]; ok {
 		return p, nil
 	}
@@ -235,4 +240,14 @@ func history(t *testing.T, m *Manager) []Action {
 		t.Fatal(err)
 	}
 	return entries
+}
+
+func TestTemporaryInspectionFailureDuringExit(t *testing.T) {
+	m, f, _ := fixture(t)
+	f.transient = 1
+	s := observed(t, m, true)
+	action, err := m.Stop(context.Background(), input(s))
+	if err != nil || action.Outcome != "stopped" || len(f.signals) != 1 {
+		t.Fatal("transient exit inspection was treated as a final result", action, err)
+	}
 }
