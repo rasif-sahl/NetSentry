@@ -6,14 +6,14 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | --- | --- | --- |
 | Repository layout and platform scaffolds | 0 | Source scaffolds added; see Phase 0 validation record |
 | Architecture, contracts and database foundation | 1 | Implemented; local and hosted foundation checks pass; native/device acceptance remains deferred |
-| 1 Accounts and authentication | 2, 8, 12 | Phase 2 backend verification/recovery/profile/session/deletion flows implemented; configured email acceptance and clients pending |
+| 1 Accounts and authentication | 2, 8, 12 | Phase 2 backend verification/recovery/profile/session/deletion flows implemented; Phase 4 web account flows integrated; configured email acceptance and native clients pending |
 | 2 Device registration and lifecycle | 2, 8, 12 | Phase 2 enrolment, credentials, metadata/lifecycle and history APIs implemented; native pairing/detection tests pending |
 | 3 Capability detection and explanations | 1, 3, 8, 12 | Versioned schema and authenticated metadata ingestion implemented; actual native/router detection and measurement remain pending |
 | 4 Personal hotspot and data monitoring | 8 | Pending platform/device validation and implementation |
 | 5 Advanced Android monitoring | 9 | Pending |
 | 6 Application catalogue | 9 | Pending |
-| 7 Reports and exports | 3, 4, 9 | Phase 3 scoped reports, comparisons, source/quality/coverage indicators and CSV APIs implemented; dashboard/native integration pending |
-| 8 Alerts and notifications | 3 and each domain | Phase 3 measured thresholds, health rules, quiet hours, acknowledgement, in-app delivery, preferences and retries implemented; real push/providers pending |
+| 7 Reports and exports | 3, 4, 9 | Phase 3 scoped reports, comparisons, source/quality/coverage indicators and CSV APIs implemented; Phase 4 dashboard integration implemented; native integration pending |
+| 8 Alerts and notifications | 3 and each domain | Phase 3 measured thresholds, health rules, quiet hours, acknowledgement, in-app delivery, preferences and retries implemented; Phase 4 web management integrated; real push/providers pending |
 | 9 Wi-Fi discovery and agent | 5, 10 | Go module boundary only; discovery pending |
 | 10 Router compatibility | 10 | Pending; select hardware support matrix |
 | 11 Network inventory | 10, 11, 13 | Pending |
@@ -27,8 +27,8 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 19 Business organizations | 13 | Pending |
 | 20 Roles and permissions | 1, 2, 7, 11, 13 | Workspace roles, invitations, lifecycle/consent ownership and separate service gates implemented; remote-control/Family/Business resource grants pending |
 | 21 Subscriptions and editions | 14, earlier if paid launch | Pending |
-| 22 Responsive web dashboard | 4 and each domain | Existing preview interface; live integration pending |
-| 23 Data and privacy | 1, 2, 3 and each domain | Phase 2 disclosures/history, export, deletion, revocation/generation and account-mail cleanup implemented; Phase 3 retention and raw/derived-data erasure implemented; offline-client enforcement pending |
+| 22 Responsive web dashboard | 4 and each domain | Phase 4 account/workspace, device, report, alert, team and privacy/settings UI integrated and browser-tested; later domains explicitly planned |
+| 23 Data and privacy | 1, 2, 3 and each domain | Phase 2 disclosures/history, export, deletion, revocation/generation and account-mail cleanup implemented; Phase 3 retention and raw/derived-data erasure and Phase 4 web privacy controls implemented; offline-client enforcement pending |
 | 24 Platform administration | 3, 14 | Phase 3 workspace monitoring diagnostics implemented; platform administration/billing tools pending |
 | 25 Excluded functionality | All | Preserve catalogue boundaries; no inbox access |
 | 26 Developer tools and mobile stop | 5–8, 12 | Desktop/agent source scaffolds; discovery/control pending |
