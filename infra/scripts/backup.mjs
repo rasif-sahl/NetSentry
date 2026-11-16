@@ -1,3 +1,4 @@
+import { loadSecrets } from "../runtime-lib.mjs";
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import {
   createReadStream,
@@ -17,7 +18,6 @@ import { createRequire } from "node:module";
 const require = createRequire(
   new URL("../../backend/package.json", import.meta.url),
 );
-const { Client } = require("pg");
 const magic = Buffer.from("NETSBK01");
 export async function privateKey(path) {
   const info = await lstat(path);
@@ -215,6 +215,7 @@ export async function restoreDatabase(url, path, key, confirmation) {
       createWriteStream(dump, { flags: "wx", mode: 0o600 }),
     );
     // Authenticate the entire backup before any restore command can execute SQL.
+    const { Client } = require("pg");
     client = new Client(s);
     await client.connect();
     if (
@@ -295,6 +296,15 @@ export async function verifyBackup(path, key) {
 if (import.meta.url === pathToFileURL(resolve(process.argv[1] || "")).href) {
   const [mode, path, confirm] = process.argv.slice(2);
   try {
+    Object.assign(process.env, await loadSecrets(process.env));
+    if (process.env.RESTORE_DATABASE_URL_FILE) {
+      if (process.env.RESTORE_DATABASE_URL)
+        throw new Error("Ambiguous restore target.");
+      const target = await loadSecrets({
+        DATABASE_URL_FILE: process.env.RESTORE_DATABASE_URL_FILE,
+      });
+      process.env.RESTORE_DATABASE_URL = target.DATABASE_URL;
+    }
     const key = await privateKey(process.env.BACKUP_KEY_FILE || "");
     if (mode === "backup")
       console.log(
