@@ -138,9 +138,22 @@ test("reports show real measured/estimated values, export and isolate workspace 
   await expect(
     page.getByText("10,485,760 bytes", { exact: true }).first(),
   ).toBeVisible();
-  await expect(
-    page.getByText("9,437,184 bytes", { exact: true }).first(),
-  ).toBeVisible();
+  // A collection interval can cross workspace midnight. Check the estimated
+  // total across the displayed buckets rather than assuming a single day row.
+  const estimatedCells = page
+    .locator("table")
+    .filter({
+      has: page.getByRole("columnheader", { name: "Estimated", exact: true }),
+    })
+    .locator("tbody tr td:nth-of-type(2)");
+  await expect
+    .poll(async () =>
+      (await estimatedCells.allTextContents()).reduce(
+        (sum, text) => sum + Number(text.replace(/[^0-9.-]/g, "")),
+        0,
+      ),
+    )
+    .toBeCloseTo(9437184, 1);
   await expect(
     page.getByText("synthetic-browser-1", { exact: true }).first(),
   ).toBeVisible();
@@ -641,9 +654,9 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
     .click();
   await page.getByRole("button", { name: "More modules", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Developer Tools", exact: true }),
+    page.getByRole("heading", { name: "Network Security", exact: true }),
   ).toBeVisible();
-  expect(await page.getByText("Planned", { exact: true }).count()).toBe(9);
+  expect(await page.getByText("Planned", { exact: true }).count()).toBe(8);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -743,4 +756,69 @@ test("the session boundary rejects stale actor mutations and oversized bodies", 
     data: { email: "x".repeat(70000), password: "fixture" },
   });
   expect(oversized.status()).toBe(413);
+});
+
+test("developer commands show pending/cancelled outcomes and keep viewers read-only", async ({
+  page,
+  browser,
+}) => {
+  await login(page);
+  await page
+    .getByRole("button", { name: "Developer Tools", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Paired developer computers" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Fixture remote project · Node.js", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Request graceful stop", exact: true })
+    .click();
+  await page.getByLabel("I confirm this exact target and action").check();
+  await page
+    .getByRole("button", { name: "Confirm remote command", exact: true })
+    .click();
+  await expect(
+    page.getByText("Command pending.", { exact: false }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Close confirmation" }).click();
+  await expect(
+    page.getByRole("button", { name: "Cancel command", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Cancel command", exact: true })
+    .click();
+  await expect(
+    page.getByText("cancelled · cancelled", { exact: false }).first(),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+  await page.screenshot({ path: ".test/developer-remote.png", fullPage: true });
+  const viewer = await browser.newContext();
+  const tab = await viewer.newPage();
+  try {
+    await login(tab, "viewer");
+    await tab
+      .getByRole("button", { name: "Developer Tools", exact: true })
+      .click();
+    await expect(
+      tab.getByText("Fixture remote project · Node.js", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      tab.getByRole("button", { name: "Request graceful stop", exact: true }),
+    ).toBeDisabled();
+    await expect(
+      tab.getByRole("button", { name: "Request force-stop", exact: true }),
+    ).toBeDisabled();
+    await expect(
+      tab.getByText("Sharing and controller grants", { exact: true }),
+    ).toHaveCount(0);
+  } finally {
+    await viewer.close();
+  }
 });
