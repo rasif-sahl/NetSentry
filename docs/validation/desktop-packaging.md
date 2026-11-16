@@ -29,3 +29,7 @@ Production signing identity/team, notarization profile, public update host/root 
 Background-service registration/removal, automatic agent start/restart and health-based rollback remain separate pending work. The current agent remains explicitly initialized/run in the foreground; local background preference alone installs nothing. Preview branding currently uses Electron's default icon. Windows/Linux distributions are not implemented by this macOS increment.
 
 Follow [the packaging/update runbook](../../desktop/packaging/README.md). Preserve release high-water state across upgrades/recovery and retain Phase 15 physical/native gates until actual evidence exists.
+
+## Desktop background-service follow-up
+
+Explicit per-user macOS registration, start, removal and update interlocking are implemented. Registration requires native confirmation, fresh workspace authorization and a signed application installed in Applications. No production service was registered during development. Signed packaged-agent/Keychain and actual login acceptance remain pending. See [validation](desktop-background-service.md).

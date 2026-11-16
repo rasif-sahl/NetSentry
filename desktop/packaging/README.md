@@ -13,7 +13,7 @@ export NETSENTRY_ELECTRON_DIST=/absolute/path/to/electron/dist
 npm --prefix desktop run package:preview
 ```
 
-The preview produces `artifacts/desktop/preview/arm64/mac-arm64/NetSentry.app` on the initial target. It includes local renderer CSS/JS, production update dependencies, the matching agent, disabled public policy and update-cache settings. It uses Electron's default icon pending branding. It creates no LaunchAgent or system service. Unsigned previews cannot execute the bundled credential helper or activate updates. Source development overrides remain available only in unpackaged development builds.
+The preview produces `artifacts/desktop/preview/arm64/mac-arm64/NetSentry.app` on the initial target. It includes local renderer CSS/JS, production update dependencies, the matching agent, disabled public policy and update-cache settings. It uses Electron's default icon pending branding. Packaging itself creates no LaunchAgent or system service. Signed installed builds offer explicit Run at login registration/removal; unsigned previews cannot register. Unsigned previews cannot execute the bundled credential helper or activate updates. Source development overrides remain available only in unpackaged development builds.
 
 The generated preview is for bundle/UI inspection. Production signatures, Gatekeeper/notarization, Keychain and a real in-place update remain unverified. This task did not install or open the preview as a production application.
 
@@ -62,3 +62,7 @@ If a `.new` journal file or corrupt state remains after a crash, preserve it and
 `npm run build:desktop`, `npm run test:desktop-updates` and `npm run test:desktop-appearance` cover compilation, signed-protocol/controller boundaries and Chromium UI. Set `TEST_AGENT_BINARY` to the existing newly built test agent for the actual cross-process lock check. Synthetic ZIP/port fixtures never establish native signing or installation.
 
 References: [stable macOS updater behavior](https://www.electronjs.org/docs/latest/api/auto-updater), [electron-builder auto updates](https://www.electron.build/docs/features/auto-update/). The installed stable versions are 26.18.0/6.8.11; unreleased v27 signed-YAML guidance is not used. Our mandatory signed JSON provider supplies the metadata authentication missing from that stable generic feed.
+
+## Desktop background-service follow-up
+
+Explicit per-user macOS registration, start, removal and update interlocking are implemented. Registration requires native confirmation, fresh workspace authorization and a signed application installed in Applications. No production service was registered during development. Signed packaged-agent/Keychain and actual login acceptance remain pending. See [validation](../../docs/validation/desktop-background-service.md).

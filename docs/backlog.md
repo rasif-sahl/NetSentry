@@ -55,3 +55,7 @@ Phase 15 is in progress. Candidate evidence tooling and physical-device handoffs
 Phase 16 selected increment: Android/account and desktop/local themes plus optional email-alert preferences/channels are implemented. Email delivery is hard-disabled; transport/provider work remains future scope. No optional platform/AI/YouTube/Enterprise scope is implied. Phase 15 hardware/native release acceptance is still pending. See `validation/phase-16.md`.
 
 Desktop packaging/update follow-up adds macOS preview packaging, signed DMG/ZIP configuration, user-confirmed signed metadata/download/install flow and agent runtime-lock handoff. No production signing identity or update host exists, so activation and real signed replacement/recovery remain pending. Actual LaunchAgent registration/removal remains separate.
+
+## Desktop background-service follow-up
+
+Explicit per-user macOS registration, start, removal and update interlocking are implemented. Registration requires native confirmation, fresh workspace authorization and a signed application installed in Applications. No production service was registered during development. Signed packaged-agent/Keychain and actual login acceptance remain pending. See [validation](validation/desktop-background-service.md).

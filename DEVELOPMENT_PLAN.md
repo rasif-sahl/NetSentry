@@ -348,7 +348,7 @@ Completion: acceptance evidence identifies which platforms/features are source-c
 
 Current status: **in progress; physical acceptance pending**. Phase 15 adds candidate-bound release evidence tooling, read-only existing-tool prerequisite checks, platform-specific build/testing handoffs and an explicit support matrix. iOS Debug identifiers are isolated from the Flutter reference. Native builds/signing, phone/router observations, production runtime and installer/update acceptance remain pending; no mobile tooling is installed and Flutter is not retired. See `docs/release/README.md` and `docs/validation/phase-15.md`.
 
-Desktop packaging/update follow-up: local macOS preview packaging and the signed update controller/provider are implemented. Production identity, notarization and host are unconfigured; actual signed install/replacement/recovery and background-service registration remain pending. See `desktop/packaging/README.md` and `docs/validation/desktop-packaging.md`.
+Desktop packaging/update follow-up: local macOS preview packaging and the signed update controller/provider are implemented. Production identity, notarization and host are unconfigured; actual signed install/replacement/recovery remain pending. Explicit per-user macOS background-service registration/removal is implemented; signed packaged-agent/Keychain and login/device acceptance remain pending. See `docs/validation/desktop-background-service.md`. See `desktop/packaging/README.md` and `docs/validation/desktop-packaging.md`.
 
 ### Phase 16 Optional later extensions
 

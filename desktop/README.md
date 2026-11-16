@@ -36,7 +36,7 @@ Results distinguish still running, identity/tree changes, denied/unknown/partial
 
 ## Phase 7 sharing and remote consent
 
-Paired Developer Tools exposes independent summary-sharing and remote-shutdown choices, initially off. Read and accept the disclosure before enabling; disabling sharing clears control. Workspace/controller grants are managed in the web dashboard and are required separately. No background service is installed. See [remote architecture](../docs/architecture/remote-service-commands.md) and [verification](../docs/validation/phase-7.md).
+Paired Developer Tools exposes independent summary-sharing and remote-shutdown choices, initially off. Read and accept the disclosure before enabling; disabling sharing clears control. Workspace/controller grants are managed in the web dashboard and are required separately. Sharing settings do not install a background service. Explicit Run at login controls are documented below. See [remote architecture](../docs/architecture/remote-service-commands.md) and [verification](../docs/validation/phase-7.md).
 
 Phase 10 adds Network observation sharing with a named network UUID and separate `network-sharing-v1` acceptance. The web dashboard must grant the same installation/network; enabling a module alone is insufficient. Authenticated local IPC v5 exposes only get/set network preferences. Developer control remains independently gated. Renderer builds and Node-Go IPC fixtures are checked; packaged Electron/real-host collection remains pending.
 
@@ -49,3 +49,7 @@ Phase 16 adds local SYSTEM/LIGHT/DARK appearance, OS/cross-window updates and bl
 The desktop renderer compiles Tailwind CSS 4.3.3 through `postcss.config.mjs` with pinned PostCSS 8.5.23. `styles.css` explicitly scans renderer TSX, maps runtime colors with `@theme inline` and uses Tailwind base rules for shared form/typography defaults. Components use utilities for responsive layouts, cards, actions, focus and dialogs. `theme.css` contains runtime light/dark tokens. CSS is bundled locally by Vite; no CDN, remote fonts, inline style permission or runtime compiler is added.
 
 Build with `npm run build:desktop`; verify appearance with the existing Chromium setup via `npm run test:desktop-appearance`. Browser agent data is synthetic and no stop action is submitted. Native Electron/Keychain/signing/device acceptance remains pending. See [migration evidence](../docs/validation/desktop-tailwind.md).
+
+## Desktop background-service follow-up
+
+Explicit per-user macOS registration, start, removal and update interlocking are implemented. Registration requires native confirmation, fresh workspace authorization and a signed application installed in Applications. No production service was registered during development. Signed packaged-agent/Keychain and actual login acceptance remain pending. See [validation](../docs/validation/desktop-background-service.md).
