@@ -58,6 +58,8 @@ jobs:
       - name: Check shared contracts and backend
         run: |
           npm run check:scaffolds
+          npm run check:infra
+          npm run test:infra
           npm run check:contracts
           npm run test:contracts
           npm run build:backend
@@ -66,6 +68,10 @@ jobs:
         run: |
           node backend/scripts/check-database.mjs
           node backend/scripts/check-api.mjs
+      - name: Verify encrypted PostgreSQL backup and empty-target recovery
+        env:
+          PG_CONTAINER: ${{ job.services.postgres.id }}
+        run: npm run test:recovery
 
   desktop:
     runs-on: ubuntu-latest
@@ -92,6 +98,7 @@ jobs:
           npm --prefix desktop ci --ignore-scripts --no-audit --no-fund
           npm run build:desktop
           npm run test:desktop-agent
+          npm run test:infra
 
   agent:
     strategy:
