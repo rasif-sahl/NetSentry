@@ -177,3 +177,55 @@ jobs:
           path: dashboard/test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  android-core:
+    # Standalone JVM source/contracts/API checks only. No Gradle, Android SDK or emulator setup.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: netsentry
+          POSTGRES_PASSWORD: isolated-test-password
+          POSTGRES_DB: netsentry_android_jvm_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U netsentry -d netsentry_android_jvm_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://netsentry:isolated-test-password@127.0.0.1:5432/netsentry_android_jvm_test
+      TEST_DATABASE_SSL: 'false'
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare checksum-pinned standalone Kotlin and JSON tooling
+        run: |
+          mkdir -p "$RUNNER_TEMP/android-jvm-tools"
+          cd "$RUNNER_TEMP/android-jvm-tools"
+          curl -fL --retry 2 -o kotlin.zip https://github.com/JetBrains/kotlin/releases/download/v2.1.20/kotlin-compiler-2.1.20.zip
+          echo 'a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a  kotlin.zip' | sha256sum -c -
+          unzip -q kotlin.zip
+          curl -fL --retry 2 -o json.jar https://repo.maven.apache.org/maven2/org/json/json/20250107/json-20250107.jar
+          echo '85d4c1ab192d3117fd02c7fff1ec0fe63ade45cf56def7fe950ef060cf06e99f  json.jar' | sha256sum -c -
+          echo "KOTLINC=$RUNNER_TEMP/android-jvm-tools/kotlinc/bin/kotlinc" >> "$GITHUB_ENV"
+          echo "JSON_JAR=$RUNNER_TEMP/android-jvm-tools/json.jar" >> "$GITHUB_ENV"
+      - name: Prepare shared contracts and actual fixture backend
+        run: |
+          npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
+          npm --prefix backend ci --ignore-scripts --no-audit --no-fund
+          npm run build:backend
+      - name: Check Kotlin core, all-source syntax and emitted contracts
+        run: npm run test:android-core
+      - name: Exercise Kotlin HTTPS adapters against isolated API and PostgreSQL
+        run: node android/scripts/check-live.mjs

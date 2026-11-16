@@ -251,6 +251,8 @@ Completion: an authorized web/API client stops a service through backend and age
 
 ### Phase 8 Native Kotlin Android personal application
 
+Status: Kotlin/Compose personal-client source, OS aggregate adapters, encrypted bounded sync, remote-command UI/contracts and SDK-free JVM/API checks implemented. See `docs/validation/phase-8.md`. Android/Compose compilation, packaging and all physical-device checks remain pending; hotspot/client data stays unavailable on the API 35 baseline.
+
 - Implement native project source, authentication, secure sessions, workspace selection, profile, privacy and notification settings.
 - Implement enrolment, capability explanations, pause/revoke/delete, version/OS/model and monitoring-health reporting.
 - Implement supported hotspot/tethering state and mobile/Wi-Fi usage collectors behind platform interfaces, with daily/weekly/monthly views, allowance tracking and data alerts.
