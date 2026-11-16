@@ -26,7 +26,10 @@ func Lock(dir string) (func(), error) {
 	}
 	if err := syscall.Flock(int(file.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
 		file.Close()
-		return nil, errors.New("another agent process is already using this installation")
+		if errors.Is(err, syscall.EWOULDBLOCK) {
+			return nil, ErrRuntimeBusy
+		}
+		return nil, errors.New("agent runtime lock unavailable")
 	}
 	return func() { syscall.Flock(int(file.Fd()), syscall.LOCK_UN); file.Close() }, nil
 }

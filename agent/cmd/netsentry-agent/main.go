@@ -68,6 +68,9 @@ func command(args []string) error {
 	if err != nil {
 		return err
 	}
+	if args[0] == "diagnose" || args[0] == "repair-socket" {
+		return diagnose(dir, args[0] == "repair-socket")
+	}
 	if args[0] == "hold-update-lock" {
 		unlock, err := core.Lock(dir)
 		if err != nil {
@@ -129,16 +132,19 @@ func command(args []string) error {
 	if args[0] == "background-check" || args[0] == "background-enable" {
 		unlock, err := core.Lock(dir)
 		if err != nil {
-			return err
+			if errors.Is(err, core.ErrRuntimeBusy) {
+				return errors.New("RUNTIME_BUSY")
+			}
+			return errors.New("LOCK_UNAVAILABLE")
 		}
 		defer unlock()
 		config, err = core.LoadConfig(dir)
 		if err != nil {
-			return err
+			return errors.New("CONFIG_INVALID")
 		}
 		store, err := securestore.Open(dir, config)
 		if err != nil {
-			return err
+			return errors.New("CREDENTIALS_UNAVAILABLE")
 		}
 		candidate := config
 		if args[0] == "background-enable" {
