@@ -54,6 +54,9 @@ func command(args []string) error {
 	networkEnabled := flags.Bool("network", false, "")
 	developerEnabled := flags.Bool("developer", false, "")
 	allowBackground := flags.Bool("allow-background", false, "")
+	shareNetwork := flags.Bool("share-network", false, "")
+	networkID := flags.String("network-id", "", "")
+	acceptNetwork := flags.Bool("accept-network-disclosure", false, "")
 	shareServices := flags.Bool("share-services", false, "")
 	allowRemote := flags.Bool("allow-remote-control", false, "")
 	acceptRemote := flags.Bool("accept-remote-disclosure", false, "")
@@ -114,6 +117,23 @@ func command(args []string) error {
 	}
 	switch args[0] {
 	case "settings":
+		networkChanged := false
+		networkSharing, namedNetwork := config.ShareNetwork, config.NetworkID
+		flags.Visit(func(option *flag.Flag) {
+			switch option.Name {
+			case "share-network":
+				networkSharing = *shareNetwork
+				networkChanged = true
+			case "network-id":
+				namedNetwork = *networkID
+				networkChanged = true
+			}
+		})
+		if networkChanged {
+			if err := agent.NetworkPreferences(networkSharing, namedNetwork, *acceptNetwork); err != nil {
+				return err
+			}
+		}
 		remoteChanged := false
 		share, remoteControl := config.ShareServices, config.RemoteControlAllowed
 		flags.Visit(func(option *flag.Flag) {
@@ -186,6 +206,9 @@ func command(args []string) error {
 	case "run":
 		if *once {
 			err := agent.Cycle(context.Background())
+			if err == nil {
+				err = agent.NetworkCycle(context.Background())
+			}
 			if emitErr := emit(agent.Snapshot()); emitErr != nil {
 				return emitErr
 			}

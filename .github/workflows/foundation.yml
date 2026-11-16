@@ -49,6 +49,8 @@ jobs:
           cd agent
           go build -o ../artifacts/netsentry-agent ./cmd/netsentry-agent
           echo "TEST_AGENT_BINARY=$GITHUB_WORKSPACE/artifacts/netsentry-agent" >> "$GITHUB_ENV"
+          go test -c -o ../artifacts/network-runner-test ./internal/runner
+          echo "TEST_NETWORK_RUNNER_BINARY=$GITHUB_WORKSPACE/artifacts/network-runner-test" >> "$GITHUB_ENV"
       - name: Prepare contracts and backend dependencies without install scripts
         run: |
           npm --prefix contracts ci --ignore-scripts --no-audit --no-fund

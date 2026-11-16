@@ -10,6 +10,7 @@ import (
 	"netsentry.local/agent/internal/buffer"
 	"netsentry.local/agent/internal/core"
 	"netsentry.local/agent/internal/modules/developer"
+	"netsentry.local/agent/internal/modules/network"
 	"netsentry.local/agent/internal/remote"
 	"netsentry.local/agent/internal/securestore"
 	"os"
@@ -38,18 +39,20 @@ type Status struct {
 	ServiceControlAvailable bool         `json:"serviceControlAvailable"`
 }
 type Runner struct {
-	mu          sync.Mutex
-	Dir         string
-	Config      core.Config
-	Store       securestore.Store
-	Client      *remote.Client
-	Queue       *buffer.Queue
-	binding     core.Binding
-	developer   *developer.Manager
-	remote      core.RemoteConfig
-	connection  string
-	code        string
-	lastContact string
+	networkMu       sync.Mutex
+	networkDiscover func(context.Context, []string) (network.Inventory, error)
+	mu              sync.Mutex
+	Dir             string
+	Config          core.Config
+	Store           securestore.Store
+	Client          *remote.Client
+	Queue           *buffer.Queue
+	binding         core.Binding
+	developer       *developer.Manager
+	remote          core.RemoteConfig
+	connection      string
+	code            string
+	lastContact     string
 }
 
 func New(dir string, config core.Config, store securestore.Store) (*Runner, error) {
@@ -121,6 +124,12 @@ func (r *Runner) Pair(ctx context.Context, token string) error {
 	if err := r.developer.Reset(); err != nil {
 		return err
 	}
+	r.Config.ShareNetwork = false
+	r.Config.NetworkID = ""
+	r.Config.NetworkPausePending = false
+	if err := r.clearNetworkPending(); err != nil {
+		return err
+	}
 	r.Config.LocalControlAllowed = false
 	r.Config.RemotePausePending = false
 	r.Config.ShareServices = false
@@ -155,6 +164,11 @@ func (r *Runner) Settings(modules *core.Modules, background *bool) error {
 	next := r.Config
 	if modules != nil {
 		next.Requested = *modules
+		if r.Config.Requested.Network && !modules.Network {
+			next.NetworkPausePending = next.NetworkPausePending || next.ShareNetwork
+			next.ShareNetwork = false
+			next.NetworkID = ""
+		}
 		if r.Config.Requested.Developer && !modules.Developer {
 			next.RemotePausePending = next.RemotePausePending || next.ShareServices || next.RemoteControlAllowed
 			next.ShareServices = false
@@ -183,6 +197,12 @@ func (r *Runner) Unpair() error {
 		return err
 	}
 	if err := r.Store.Delete("backend"); err != nil {
+		return err
+	}
+	r.Config.ShareNetwork = false
+	r.Config.NetworkID = ""
+	r.Config.NetworkPausePending = false
+	if err := r.clearNetworkPending(); err != nil {
 		return err
 	}
 	r.Config.LocalControlAllowed = false
@@ -279,6 +299,12 @@ func (r *Runner) failed(err error) error {
 			r.connection = "revoked"
 			r.code = "CREDENTIAL_REVOKED"
 			r.remote = core.RemoteConfig{}
+			r.Config.ShareNetwork = false
+			r.Config.NetworkID = ""
+			r.Config.NetworkPausePending = false
+			if err := r.clearNetworkPending(); err != nil {
+				return err
+			}
 			r.Config.LocalControlAllowed = false
 			r.Config.RemotePausePending = false
 			r.Config.ShareServices = false
@@ -331,14 +357,20 @@ func Delay(attempt int) time.Duration {
 	return base + time.Duration(jitter.Int64())
 }
 func (r *Runner) Run(ctx context.Context, background bool) error {
+	r.mu.Lock()
+	locallyAllowed := r.Config.BackgroundAllowed
+	r.mu.Unlock()
+	if background && !locallyAllowed {
+		return errors.New("background operation is not locally enabled")
+	}
 	remoteCtx, cancelRemote := context.WithCancel(ctx)
 	remoteDone := make(chan struct{})
 	go func() { defer close(remoteDone); r.remoteLoop(remoteCtx) }()
+	networkDone := make(chan struct{})
+	go func() { defer close(networkDone); r.networkLoop(remoteCtx) }()
+	defer func() { cancelRemote(); <-networkDone }()
 	defer func() { cancelRemote(); <-remoteDone }()
 
-	if background && !r.Config.BackgroundAllowed {
-		return errors.New("background operation is not locally enabled")
-	}
 	attempt := 0
 	for {
 		err := r.Cycle(ctx)
