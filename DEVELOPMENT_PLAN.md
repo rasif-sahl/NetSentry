@@ -307,7 +307,9 @@ Completion: backend schedule, permission, override and policy-state tests pass. 
 - Represent iOS-specific unsupported data and authorization changes accurately.
 - Prepare signing, distribution and physical-device test instructions without installing Xcode or simulators.
 
-Completion during this stage: Swift/SwiftUI source and shared contracts are prepared and reviewed; available non-platform checks run. Build, signing, push and entitlement-dependent device behavior remain explicitly pending where Apple tooling/devices are unavailable.
+Phase 12 source status: the SwiftUI account/device/report/alert/settings/privacy/family client, confirmed desktop-stop workflow and separately gated local Apple controls are implemented in `ios/`. The default scheme leaves Family Controls disabled. The optional scheme includes Monitor, Report, Shield Configuration and Shield Action source targets; no active entitlements, signing team or approved App Group are configured. Apple report measurements remain inside their report extension; server family policies are not automatically executed on iOS.
+
+Available checks: portable Swift repository tests, actual Swift-emitted contract validation, all-source grammar checks with the flag on/off, project/plist checks and isolated Swift HTTPS/API/PostgreSQL integration. These checks do not type-check iOS frameworks or build an iOS app. Native builds, signing/distribution, APNs, entitlement-dependent behavior, accessibility and physical-device acceptance remain pending. See `docs/architecture/ios-client.md`, `docs/validation/phase-12.md` and `ios/README.md`. No mobile tooling was installed.
 
 ### Phase 13 Business organizations
 

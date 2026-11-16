@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+    <!-- Example only. Each app/extension needs its own approved provisioning profile. -->
+    <key>com.apple.developer.family-controls</key><true/>
+    <!-- App + monitor only. Remove from report/shield extensions: they share no files. -->
+    <key>com.apple.security.application-groups</key><array><string>group.REPLACE_WITH_APPROVED_IDENTIFIER</string></array>
+</dict></plist>
