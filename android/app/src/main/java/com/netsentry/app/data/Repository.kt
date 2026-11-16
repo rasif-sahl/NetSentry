@@ -29,6 +29,7 @@ class Repository(
     private var notifications = emptyList<JSONObject>()
     private var preferences = JSONObject()
     private var disclosures = JSONObject()
+    private var subscription: JSONObject? = null
     private var businessOverview: JSONObject? = null
     private var familyOverview: JSONObject? = null
     private var familyDetail: JSONObject? = null
@@ -41,12 +42,12 @@ class Repository(
         val report: JSONObject?, val applicationReport: JSONObject?, val appUsageEnabled: Boolean, val computers: List<JSONObject>, val commands: Map<String, List<JSONObject>>,
         val rules: List<JSONObject>, val alerts: List<JSONObject>, val notifications: List<JSONObject>,
         val preferences: JSONObject, val disclosures: JSONObject, val queueSize: Int, val syncStatus: String,
-        val businessOverview: JSONObject?, val familyOverview: JSONObject?, val familyDetail: JSONObject?, val familySync: String,
+        val subscription: JSONObject?, val businessOverview: JSONObject?, val familyOverview: JSONObject?, val familyDetail: JSONObject?, val familySync: String,
     )
     @Synchronized fun view(): View = View(state.has("session"), state.optString("base"), profile,
         workspaces, state.optString("workspaceId"), devices, ownDevice(), state.optBoolean("collect"),
         report, applicationReport, state.optBoolean("appUsage"), computers, commands, rules, alerts, notifications, preferences, disclosures,
-        state.optJSONArray("queue")?.length() ?: 0, lastSync, businessOverview, familyOverview, familyDetail, familySync)
+        state.optJSONArray("queue")?.length() ?: 0, lastSync, subscription, businessOverview, familyOverview, familyDetail, familySync)
     private fun save() = store.write(state)
     private fun api(): Transport = transport(state.getString("base"))
     private fun ownDevice(): JSONObject? = state.optJSONObject("device")?.optJSONObject("public")
@@ -86,6 +87,7 @@ class Repository(
         }
     }
     private fun clearViews() {
+        subscription = null
         businessOverview = null
         familyOverview = null; familyDetail = null; familySync = "Family policy not checked"
         profile = null; devices = emptyList(); computers = emptyList(); commands = emptyMap()
@@ -136,6 +138,10 @@ class Repository(
                 state.getJSONObject("device").put("public", it); save()
             }
         }
+    }
+    @Synchronized fun refreshSubscription() {
+        subscription = null
+        subscription = account("GET", "/workspaces/${workspace()}/billing/entitlements") as JSONObject
     }
     @Synchronized fun refreshBusiness() {
         businessOverview = null

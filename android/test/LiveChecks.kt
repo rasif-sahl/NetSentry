@@ -117,6 +117,8 @@ fun main(args: Array<String>) {
     val businessRepo = Repository(EphemeralStore(), usage, {})
     businessRepo.signIn(base, fixture.getJSONObject("accounts").getJSONObject("employee").getString("email"), fixture.getString("password"))
     businessRepo.selectWorkspace(fixture.getJSONObject("business").getString("workspaceId"))
+    businessRepo.refreshSubscription()
+    check(businessRepo.view().subscription!!.getString("edition") == "free" && !businessRepo.view().localEnabled)
     businessRepo.refreshBusiness()
     check(!businessRepo.view().localEnabled)
     val business = businessRepo.view().businessOverview!!
