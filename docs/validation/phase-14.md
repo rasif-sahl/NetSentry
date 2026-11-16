@@ -1,0 +1,35 @@
+# Phase 14 validation record
+
+## Implemented source
+
+Provider-neutral sandbox billing is the agreed scope. Source includes edition/usage/retention limits, one-time trials, monthly/annual test checkout and explicit simulated confirmation, payment history, cancellation/resumption, exact-time expiry/grace, authenticated normalized events and immutable replay/conflict handling. Sandbox amounts are TST synthetic units, not offered prices. Live billing and native purchases remain unavailable; production rejects sandbox mode. Enforcement defaults to visibly labeled pre-release evaluation. Downgrade preserves existing rows and privacy access; capacity checks serialize new allocations.
+
+Platform operations has separately issued expiring/scoped operator grants, scoped workspace/subscription health, sanitized agent versions, failed jobs/deliveries, redacted count-only diagnostics, audit, password-confirmed revision-bound feature flags and compatibility/category metadata. Global account controls need an additional explicit grant, prevent self-suspension/deletion-state reactivation and revoke sessions on suspension. Workspace ownership creates no operator authority. Compatibility metadata does not activate adapters, classify applications or certify hardware.
+
+Web provides owner billing, member entitlement reads and a separate Operations section. Kotlin/SwiftUI add read-only Subscription tabs and clear cached status with workspace/account scope. No purchase link, store payment or monitoring permission is enabled. Flutter remains unchanged.
+
+Infrastructure source adds nonroot containers/Compose, migration-aware readiness, a bounded operations worker, encrypted PostgreSQL backup/authenticated empty-target restoration and offline signed release-candidate packaging/verification with optional protected persistent rollback state. No deployment, production grant, signing key, background agent or scheduler is created.
+
+## Available verification
+
+- Root checks pass: scaffolds, deployment source, release verification, **162 API operations**, 14 synthetic fixtures, **20 contract tests**, Android contracts/source, iOS project/privacy/syntax, backend build, desktop TypeScript/renderer build, dashboard lint/production build. Final backend units pass **69 tests across 16 suites**.
+- PostgreSQL lifecycle checks pass **sixteen migrations**, metadata parity, constraints/cascades, rollback, drift refusal and data-preserving baseline adoption. Phase 14 migration: `BillingOperations1794830599789`.
+- Actual API/PostgreSQL checks pass trial/request/payment replay and conflicts, owner-only access, calendar intervals, cancellation/resumption, HMAC byte tamper/stale authentication, event ordering and sequence/payment conflicts, past-due grace, enforced feature and retention gates, preserved data/privacy reads, disabled-provider fallback and concurrent capacity allocation. Three concurrent free-device allocations admit two and reject one.
+- Operator API checks cover absent/expired/scoped grants, denied cross-workspace diagnostics, support redaction, fresh-password and revision checks, metadata writes, separately authorized global accounts, self-suspension denial, suspended-session revocation, reactivation without token resurrection and bounded expiry/audit cleanup preserving current audit. Readiness responds against the migrated test database.
+- Existing outbound Go/API regression passes controlled sample-process shutdown, unrelated process preservation, expiry/cancellation/reconnection, generation/revocation and synthetic network runner replay. No real router or persistent service is installed.
+- **27 browser scenarios** pass using existing desktop Chrome, including owner sandbox trial/checkout/TST payment, read-only member entitlements, denied viewer operations and password-confirmed scoped feature changes. Existing account, privacy, developer, Family, network and Business flows remain covered.
+- SDK-free Kotlin core/reducer/contract checks and parsing **18 Kotlin source files** pass. Actual Kotlin HTTPS/API/PostgreSQL integration reads selected-workspace subscription without enabling collection and preserves existing account/remote/Family/Business flows. No Android/Compose type check or phone execution is claimed.
+- Existing host Swift Foundation compilation/repository checks and parsing **27 Swift files** pass. Swift HTTPS/API/PostgreSQL integration reads subscription status with monitoring unchanged; denied scope clears cached subscription. SwiftUI/iOS frameworks, native packaging and phone behavior remain pending.
+- Actual matching-version PostgreSQL dump, AES-GCM encrypted backup, fresh-database restore and restored schema parity pass. Nonempty target and changed authentication tag reject. All records are synthetic; temporary dumps/databases are removed. No production backup or remote storage was configured.
+- Ed25519 candidate verification passes wrong root/target, tampered artifact, invalid expiry/minimum, persisted rollback and corrupt-state rejection. A Node-packaged synthetic artifact verifies through the existing Go CLI. Verification reports `installed: false`; it does not execute artifacts.
+- Compose configuration parses using installed Docker CLI without starting its unavailable daemon. Images were **not built/run**. Reviewed digest selection, runtime filesystem behavior, real TLS ingress, production secrets, hosted recovery and signing are pending acceptance.
+
+No Android Studio, mobile SDK, Xcode, simulator or emulator was installed. Native HTTPS checks use ephemeral loopback certificates without changing system trust. No live billing, store, email or push provider was provisioned.
+
+## Rollout and remaining gates
+
+Apply migration sixteen explicitly before this backend; readiness requires exact migration parity. Schedule `operations:work` and the existing domain workers externally. Operator grants expire after the CLI's eight-hour grant; maintenance removes at most 1,000 expired grants and 1,000 audit records older than 90 days per pass. Billing receipt/idempotency history is retained until erasure; request history stops at capacity for operator review rather than silently pruning replay protection.
+
+Approve real edition limits/prices and financial retention before a live integration. Select a provider, implement authoritative reconciliation and handle actual proration/refunds/invoices/taxes before paid use. Resolve native store/distribution requirements before any paid mobile launch; read-only status is not a purchase-policy approval. Phase 15 still requires native builds/signing, actual-device lifecycle/permission/monitoring/remote-stop acceptance, supported router/firmware evidence, store/provisioning/push and signed installer/update recovery checks.
+
+See [architecture](../architecture/subscriptions-and-operations.md) and [operational runbook](../../infra/phase-14-runbook.md). These checks establish source/build/integration boundaries, not production deployment or physical-device acceptance.
