@@ -20,7 +20,7 @@ import java.util.UUID
     Text("Use a Family workspace. Owners/admins create profiles and invite guardians from the web dashboard. Guardian membership alone does not grant access to a child.")
     Button(onClick = { model.run("Family observations refreshed") { refreshFamily() } }, enabled = !model.busy) { Text("Refresh family") }
     state.familyOverview?.getJSONArray("profiles")?.objects()?.forEach { p ->
-        OutlinedButton(onClick = { model.run("Child selected") { refreshFamily(p.getString("id")) } }, enabled = !model.busy) { Text("${p.optString("avatar")} · ${p.getString("name")}") }
+        OutlinedButton(onClick = { model.run("Child selected") { refreshFamily(p.getString("id")) } }, enabled = !model.busy) { Text("${familyAvatar(p.optString("avatar"))} · ${p.getString("name")}") }
     }
     Text("Saved policies do not prove restrictions. Current consumer Android and router adapters report unsupported; no app, network or domain block is claimed applied.")
     Text(state.familySync)
@@ -30,7 +30,7 @@ import java.util.UUID
     }
     val detail = state.familyDetail ?: return
     val profile = detail.getJSONObject("profile")
-    Text("${profile.getString("name")} · ${profile.getString("ageBand")}")
+    Text("${familyAvatar(profile.getString("avatar"))} ${profile.getString("name")} · ${profile.getString("ageBand")}")
     Text(detail.getJSONObject("disclosure").getString("text"))
     Text("Policy intent: ${detail.getJSONObject("desired").getString("state").replace('_', ' ')}")
     Text("Warnings: ${detail.getJSONObject("desired").getJSONArray("warnings")}")
@@ -66,4 +66,8 @@ import java.util.UUID
         }
     }
     Text("Restrictions and notifications depend on separately authorized platform support.")
+}
+
+private fun familyAvatar(name: String): String = when (name) {
+    "leaf" -> "🌿"; "fox" -> "🦊"; "owl" -> "🦉"; "rocket" -> "🚀"; "sun" -> "☀️"; else -> "⭐"
 }
