@@ -19,8 +19,10 @@ export async function cleanupAgents(
       [workspaceId, now],
     );
     return {
-      eventsRemoved: events[1] ?? events.length,
-      codesRemoved: codes[1] ?? codes.length,
+      eventsRemoved: Array.isArray(events[0])
+        ? events[0].length
+        : events.length,
+      codesRemoved: Array.isArray(codes[0]) ? codes[0].length : codes.length,
     };
   });
 }

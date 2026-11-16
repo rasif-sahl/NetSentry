@@ -117,71 +117,91 @@ export class AgentService {
       throw new BadRequestException(
         'Agent enrolment code is invalid or expired.',
       );
-    return this.source.transaction(async (manager) => {
-      await modulePolicy(
-        manager,
-        candidate.userId,
-        candidate.workspaceId,
-        candidate.modules,
-      );
-      const code = await manager.findOne(AgentEnrolment, {
-        where: { id: candidate.id },
-        lock: { mode: 'pessimistic_write' },
-      });
-      if (
-        !code ||
-        code.consumedAt ||
-        code.expiresAt <= new Date() ||
-        code.installationId !== input.installationId ||
-        code.platform !== input.platform
-      )
-        throw new BadRequestException(
-          'Agent enrolment code is invalid or expired.',
+    return this.source
+      .transaction(async (manager) => {
+        await modulePolicy(
+          manager,
+          candidate.userId,
+          candidate.workspaceId,
+          candidate.modules,
         );
-      let agent = await manager.findOne(Agent, {
-        where: { installationId: code.installationId },
-        lock: { mode: 'pessimistic_write' },
-      });
-      if (
-        agent &&
-        (agent.userId !== code.userId || agent.workspaceId !== code.workspaceId)
-      )
-        throw new ConflictException(
-          'This installation belongs to another registration.',
+        const code = await manager.findOne(AgentEnrolment, {
+          where: { id: candidate.id },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (
+          !code ||
+          code.consumedAt ||
+          code.expiresAt <= new Date() ||
+          code.installationId !== input.installationId ||
+          code.platform !== input.platform
+        )
+          throw new BadRequestException(
+            'Agent enrolment code is invalid or expired.',
+          );
+        let agent = await manager.findOne(Agent, {
+          where: { installationId: code.installationId },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (
+          agent &&
+          (agent.userId !== code.userId ||
+            agent.workspaceId !== code.workspaceId)
+        )
+          throw new ConflictException(
+            'This installation belongs to another registration.',
+          );
+        if (
+          !agent &&
+          (await manager.countBy(Agent, { workspaceId: code.workspaceId })) >=
+            100
+        )
+          throw new BadRequestException('Workspace agent limit reached.');
+        const token = randomBytes(32).toString('base64url');
+        if (agent) await manager.delete(AgentEvent, { agentId: agent.id });
+        agent = await manager.save(
+          manager.merge(Agent, agent ?? manager.create(Agent), {
+            installationId: code.installationId,
+            userId: code.userId,
+            workspaceId: code.workspaceId,
+            name: code.name,
+            platform: code.platform,
+            disclosureVersion: code.disclosureVersion,
+            disclosureHash: code.disclosureHash,
+            consentedAt: code.issuedAt,
+            state: 'ACTIVE',
+            credentialHash: hashToken(token),
+            generation: (agent?.generation ?? 0) + 1,
+            modules: code.modules,
+            backgroundAllowed: code.backgroundAllowed,
+            lastSeenAt: null,
+            lastSyncedAt: null,
+            version: null,
+            architecture: null,
+            capabilities: {},
+            enrolledAt: new Date(),
+          }),
         );
-      const token = randomBytes(32).toString('base64url');
-      if (agent) await manager.delete(AgentEvent, { agentId: agent.id });
-      agent = await manager.save(
-        manager.merge(Agent, agent ?? manager.create(Agent), {
-          installationId: code.installationId,
-          userId: code.userId,
-          workspaceId: code.workspaceId,
-          name: code.name,
-          platform: code.platform,
-          disclosureVersion: code.disclosureVersion,
-          disclosureHash: code.disclosureHash,
-          consentedAt: code.issuedAt,
-          state: 'ACTIVE',
-          credentialHash: hashToken(token),
-          generation: (agent?.generation ?? 0) + 1,
-          modules: code.modules,
-          backgroundAllowed: code.backgroundAllowed,
-          lastSeenAt: null,
-          lastSyncedAt: null,
-          version: null,
-          architecture: null,
-          capabilities: {},
-          enrolledAt: new Date(),
-        }),
-      );
-      code.consumedAt = new Date();
-      await manager.save(code);
-      return {
-        agent: publicAgent(agent),
-        agentToken: token,
-        configuration: this.configuration(agent),
-      };
-    });
+        code.consumedAt = new Date();
+        await manager.save(code);
+        return {
+          agent: publicAgent(agent),
+          agentToken: token,
+          configuration: this.configuration(agent),
+        };
+      })
+      .catch((error: unknown) => {
+        if (
+          error &&
+          typeof error === 'object' &&
+          'code' in error &&
+          error.code === '23505'
+        )
+          throw new ConflictException(
+            'This installation was registered concurrently. Request a new enrolment code.',
+          );
+        throw error;
+      });
   }
   configuration(agent: Agent) {
     return {

@@ -817,6 +817,8 @@ try {
   await checkMonitoring({ request, source, alice: recovered, bob, workspace });
   const { checkAgents } = await import('./agent-checks.mjs');
   await checkAgents({ request, source, alice: recovered, bob, workspace });
+  const { checkAgentProcess } = await import('./agent-process-checks.mjs');
+  await checkAgentProcess({ request, source, alice: recovered, workspace, apiURL: base });
   const { checkPrivacy } = await import('./privacy-checks.mjs');
   await checkPrivacy({ request, source, alice: recovered, bob, workspace });
   console.log(
