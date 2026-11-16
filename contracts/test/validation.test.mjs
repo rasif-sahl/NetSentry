@@ -285,3 +285,11 @@ test("family policies contain bounded intent and cannot authorize arbitrary acti
     status: "unsupported",
   });
 });
+
+test("Business sharing needs a displayed generation and cannot claim another employee or custody", () => {
+  const sharing = {generation:2,expectedRevision:1,accepted:true,disclosureVersion:"business-sharing-v1"};
+  validateApiPayload("BusinessSharingInput",sharing);
+  for(const changed of [{...sharing,generation:0},{...sharing,accepted:false},{...sharing,userId:"11111111-1111-4111-8111-111111111111"}]) assert.throws(()=>validateApiPayload("BusinessSharingInput",changed));
+  assert.throws(()=>validateApiPayload("BusinessAssignmentInput",{employeeId:"11111111-1111-4111-8111-111111111111",expectedRevision:0,ownership:"organization"}));
+  assert.throws(()=>validateApiPayload("BusinessCustodyInput",{accepted:false,disclosureVersion:"business-custody-v1"}));
+});

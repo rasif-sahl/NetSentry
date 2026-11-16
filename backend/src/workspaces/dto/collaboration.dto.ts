@@ -3,6 +3,9 @@ import { EmailDto, ActionTokenDto } from '../../auth/dto/account.dto';
 import { WorkspaceRole } from '../membership.entity';
 export class InvitationDto extends EmailDto {
   @IsIn([
+    WorkspaceRole.NETWORK_ADMIN,
+    WorkspaceRole.ANALYST,
+    WorkspaceRole.EMPLOYEE,
     WorkspaceRole.ADMIN,
     WorkspaceRole.GUARDIAN,
     WorkspaceRole.MEMBER,
@@ -13,6 +16,9 @@ export class InvitationDto extends EmailDto {
 export class AcceptInvitationDto extends ActionTokenDto {}
 export class ChangeRoleDto {
   @IsIn([
+    WorkspaceRole.NETWORK_ADMIN,
+    WorkspaceRole.ANALYST,
+    WorkspaceRole.EMPLOYEE,
     WorkspaceRole.ADMIN,
     WorkspaceRole.GUARDIAN,
     WorkspaceRole.MEMBER,

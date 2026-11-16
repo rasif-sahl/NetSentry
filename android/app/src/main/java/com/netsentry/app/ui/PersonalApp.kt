@@ -102,7 +102,7 @@ import java.time.Instant
                     Action("Send verification email", model) { requestVerification() }
                 }
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Phone", "Usage", "Apps", "Family", "Computers", "Settings").forEach { label ->
+                    listOf("Phone", "Usage", "Apps", "Family", "Business", "Computers", "Settings").forEach { label ->
                         OutlinedButton(onClick = { tab = label }, enabled = !model.busy) { Text(label) }
                     }
                 }
@@ -119,6 +119,7 @@ import java.time.Instant
                     "Usage" -> Usage(state, model)
                     "Apps" -> ApplicationScreen(state, model)
                     "Family" -> FamilyScreen(state, model)
+                    "Business" -> BusinessScreen(state, model)
                     "Computers" -> Computers(state, model)
                     else -> SettingsScreen(state, model)
                 }

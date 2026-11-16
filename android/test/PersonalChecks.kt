@@ -45,7 +45,7 @@ private class Usage : UsageSource {
     override fun read(start: Long, end: Long) = listOf(UsageReading("mobile_data_bytes", if (allowed) 123L else null, "Synthetic test adapter"), UsageReading("wifi_data_bytes", if (allowed) 456L else null, "Synthetic test adapter"))
     override fun metadata() = json("applicationVersion" to "0.8.0", "batteryOptimizationStatus" to "restricted")
 }
-private class Harness {
+private class Harness(val workspaceType: String = "PERSONAL", val workspaceRole: String = "OWNER") {
     val store = Memory()
     val usage = Usage()
     var now = BASE_TIME
@@ -53,6 +53,7 @@ private class Harness {
     var serverMonitoring = false
     var generation = 1
     var serverScopes = listOf("network_usage")
+    var scopeGone = false
     var offline = false
     var expireAccess = false
     var loseRefresh = false
@@ -63,9 +64,11 @@ private class Harness {
     val calls = mutableListOf<Triple<String, String, String?>>()
     val uploads = mutableListOf<String>()
     val appUploads = mutableListOf<String>()
+    val businessWrites = mutableListOf<JSONObject>()
+    var changedObservation = false
     var remoteCount = 0
     val user = json("id" to U, "displayName" to "Test owner", "emailVerifiedAt" to Policy.timestamp(now))
-    fun service() = json("serviceId" to "a".repeat(64), "observationId" to O, "observedAt" to Policy.timestamp(now), "canStop" to true)
+    fun service() = json("serviceId" to "a".repeat(64), "observationId" to if (changedObservation) "00000000-0000-4000-8000-000000000099" else O, "observedAt" to Policy.timestamp(now), "canStop" to true)
     val transport = object : Transport {
         override fun request(method: String, path: String, token: String?, body: JSONObject?): Any {
             calls.add(Triple(method, path, token))
@@ -81,7 +84,8 @@ private class Harness {
             return when {
                 path == "/auth/login" || path == "/auth/register" -> json("accessToken" to "access", "refreshToken" to "refresh", "user" to user)
                 path == "/auth/me" -> user
-                path == "/workspaces" -> JSONArray(listOf(json("id" to W, "timezone" to "America/New_York", "name" to "Test", "role" to "OWNER")))
+                path == "/workspaces" && scopeGone -> JSONArray()
+                path == "/workspaces" -> JSONArray(listOf(json("id" to W, "timezone" to "America/New_York", "name" to "Test", "role" to workspaceRole, "type" to workspaceType)))
                 path == "/privacy/disclosures" -> json("enrolment" to json("version" to "device-enrolment-v1", "text" to "Test disclosure"), "monitoring" to json("version" to "monitoring-v3", "text" to "Test disclosure"), "applications" to json("version" to "app-usage-v1", "text" to "Synthetic application disclosure"))
                 path == "/notifications/preferences" -> json("inApp" to true, "push" to false)
                 path == "/devices/enrolments" -> json("token" to "code")
@@ -100,6 +104,9 @@ private class Harness {
                     if (loseUpload) throw IOException("Lost upload acknowledgement")
                     json("accepted" to 2)
                 }
+                path == "/workspaces/$W/business" -> json("organization" to json("id" to W))
+                path == "/workspaces/$W/business/devices/$D/sharing" -> { businessWrites.add(body!!); JSONObject() }
+                path == "/workspaces/$W/business/devices/$D/assignment" -> JSONObject()
                 path == "/workspaces/$W/developer" -> JSONArray(listOf(json("id" to A, "canControl" to control, "services" to JSONArray(listOf(service())))))
                 path == "/workspaces/$W/agents/$A/commands" && method == "POST" -> { remoteCount++; check(token != "device-secret"); json("state" to "pending") }
                 path.endsWith("/devices") || path.endsWith("/commands") || path.endsWith("/rules") || path.endsWith("/alerts") || path.endsWith("/notifications") -> JSONArray()
@@ -215,6 +222,11 @@ fun main(args: Array<String>) {
         val h = Harness(); h.consent(); h.expireAccess=true; h.forbidAfterRefresh=true
         denied { h.repo.remote(intent) }; check(h.repo.view().computers.isEmpty() && !h.repo.view().localEnabled)
     }
+    test("replaced remote observations fail explicitly before any command POST") {
+        val h = Harness(); h.login(); h.changedObservation = true
+        check(runCatching { h.repo.remote(intent) }.exceptionOrNull() is ObservationChanged)
+        check(h.remoteCount == 0 && h.repo.view().queueSize == 0)
+    }
     test("remote commands are never added to offline upload queue") {
         val h = Harness(); h.login(); h.offline = true
         denied { h.repo.remote(intent) }; check(h.repo.view().queueSize == 0 && h.remoteCount == 0)
@@ -286,5 +298,21 @@ fun main(args: Array<String>) {
     val evidence = json("batch" to Wire.batch(W, D, 2, BASE_TIME - 60_000, BASE_TIME, readings, BASE_TIME),
         "capabilities" to Wire.capabilities(W, D, readings, BASE_TIME), "command" to Wire.command(intent))
     args.firstOrNull()?.let { File(it).writeText(evidence.toString(2)) }
+    test("Business employee refresh avoids unavailable service inventory and requires explicit sharing") {
+        val h = Harness("BUSINESS", "EMPLOYEE"); h.login(); h.repo.refreshBusiness()
+        check(h.calls.none { it.second.endsWith("/developer") } && h.repo.view().computers.isEmpty())
+        denied { h.repo.acceptBusinessSharing(D, 1, 1, false) }
+        check(h.businessWrites.isEmpty() && !h.repo.view().localEnabled)
+        h.repo.acceptBusinessSharing(D, 3, 4, true)
+        check(h.businessWrites.single().getInt("expectedRevision") == 3 && h.businessWrites.single().getInt("generation") == 4)
+        check(!h.repo.view().localEnabled)
+        h.repo.clearLocal(); check(h.repo.view().businessOverview == null)
+    }
+    test("Membership loss clears an installation binding and stops collection before selecting another workspace") {
+        val h = Harness(); h.consent(); check(h.repo.view().localEnabled)
+        h.scopeGone = true; h.repo.refresh()
+        check(!h.repo.view().localEnabled && h.repo.view().ownDevice == null && h.repo.view().queueSize == 0)
+    }
+    test("Personal workspaces do not load an organization view") { val h = Harness(); h.login(); denied { h.repo.refreshBusiness() }; check(h.repo.view().businessOverview == null) }
     println("$passed JVM checks passed; Android framework/build/device checks remain separate.")
 }

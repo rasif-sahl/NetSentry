@@ -21,7 +21,14 @@ export async function workspacePolicy(
     id: userId,
     status: AccountStatus.ACTIVE,
   });
-  if (!workspace || !member || !user || !roleAllows(member.role, permission))
+  if (
+    !workspace ||
+    !member ||
+    !user ||
+    !roleAllows(member.role, permission) ||
+    (['NETWORK_ADMIN', 'ANALYST', 'EMPLOYEE'].includes(member.role) &&
+      workspace.type !== 'BUSINESS')
+  )
     throw new ForbiddenException(
       'You do not have permission for this workspace action.',
     );

@@ -667,7 +667,7 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
   await expect(
     page.getByRole("heading", { name: "Network Security", exact: true }),
   ).toBeVisible();
-  expect(await page.getByText("Planned", { exact: true }).count()).toBe(7);
+  expect(await page.getByText("Planned", { exact: true }).count()).toBe(4);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -1013,4 +1013,110 @@ test("family viewers cannot see child profiles and policy edits require explicit
     .getByRole("button", { name: "Save requested policy", exact: true })
     .click();
   await expect(page.getByText(/Revision 2 · timezone/)).toBeVisible();
+});
+
+test("Business roles review organization structure and employees explicitly accept sharing", async ({
+  page,
+  browser,
+}) => {
+  const data = await login(page);
+  await page
+    .getByLabel("Active workspace")
+    .selectOption(data.business.workspaceId);
+  await page.getByRole("button", { name: "Business", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Business organization", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator("strong").filter({ hasText: /^Fixture office$/ }),
+  ).toBeVisible();
+  await page.getByLabel("New location name").fill("Browser Business location");
+  await page.getByRole("button", { name: "Add location", exact: true }).click();
+  await expect(
+    page.locator("strong").filter({ hasText: /^Browser Business location$/ }),
+  ).toBeVisible();
+  await page
+    .getByRole("heading", { name: "Network device departments", exact: true })
+    .scrollIntoViewIfNeeded();
+  const observed = page
+    .locator(".row")
+    .filter({
+      has: page
+        .locator("strong")
+        .filter({ hasText: /^Synthetic office printer$/ }),
+    });
+  await observed
+    .getByLabel("Department", { exact: true })
+    .selectOption(data.business.departmentId);
+  await observed
+    .getByRole("button", {
+      name: "Assign network device department",
+      exact: true,
+    })
+    .click();
+  await expect(
+    observed.getByText(/Synthetic business LAN · Fixture engineering/),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Load organization report", exact: true })
+    .click();
+  await expect(
+    page.getByText("No consented organization observations", { exact: true }),
+  ).toBeVisible();
+  const employeeContext = await browser.newContext();
+  const employee = await employeeContext.newPage();
+  await employee.goto("/");
+  await employee.getByLabel("Email address").fill(data.accounts.employee.email);
+  await employee.getByLabel("Password", { exact: true }).fill(data.password);
+  await employee.getByRole("button", { name: "Sign in", exact: true }).click();
+  await employee
+    .getByLabel("Active workspace")
+    .selectOption(data.business.workspaceId);
+  await employee.getByRole("button", { name: "Business", exact: true }).click();
+  await expect(
+    employee.getByRole("button", { name: "Add location", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    employee.getByRole("heading", {
+      name: "Organization usage reports",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  employee.once("dialog", (dialog) => dialog.accept());
+  await employee
+    .getByRole("button", { name: "Accept organization sharing", exact: true })
+    .click();
+  await expect(
+    employee.getByText(/Sharing accepted; reports from/),
+  ).toBeVisible();
+  employee.once("dialog", (dialog) => dialog.accept());
+  await employee
+    .getByRole("button", { name: "Withdraw device sharing", exact: true })
+    .click();
+  await expect(
+    employee.getByText("No visible employee assignment", { exact: false }),
+  ).toBeVisible();
+  await employeeContext.close();
+  const analystContext = await browser.newContext();
+  const analyst = await analystContext.newPage();
+  await analyst.goto("/");
+  await analyst
+    .getByLabel("Email address")
+    .fill(data.accounts.businessAnalyst.email);
+  await analyst.getByLabel("Password", { exact: true }).fill(data.password);
+  await analyst.getByRole("button", { name: "Sign in", exact: true }).click();
+  await analyst
+    .getByLabel("Active workspace")
+    .selectOption(data.business.workspaceId);
+  await analyst.getByRole("button", { name: "Business", exact: true }).click();
+  await expect(
+    analyst.getByRole("heading", {
+      name: "Organization usage reports",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    analyst.getByRole("button", { name: "Add location", exact: true }),
+  ).toHaveCount(0);
+  await analystContext.close();
 });

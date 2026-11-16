@@ -14,6 +14,9 @@ import okio.BufferedSink
 
 class ApiFailure(val status: Int, val code: String, message: String, val retryAfterMs: Long? = null) : IOException(message)
 
+/** Raised only before a command POST; the UI must obtain a new confirmation. */
+class ObservationChanged : IllegalArgumentException("Service observation changed. Refresh the computer and confirm its current service again.")
+
 /** IO only. Verified TLS, no redirect/log/cookie/cache, connection recovery off, one-shot mutations. */
 class Api(base: String) : Transport {
     private val base = Policy.apiBase(base)

@@ -31,8 +31,9 @@ actor FakeAPI: APITransport {
     var refreshes = 0, posts: [JSONValue] = [], lostRefresh = false, deny = false, lostStop = false
     var delayMe = false, enteredMe = false
     var releaseMe: CheckedContinuation<Void, Never>?
+    let workspaceType: String
     let computer: PairedComputer
-    init(computer: PairedComputer = fixtureComputer()) { self.computer = computer }
+    init(computer: PairedComputer = fixtureComputer(), workspaceType: String = "PERSONAL") { self.computer = computer; self.workspaceType = workspaceType }
     func configure(lostRefresh: Bool = false, deny: Bool = false, lostStop: Bool = false, delayMe: Bool = false) { self.lostRefresh = lostRefresh; self.deny = deny; self.lostStop = lostStop; self.delayMe = delayMe }
     func release() { releaseMe?.resume(); releaseMe = nil }
     func counts() -> (Int, [JSONValue]) { (refreshes, posts) }
@@ -46,7 +47,7 @@ actor FakeAPI: APITransport {
         if path != "/privacy/disclosures" && token == String(repeating: "a", count: 48) { return APIReply(status: 401, value: .null) }
         if deny { return APIReply(status: 403, value: .null) }
         if path == "/auth/me" { return APIReply(status: 200, value: accountUser) }
-        if path == "/workspaces" { return APIReply(status: 200, value: .array([.object(["id": .string(workspaceID), "type": .string("PERSONAL"), "timezone": .string("UTC")])])) }
+        if path == "/workspaces" { return APIReply(status: 200, value: .array([.object(["id": .string(workspaceID), "type": .string(workspaceType), "timezone": .string("UTC")])])) }
         if path.hasSuffix("/developer") { return APIReply(status: 200, value: try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode([computer]))) }
         if method == "POST", path.hasSuffix("/commands") { posts.append(body!); if lostStop { throw ClientError.unavailable("lost stop acknowledgement") }; return APIReply(status: 201, value: .object(["requestId": body!["requestId"]])) }
         return APIReply(status: method == "POST" ? 201 : 200, value: path.hasSuffix("/devices") || path.hasSuffix("/commands") ? .array([]) : .object([:]))
@@ -117,6 +118,16 @@ actor FakeAPI: APITransport {
         try await rejects("local erase write failure") { try await failVaultRepo.clearLocal() }
         try require(!(await failVaultRepo.snapshot().signedIn), "storage failure never keeps in-memory credentials")
         try require(try failVault.read() == nil, "credential erase precedes nonsecret save")
+        let personalRepo = try ClientRepository(vault: MemoryVault(initial()), transport: FakeAPI())
+        try await personalRepo.refresh()
+        try await rejects("Personal workspace does not grant Business scope") { try await personalRepo.businessOverview() }
+        let businessAPI = FakeAPI(workspaceType: "BUSINESS"), businessRepo = try ClientRepository(vault: MemoryVault(initial()), transport: businessAPI)
+        try await businessRepo.refresh(); try await businessRepo.businessOverview()
+        try require(!(await businessRepo.snapshot().business.isNull), "Business view loaded")
+        try await rejects("Business sharing requires explicit acceptance") { try await businessRepo.acceptBusinessSharing(deviceID: deviceID, revision: 1, generation: 1, accepted: false) }
+        await businessAPI.configure(deny: true)
+        try await rejects("Business membership denied") { try await businessRepo.refresh() }
+        try require(await businessRepo.snapshot().business.isNull, "Denied membership clears organization data")
         let emit = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
         try JSONEncoder().encode(Wire.capabilities(workspaceID: workspaceID, deviceID: deviceID, now: now)).write(to: emit.appendingPathComponent("capabilities.json"))
         try JSONEncoder().encode(intent.body).write(to: emit.appendingPathComponent("command.json"))

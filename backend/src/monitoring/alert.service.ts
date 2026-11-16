@@ -38,6 +38,7 @@ export async function ruleAccess(manager: EntityManager, rule: AlertRule) {
     !rule.deviceId ||
     Boolean(rule.networkId) ||
     devices.some((d) => d.registeredById !== rule.userId);
+  if (shared && workspace.type === 'BUSINESS') throw new ForbiddenException('Use consent-scoped Business reports and network alerts; personal usage rules require an explicitly owned device.');
   if (shared && workspace.type === 'FAMILY' && member.role === 'GUARDIAN')
     throw new ForbiddenException(
       'Use explicitly scoped family observations for child alerts.',

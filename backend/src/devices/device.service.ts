@@ -1,3 +1,5 @@
+import { BusinessAssignment } from '../business/business.entities';
+import { businessAudit } from '../business/business.lifecycle';
 import { FamilyAssignment } from '../family/family.entities';
 import { eraseMonitoring } from '../monitoring/privacy';
 import {
@@ -255,6 +257,7 @@ export class DeviceService {
         }
         if (['delete_data', 'remove'].includes(action)) {
           await manager.delete(FamilyAssignment, { deviceId: device.id });
+          await manager.delete(BusinessAssignment, { deviceId: device.id });
           device.capabilityReport = null;
           device.capabilities = {};
           device.applicationVersion = null;
@@ -409,13 +412,19 @@ export class DeviceService {
           lock: { mode: 'pessimistic_write' },
         });
       } else {
-        const { member } = await workspacePolicy(
+        const { member, workspace } = await workspacePolicy(
           manager,
           userId,
           candidate.workspaceId,
           WorkspacePermission.READ_DEVICES,
           mode !== 'read',
         );
+        if (
+          workspace.type === 'BUSINESS' &&
+          ['EMPLOYEE', 'MEMBER'].includes(member.role) &&
+          candidate.registeredById !== userId
+        )
+          throw new ForbiddenException('This device is outside your scope.');
         if (
           (mode === 'owner' || mode === 'erase') &&
           candidate.registeredById !== userId
@@ -447,6 +456,17 @@ export class DeviceService {
     kind: string,
     details: Record<string, unknown>,
   ) {
+    const workspace = await manager.findOneBy(Workspace, {
+      id: device.workspaceId,
+    });
+    if (workspace?.type === 'BUSINESS')
+      await businessAudit(
+        manager,
+        device.workspaceId,
+        actorUserId,
+        kind,
+        device.id,
+      );
     await manager.save(
       manager.create(DeviceEvent, {
         deviceId: device.id,

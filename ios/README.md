@@ -34,3 +34,5 @@ When explicitly authorized to prepare physical-device testing later:
 9. Configure APNs provider/device registration and validate delivery separately before enabling push. This source requests no push entitlement or permission and sends no report data via notifications.
 
 No simulator is required. Native build, provisioning, distribution and this hardware checklist are pending release gates.
+
+Phase 13 adds a Business employee view with explicit, generation-bound organization sharing acceptance and withdrawal. Organization administration is in the web dashboard. The Foundation repository clears Business views on scope loss/logout; sharing does not enable monitoring or authorize Apple controls. Portable Swift and isolated HTTPS checks exercise these flows with synthetic accounts. Native SwiftUI type checking, package signing and physical-device acceptance remain pending. No Apple tooling was installed.

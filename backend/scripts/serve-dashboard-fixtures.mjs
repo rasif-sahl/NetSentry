@@ -129,12 +129,15 @@ try {
     'recovery',
     'child',
     'guardian',
+    'employee',
+    'businessAnalyst',
+    'businessNetwork',
   ]) {
-    const session = await call('/auth/register', 'POST', {
-      email: `${name}@dashboard.example.invalid`,
-      displayName: `Fixture ${name}`,
-      password,
-    });
+    const input = { email: `${name}@dashboard.example.invalid`, displayName: `Fixture ${name}`, password };
+    // Bulk synthetic setup uses the real service, preserving production rate limits.
+    const session = ['employee','businessAnalyst','businessNetwork'].includes(name)
+      ? await app.get(require('../dist/auth/auth.service.js').AuthService).register(input,{})
+      : await call('/auth/register', 'POST', input);
     accounts[name] = session;
     if (name !== 'unverified')
       await source.query(
@@ -612,6 +615,8 @@ try {
   await mkdir(new URL('../../dashboard/.test/', import.meta.url), {
     recursive: true,
   });
+  const { seedBusiness } = await import("./business-dashboard-fixtures.mjs");
+  const business = await seedBusiness({call,source,owner,accounts});
   await writeFile(
     file,
     JSON.stringify({
@@ -620,6 +625,7 @@ try {
       emptyId: empty.id,
       deviceId: pair.device.id,
       familyProfileId: familyProfile.id,
+      business,
       monitoredNetworkId: monitored.networkId,
       developerAgentId: developerPair.agent.id,
       networkId: label.id,

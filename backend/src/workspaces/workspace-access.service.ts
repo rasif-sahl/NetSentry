@@ -28,6 +28,26 @@ const readPermissions = [
   WorkspacePermission.VIEW_SERVICES,
 ];
 const grants: Record<WorkspaceRole, readonly WorkspacePermission[]> = {
+  [WorkspaceRole.NETWORK_ADMIN]: [
+    WorkspacePermission.REGISTER_DEVICE,
+    WorkspacePermission.READ,
+    WorkspacePermission.READ_DEVICES,
+    WorkspacePermission.READ_NETWORKS,
+    WorkspacePermission.MANAGE_NETWORKS,
+    WorkspacePermission.HANDLE_ALERTS,
+    WorkspacePermission.READ_AUDIT,
+  ],
+  [WorkspaceRole.ANALYST]: [
+    ...readPermissions,
+    WorkspacePermission.READ_REPORTS,
+    WorkspacePermission.EXPORT_REPORTS,
+    WorkspacePermission.READ_AUDIT,
+  ],
+  [WorkspaceRole.EMPLOYEE]: [
+    WorkspacePermission.READ,
+    WorkspacePermission.READ_DEVICES,
+    WorkspacePermission.REGISTER_DEVICE,
+  ],
   [WorkspaceRole.OWNER]: Object.values(WorkspacePermission),
   [WorkspaceRole.ADMIN]: Object.values(WorkspacePermission).filter(
     (permission) => permission !== WorkspacePermission.MANAGE_BILLING,

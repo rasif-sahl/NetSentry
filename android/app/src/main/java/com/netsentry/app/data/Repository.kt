@@ -29,6 +29,7 @@ class Repository(
     private var notifications = emptyList<JSONObject>()
     private var preferences = JSONObject()
     private var disclosures = JSONObject()
+    private var businessOverview: JSONObject? = null
     private var familyOverview: JSONObject? = null
     private var familyDetail: JSONObject? = null
     private var familySync = "Family policy not checked"
@@ -40,12 +41,12 @@ class Repository(
         val report: JSONObject?, val applicationReport: JSONObject?, val appUsageEnabled: Boolean, val computers: List<JSONObject>, val commands: Map<String, List<JSONObject>>,
         val rules: List<JSONObject>, val alerts: List<JSONObject>, val notifications: List<JSONObject>,
         val preferences: JSONObject, val disclosures: JSONObject, val queueSize: Int, val syncStatus: String,
-        val familyOverview: JSONObject?, val familyDetail: JSONObject?, val familySync: String,
+        val businessOverview: JSONObject?, val familyOverview: JSONObject?, val familyDetail: JSONObject?, val familySync: String,
     )
     @Synchronized fun view(): View = View(state.has("session"), state.optString("base"), profile,
         workspaces, state.optString("workspaceId"), devices, ownDevice(), state.optBoolean("collect"),
         report, applicationReport, state.optBoolean("appUsage"), computers, commands, rules, alerts, notifications, preferences, disclosures,
-        state.optJSONArray("queue")?.length() ?: 0, lastSync, familyOverview, familyDetail, familySync)
+        state.optJSONArray("queue")?.length() ?: 0, lastSync, businessOverview, familyOverview, familyDetail, familySync)
     private fun save() = store.write(state)
     private fun api(): Transport = transport(state.getString("base"))
     private fun ownDevice(): JSONObject? = state.optJSONObject("device")?.optJSONObject("public")
@@ -85,6 +86,7 @@ class Repository(
         }
     }
     private fun clearViews() {
+        businessOverview = null
         familyOverview = null; familyDetail = null; familySync = "Family policy not checked"
         profile = null; devices = emptyList(); computers = emptyList(); commands = emptyMap()
         report = null; applicationReport = null; applicationQuery = null; rules = emptyList(); alerts = emptyList(); notifications = emptyList(); preferences = JSONObject()
@@ -110,6 +112,7 @@ class Repository(
         profile = account("GET", "/auth/me") as JSONObject
         workspaces = (account("GET", "/workspaces") as JSONArray).objects()
         if (workspaces.none { it.getString("id") == state.optString("workspaceId") }) {
+            stopCollection(); state.remove("device")
             state.put("workspaceId", workspaces.firstOrNull()?.getString("id") ?: "")
             clearViews(); save()
             profile = account("GET", "/auth/me") as JSONObject
@@ -118,7 +121,9 @@ class Repository(
         preferences = account("GET", "/notifications/preferences") as JSONObject
         if (state.optString("workspaceId").isBlank()) return
         devices = (account("GET", "/workspaces/${workspace()}/devices") as JSONArray).objects()
-        computers = (account("GET", "/workspaces/${workspace()}/developer") as JSONArray).objects()
+        val selectedRole = workspaces.firstOrNull { it.optString("id") == workspace() }?.optString("role")
+        computers = if (selectedRole in setOf("OWNER", "ADMIN", "GUARDIAN", "MEMBER", "VIEWER", "ANALYST"))
+            (account("GET", "/workspaces/${workspace()}/developer") as JSONArray).objects() else emptyList()
         commands = computers.associate { c ->
             val id = Policy.uuid(c.getString("id"))
             id to (account("GET", "/workspaces/${workspace()}/agents/$id/commands") as JSONArray).objects()
@@ -131,6 +136,20 @@ class Repository(
                 state.getJSONObject("device").put("public", it); save()
             }
         }
+    }
+    @Synchronized fun refreshBusiness() {
+        businessOverview = null
+        require(workspaces.any { it.optString("id") == workspace() && it.optString("type") == "BUSINESS" }) { "Choose a Business organization." }
+        businessOverview = account("GET", "/workspaces/${workspace()}/business") as JSONObject
+    }
+    @Synchronized fun acceptBusinessSharing(deviceId: String, revision: Int, generation: Int, accepted: Boolean) {
+        require(accepted && revision > 0 && generation > 0) { "Review business-sharing-v1 and accept explicitly." }
+        account("POST", "/workspaces/${workspace()}/business/devices/${Policy.uuid(deviceId)}/sharing", json("expectedRevision" to revision, "generation" to generation, "accepted" to true, "disclosureVersion" to "business-sharing-v1"))
+        refreshBusiness()
+    }
+    @Synchronized fun withdrawBusinessSharing(deviceId: String) {
+        account("DELETE", "/workspaces/${workspace()}/business/devices/${Policy.uuid(deviceId)}/assignment")
+        refreshBusiness()
     }
     @Synchronized fun refreshFamily(profileId: String? = null) {
         val requestedProfile = profileId ?: familyDetail?.optJSONObject("profile")?.optString("id")
@@ -182,7 +201,9 @@ class Repository(
     }
     @Synchronized fun refreshDeveloper() {
         computers = emptyList(); commands = emptyMap()
-        computers = (account("GET", "/workspaces/${workspace()}/developer") as JSONArray).objects()
+        val selectedRole = workspaces.firstOrNull { it.optString("id") == workspace() }?.optString("role")
+        computers = if (selectedRole in setOf("OWNER", "ADMIN", "GUARDIAN", "MEMBER", "VIEWER", "ANALYST"))
+            (account("GET", "/workspaces/${workspace()}/developer") as JSONArray).objects() else emptyList()
         commands = computers.associate { c ->
             val id = Policy.uuid(c.getString("id"))
             id to (account("GET", "/workspaces/${workspace()}/agents/$id/commands") as JSONArray).objects()
@@ -439,8 +460,8 @@ class Repository(
     @Synchronized fun remote(intent: RemoteIntent) {
         // Re-read permission and exact observation immediately. No worker/offline command queue exists.
         val latest = (account("GET", "/workspaces/${workspace()}/developer") as JSONArray).objects()
-        val computer = latest.first { it.getString("id") == intent.agentId }
-        val service = computer.array("services").first { it.getString("observationId") == intent.observationId && it.getString("serviceId") == intent.serviceId }
+        val computer = latest.firstOrNull { it.getString("id") == intent.agentId } ?: throw ObservationChanged()
+        val service = computer.array("services").firstOrNull { it.getString("observationId") == intent.observationId && it.getString("serviceId") == intent.serviceId } ?: throw ObservationChanged()
         intent.check(clock(), computer.getBoolean("canControl"), service.getBoolean("canStop"))
         account("POST", "/workspaces/${workspace()}/agents/${Policy.uuid(intent.agentId)}/commands", Wire.command(intent))
         refresh()

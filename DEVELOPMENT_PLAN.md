@@ -318,7 +318,9 @@ Available checks: portable Swift repository tests, actual Swift-emitted contract
 - Add organization/location dashboards, reports, alert assignment, audit exports and remote unenrolment.
 - Verify employee/organization ownership rules during credential revocation and device-data deletion.
 
-Completion: Business workflows pass backend/web integration checks; no cross-organization access is possible through reports, exports, commands or support interfaces.
+Phase 13 source status: Business workspace organizations, locations/networks, departments, verified employee records, registered-device and observed-endpoint department assignments, explicit company custody, employee sharing/withdrawal, consent-scoped aggregate reporting/exports, reporting compliance, alert ownership, audit exports, remote unenrolment and offboarding are implemented. Role-specific web administration and Android/SwiftUI employee sharing views use current server permissions; Business membership never supplies OS or desktop-control authorization.
+
+Verification: backend/web/contract/PostgreSQL workflows pass organization-isolation and ownership checks; portable native code and actual Kotlin/Swift HTTPS adapters pass synthetic employee sharing scenarios. Fifteen migrations, 146 operations, 19 contract tests, 59 backend units and 26 browser scenarios are checked. Physical monitoring, native packaging/signing, offline revocation delivery and platform/hardware acceptance remain pending. Billing operations remain Phase 14. See `docs/architecture/business-organizations.md` and `docs/validation/phase-13.md`.
 
 ### Phase 14 Subscriptions and platform operations
 

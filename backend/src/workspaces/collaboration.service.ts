@@ -1,3 +1,8 @@
+import {
+  offboardBusinessMember,
+  transferBusinessAssets,
+  businessAudit,
+} from '../business/business.lifecycle';
 import { Agent, AgentEnrolment } from '../agents/agent.entities';
 import { AlertRule } from '../monitoring/alert.entities';
 import {
@@ -37,6 +42,8 @@ export class CollaborationService {
           'Personal workspaces cannot invite members.',
         );
       this.checkGrant(member.role, input.role, workspace.type);
+      if (workspace.type === WorkspaceType.BUSINESS)
+        await businessAudit(manager, workspaceId, userId, 'member_invited');
       const email = input.email.trim().toLowerCase();
       await manager.update(
         WorkspaceInvitation,
@@ -154,6 +161,14 @@ export class CollaborationService {
       );
       invitation.acceptedAt = new Date();
       await manager.save(invitation);
+      if (workspace.type === WorkspaceType.BUSINESS)
+        await businessAudit(
+          manager,
+          workspace.id,
+          userId,
+          'member_joined',
+          userId,
+        );
       return { joined: true, workspaceId: workspace.id };
     });
   }
@@ -192,9 +207,22 @@ export class CollaborationService {
         WorkspacePermission.READ,
         false,
       );
+      const businessWorkspace = await manager.findOneBy(Workspace, {
+        id: workspaceId,
+      });
+      const currentMember = await manager.findOneBy(Membership, {
+        workspaceId,
+        userId,
+      });
       return (
         await manager.find(Membership, {
-          where: { workspaceId },
+          where: {
+            workspaceId,
+            ...(businessWorkspace?.type === WorkspaceType.BUSINESS &&
+            !roleAllows(currentMember!.role, WorkspacePermission.MANAGE_MEMBERS)
+              ? { userId }
+              : {}),
+          },
           relations: { user: true },
           order: { createdAt: 'ASC' },
         })
@@ -263,12 +291,22 @@ export class CollaborationService {
         target.role = role;
         await manager.save(target);
       } else {
+        if (workspace.type === WorkspaceType.BUSINESS)
+          await offboardBusinessMember(manager, workspaceId, targetId, userId);
         await manager.delete(Membership, target.id);
         await manager.query(
           `UPDATE users SET preferences=preferences - 'activeWorkspaceId' WHERE id=$1 AND preferences->>'activeWorkspaceId'=$2`,
           [targetId, workspaceId],
         );
       }
+      if (workspace.type === WorkspaceType.BUSINESS)
+        await businessAudit(
+          manager,
+          workspaceId,
+          userId,
+          role ? 'member_role_changed' : 'member_removed',
+          targetId,
+        );
       if (!role || !roleAllows(role, WorkspacePermission.HANDLE_ALERTS))
         await manager.delete(AlertRule, { workspaceId, userId: targetId });
       const agents = await manager.findBy(Agent, {
@@ -387,11 +425,21 @@ export class CollaborationService {
       });
       if (!target || !user?.emailVerifiedAt)
         throw new BadRequestException('Choose a verified active member.');
+      if (workspace.type === WorkspaceType.BUSINESS)
+        await transferBusinessAssets(manager, workspaceId, userId, targetId);
       member.role = WorkspaceRole.ADMIN;
       target.role = WorkspaceRole.OWNER;
       workspace.ownerId = targetId;
       await manager.save([member, target]);
       await manager.save(workspace);
+      if (workspace.type === WorkspaceType.BUSINESS)
+        await businessAudit(
+          manager,
+          workspaceId,
+          userId,
+          'ownership_transferred',
+          targetId,
+        );
       await manager.update(
         WorkspaceInvitation,
         {
@@ -412,6 +460,13 @@ export class CollaborationService {
     type: WorkspaceType,
   ) {
     if (
+      ([
+        WorkspaceRole.NETWORK_ADMIN,
+        WorkspaceRole.ANALYST,
+        WorkspaceRole.EMPLOYEE,
+      ].includes(role) &&
+        type !== WorkspaceType.BUSINESS) ||
+      (role === WorkspaceRole.MEMBER && type === WorkspaceType.BUSINESS) ||
       role === WorkspaceRole.OWNER ||
       (role === WorkspaceRole.ADMIN && actor !== WorkspaceRole.OWNER) ||
       (role === WorkspaceRole.GUARDIAN &&

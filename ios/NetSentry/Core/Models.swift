@@ -67,6 +67,6 @@ struct ClientSnapshot: Sendable {
     let signedIn: Bool, base: String, user: JSONValue, workspaceID: String
     let workspaces: [JSONValue], devices: [JSONValue], computers: [PairedComputer]
     let commands: [String: [JSONValue]], report: JSONValue, rules: [JSONValue], alerts: [JSONValue], notifications: [JSONValue]
-    let disclosures: JSONValue, preferences: JSONValue, family: JSONValue, child: JSONValue
+    let disclosures: JSONValue, preferences: JSONValue, business: JSONValue, family: JSONValue, child: JSONValue
     let pendingStop: RemoteIntent?, device: DeviceBinding?
 }
