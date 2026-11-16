@@ -284,8 +284,9 @@ test("expired access cookies refresh safely across browser tabs", async ({
   const second = await context.newPage();
   await second.goto("/");
   await expect(
-    second.getByRole("heading", { name: "Overview", exact: true }),
+    second.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
+  // Wait for all initial workspace reads before expiring the shared cookie.
   await context.clearCookies({ name: "netsentry_access" });
   await Promise.all([page.reload(), second.reload()]);
   await expect(
