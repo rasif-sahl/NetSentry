@@ -301,3 +301,13 @@ test('billing events and operator mutations reject customer-side privilege and p
  assert.throws(()=>validateApiPayload('OperatorFlagInput',{scope:'workspace',workspaceId:id,key:'shell',enabled:true,expectedRevision:0,password:'fixture'}));
  assert.throws(()=>validateApiPayload('BillingEventInput',{id,workspaceId:id,sequence:1,plan:'enterprise'}));
 });
+
+test('email opt-in is optional for old clients and all four rule channels validate', () => {
+  validateApiPayload('NotificationPreferenceRequest', {inApp:true,push:false});
+  validateApiPayload('NotificationPreferenceRequest', {inApp:true,push:false,email:true});
+  assert.throws(()=>validateApiPayload('NotificationPreferenceRequest', {inApp:true,push:false,email:'true'}));
+  assert.throws(()=>validateApiPayload('NotificationPreferenceRequest', {inApp:true,push:false,emailDeliveryAvailable:true}));
+  const rule={kind:'threshold',metric:'mobile_data_bytes',quality:'measured',period:'day',threshold:1,severity:'warning',channels:['in_app','android_push','ios_push','email'],enabled:true};
+  validateApiPayload('AlertRuleRequest',rule);
+  assert.throws(()=>validateApiPayload('AlertRuleRequest',{...rule,channels:[...rule.channels,'email']}));
+});

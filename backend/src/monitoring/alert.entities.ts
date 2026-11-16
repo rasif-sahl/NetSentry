@@ -11,7 +11,7 @@ import { User } from '../users/user.entity';
 import { Workspace } from '../workspaces/workspace.entity';
 import { RegisteredDevice } from '../workspaces/registered-device.entity';
 import { UsageNetwork } from './entities';
-export type Channel = 'in_app' | 'android_push' | 'ios_push';
+export type Channel = 'in_app' | 'android_push' | 'ios_push' | 'email';
 export type RuleConfig = {
   kind: 'threshold' | 'device_offline' | 'permission_revoked' | 'not_reporting';
   metric?: string;
@@ -104,4 +104,5 @@ export class NotificationPreference {
   user!: User;
   @Column({ type: 'boolean', default: true }) inApp: boolean = true;
   @Column({ type: 'boolean', default: false }) push: boolean = false;
+  @Column({ type: 'boolean', default: false }) email: boolean = false;
 }

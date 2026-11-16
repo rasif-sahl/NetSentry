@@ -874,6 +874,8 @@ try {
   const { checkBilling } = await import('./billing-checks.mjs');
   await checkBilling({request,source,alice:recovered,app});
   const { checkPrivacy } = await import('./privacy-checks.mjs');
+  const { checkEmailAlerts } = await import('./email-alert-checks.mjs');
+  await checkEmailAlerts({request,source,alice:recovered});
   await checkPrivacy({ request, source, alice: recovered, bob, workspace });
   console.log(
     'Passed live API/schema checks, validation errors, request correlation, workspace isolation, device ownership and session revocation.',

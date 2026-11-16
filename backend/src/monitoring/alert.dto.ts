@@ -49,9 +49,9 @@ export class AlertRuleDto {
     'info' | 'warning' | 'critical';
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(3)
+  @ArrayMaxSize(4)
   @ArrayUnique()
-  @IsIn(['in_app', 'android_push', 'ios_push'], { each: true })
+  @IsIn(['in_app', 'android_push', 'ios_push', 'email'], { each: true })
   channels!: Channel[];
   @IsOptional()
   @ValidateNested()
@@ -62,4 +62,5 @@ export class AlertRuleDto {
 export class NotificationPreferenceDto {
   @IsBoolean() inApp!: boolean;
   @IsBoolean() push!: boolean;
+  @IsOptional() @IsBoolean() email?: boolean;
 }
