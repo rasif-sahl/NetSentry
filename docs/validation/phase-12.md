@@ -1,0 +1,27 @@
+# Phase 12 validation record
+
+## Source implemented
+
+The root iOS client has SwiftUI accounts/registration/recovery/verification, private Keychain credentials, workspace/device enrolment and conservative capability metadata, server reports with source/quality/gap fields, in-app notifications and alert rules, profile/appearance/session/privacy controls and personal export. Family views show scoped profiles, policies, observations and suggestions; paired-device sharing/withdrawal, child requests and guardian decisions use the existing authorized APIs. Family profile/policy administration remains available through the existing web/Android workflows; iOS displays these configurations and handles requests. No iOS Screen Time measurements are uploaded.
+
+Paired desktop inventory shows projects/process identity and history. Graceful/force stop require separate explicit confirmation of a fresh observation; uncertain responses retain the exact intent in private storage. Current grants/freshness are checked again, history can resolve a matching request, cancellation is available before execution, and no offline replay occurs.
+
+Optional local Apple source includes explicit individual/child system authorization, opaque picker selection, bounded account/workspace leases, nonrepeating schedules/thresholds, named Managed Settings, a DeviceActivity monitor, private report extension and generic shield configuration/actions. Default builds leave the feature disabled. No Apple approval, entitlements or signing identities are activated. Server policy changes are not translated into opaque Apple tokens or reported as applied. Framework calls, extension identifiers and provisioning must be validated during the native build gate.
+
+## Checks and their limits
+
+- `npm run check`: shared scaffolds, 124 API operations, 14 synthetic contract fixtures, 18 contract tests, Android source/contract checks, iOS source checks, backend build and 50 backend unit tests, desktop production build, dashboard lint/production build.
+- `npm run check:ios`: 25 Swift files parsed in both feature modes; application/extension plists and OpenStep Xcode project parse; six targets, four optional dependencies, schemes/source references and report/shield storage/API isolation checked. Parsing does **not** resolve iOS types, frameworks or availability.
+- `npm run test:ios-core`: actual portable Swift Foundation repository compiled/run with the existing macOS host compiler and host SDK. Checks cover HTTPS URL boundaries, calendar periods, local lease expiry/reboot/clock discontinuity, concurrent token renewal, uncertain rotating refresh, stale account responses, 403 data clearing, explicit/fresh remote intents, child-count/control gates, exact retry payloads, persistence and offline sign-out. Memory-vault failures verify no undurable intent is sent and credential erasure precedes setup persistence. Keychain source is host-compiled; actual Keychain access/lock states are untested.
+- Actual Swift-emitted capabilities validate against `device-capabilities.v1`; remote request bodies validate against `RemoteCommandInput`, including rejection of extra PID fields. Unsupported/unverified capabilities have empty actions. No checked-in measurement fixtures are used as product data.
+- `npm run test:ios-live`: actual Swift HTTPS adapter against the isolated Nest API and disposable PostgreSQL database. Checks account/profile/workspace, IOS enrolment and metadata heartbeat, empty report, notification preferences, family grant/sharing/withdrawal, synthetic remote stop/history/cancel, sessions, export, erasure/unenrolment and logout. It verifies redirect targets receive no request and 503 mutations are sent once. The generated certificate explicitly declares server-auth usage; test-only trust validates its hostname/chain with a session-scoped CA. No system trust changes. No Apple APIs or real process shutdown is exercised.
+
+No backend migration or contract change is required. Existing Phase 11 migrations remain prerequisites for live API use. The disposable fixture harness applies/reverts them only in its dedicated test database.
+
+## Pending release gates
+
+All iOS/SwiftUI/FamilyControls/DeviceActivity/ManagedSettings API type checks, app/extension native builds, signing, App Group setup, Apple approval, archive/distribution and physical-device tests remain pending. APNs provider, registration and delivery are unconfigured. No mobile SDK, Android Studio, Xcode, simulator or emulator was installed.
+
+Physical acceptance must cover authorization approval/denial/revocation; valid child Family Sharing authority; opaque selection invalidation; current report scope/empty results/privacy; schedule and threshold timing; warning callbacks; activity counted before consent; app lock/background/force-quit; reboot/timezone/DST/clock changes; end-callback/cleanup reliability; account/workspace switch and failed/offline privacy flows; unavailable Keychain/App Group; VoiceOver/Dynamic Type/rotation/iPad; real remote grant revocation, observation replacement, response loss/cancel/force outcomes; and sensitive export destination handling. Source wall-clock/uptime expiry is not proof of OS removal. Explicitly stop and erase local controls before changing enabled builds, provisioning identity or App Group. See [iOS handoff](../../ios/README.md).
+
+The earlier Flutter reference remains untouched. No service deployment, signing credentials, entitlements approval, real user messaging or persistent monitoring was provisioned.

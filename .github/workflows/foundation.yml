@@ -237,3 +237,19 @@ jobs:
         run: npm run test:android-core
       - name: Exercise Kotlin HTTPS adapters against isolated API and PostgreSQL
         run: node android/scripts/check-live.mjs
+
+  ios-core:
+    # Existing macOS host compiler only; no iOS build, SDK installation or simulator.
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Prepare shared contract dependencies
+        run: npm --prefix contracts ci --ignore-scripts --no-audit --no-fund
+      - name: Parse Swift source and check extension boundaries
+        run: npm run check:ios
+      - name: Compile portable Swift repository and validate emitted contracts
+        run: npm run test:ios-core

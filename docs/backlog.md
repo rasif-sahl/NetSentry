@@ -21,7 +21,7 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 13 Network security | 10, 13 | Inventory/auth/health events and severity/acknowledgement implemented; provider notifications and Business assignment later |
 | 14 Family profiles | 11 | Profiles, explicit guardian/child scope, consent/assignments, reports and web/Android source implemented; native/device checks pending |
 | 15 Parental controls | 11, 12 | Policy intent/schedules/warnings/revisions/requests/overrides implemented; executing Android/router restrictions and native notifications unavailable pending supported authority/mechanisms |
-| 16 iOS Family Controls | 12 | Pending authorization/entitlements and implementation |
+| 16 iOS Family Controls | 12 | Optional authorization/picker, local schedules/thresholds, monitor/report/shield source implemented; Apple approval, native builds and physical acceptance pending |
 | 17 Wellbeing insights | 9, 11 | Pending; deterministic rules first |
 | 18 Authorized YouTube insights | 16 | Deferred; legitimate source required |
 | 19 Business organizations | 13 | Pending |
@@ -31,7 +31,7 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 23 Data and privacy | 1, 2, 3 and each domain | Phase 2 disclosures/history, export, deletion, revocation/generation and account-mail cleanup implemented; Phase 3 retention and raw/derived-data erasure and Phase 4 web privacy controls implemented; offline-client enforcement pending |
 | 24 Platform administration | 3, 14 | Phase 3 workspace monitoring diagnostics implemented; platform administration/billing tools pending |
 | 25 Excluded functionality | All | Preserve catalogue boundaries; no inbox access |
-| 26 Developer tools and mobile stop | 5–8, 12 | Phase 6 owned macOS TCP discovery, project corrections, local graceful/force outcomes and desktop workflow implemented/tested; Phase 7 remote delivery, explicit grants, desktop consent and web outcomes implemented/tested; native mobile controls remain Phases 8/12 and reminders await soak |
+| 26 Developer tools and mobile stop | 5–8, 12 | Phase 6 owned macOS TCP discovery, project corrections, local graceful/force outcomes and desktop workflow implemented/tested; Phase 7 remote delivery, explicit grants, desktop consent and web outcomes implemented/tested; Android/iOS confirmed-control source and portable API checks implemented; native device acceptance and reminders await soak |
 | Optional platform/container/AI integrations | 16 | Deferred |
 
 Use separate source/build/integration/hardware verification states. Do not mark a whole group complete because its project directory or initial UI exists. Before each feature begins, review its catalogue scope, prerequisites, authorization and verification requirements. Commit coherent features separately with plain-language messages describing what changed.
@@ -43,3 +43,5 @@ Phase 9 status: advanced Android source, detailed consent/ingestion/reports, cat
 Phase 10 status: named networks, independent desktop consent/grants, passive cache observations, source-aware inventory/spans, encrypted router credentials, read-only OpenWrt ubus protocol fixtures, WAN history/coverage and network event review are implemented. Hardware/firmware certification is pending; unsupported traffic/identity remains unavailable. See `validation/phase-10.md`. Family/department assignment workflows stay in Phases 11/13.
 
 Phase 11 adds scoped family sharing and digital wellbeing source with synthetic verification. Restrictions remain unsupported by the current consumer Android/read-only router adapters; no configured policy is represented as applied. See `validation/phase-11.md`.
+
+Phase 12 source: SwiftUI account/device/capability, report/alert/rule, family, settings/privacy and desktop-control flows are implemented with a Keychain-backed Foundation repository. Portable Swift, emitted-contract, grammar/project and isolated HTTPS/API/PostgreSQL checks are distinct from pending native builds. Local Screen Time uses a separate feature target and Apple authorization; server policy state never becomes an applied iOS receipt. Report data remains inside the report extension. See `validation/phase-12.md` and `architecture/ios-client.md`. Flutter stays as a reference; no mobile tools were installed.
