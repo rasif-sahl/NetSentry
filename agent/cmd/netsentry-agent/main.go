@@ -68,6 +68,18 @@ func command(args []string) error {
 	if err != nil {
 		return err
 	}
+	if args[0] == "hold-update-lock" {
+		unlock, err := core.Lock(dir)
+		if err != nil {
+			return err
+		}
+		defer unlock()
+		if err := emit(map[string]bool{"locked": true}); err != nil {
+			return err
+		}
+		_, err = io.Copy(io.Discard, os.Stdin)
+		return err
+	}
 	if args[0] == "init" {
 		config, err := core.Initialize(dir, *apiURL, *development)
 		if err != nil {
