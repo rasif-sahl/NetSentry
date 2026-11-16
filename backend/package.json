@@ -31,7 +31,8 @@
     "accounts:cleanup": "npm run build && node dist/mail/cleanup-cli.js",
     "monitoring:work": "npm run build && node dist/monitoring/work-cli.js",
     "agents:cleanup": "npm run build && node dist/agents/cleanup-cli.js",
-    "networks:work": "npm run build && node dist/networks/network-work-cli.js"
+    "networks:work": "npm run build && node dist/networks/network-work-cli.js",
+    "family:work": "npm run build && node dist/family/family-work-cli.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

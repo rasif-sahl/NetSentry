@@ -864,6 +864,8 @@ try {
     apiURL: base,
     app,
   });
+  const { checkFamily } = await import('./family-checks.mjs');
+  await checkFamily({ request, source, alice: recovered, app });
   const { checkPrivacy } = await import('./privacy-checks.mjs');
   await checkPrivacy({ request, source, alice: recovered, bob, workspace });
   console.log(
