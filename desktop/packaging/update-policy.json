@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "enabled": false,
+  "appId": "com.netsentry.desktop",
+  "teamId": "",
+  "feedUrl": "",
+  "publicKey": "",
+  "release": 1
+}

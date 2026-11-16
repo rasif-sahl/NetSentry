@@ -27,6 +27,7 @@ export type AgentStatus = {
 export type AgentResult =
   { ok: true; status: AgentStatus } | { ok: false; code: string };
 export type AgentBridge = {
+  desktopUpdate(action: "status" | "check" | "download" | "install"): Promise<import("./update-controller.js").UpdateView>;
   getNetworkPreferences(): Promise<ServiceResult<NetworkPreferences>>;
   setNetworkPreferences(sharing: boolean, networkId: string, accepted: boolean): Promise<ServiceResult<NetworkPreferences>>;
   getRemotePreferences(): Promise<ServiceResult<RemotePreferences>>;

@@ -34,6 +34,7 @@
     "test:recovery": "node infra/scripts/check-recovery.mjs",
     "check:release": "node scripts/release/acceptance.mjs plan",
     "test:release": "node --test scripts/release/*.test.mjs",
-    "test:desktop-appearance": "node desktop/scripts/check-appearance.mjs"
+    "test:desktop-appearance": "node desktop/scripts/check-appearance.mjs",
+    "test:desktop-updates": "npm --prefix desktop run test:updates"
   }
 }
