@@ -7,7 +7,7 @@ NetSentry is being built for device/network monitoring, family digital wellbeing
 | Directory | Technology | Current role |
 | --- | --- | --- |
 | `backend/` | NestJS, TypeScript, PostgreSQL/TypeORM | Account, workspace, enrolment, health/consent and privacy APIs |
-| `dashboard/` | Next.js, React, TypeScript, Tailwind CSS | Existing web interface; preview monitoring values remain until integration |
+| `dashboard/` | Next.js, React, TypeScript, Tailwind CSS | Connected account/workspace, monitoring, team and privacy UI; later domains are explicitly planned |
 | `android/` | Kotlin, Jetpack Compose | New independent native source/build scaffold |
 | `ios/` | Swift, SwiftUI | New independent native source/Xcode project scaffold |
 | `desktop/` | Electron, React, TypeScript, Vite | New desktop interface and isolated native shell |
