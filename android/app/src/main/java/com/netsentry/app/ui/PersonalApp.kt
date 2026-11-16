@@ -56,7 +56,7 @@ import java.time.Instant
 @Composable fun PersonalApp(model: PersonalViewModel = viewModel()) {
     val state = model.view
     val context = LocalContext.current
-    val exportFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+    val exportFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         val contents = model.exported
         if (uri != null && contents != null) {
             // The user selects the destination; never put exports into public storage automatically.
@@ -94,7 +94,7 @@ import java.time.Instant
                     Action("Send verification email", model) { requestVerification() }
                 }
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Phone", "Usage", "Computers", "Settings").forEach { label ->
+                    listOf("Phone", "Usage", "Apps", "Computers", "Settings").forEach { label ->
                         OutlinedButton(onClick = { tab = label }, enabled = !model.busy) { Text(label) }
                     }
                 }
@@ -109,6 +109,7 @@ import java.time.Instant
                 when (tab) {
                     "Phone" -> Phone(state, model)
                     "Usage" -> Usage(state, model)
+                    "Apps" -> ApplicationScreen(state, model)
                     "Computers" -> Computers(state, model)
                     else -> SettingsScreen(state, model)
                 }
@@ -122,8 +123,8 @@ import java.time.Instant
         }
     }
     if (model.exported != null) AlertDialog(onDismissRequest = model::closeExport,
-        title = { Text("Personal export ready") }, text = { Text("This file contains personal data. Choose a private destination; copies you save are your responsibility.") },
-        confirmButton = { TextButton(onClick = { exportFile.launch("netsentry-personal-export.json") }) { Text("Choose save location") } },
+        title = { Text(if (model.exportKind == "applications") "Application CSV ready" else "Personal export ready") }, text = { Text("This file contains personal data. Choose a private destination; copies you save are your responsibility.") },
+        confirmButton = { TextButton(onClick = { exportFile.launch(if (model.exportKind == "applications") "netsentry-applications.csv" else "netsentry-personal-export.json") }) { Text("Choose save location") } },
         dismissButton = { TextButton(onClick = model::closeExport) { Text("Discard") } })
 }
 
@@ -164,7 +165,7 @@ import java.time.Instant
         catch (_: ActivityNotFoundException) { model.storageError() }
     }
     Panel("Permissions and monitoring health") {
-        Text("Usage access is a separate Android setting, not a runtime permission dialog. It allows aggregate phone data queries; screen/app usage is a later phase. No contacts, messages, subscriber identifiers or location are requested.")
+        Text("Usage access is a separate Android setting, not a runtime permission dialog. It allows aggregate phone data queries; App/screen usage needs the separate app-usage-v1 choice below. No contacts, messages, subscriber identifiers or location are requested.")
         OutlinedButton(onClick = { open(Settings.ACTION_USAGE_ACCESS_SETTINGS) }) { Text("Review usage access") }
         Text("Battery optimizations may delay 15-minute work. No continuous collection is promised. Review the system settings yourself; NetSentry does not request an automatic exemption.")
         OutlinedButton(onClick = { open(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS) }) { Text("Review battery settings") }
@@ -193,9 +194,13 @@ import java.time.Instant
             if (own.optString("workspaceId") != state.workspaceId) Text("Select the phone's workspace to manage it.")
             else {
                 var accepted by remember { mutableStateOf(false) }
+                var appsAccepted by remember { mutableStateOf(false) }
                 Text(state.disclosures.optJSONObject("monitoring")?.optString("text") ?: "Refresh to load monitoring disclosure.")
                 Check("I accept monitoring-v3 for network usage only", accepted, { accepted = it })
-                Action("Enable network collection with fresh consent", model, accepted) { consent(accepted) }
+                Text(state.disclosures.optJSONObject("applications")?.optString("text") ?: "Refresh to load the additional application-usage disclosure.")
+                Check("I also accept app-usage-v1 for app/screen timelines and counts", appsAccepted, { appsAccepted = it })
+                Action("Enable selected collection with fresh consent", model, accepted) { consent(accepted, appsAccepted) }
+                Text("Detailed application collection: ${state.appUsageEnabled}")
                 Action("Collect and synchronize now / retry uploads", model, state.localEnabled) { sync(manual = true); refresh() }
                 listOf("pause" to "Pause monitoring", "revoke" to "Revoke monitoring consent", "unenrol" to "Unenrol this phone", "erase" to "Erase phone data and credential", "remove" to "Remove phone from inventory").forEach { (action, label) ->
                     var confirm by remember { mutableStateOf(false) }
@@ -353,14 +358,14 @@ import java.time.Instant
 }
 
 private fun nullable(value: JSONObject, key: String): String = if (!value.has(key) || value.isNull(key)) "unknown" else value.optString(key)
-@Composable private fun Panel(title: String, content: @Composable () -> Unit) {
+@Composable internal fun Panel(title: String, content: @Composable () -> Unit) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(title, style = MaterialTheme.typography.titleLarge); content()
         }
     }
 }
-@Composable private fun Input(label: String, value: String, change: (String) -> Unit, secret: Boolean = false, keyboard: KeyboardType = KeyboardType.Text) {
+@Composable internal fun Input(label: String, value: String, change: (String) -> Unit, secret: Boolean = false, keyboard: KeyboardType = KeyboardType.Text) {
     OutlinedTextField(value = value, onValueChange = change, label = { Text(label) }, modifier = Modifier.fillMaxWidth(),
         singleLine = true, visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = if (secret) KeyboardType.Password else keyboard))
@@ -368,10 +373,10 @@ private fun nullable(value: JSONObject, key: String): String = if (!value.has(ke
 @Composable private fun Check(label: String, checked: Boolean, change: (Boolean) -> Unit, enabled: Boolean = true) {
     Row { Checkbox(checked = checked, onCheckedChange = change, enabled = enabled); Text(label, Modifier.padding(top = 10.dp)) }
 }
-@Composable private fun Action(label: String, model: PersonalViewModel, enabled: Boolean = true, action: Repository.() -> Unit) {
+@Composable internal fun Action(label: String, model: PersonalViewModel, enabled: Boolean = true, action: Repository.() -> Unit) {
     Button(onClick = { model.run("Action confirmed", action) }, enabled = enabled && !model.busy) { Text(label) }
 }
-@Composable private fun Choices(values: List<String>, selected: String, choose: (String) -> Unit) {
+@Composable internal fun Choices(values: List<String>, selected: String, choose: (String) -> Unit) {
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         values.forEach { value -> OutlinedButton(onClick = { choose(value) }) { Text("${if (selected == value) "✓ " else ""}$value") } }
     }
