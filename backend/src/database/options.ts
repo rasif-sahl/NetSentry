@@ -1,4 +1,15 @@
 import {
+  NetworkPresence,
+  NetworkProfile,
+  NetworkCollector,
+  NetworkEndpoint,
+  NetworkSighting,
+  NetworkRouter,
+  NetworkSample,
+  NetworkEvent,
+  NetworkCompatibility,
+} from '../networks/network.entities';
+import {
   ApplicationCatalog,
   ApplicationWindow,
   ApplicationDay,
@@ -49,6 +60,15 @@ export function databaseOptions(
     type: 'postgres',
     url: config.DATABASE_URL,
     entities: [
+      NetworkPresence,
+      NetworkProfile,
+      NetworkCollector,
+      NetworkEndpoint,
+      NetworkSighting,
+      NetworkRouter,
+      NetworkSample,
+      NetworkEvent,
+      NetworkCompatibility,
       ApplicationCatalog,
       ApplicationWindow,
       ApplicationDay,

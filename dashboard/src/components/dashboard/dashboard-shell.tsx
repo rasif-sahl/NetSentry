@@ -575,7 +575,7 @@ function WorkspaceShell({
                               Subscription:
                                 "Editions, entitlements and billing.",
                               "Network Security":
-                                "Supported network health and security observations, once available.",
+                                "Advanced security analysis beyond the inventory and health events available in Networks.",
                               Insights:
                                 "Digital wellbeing summaries based on authorized observations.",
                             }[label]

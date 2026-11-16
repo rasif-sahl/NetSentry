@@ -16,6 +16,7 @@ Object.assign(process.env, {
   NODE_ENV: 'test',
   API_RATE_LIMIT: '1000',
   ACCOUNT_MAIL_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
+  ROUTER_CREDENTIAL_ENCRYPTION_KEY: Buffer.alloc(32, 8).toString('base64'),
   DATABASE_URL: url,
   DATABASE_SSL: process.env.TEST_DATABASE_SSL ?? 'false',
   DB_SYNCHRONIZE: 'false',
@@ -818,7 +819,14 @@ try {
   const { checkEstimatedAlerts } = await import('./estimated-alert-checks.mjs');
   await checkEstimatedAlerts({ request, source, alice: recovered, workspace });
   const { checkApplications } = await import('./application-checks.mjs');
-  await checkApplications({ request, source, app, alice: recovered, bob, workspace });
+  await checkApplications({
+    request,
+    source,
+    app,
+    alice: recovered,
+    bob,
+    workspace,
+  });
   const { checkAgents } = await import('./agent-checks.mjs');
   await checkAgents({ request, source, alice: recovered, bob, workspace });
   const { checkRemoteCommands } = await import('./remote-command-checks.mjs');
@@ -845,6 +853,16 @@ try {
     alice: recovered,
     workspace,
     apiURL: base,
+  });
+  const { checkNetworks } = await import('./network-checks.mjs');
+  await checkNetworks({
+    request,
+    source,
+    alice: recovered,
+    bob,
+    workspace,
+    apiURL: base,
+    app,
   });
   const { checkPrivacy } = await import('./privacy-checks.mjs');
   await checkPrivacy({ request, source, alice: recovered, bob, workspace });

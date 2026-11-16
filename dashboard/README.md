@@ -66,3 +66,5 @@ See `../docs/features/dashboard.md` and `../docs/validation/phase-4.md` for beha
 ## Phase 7 Developer Tools
 
 Connected paired-computer inventory, owner-managed controller grants, separately confirmed graceful/force requests, cancellation and audited outcomes use the real API. Pending/accepted never mean confirmed shutdown. The browser regression publisher is explicitly synthetic; native execution is verified separately. See [verification](../docs/validation/phase-7.md).
+
+Phase 10 Networks now separates manual labels from monitored networks. It supports named private subnets, collector grants, encrypted router setup/test state, uncertain inventory/history, labels/association hooks, WAN coverage/history, event review and compatibility feedback. Viewer actions remain read-only; no router secret is returned by read APIs. Synthetic browser fixtures do not certify hardware. See [network validation](../docs/validation/phase-10.md).

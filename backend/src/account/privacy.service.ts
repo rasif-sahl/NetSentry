@@ -1,3 +1,9 @@
+import { eraseNetworkAgent } from '../networks/network-lifecycle';
+import {
+  NetworkCollector,
+  NetworkEndpoint,
+  NetworkRouter,
+} from '../networks/network.entities';
 import {
   ApplicationCatalog,
   ApplicationWindow,
@@ -93,6 +99,35 @@ export class PrivacyService {
           })
         : [];
       return {
+        networkCollectors: agents.length
+          ? await manager.findBy(NetworkCollector, {
+              agentId: In(agents.map((a) => a.id)),
+            })
+          : [],
+        networkAssignments: await manager.find(NetworkEndpoint, {
+          where: { assignedUserId: userId },
+          select: {
+            id: true,
+            networkId: true,
+            name: true,
+            category: true,
+            trust: true,
+            assignedUserId: true,
+          },
+        }),
+        networkRouters: agents.length
+          ? await manager.find(NetworkRouter, {
+              where: { agentId: In(agents.map((a) => a.id)) },
+              select: {
+                id: true,
+                networkId: true,
+                agentId: true,
+                adapter: true,
+                url: true,
+                revision: true,
+              },
+            })
+          : [],
         developerCommands: await manager.findBy(DeveloperCommand, {
           requesterId: userId,
         }),
@@ -176,12 +211,17 @@ export class PrivacyService {
       registeredById: userId,
     });
     const agents = await manager.findBy(Agent, { userId });
+    const networkRefs: { workspaceId: string }[] = await manager.query(
+      'SELECT DISTINCT n."workspaceId" FROM network_endpoints e JOIN usage_networks n ON n.id=e."networkId" WHERE e."assignedUserId"=$1',
+      [userId],
+    );
     const developerRefs: { workspaceId: string }[] = await manager.query(
       'SELECT DISTINCT a."workspaceId" FROM agents a LEFT JOIN agent_developer d ON d."agentId"=a.id LEFT JOIN developer_commands c ON c."agentId"=a.id WHERE d.controllers ? $1 OR c."requesterId"=$1::uuid',
       [userId],
     );
     return [
       ...new Set([
+        ...networkRefs.map((row) => row.workspaceId),
         ...developerRefs.map((row: { workspaceId: string }) => row.workspaceId),
         ...agents.map((agent) => agent.workspaceId),
         ...owned.map((workspace) => workspace.id),
@@ -244,6 +284,8 @@ export class PrivacyService {
         'UPDATE agent_developer SET controllers=controllers-$1, revision=revision+1 WHERE controllers ? $1',
         [userId],
       );
+      for (const agent of await manager.findBy(Agent, { userId }))
+        await eraseNetworkAgent(manager, agent.id);
       await manager.delete(User, userId);
     });
     return { deleted: true };

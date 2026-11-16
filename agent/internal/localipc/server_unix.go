@@ -81,7 +81,7 @@ func Serve(ctx context.Context, dir, secret string, agent *runner.Runner) error 
 				}
 				conn.SetDeadline(time.Now().Add(20 * time.Second))
 				var request Request
-				if Read(conn, &request) != nil || (request.SchemaVersion != 2 && request.SchemaVersion != 3 && request.SchemaVersion != 4) || !core.ValidUUID(request.RequestID) {
+				if Read(conn, &request) != nil || (request.SchemaVersion != 2 && request.SchemaVersion != 3 && request.SchemaVersion != 4 && request.SchemaVersion != 5) || !core.ValidUUID(request.RequestID) {
 					return
 				}
 				response := Dispatch(ctx, request, agent)
@@ -93,6 +93,9 @@ func Serve(ctx context.Context, dir, secret string, agent *runner.Runner) error 
 	}
 }
 func Dispatch(ctx context.Context, request Request, agent *runner.Runner) Response {
+	if request.SchemaVersion == 5 {
+		return DispatchNetwork(request, agent)
+	}
 	if request.SchemaVersion == 4 {
 		return DispatchRemote(request, agent)
 	}

@@ -1,4 +1,5 @@
 "use client";
+import { NetworkMonitoring } from "./network-monitoring";
 import { api } from "@/lib/api";
 import { useResource } from "@/lib/use-resource";
 import type { UsageNetwork } from "@/lib/types";
@@ -19,6 +20,7 @@ export function NetworksPanel({
   devices,
   permissions,
   reloadDevices,
+  ...rest
 }: PageContext) {
   const path = `/workspaces/${workspace.id}/monitoring`;
   const networks = useResource<UsageNetwork[]>(`${path}/networks`, true);
@@ -27,9 +29,17 @@ export function NetworksPanel({
   );
   return (
     <>
+      <NetworkMonitoring
+        {...rest}
+        workspace={workspace}
+        user={user}
+        devices={devices}
+        permissions={permissions}
+        reloadDevices={reloadDevices}
+      />
       <Notice>
-        These are manual workspace labels. Discovery, router traffic and
-        verified network presence are planned for the network-agent phase.
+        Manual labels below remain available independently of network
+        collection.
       </Notice>
       <Card title="Network labels">
         <ErrorNotice error={networks.error} />

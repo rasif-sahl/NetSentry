@@ -19,6 +19,7 @@ Object.assign(process.env, {
   DB_SYNCHRONIZE: 'false',
   API_PREFIX: 'api',
   CORS_ORIGINS: 'http://127.0.0.1:54111',
+  ROUTER_CREDENTIAL_ENCRYPTION_KEY: Buffer.alloc(32, 12).toString('base64'),
   ACCOUNT_MAIL_ENCRYPTION_KEY: Buffer.alloc(32, 11).toString('base64'),
   JWT_ACCESS_TOKEN_SECRET:
     'dashboard-fixture-access-secret-never-use-in-production',
@@ -451,9 +452,105 @@ try {
       developerBusy = false;
     }
   }
+  // Named-network observations below are synthetic; no native discovery or router requests.
+  const networkDefinition = {
+    ...agentDefinition,
+    installationId: randomUUID(),
+    name: 'Synthetic network collector',
+    modules: { network: true, developer: false },
+  };
+  const networkCode = await call(
+    `/workspaces/${workspace.id}/agents/enrolments`,
+    'POST',
+    networkDefinition,
+    owner.accessToken,
+  );
+  const networkPair = await call('/agents/enrol', 'POST', {
+    token: networkCode.token,
+    installationId: networkDefinition.installationId,
+    platform: 'darwin',
+  });
+  const monitored = await call(
+    `/workspaces/${workspace.id}/networks`,
+    'POST',
+    { name: 'Synthetic lab network', cidrs: ['192.168.40.0/24'] },
+    owner.accessToken,
+  );
+  const networkPath = `/workspaces/${workspace.id}/networks/${monitored.networkId}`;
+  await call(
+    `${networkPath}/collectors`,
+    'POST',
+    {
+      agentId: networkPair.agent.id,
+      enabled: true,
+      accepted: true,
+      disclosureVersion: 'network-sharing-v1',
+    },
+    owner.accessToken,
+  );
+  async function publishNetwork() {
+    const agentPath = `/agents/${networkPair.agent.id}`;
+    const config = await call(
+      `${agentPath}/network/configuration`,
+      'POST',
+      {
+        networkId: monitored.networkId,
+        generation: 1,
+        accepted: true,
+        disclosureVersion: 'network-sharing-v1',
+      },
+      networkPair.agentToken,
+    );
+    await call(
+      `${agentPath}/heartbeat`,
+      'POST',
+      {
+        schemaVersion: 1,
+        generation: 1,
+        version: '0.10.0',
+        architecture: 'arm64',
+        reportedAt: new Date().toISOString(),
+        requested: { network: true, developer: false },
+        backgroundAllowed: false,
+        droppedEvents: 0,
+      },
+      networkPair.agentToken,
+    );
+    await call(
+      `${agentPath}/network/snapshot`,
+      'POST',
+      {
+        schemaVersion: 1,
+        snapshotId: randomUUID(),
+        networkId: monitored.networkId,
+        generation: 1,
+        revision: config.revision,
+        observedAt: new Date().toISOString(),
+        interfaces: [
+          {
+            name: 'fixture0',
+            cidr: '192.168.40.20/24',
+            gateway: '192.168.40.1',
+          },
+        ],
+        neighbors: [
+          {
+            address: '192.168.40.50',
+            mac: '02:00:00:40:00:01',
+            evidence: 'cached',
+          },
+        ],
+        router: null,
+      },
+      networkPair.agentToken,
+    );
+  }
+  await publishNetwork();
   await publishDeveloper();
   developerTimer = setInterval(() => {
-    developerRunning = publishDeveloper();
+    developerRunning = publishDeveloper()
+      .then(() => publishNetwork())
+      .catch(() => {});
   }, 2000);
   await mkdir(new URL('../../dashboard/.test/', import.meta.url), {
     recursive: true,
@@ -465,6 +562,7 @@ try {
       workspaceId: workspace.id,
       emptyId: empty.id,
       deviceId: pair.device.id,
+      monitoredNetworkId: monitored.networkId,
       developerAgentId: developerPair.agent.id,
       networkId: label.id,
       accounts: Object.fromEntries(

@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://netsentry.example/schemas/local-ipc.v5.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 5
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "get_network_preferences"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {}
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "method",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 5
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "const": "set_network_preferences"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sharing",
+            "networkId",
+            "accepted",
+            "disclosureVersion"
+          ],
+          "properties": {
+            "sharing": {
+              "type": "boolean"
+            },
+            "networkId": {
+              "type": "string"
+            },
+            "accepted": {
+              "type": "boolean"
+            },
+            "disclosureVersion": {
+              "const": "network-sharing-v1"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "sharing": {
+                    "const": true
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "accepted": {
+                    "const": true
+                  },
+                  "networkId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

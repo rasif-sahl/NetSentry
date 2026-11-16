@@ -28,6 +28,19 @@ function keys(v: unknown, names: string[]): v is Record<string, unknown> {
 }
 export function servicePayload(method: string, v: unknown): boolean {
   switch (method) {
+    case "get_network_preferences":
+      return keys(v, []);
+    case "set_network_preferences":
+      return (
+        keys(v, ["sharing", "networkId", "accepted", "disclosureVersion"]) &&
+        typeof v.sharing === "boolean" &&
+        (v.sharing
+          ? uuid(v.networkId)
+          : v.networkId === "" || uuid(v.networkId)) &&
+        typeof v.accepted === "boolean" &&
+        v.disclosureVersion === "network-sharing-v1"
+      );
+
     case "get_remote_preferences":
       return keys(v, []);
     case "set_remote_preferences":
@@ -159,6 +172,15 @@ function action(v: unknown): boolean {
 }
 export function serviceData(method: string, v: unknown): v is DeveloperData {
   switch (method) {
+    case "get_network_preferences":
+    case "set_network_preferences":
+      return (
+        keys(v, ["sharing", "networkId", "supported"]) &&
+        typeof v.sharing === "boolean" &&
+        (v.networkId === "" || uuid(v.networkId)) &&
+        typeof v.supported === "boolean"
+      );
+
     case "get_remote_preferences":
     case "set_remote_preferences":
       return (

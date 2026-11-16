@@ -276,6 +276,8 @@ Completion: source and backend report behavior pass available checks against rep
 
 ### Phase 10 Wi-Fi networks and router integrations
 
+Status (16 November 2026): source implemented with backend/web/desktop builds, database/API contracts and Go/IPC integration checks. Named-network consent, passive macOS/Linux IPv4 observations, multi-agent inventory/history, encrypted credentials, a versioned read-only OpenWrt ubus protocol candidate, WAN counters/coverage and network event review are delivered. Actual router/model/firmware compatibility and accuracy remain unverified; no hardware is certified. Native mobile, Linux production secret storage/service packaging and Windows discovery remain pending. See [Phase 10 validation](docs/validation/phase-10.md) and [network architecture](docs/architecture/network-monitoring.md).
+
 - Implement the Go Network Monitoring module: gateway/subnet discovery, network naming, device detection, multiple agents and compatibility tests.
 - Build compatibility records for manufacturer/model/firmware, adapter versions, authentication, features, limitations, test dates and feedback.
 - Add encrypted router credentials and connection tests for a small selected support matrix.

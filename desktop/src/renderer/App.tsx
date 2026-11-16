@@ -1,3 +1,4 @@
+import { NetworkSharing } from "./NetworkSharing";
 import { RemoteSharing } from "./RemoteSharing";
 import { Services } from "./Services";
 import { useEffect, useState } from "react";
@@ -39,7 +40,7 @@ export function App() {
       <p>
         Manage the shared agent’s pairing and local preferences. Inspect
         development services and confirm local shutdown on supported macOS
-        agents. Network collection remains a later phase. Remote service access
+        agents. Network observation sharing requires separate named-network setup below. Remote service access
         requires separate opt-in.
       </p>
       <p role="status">{message}</p>
@@ -154,6 +155,7 @@ export function App() {
           </section>
         </>
       )}
+      <NetworkSharing enabled={Boolean(status?.paired && status.requested.network)} />
       <RemoteSharing
         enabled={Boolean(status?.paired && status.requested.developer)}
       />

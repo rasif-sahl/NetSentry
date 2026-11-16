@@ -7,6 +7,6 @@ func Capability() capability.Module {
 		ID:      "network",
 		Enabled: false,
 		Status:  "temporarily_unavailable",
-		Reason:  "Network monitoring is not implemented in this scaffold.",
+		Reason:  "Passive discovery and router adapters require separate named-network authorization and local consent.",
 	}
 }

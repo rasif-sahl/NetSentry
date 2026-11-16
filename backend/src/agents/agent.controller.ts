@@ -1,3 +1,9 @@
+import { NetworkService } from '../networks/network.service';
+import {
+  NetworkController,
+  NetworkDisclosureController,
+  AgentNetworkController,
+} from '../networks/network.controller';
 import { DeveloperService } from './developer.service';
 import {
   WorkspaceDeveloperController,
@@ -112,11 +118,14 @@ export class AgentController {
 @Module({
   imports: [AuthModule],
   controllers: [
+    NetworkController,
+    NetworkDisclosureController,
+    AgentNetworkController,
     WorkspaceAgentController,
     AgentController,
     WorkspaceDeveloperController,
     DeveloperAgentController,
   ],
-  providers: [AgentService, DeveloperService],
+  providers: [AgentService, DeveloperService, NetworkService],
 })
 export class AgentModule {}

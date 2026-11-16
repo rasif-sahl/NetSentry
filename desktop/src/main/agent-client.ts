@@ -286,13 +286,15 @@ async function exchange(
       throw new Error("agent proof rejected");
     const requestId = randomUUID();
     const version = [
-      "get_remote_preferences",
-      "set_remote_preferences",
+      "get_network_preferences",
+      "set_network_preferences",
     ].includes(method)
-      ? 4
-      : services
-        ? 3
-        : 2;
+      ? 5
+      : ["get_remote_preferences", "set_remote_preferences"].includes(method)
+        ? 4
+        : services
+          ? 3
+          : 2;
     frames.write({ schemaVersion: version, requestId, method, payload });
     const reply = await frames.read();
     if (
@@ -330,6 +332,7 @@ async function exchange(
       "UNSUPPORTED_RUNTIME",
       "DEVELOPER_UNAVAILABLE",
       "REMOTE_SETTINGS_FAILED",
+      "NETWORK_SETTINGS_FAILED",
     ];
     return {
       ok: false,
