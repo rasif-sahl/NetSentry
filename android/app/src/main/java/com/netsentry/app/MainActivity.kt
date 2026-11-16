@@ -5,7 +5,6 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.MaterialTheme
 import com.netsentry.app.ui.PersonalApp
 
 class MainActivity : ComponentActivity() {
@@ -13,6 +12,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         enableEdgeToEdge()
-        setContent { MaterialTheme { PersonalApp() } }
+        setContent { PersonalApp() }
     }
 }
