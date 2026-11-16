@@ -19,9 +19,12 @@ import {
   text,
 } from "../ui/common";
 export function NotificationPreferencesPanel() {
-  const preference = useResource<{ inApp: boolean; push: boolean }>(
-    "/notifications/preferences",
-  );
+  const preference = useResource<{
+    inApp: boolean;
+    push: boolean;
+    email: boolean;
+    emailDeliveryAvailable: boolean;
+  }>("/notifications/preferences");
   return (
     <Card title="Notification preferences">
       <ErrorNotice error={preference.error} />
@@ -33,6 +36,7 @@ export function NotificationPreferencesPanel() {
             await api("/notifications/preferences", "PATCH", {
               inApp: form.has("inApp"),
               push: form.has("push"),
+              email: form.has("email"),
             });
             preference.reload();
           }}
@@ -54,6 +58,17 @@ export function NotificationPreferencesPanel() {
             Push preference (delivery unavailable until providers and native
             clients are configured)
           </label>
+          <label className="check">
+            <input
+              type="checkbox"
+              name="email"
+              defaultChecked={preference.data.email}
+            />
+            Opt in to email alerts (delivery disabled)
+          </label>
+          <small>
+            Email alert delivery is disabled. Saving preferences sends no email.
+          </small>
           <small>
             Quiet hours and your current preferences are checked when an alert
             is delivered.
@@ -478,6 +493,7 @@ function RuleEditor({
         <legend>Delivery channels</legend>
         {[
           ["in_app", "In-app"],
+          ["email", "Email (delivery disabled)"],
           ["android_push", "Android push (unavailable)"],
           ["ios_push", "iOS push (unavailable)"],
         ].map(([value, label]) => (
