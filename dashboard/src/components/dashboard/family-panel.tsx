@@ -108,6 +108,14 @@ type FamilyView = {
     detail: Record<string, unknown>;
   }[];
 };
+const avatarSymbols: Record<string, string> = {
+  star: "⭐",
+  leaf: "🌿",
+  fox: "🦊",
+  owl: "🦉",
+  rocket: "🚀",
+  sun: "☀️",
+};
 const consent = { accepted: true, disclosureVersion: "family-sharing-v1" };
 const emptyRules = (): Rules => ({
   enabled: true,
@@ -406,7 +414,15 @@ function ChildPanel({
         <>
           <Card title={`${v.profile.name} · family overview`}>
             <p>
-              Avatar: {v.profile.avatar} · age band: {v.profile.ageBand} ·{" "}
+              Avatar:{" "}
+              <span
+                role="img"
+                aria-label={`${v.profile.avatar} avatar`}
+                style={{ fontSize: "2rem" }}
+              >
+                {avatarSymbols[v.profile.avatar] ?? "⭐"}
+              </span>{" "}
+              · age band: {v.profile.ageBand} ·{" "}
               {v.profile.archived ? "archived" : "active"}
             </p>
             <button className="button" onClick={resource.reload}>
