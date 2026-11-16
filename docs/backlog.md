@@ -14,11 +14,11 @@ The full scope and acceptance criteria live in `DEVELOPMENT_PLAN.md`. This index
 | 6 Application catalogue | 9 | Pending |
 | 7 Reports and exports | 3, 4, 9 | Phase 3 scoped reports, comparisons, source/quality/coverage indicators and CSV APIs implemented; Phase 4 dashboard integration implemented; native integration pending |
 | 8 Alerts and notifications | 3 and each domain | Phase 3 measured thresholds, health rules, quiet hours, acknowledgement, in-app delivery, preferences and retries implemented; Phase 4 web management integrated; real push/providers pending |
-| 9 Wi-Fi discovery and agent | 5, 10 | Phase 5 shared identity/heartbeat/buffer/module gating implemented and integration-tested; actual discovery remains Phase 10 |
-| 10 Router compatibility | 10 | Pending; select hardware support matrix |
-| 11 Network inventory | 10, 11, 13 | Pending |
-| 12 Wi-Fi monitoring | 10 | Pending |
-| 13 Network security | 10, 13 | Pending |
+| 9 Wi-Fi discovery and agent | 5, 10 | Phase 5 shared identity/heartbeat/buffer/module gating implemented and integration-tested; Phase 10 passive macOS/Linux IPv4 source and fixture/API/IPC checks implemented; hardware/OS accuracy pending |
+| 10 Router compatibility | 10 | Encrypted credentials, registry/test states and OpenWrt ubus v1.0.0 fixture candidate implemented; hardware support matrix unverified |
+| 11 Network inventory | 10, 11, 13 | Passive inventory/spans and labels/association hooks implemented; actual connectivity/identity unknown, profile/department workflows later |
+| 12 Wi-Fi monitoring | 10 | WAN counters/history/coverage, freshness and dashboard implemented with fixtures; physical accuracy pending |
+| 13 Network security | 10, 13 | Inventory/auth/health events and severity/acknowledgement implemented; provider notifications and Business assignment later |
 | 14 Family profiles | 11 | Pending |
 | 15 Parental controls | 11, 12 | Pending supported enforcement mechanisms |
 | 16 iOS Family Controls | 12 | Pending authorization/entitlements and implementation |
@@ -39,3 +39,5 @@ Use separate source/build/integration/hardware verification states. Do not mark 
 Phase 8 status: native Android personal-client source and SDK-free Kotlin/HTTPS/API checks are implemented. Device accounting, permissions, native builds, background operation and phone stop controls remain unverified. Current API 35 hotspot/client information stays unavailable. Quality-specific estimated allowances are implemented without mixing measured totals. See `validation/phase-8.md`.
 
 Phase 9 status: advanced Android source, detailed consent/ingestion/reports, categories/corrections, evidence-based descriptive insights, bounded synchronization and missing-report alerts are implemented. Count/OS/UI/background correctness remains a physical-device gate; see `validation/phase-9.md`. Launch figures mean observed foreground entries, never an inferred cold-start or wellbeing score.
+
+Phase 10 status: named networks, independent desktop consent/grants, passive cache observations, source-aware inventory/spans, encrypted router credentials, read-only OpenWrt ubus protocol fixtures, WAN history/coverage and network event review are implemented. Hardware/firmware certification is pending; unsupported traffic/identity remains unavailable. See `validation/phase-10.md`. Family/department assignment workflows stay in Phases 11/13.
