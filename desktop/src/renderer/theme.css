@@ -6,3 +6,15 @@
   --primary: #755982;
   --border: #e4dce9;
 }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #19171e;
+  --surface: #25212c;
+  --text: #f0eaf5;
+  --primary: #c6a7db;
+  --border: #51465c;
+}
+:root[data-theme="dark"] button:not(.secondary):not(.danger) { color: #211529; }
+:root[data-theme="dark"] .danger { color: #ffd4dc; background: #48242e; border-color: #a65e70; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
