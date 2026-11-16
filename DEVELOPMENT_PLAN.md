@@ -359,6 +359,8 @@ Current status: **in progress; physical acceptance pending**. Phase 15 adds cand
 
 Completion: scope and dependencies are reviewed separately for each extension; later features do not block core validation.
 
+Selected first increment: **themes and opt-in alert emails**, explicitly requested by the user. Android now applies account themes; desktop adds local SYSTEM/LIGHT/DARK choices. Web/iOS retain existing account theme support. Email opt-in and per-rule channel are implemented with a hard-disabled transport and visible unavailable states; no live sending, inbox access or sorting is enabled. Other Phase 16 extensions remain deferred, and Phase 15 physical/native acceptance remains pending. See `docs/architecture/themes-and-alert-email.md` and `docs/validation/phase-16.md`.
+
 ## Complete feature catalogue
 
 Sections 1 through 25 preserve the supplied catalogue. Section 26 adds the agreed developer tools. Conditional features require evidence of platform or router support before release. Later items are retained as future scope rather than implied launch commitments.

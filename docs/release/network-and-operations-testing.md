@@ -12,7 +12,7 @@ Operator compatibility entries are metadata. A `verified` label in an administra
 
 ## Server candidate and operational gates
 
-Every release profile includes these gates with a reviewed nonsecret `server-manifest` file. Include exact backend/dashboard commit and image digests, all sixteen migration names, runtime version, environment alias, worker configuration, TLS and provider availability. Never attach `.env`, database dumps, encryption/signing keys, personal exports or router credentials.
+Every release profile includes these gates with a reviewed nonsecret `server-manifest` file. Include exact backend/dashboard commit and image digests, all seventeen migration names, runtime version, environment alias, worker configuration, TLS and provider availability. Never attach `.env`, database dumps, encryption/signing keys, personal exports or router credentials.
 
 - `server.build`: build and test the exact source and actual digest-pinned backend/dashboard images. Record static checks and actual image build logs separately. Docker Compose parsing alone is insufficient. Review dependencies/secrets and verify nonroot/read-only runtime behavior and Next.js cache needs under the intended workload.
 - `server.boundaries`: rerun actual API/database authorization, cross-workspace/role/session/grant isolation, generation/consent withdrawal, retention/deletion and password-confirmed export checks. Verify disabled live billing, unavailable providers and permissions distinct from entitlements. Also test the deployed HTTPS/cookie/ingress configuration; local synthetic API tests do not establish that configuration.

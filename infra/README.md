@@ -13,3 +13,5 @@ Family operations: migration thirteen is explicit. Schedule `family:work -- <wor
 Phase 14 adds container source, encrypted PostgreSQL recovery and signed release-candidate verification. Follow [the operational runbook](phase-14-runbook.md); image runtime, production hosting and signing are separate acceptance gates.
 
 Phase 15 adds [deployed runtime/router/recovery acceptance](../docs/release/network-and-operations-testing.md). Compose parsing, fixture recovery and offline package verification remain separate from production runtime, hardware and installer acceptance.
+
+Phase 16 requires migration seventeen before the updated backend. Alert-email delivery is hard-disabled independently of SMTP account mail. Existing monitoring maintenance records unavailable/suppressed email outcomes without sending.
