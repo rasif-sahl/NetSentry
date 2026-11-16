@@ -1,0 +1,8 @@
+// Example only; not referenced by the checked-in project. Do not store signing secrets.
+// Assign the approved team and identifier separately for every target/profile.
+DEVELOPMENT_TEAM = REPLACE_WITH_TEAM_ID
+NETSENTRY_APP_GROUP = group.REPLACE_WITH_APPROVED_IDENTIFIER
+// After copying and tailoring an approved entitlement file per target:
+// CODE_SIGN_ENTITLEMENTS = Provisioning/YourTarget.entitlements
+// Do not enable NETSENTRY_SCREEN_TIME on the default scheme manually;
+// use NetSentryScreenTime, which embeds all four extension products.
