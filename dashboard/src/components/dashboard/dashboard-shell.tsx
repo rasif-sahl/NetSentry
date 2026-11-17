@@ -112,7 +112,7 @@ export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
       <AuthPanel
         initialMode={initialMode}
         onSignedIn={(user) => {
-          if (initialMode) router.push("/");
+          if (initialMode) router.push("/app");
           else setSession({ ready: true, user });
         }}
         notice={
@@ -303,7 +303,7 @@ function WorkspaceShell({
         aria-label="Workspace navigation"
       >
         <div className="sidebar-brand">
-          <Link href="/" className="brand">
+          <Link href="/app" className="brand">
             <ShieldCheck aria-hidden="true" /> NetSentry
           </Link>
           <button

@@ -26,6 +26,10 @@ iOS design source now applies the approved white grouped forms, blue controls, s
 
 Desktop source now implements the approved floating sidebar with five groups and 14 focused pages, service review details, separate control/history/settings views and route-independent appearance. See [desktop navigation verification](docs/validation/desktop-navigation.md). Renderer build/browser checks are distinct from pending packaged Electron, Keychain and real-agent acceptance.
 
+## Public product homepage
+
+The approved public homepage now lives at `/` in the existing Next.js/Tailwind web project. The workspace is accessible at `/app`; existing verification/reset URLs and query-based workspace bookmarks are preserved. The page showcases web, Android/iOS and desktop UI previews in a simple, upright storytelling layout, with explicit availability and consent information. See [public website architecture](docs/architecture/public-website.md) and [homepage validation](docs/validation/public-homepage.md). Other proposed public content pages and production hosting are outside this increment.
+
 ## Agreed technologies
 
 | Component | Technology | Responsibility |

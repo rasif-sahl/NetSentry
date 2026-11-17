@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "test:homepage": "playwright test --config playwright.homepage.config.ts"
   },
   "dependencies": {
     "lucide-react": "^1.61.0",

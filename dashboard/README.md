@@ -1,4 +1,4 @@
-# NetSentry web dashboard
+# NetSentry public website and web dashboard
 
 The responsive Next.js/React/TypeScript/Tailwind dashboard connects to the account, workspace, device and monitoring APIs delivered in Phases 2–3. It uses actual API responses; there are no simulated scans, sample security scores or hardcoded usage totals in the product interface.
 
@@ -11,7 +11,7 @@ cp dashboard/.env.example dashboard/.env.local
 npm run dev:dashboard
 ```
 
-Open `http://localhost:3001`. Set the private `NETSENTRY_API_URL` to the full backend API base, normally `http://127.0.0.1:3000/api/v1`, and `DASHBOARD_ORIGIN` to the exact browser origin. These values are server-only; no JWT signing or account-mail encryption secret belongs in the dashboard environment. Never put credentials in a `NEXT_PUBLIC_` variable.
+Open `http://localhost:3001` for the product homepage and `http://localhost:3001/app` for the workspace. Set the private `NETSENTRY_API_URL` to the full backend API base, normally `http://127.0.0.1:3000/api/v1`, and `DASHBOARD_ORIGIN` to the exact browser origin. These values are server-only; no JWT signing or account-mail encryption secret belongs in the dashboard environment. Never put credentials in a `NEXT_PUBLIC_` variable.
 
 `DASHBOARD_ORIGIN` is mandatory in production. Production dashboard/API origins require HTTPS, with HTTP exceptions only for local loopback testing. A changed deployment hostname requires the matching configured origin. Forwarding untrusted client IP headers is deliberately disabled; backend IP-based rate limits currently share the dashboard proxy address. Configure a reviewed trusted-ingress/rate policy before a multi-user production rollout. Browser fixtures replace only their isolated rate counter, not production authentication or authorization.
 
@@ -72,3 +72,9 @@ Phase 10 Networks now separates manual labels from monitored networks. It suppor
 Phase 11 Family navigation uses real scoped API profiles, consent, policies, schedules, child requests/guardian decisions, reports/feedback and action history. Viewers have no child-profile access; guardian membership alone grants none. Saved restrictions remain unsupported intent, with no applied claim. Browser fixtures never execute restrictions. See [family validation](../docs/validation/phase-11.md).
 
 Phase 16 adds account email opt-in and an email rule channel with visible delivery-disabled states. The dashboard uses Tailwind CSS 4 via PostCSS and `@theme` tokens alongside custom CSS. No alert-email transport is enabled.
+
+## Public product homepage
+
+The approved storytelling homepage uses Tailwind CSS 4 and local product UI assets. Dashboard, Android, iOS and desktop showcases stay upright and aligned; previews can be enlarged and desktop screens can be switched. Captions identify empty/synthetic states and native release limitations. The homepage makes no monitoring API requests. Sign in opens `/app`; verification/reset URLs are unchanged, and old `/?view=…` workspace bookmarks redirect with their queries intact.
+
+Run `npm --prefix dashboard run test:homepage` after building to check the public page without a test database. Set `PLAYWRIGHT_CHROME_EXECUTABLE` to an existing browser when needed. See [public website architecture](../docs/architecture/public-website.md) and [validation](../docs/validation/public-homepage.md). Documentation, legal, contact, pricing and download pages remain separate work.
