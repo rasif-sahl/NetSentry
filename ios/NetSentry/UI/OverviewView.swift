@@ -7,7 +7,7 @@ struct OverviewView: View {
     @State private var deviceID = "", period = "day", metric = "screen_time_seconds"
     @State private var actionDevice = "", action = ""
     var body: some View {
-        Form {
+        AppForm {
             if let s = model.snapshot {
                 if section.isEmpty || section == "Workspace selection" {
                     Section("Workspace") {

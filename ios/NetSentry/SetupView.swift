@@ -7,16 +7,20 @@ struct SetupView: View {
         Group {
             if model.snapshot?.signedIn == true {
                 SignedInNavigation()
-                .id((model.snapshot?.user["id"].text ?? "") + "/" + (model.snapshot?.workspaceID ?? ""))
+                    .id((model.snapshot?.user["id"].text ?? "") + "/" + (model.snapshot?.workspaceID ?? ""))
             } else {
                 NavigationStack {
                     VStack(spacing: 0) {
                         NavigationStatus()
                         SignInView().disabled(model.busy)
-                    }.navigationTitle("NetSentry")
+                    }
+                    .navigationTitle("NetSentry")
+                    .navigationBarTitleDisplayMode(.large)
+                    .appPageStyle()
                 }
             }
         }
+        .tint(AppAppearance.accent)
         .preferredColorScheme(model.snapshot?.user["preferences"]["theme"].text == "DARK" ? .dark : model.snapshot?.user["preferences"]["theme"].text == "LIGHT" ? .light : nil)
         .transaction { if model.snapshot?.user["preferences"]["reducedMotion"].flag == true { $0.disablesAnimations = true } }
         .task { await model.bootstrap() }
@@ -29,7 +33,7 @@ struct SetupView: View {
     }
 }
 
-private enum MobileTab: String, CaseIterable, Identifiable {
+enum MobileTab: String, CaseIterable, Identifiable {
     case home = "Home", usage = "Usage", family = "Family", computers = "Computers", more = "More"
     var id: String { rawValue }
     var icon: String {
@@ -57,7 +61,7 @@ private struct NavigationStatus: View {
     var body: some View {
         if model.busy { ProgressView().accessibilityLabel("Contacting NetSentry") }
         if !model.message.isEmpty {
-            Text(model.message).font(.callout).foregroundStyle(.red).padding().accessibilityAddTraits(.updatesFrequently)
+            AppStatusNotice(message: model.message)
         }
     }
 }
@@ -76,30 +80,9 @@ private struct SignedInNavigation: View {
         }
         .toolbar(.hidden, for: .tabBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            HStack(spacing: 2) {
-                ForEach(MobileTab.allCases) { tab in
-                    Button { selected = tab } label: {
-                        VStack(spacing: 5) {
-                            Image(systemName: tab.icon).font(.system(size: 19))
-                            Text(tab.rawValue).font(.caption2).lineLimit(1).minimumScaleFactor(0.8)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 56)
-                        .foregroundStyle(selected == tab ? Color.accentColor : Color.secondary)
-                        .background(selected == tab ? Color.accentColor.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 20))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(tab.rawValue)
-                    .accessibilityAddTraits(selected == tab ? .isSelected : [])
-                }
-            }
-            .padding(8)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(Color.primary.opacity(0.06), lineWidth: 1))
-            .shadow(color: .black.opacity(0.12), radius: 12, y: 4)
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 12)
+            AppFloatingNavigation(selected: $selected)
         }
+        .tint(AppAppearance.accent)
         .task(id: "\(selected.rawValue)-\(phase)") {
             while !Task.isCancelled && phase == .active && selected == .computers {
                 if model.snapshot?.signedIn == true && !model.busy { model.run { try await $0.desktop() } }
@@ -116,11 +99,21 @@ private struct MobileMenu: View {
         NavigationStack {
             VStack(spacing: 0) {
                 NavigationStatus()
-                List(tab.destinations, id: \.self) { destination in
-                    NavigationLink(destination, value: destination)
+                List {
+                    Section {
+                        ForEach(tab.destinations, id: \.self) { destination in
+                            AppMenuRow(title: destination)
+                        }
+                    }
                 }
+                .listStyle(.insetGrouped)
+                .environment(\.defaultMinListRowHeight, 48)
+                .scrollContentBackground(.hidden)
+                .background(AppAppearance.background)
             }
             .navigationTitle(tab.rawValue)
+            .navigationBarTitleDisplayMode(.large)
+            .appPageStyle()
             .toolbar(.hidden, for: .tabBar)
             .navigationDestination(for: String.self) { destination in
                 VStack(spacing: 0) {
@@ -129,6 +122,7 @@ private struct MobileMenu: View {
                 }
                 .navigationTitle(destination)
                 .navigationBarTitleDisplayMode(.inline)
+                .appPageStyle()
             }
             .toolbar { Button("Refresh") { model.run { try await $0.refresh() } }.disabled(model.busy) }
         }
@@ -153,7 +147,7 @@ struct SignInView: View {
     @State private var base = "https://", email = "", password = "", name = "", token = ""
     @State private var register = false
     var body: some View {
-        Form {
+        AppForm {
             Section("Account") {
                 TextField("HTTPS API address ending in /api/v1", text: $base).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                 TextField("Email", text: $email).textContentType(.username).textInputAutocapitalization(.never).keyboardType(.emailAddress)
@@ -177,7 +171,15 @@ struct SignInView: View {
 /// Render quality and gap metadata with the report; never turn absent fields into zero.
 struct ServerDetails: View {
     let title: String, value: JSONValue
-    var body: some View { DisclosureGroup(title) { DetailValue(value: value, depth: 0) } }
+    var body: some View {
+        DisclosureGroup {
+            DetailValue(value: value, depth: 0)
+        } label: {
+            Text(title).foregroundStyle(AppAppearance.accent)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .tint(AppAppearance.accent)
+    }
 }
 private struct DetailValue: View {
     let value: JSONValue, depth: Int

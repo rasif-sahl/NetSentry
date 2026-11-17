@@ -22,6 +22,8 @@ Android and iOS source now use Home, Usage, Family, Computers and More bottom ta
 
 Android design source now applies the approved lavender light/dark theme, shared cards/fields, page headers, submenu rows and floating selected-tab dock across its native screens. See [Android UI verification](docs/validation/android-designs.md); native compilation and device screenshot parity remain pending.
 
+iOS design source now applies the approved white grouped forms, blue controls, shared page/menu styling and rounded floating material dock across its native pages and nested confirmation forms. See [iOS UI verification](docs/validation/ios-designs.md); native compilation and device screenshot parity remain pending.
+
 ## Agreed technologies
 
 | Component | Technology | Responsibility |

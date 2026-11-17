@@ -7,11 +7,14 @@ struct FamilyView: View {
     @State private var minutes = 15, reason = ""
     @State private var decisionID = "", decision = ""
     var body: some View {
-        Form {
+        AppForm {
             if section != "Local Apple Screen Time controls" {
                 Section("Family workspace") {
                     Button("Refresh family") { model.run { try await $0.familyOverview() } }
                     Text("Server roles and profile grants govern these views. Server policies and Android identifiers never authorize Apple controls or select Apple applications.").font(.footnote)
+                    if (model.snapshot?.family["profiles"].values ?? []).isEmpty {
+                        Text("No authorized child profiles loaded. Refresh family to view profiles you can access.").foregroundStyle(.secondary)
+                    }
                     ForEach(model.snapshot?.family["profiles"].values ?? [], id: \.self) { p in Button(p["name"].text) { model.run { try await $0.familyOverview(profileID: p["id"].text) } } }
                     if let s = model.snapshot {
                         if section.isEmpty || section == "Child profiles" { ServerDetails(title: "Family overview and grants", value: s.family) }

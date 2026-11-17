@@ -4,10 +4,14 @@ struct BusinessView: View {
     @EnvironmentObject private var model: AppModel
     @State private var reviewing: JSONValue?
     var body: some View {
-        Form {
+        AppForm {
             Section("Business organization") {
                 Button("Refresh organization") { model.run { try await $0.businessOverview() } }
                 Text("Choose a Business workspace. Organization administration is available in the web dashboard. Sharing does not enable monitoring or grant Apple permissions.").font(.footnote)
+                if model.snapshot?.business.isNull ?? true {
+                    Text("No organization details loaded. Choose a Business workspace and refresh organization.")
+                        .foregroundStyle(.secondary)
+                }
                 if let s = model.snapshot, !s.business.isNull {
                     Text(s.business["organization"]["name"].text).font(.headline)
                     Text(s.business["qualityNote"].text).font(.footnote)

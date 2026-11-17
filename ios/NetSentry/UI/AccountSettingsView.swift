@@ -14,7 +14,7 @@ struct AccountSettingsView: View {
     @State private var name = "", password = "", theme = "SYSTEM"
     @State private var reducedMotion = false, inApp = true, emailAlerts = false, deleting = false, exporting = false
     var body: some View {
-        Form {
+        AppForm {
             if section.isEmpty || section == "Profile & appearance" {
                 Section("Profile and appearance") {
                     TextField("Display name", text: $name)
@@ -31,7 +31,7 @@ struct AccountSettingsView: View {
                     Toggle("Opt in to email alerts", isOn: $emailAlerts)
                     Text("Email alert delivery is disabled. Saving this preference sends no email.").font(.footnote)
                     Button("Save notification preference") { model.run { try await $0.notificationPreference(inApp: inApp, email: emailAlerts) } }
-                    Text("APNs registration, provider delivery and physical-device checks are pending. This build does not request push permission.").font(.footnote)
+                    Text("Push notifications are unavailable. This app does not request push permission.").font(.footnote)
                 }
             }
             if section.isEmpty || section == "Sessions" {

@@ -18,10 +18,13 @@ struct SummaryScene: DeviceActivityReportScene {
 struct SummaryView: View {
     let summary: ReportSummary
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("Apple authorized activity").font(.headline)
-            if summary.segments == 0 { Text("No activity segments available in this authorized scope.") }
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Apple authorized activity").font(.headline).accessibilityAddTraits(.isHeader)
+            if summary.segments == 0 { Text("No activity segments available in this authorized scope.").foregroundStyle(.secondary) }
             else { Text(Duration.seconds(summary.seconds).formatted(.units(allowed: [.hours, .minutes], width: .abbreviated))); Text("\(summary.segments) reported segments; combined scopes can overlap.").font(.caption) }
-        }.padding()
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
     }
 }

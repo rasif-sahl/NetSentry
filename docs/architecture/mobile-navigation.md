@@ -36,3 +36,5 @@ The browser check exercises all 41 submenu routes, tab selection, Back, variants
 The [17 November verification record](../validation/mobile-navigation.md) distinguishes passing host/design checks from pending native integration and device checks.
 
 The [Android visual implementation record](../validation/android-designs.md) covers the shared native palette, typography, cards, input styling, page headers and selected-tab dock capsules. Native visual parity remains pending a real Android build.
+
+The [iOS visual implementation record](../validation/ios-designs.md) covers the shared SwiftUI form/menu/page styles and floating material dock across all native destinations. Swift source/core checks remain separate from pending native build and visual acceptance.

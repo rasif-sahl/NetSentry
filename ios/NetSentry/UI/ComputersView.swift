@@ -7,7 +7,7 @@ struct ComputersView: View {
     @State private var computerID = "", mode = "graceful"
     @State private var children = false
     var body: some View {
-        Form {
+        AppForm {
             Section {
                 Text("Refresh and confirm the exact project and PID. The computer must be online with current server grants and local control enabled. Requests are never queued offline.").font(.footnote)
                 Button("Refresh computers and command history") { model.run { try await $0.desktop() } }
@@ -30,7 +30,7 @@ struct ComputersView: View {
                     Text("\(computer.platform) · remote control \(computer.canControl && computer.localControlReady && computer.sharingAllowed && computer.platformSupported ? "permitted by current snapshot" : "unavailable")").font(.caption)
                     if !historyOnly {
                         ForEach(computer.services, id: \.serviceId) { service in
-                            VStack(alignment: .leading) {
+                            VStack(alignment: .leading, spacing: 10) {
                                 Text(service.project.isEmpty ? "Unidentified project" : service.project).font(.headline)
                                 Text("\(service.runtime) · PID \(service.pid) · ports \(service.ports.map(String.init).joined(separator: ", "))")
                                 Text("Observed \(service.observedAt) · \(service.childCount) children").font(.caption)
@@ -52,7 +52,7 @@ struct ComputersView: View {
         }
         .sheet(item: Binding(get: { selected.map(Selection.init) }, set: { selected = $0?.service })) { item in
             NavigationStack {
-                Form {
+                AppForm {
                     Text("\(mode.capitalized) stop: \(item.service.project)").font(.headline)
                     Text("PID \(item.service.pid) · started \(item.service.startedAt) · ports \(item.service.ports.map(String.init).joined(separator: ", "))")
                     if mode == "force" { Text("Force stop can lose unsaved work and interrupt requests.").foregroundStyle(.red) }
@@ -64,7 +64,10 @@ struct ComputersView: View {
                     }
                     Button("Cancel") { selected = nil }
                     Text("If the observation is older than 10 seconds, cancel and refresh. No server command or arbitrary PID can be entered here.").font(.footnote)
-                }.navigationTitle("Confirm remote action")
+                }
+                .navigationTitle("Confirm remote action")
+                .navigationBarTitleDisplayMode(.inline)
+                .appPageStyle()
             }
         }
     }
