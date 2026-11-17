@@ -14,7 +14,7 @@ Android adds **Application usage, Categories & corrections, Timeline & evidence*
 
 ## Behavior
 
-- Android uses Material 3 `Scaffold`, `NavigationBar` and `NavigationBarItem`. The bar floats in a rounded 28 dp surface with 16 dp side margins, a 12 dp gap above the navigation-safe area and a soft shadow. System insets are applied outside the dock, and content scrolls independently above it. A visible Back control and Android system Back return to the submenu; system Back from a non-Home submenu returns Home. Selecting a tab opens its submenu. Navigation selection survives configuration changes with `rememberSaveable`.
+- Android uses Material 3 `Scaffold` and a rounded `Surface` with an accessible selectable row of tab buttons. The bar floats in a rounded 28 dp surface with 16 dp side margins, a 12 dp gap above the navigation-safe area and a soft shadow. System insets are applied outside the dock, and content scrolls independently above it. A visible Back control and Android system Back return to the submenu; system Back from a non-Home submenu returns Home. Selecting a tab opens its submenu. Navigation selection survives configuration changes with `rememberSaveable`.
 - iOS uses `TabView` with a separate `NavigationStack` per tab. The system tab bar is hidden in favor of a rounded floating material dock with 16 pt side margins, a 12 pt bottom gap and a soft shadow, placed with `safeAreaInset` above the home indicator. Accessible tab buttons retain selection state. `NavigationLink` supplies platform Back and stack history. Each tab retains its stack while switching tabs.
 - Account/workspace changes and sign-out reset the scoped navigation and discard destination-local form state. Sign-in screens show no signed-in bottom tabs. Consent checkboxes and remote confirmations are not preserved across destination changes.
 - Existing authorization, consent, confirmation, disclosure and data-quality boundaries remain in place. Busy state gates mutations. Empty inventories and missing reports stay explicit.
@@ -34,3 +34,5 @@ PLAYWRIGHT_CHROME_EXECUTABLE='/Applications/Google Chrome.app/Contents/MacOS/Goo
 The browser check exercises all 41 submenu routes, tab selection, Back, variants, search, signed-out tab visibility and a narrow layout, and checks that route labels exist in native declarations. It does not execute either native UI. Native compilation, accessibility, safe-area/inset behavior, gesture navigation, state restoration and physical-device acceptance remain pending.
 
 The [17 November verification record](../validation/mobile-navigation.md) distinguishes passing host/design checks from pending native integration and device checks.
+
+The [Android visual implementation record](../validation/android-designs.md) covers the shared native palette, typography, cards, input styling, page headers and selected-tab dock capsules. Native visual parity remains pending a real Android build.

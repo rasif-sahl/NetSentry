@@ -2,9 +2,7 @@ package com.netsentry.app.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,7 +14,10 @@ import com.netsentry.app.data.objects
 import java.util.UUID
 
 @Composable fun FamilyScreen(state: Repository.View, model: PersonalViewModel, section: String) {
-    Text("Family and digital wellbeing")
+    Panel("Family and digital wellbeing") { FamilyContent(state, model, section) }
+}
+
+@Composable private fun FamilyContent(state: Repository.View, model: PersonalViewModel, section: String) {
     Text("Use a Family workspace. Owners/admins create profiles and invite guardians from the web dashboard. Guardian membership alone does not grant access to a child.")
     Button(onClick = { model.run("Family observations refreshed") { refreshFamily() } }, enabled = !model.busy) { Text("Refresh family") }
     state.familyOverview?.getJSONArray("profiles")?.objects()?.forEach { p ->
@@ -48,8 +49,8 @@ import java.util.UUID
     }
     if (section == "Sharing & consent") {
         var accepted by remember(profile.getString("id"), profile.getInt("revision")) { mutableStateOf(false) }
-        Checkbox(checked = accepted, onCheckedChange = { accepted = it }, enabled = !model.busy)
-        Text("I accept family-sharing-v1 for this phone and this child profile. Collection permissions remain separate.")
+        Check("I accept family-sharing-v1 for this phone and this child profile. Collection permissions remain separate.",
+            accepted, { accepted = it }, enabled = !model.busy)
         Button(onClick = { model.run("Family sharing consent recorded") { consentFamily() } }, enabled = !model.busy && accepted && state.ownDevice != null) { Text("Share this phone with this child profile") }
         detail.getJSONArray("devices").objects().forEach { d ->
             Text("${d.getString("name")}: ${d.getString("enforcement")} (device report)")
@@ -62,8 +63,8 @@ import java.util.UUID
             var reason by remember(profile.getString("id")) { mutableStateOf("") }
             var minutes by remember(profile.getString("id")) { mutableStateOf("15") }
             var requestId by remember(profile.getString("id"), detail.getJSONObject("policy").getInt("revision")) { mutableStateOf(UUID.randomUUID().toString()) }
-            OutlinedTextField(value = minutes, onValueChange = { minutes = it; requestId = UUID.randomUUID().toString() }, label = { Text("Minutes (1–120)") })
-            OutlinedTextField(value = reason, onValueChange = { reason = it.take(200); requestId = UUID.randomUUID().toString() }, label = { Text("Reason") })
+            Input("Minutes (1–120)", minutes, { minutes = it; requestId = UUID.randomUUID().toString() }, keyboard = androidx.compose.ui.text.input.KeyboardType.Number)
+            Input("Reason", reason, { reason = it.take(200); requestId = UUID.randomUUID().toString() })
             Button(onClick = { val id = requestId; val requestedMinutes=minutes.toInt(); val requestedReason=reason; model.run("Time request recorded") { familyTime(id, requestedMinutes, requestedReason, manage) } }, enabled = !model.busy && (minutes.toIntOrNull() ?: 0) in 1..120 && reason.isNotBlank()) { Text(if (manage) "Grant temporary exception" else "Request more time") }
         }
         detail.getJSONArray("requests").objects().forEach { r ->

@@ -6,16 +6,23 @@ import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
@@ -24,21 +31,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -80,8 +77,7 @@ internal val mobileDestinations = linkedMapOf(
 
 @Composable fun PersonalApp(model: PersonalViewModel = viewModel()) {
     val theme = model.view.profile?.optJSONObject("preferences")?.optString("theme", "SYSTEM") ?: "SYSTEM"
-    val dark = theme == "DARK" || (theme != "LIGHT" && isSystemInDarkTheme())
-    MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme()) { PersonalContent(model) }
+    NetSentryTheme(preference = theme) { PersonalContent(model) }
 }
 @Composable private fun PersonalContent(model: PersonalViewModel) {
     val state = model.view
@@ -128,45 +124,35 @@ internal val mobileDestinations = linkedMapOf(
             shadowElevation = 8.dp,
             color = MaterialTheme.colorScheme.surfaceContainer
         ) {
-            NavigationBar(
-                windowInsets = WindowInsets(0, 0, 0, 0),
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                tonalElevation = 0.dp
-            ) {
-                val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.Person, Icons.Default.Build, Icons.Default.Menu)
-                mobileDestinations.keys.forEachIndexed { index, label ->
-                    NavigationBarItem(
-                        selected = tab == label,
-                        onClick = { tab = label; destination = null },
-                        icon = { Icon(icons[index], contentDescription = null) },
-                        label = { Text(label) }
-                    )
-                }
-            }
+            FloatingNavigation(selected = tab, onSelect = { selected -> tab = selected; destination = null })
         }
     }) { insets ->
         key(accountScope, state?.workspaceId, tab, destination) {
-            Column(Modifier.fillMaxSize().padding(insets)
+            Column(Modifier.fillMaxSize().padding(insets).consumeWindowInsets(insets).imePadding()
                 .verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("NetSentry", style = MaterialTheme.typography.headlineLarge)
-                Text("Android personal application", style = MaterialTheme.typography.titleMedium)
-                if (model.busy) CircularProgressIndicator()
-                if (model.message.isNotBlank()) Text(model.message)
-                if (state?.signedIn != true) {
+                val signedIn = state?.signedIn == true
+                val selectedWorkspaceId = state?.workspaceId
+                val workspaceName = state?.workspaces?.firstOrNull { it.optString("id") == selectedWorkspaceId }?.optString("name")
+                ScreenHeader(
+                    title = if (signedIn) destination ?: tab else "NetSentry",
+                    workspace = if (signedIn) workspaceName else null,
+                    backLabel = if (signedIn && destination != null) tab else null,
+                    onBack = { destination = null }
+                )
+                if (model.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (model.message.isNotBlank()) StatusNotice(model.message)
+                if (!signedIn) {
                     SignIn(model, state?.base ?: "")
-                } else key(state.profile?.optString("id"), state.workspaceId) {
-                    Text(state.profile?.optString("displayName") ?: "Account")
+                } else if (state != null) key(state.profile?.optString("id"), state.workspaceId) {
                     if (state.profile?.isNull("emailVerifiedAt") != false) {
-                        Text("Verify your email before enrolling this phone or requesting service controls.")
+                        StatusNotice("Verify your email before enrolling this phone or requesting service controls.")
                         Action("Send verification email", model) { requestVerification() }
                     }
-                    Text(destination ?: tab, style = MaterialTheme.typography.headlineMedium)
                     if (destination == null) {
                         mobileDestinations.getValue(tab).forEach { label ->
-                            OutlinedButton(onClick = { destination = label }, modifier = Modifier.fillMaxWidth()) { Text(label) }
+                            NavigationCard(label, onClick = { destination = label })
                         }
                     } else {
-                        TextButton(onClick = { destination = null }) { Text("Back to $tab") }
                         when (destination) {
                             "Workspace selection" -> Panel("Workspace") {
                                 state.workspaces.forEach { workspace ->
@@ -189,7 +175,6 @@ internal val mobileDestinations = linkedMapOf(
                 }
                 if (state?.signedIn != true || destination == "Privacy & account") {
                     HorizontalDivider()
-                    Text("Native build, permissions, accounting accuracy, background behavior and phone remote-stop acceptance await physical-device testing.", style = MaterialTheme.typography.bodySmall)
                     var clear by remember { mutableStateOf(false) }
                     TextButton(onClick = { clear = true }, enabled = !model.busy) { Text("Clear this app's local session and data") }
                     if (clear) Confirm("Clear local data?", "This stops local work and clears credentials and queued data. It does not revoke server credentials or delete server records. Use account/device controls for that.",
@@ -281,7 +266,7 @@ internal val mobileDestinations = linkedMapOf(
                     Action("Collect and synchronize now / retry uploads", model, state.localEnabled) { sync(manual = true); refresh() }
                     listOf("pause" to "Pause monitoring", "revoke" to "Revoke monitoring consent", "unenrol" to "Unenrol this phone", "erase" to "Erase phone data and credential", "remove" to "Remove phone from inventory").forEach { (action, label) ->
                         var confirm by remember { mutableStateOf(false) }
-                        OutlinedButton(onClick = { confirm = true }, enabled = !model.busy) { Text(label) }
+                        DangerButton(onClick = { confirm = true }, enabled = !model.busy) { Text(label) }
                         if (confirm) Confirm(label, "Local collection stops immediately. The server action requires connectivity; an error means it was not confirmed. Erase/remove/unenrol require fresh pairing before collection.",
                         onClose = { confirm = false }, onConfirm = { confirm = false; model.run("Device action confirmed") { deviceAction(action) } })
                     }
@@ -427,7 +412,7 @@ internal val mobileDestinations = linkedMapOf(
             Action("Save profile", model) { updateProfile(name) }
             Text("Email: ${state.profile?.optString("email")}")
             Text("Color theme: ${state.profile?.optJSONObject("preferences")?.optString("theme", "SYSTEM") ?: "SYSTEM"}")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (theme in listOf("SYSTEM", "LIGHT", "DARK")) OutlinedButton(onClick = { model.run("Appearance saved") { appearance(theme) } }, enabled = !model.busy) { Text(theme.lowercase().replaceFirstChar { it.uppercase() }) }
             }
         }
@@ -449,7 +434,7 @@ internal val mobileDestinations = linkedMapOf(
         Input("Current password for export or deletion", password, { password = it }, secret = true)
         Button(onClick = { val secret = password; password = ""; model.export(secret) }, enabled = !model.busy && password.isNotEmpty()) { Text("Prepare personal data export") }
         Input("Type DELETE to delete your account", confirmation, { confirmation = it })
-        OutlinedButton(onClick = { deleting = true }, enabled = !model.busy && password.isNotEmpty() && confirmation == "DELETE") { Text("Delete account and owned data") }
+        DangerButton(onClick = { deleting = true }, enabled = !model.busy && password.isNotEmpty() && confirmation == "DELETE") { Text("Delete account and owned data") }
         if (deleting) Confirm("Permanently delete account?", "This deletes owned server records and revokes credentials. It requires connectivity and your current password. An owned shared workspace may require ownership transfer first.",
         onClose = { deleting = false }, onConfirm = { val secret = password; password = ""; confirmation = ""; deleting = false; model.run("Account deleted") { deleteAccount(secret) } })
         Action("Sign out and clear local credentials", model) { signOut() }
@@ -458,19 +443,25 @@ internal val mobileDestinations = linkedMapOf(
 
 private fun nullable(value: JSONObject, key: String): String = if (!value.has(key) || value.isNull(key)) "unknown" else value.optString(key)
 @Composable internal fun Panel(title: String, content: @Composable () -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, style = MaterialTheme.typography.titleLarge); content()
+            Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            content()
         }
     }
 }
 @Composable internal fun Input(label: String, value: String, change: (String) -> Unit, secret: Boolean = false, keyboard: KeyboardType = KeyboardType.Text) {
-    OutlinedTextField(value = value, onValueChange = change, label = { Text(label) }, modifier = Modifier.fillMaxWidth(),
+    OutlinedTextField(value = value, onValueChange = change, label = { Text(label) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(5.dp),
         singleLine = true, visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = if (secret) KeyboardType.Password else keyboard))
 }
-@Composable private fun Check(label: String, checked: Boolean, change: (Boolean) -> Unit, enabled: Boolean = true) {
-    Row { Checkbox(checked = checked, onCheckedChange = change, enabled = enabled); Text(label, Modifier.padding(top = 10.dp)) }
+@Composable internal fun Check(label: String, checked: Boolean, change: (Boolean) -> Unit, enabled: Boolean = true) {
+    Row(Modifier.fillMaxWidth().toggleable(value = checked, enabled = enabled, role = Role.Checkbox, onValueChange = change),
+        verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked = checked, onCheckedChange = null, enabled = enabled)
+        Text(label, Modifier.weight(1f).padding(vertical = 10.dp), style = MaterialTheme.typography.bodyMedium)
+    }
 }
 @Composable internal fun Action(label: String, model: PersonalViewModel, enabled: Boolean = true, action: Repository.() -> Unit) {
     Button(onClick = { model.run("Action confirmed", action) }, enabled = enabled && !model.busy) { Text(label) }
@@ -482,6 +473,12 @@ private fun nullable(value: JSONObject, key: String): String = if (!value.has(ke
 }
 @Composable private fun Confirm(title: String, description: String, onClose: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(onDismissRequest = onClose, title = { Text(title) }, text = { Text(description) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Confirm") } },
+        confirmButton = { TextButton(onClick = onConfirm, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text("Confirm") } },
         dismissButton = { TextButton(onClick = onClose) { Text("Cancel") } })
+}
+
+@Composable private fun DangerButton(onClick: () -> Unit, enabled: Boolean, content: @Composable () -> Unit) {
+    OutlinedButton(onClick = onClick, enabled = enabled,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)) { content() }
 }

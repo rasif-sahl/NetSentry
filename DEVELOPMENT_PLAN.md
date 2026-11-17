@@ -20,6 +20,8 @@ Real Android packaging still requires compatible Android build tools, and iOS de
 
 Android and iOS source now use Home, Usage, Family, Computers and More bottom tabs, with scoped submenus and Back behavior. Android has 21 submenu destinations; iOS has 20. The offline design catalogue includes the five tab landing pages for each platform and existing detail/state previews. See [navigation architecture and checks](docs/architecture/mobile-navigation.md). Available host checks and browser design checks remain separate from pending native builds and physical-device navigation/accessibility acceptance.
 
+Android design source now applies the approved lavender light/dark theme, shared cards/fields, page headers, submenu rows and floating selected-tab dock across its native screens. See [Android UI verification](docs/validation/android-designs.md); native compilation and device screenshot parity remain pending.
+
 ## Agreed technologies
 
 | Component | Technology | Responsibility |
