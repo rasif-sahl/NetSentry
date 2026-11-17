@@ -9,6 +9,7 @@ export default defineConfig({
     "solutions.spec.ts",
     "documentation.spec.ts",
     "pricing.spec.ts",
+    "contact.spec.ts",
   ],
   workers: 1,
   use: {

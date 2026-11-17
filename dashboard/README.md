@@ -77,7 +77,7 @@ Phase 16 adds account email opt-in and an email rule channel with visible delive
 
 The approved storytelling homepage uses Tailwind CSS 4 and local product UI assets. Dashboard, Android, iOS and desktop showcases stay upright and aligned; previews can be enlarged and desktop screens can be switched. Captions identify empty/synthetic states and native release limitations. The homepage makes no monitoring API requests. Sign in opens `/app`; verification/reset URLs are unchanged, and old `/?view=…` workspace bookmarks redirect with their queries intact.
 
-Run `npm --prefix dashboard run test:homepage` after building to check the public page without a test database. Set `PLAYWRIGHT_CHROME_EXECUTABLE` to an existing browser when needed. See [public website architecture](../docs/architecture/public-website.md) and [validation](../docs/validation/public-homepage.md). Legal, contact and download pages remain separate work.
+Run `npm --prefix dashboard run test:homepage` after building to check the public page without a test database. Set `PLAYWRIGHT_CHROME_EXECUTABLE` to an existing browser when needed. See [public website architecture](../docs/architecture/public-website.md) and [validation](../docs/validation/public-homepage.md). Legal and download pages remain separate work.
 
 ## Product Overview
 
@@ -109,3 +109,10 @@ Search is local to the guide catalogue and requires no account or external searc
 Open `/pricing` for the approved four-edition pricing design: aligned plan cards, a comparison table, shared privacy/availability principles and keyboard-accessible FAQs. Public navigation, the homepage Learn footer and documentation link to the page. The comparison scrolls within its labelled region on narrow screens.
 
 Prices, final commercial limits and launch availability remain unconfirmed. The page does not publish backend sandbox amounts or enable checkout; paid plans show “Coming soon”. `npm --prefix dashboard run test:public` checks Pricing alongside the other public pages. See [Pricing validation](../docs/validation/pricing-page.md).
+
+
+## Contact
+
+Open `/contact` for the approved enquiry form, guidance panel and FAQs. Public navigation, the homepage Learn footer and documentation link to the page. Documentation guidance and FAQ links reach existing public routes.
+
+This is a non-sending form preview: required fields and email syntax are validated locally, and valid attempts report that delivery is unavailable. No recipient, provider, storage or contact endpoint is configured. The form is disabled without JavaScript, and documentation remains accessible. `npm --prefix dashboard run test:public` checks navigation, local validation, no transmission, responsive layouts and no-JavaScript behavior. See [Contact validation](../docs/validation/contact-page.md).

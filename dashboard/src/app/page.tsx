@@ -562,6 +562,7 @@ export default function Home() {
                     ["Common questions", "#faq"],
                     ["Documentation", "/docs"],
                     ["Pricing", "/pricing"],
+                    ["Contact", "/contact"],
                     ["Platform availability", "#availability"],
                     ["Privacy & choice", "#privacy"],
                   ],

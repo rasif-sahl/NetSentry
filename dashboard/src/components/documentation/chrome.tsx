@@ -17,11 +17,12 @@ export function DocumentationHeader() {
           ["Applications", "/applications"],
           ["Solutions", "/solutions"],
           ["Pricing", "/pricing"],
+          ["Contact", "/contact"],
         ].map(([label, href]) => (
           <Link
             key={href}
             href={href}
-            className="hidden hover:text-[#604675] min-[801px]:block"
+            className="hidden hover:text-[#604675] min-[901px]:block"
           >
             {label}
           </Link>
@@ -34,7 +35,7 @@ export function DocumentationHeader() {
           Documentation
         </Link>
       </nav>
-      <div className="hidden min-[961px]:block">
+      <div className="hidden min-[1101px]:block">
         <Link href="/product" className={button}>
           Explore the product
         </Link>
@@ -49,9 +50,10 @@ export function DocumentationFooter() {
       <p>
         © <CopyrightYear /> NetSentry
       </p>
-      <div className="flex gap-5">
+      <div className="flex flex-wrap gap-5">
         <Link href="/applications">Applications</Link>
         <Link href="/pricing">Pricing</Link>
+        <Link href="/contact">Contact</Link>
         <Link href="/docs/privacy">Privacy controls</Link>
       </div>
     </footer>

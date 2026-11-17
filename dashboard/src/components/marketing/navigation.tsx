@@ -44,12 +44,14 @@ const navigation = {
   applications: applicationLinks,
   solutions: solutionLinks,
   pricing: pricingLinks,
+  contact: pricingLinks,
 };
 
 export function MarketingNavigation({
   page = "home",
 }: {
-  page?: "home" | "product" | "applications" | "solutions" | "pricing";
+  page?:
+    "home" | "product" | "applications" | "solutions" | "pricing" | "contact";
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -66,12 +68,13 @@ export function MarketingNavigation({
         <nav
           aria-label="Main navigation"
           id={`main-navigation-${page}`}
-          className={`${open ? "flex" : "hidden"} absolute inset-x-0 top-[68px] flex-col gap-1 rounded-b-xl border border-[#e8e0ed] bg-white p-4 text-xs text-[#75657f] xl:static xl:flex xl:flex-row xl:gap-7 xl:border-0 xl:bg-transparent xl:p-0`}
+          className={`${open ? "flex" : "hidden"} absolute inset-x-0 top-[68px] flex-col gap-1 rounded-b-xl border border-[#e8e0ed] bg-white p-4 text-xs text-[#75657f] xl:static xl:flex xl:flex-row xl:gap-5 xl:border-0 xl:bg-transparent xl:p-0`}
         >
           {[
             ...navigation[page],
             ["Documentation", "/docs"],
             ["Pricing", "/pricing"],
+            ["Contact", "/contact"],
           ].map(([label, href]) => (
             <Link
               key={href}
@@ -80,7 +83,8 @@ export function MarketingNavigation({
                 (page === "product" && href === "/product") ||
                 (page === "applications" && href === "/applications") ||
                 (page === "solutions" && href === "/solutions") ||
-                (page === "pricing" && href === "/pricing")
+                (page === "pricing" && href === "/pricing") ||
+                (page === "contact" && href === "/contact")
                   ? "page"
                   : undefined
               }
@@ -103,27 +107,31 @@ export function MarketingNavigation({
           <div className="hidden sm:block">
             <Link
               href={
-                page === "pricing"
-                  ? "#pricing-plans"
-                  : page === "solutions"
-                    ? "#solutions-paths"
-                    : page === "applications"
-                      ? "#applications-compare"
-                      : page === "product"
-                        ? "#product-features"
-                        : "/product"
+                page === "contact"
+                  ? "#contact-form"
+                  : page === "pricing"
+                    ? "#pricing-plans"
+                    : page === "solutions"
+                      ? "#solutions-paths"
+                      : page === "applications"
+                        ? "#applications-compare"
+                        : page === "product"
+                          ? "#product-features"
+                          : "/product"
               }
               className={primaryButton}
             >
-              {page === "pricing"
-                ? "Explore the plans"
-                : page === "solutions"
-                  ? "Find your starting point"
-                  : page === "applications"
-                    ? "Compare the apps"
-                    : page === "product"
-                      ? "Explore the features"
-                      : "Meet NetSentry"}
+              {page === "contact"
+                ? "Get in touch"
+                : page === "pricing"
+                  ? "Explore the plans"
+                  : page === "solutions"
+                    ? "Find your starting point"
+                    : page === "applications"
+                      ? "Compare the apps"
+                      : page === "product"
+                        ? "Explore the features"
+                        : "Meet NetSentry"}
             </Link>
           </div>
           <button

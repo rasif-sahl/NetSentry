@@ -8,6 +8,7 @@ The approved storytelling homepage is implemented in the existing Next.js dashbo
 - `/solutions` is the public use-case guide for personal, family, team and developer workflows.
 - `/docs` is the searchable documentation home; `/docs/[slug]` contains twelve customer guides with topic navigation and article contents.
 - `/pricing` presents the proposed Personal Free, Personal Premium, Family and Business editions, comparison and launch-pricing FAQs.
+- `/contact` provides the approved enquiry form preview, contact guidance, documentation links and FAQs. Message delivery is not configured.
 - `/app` contains the existing workspace and its sign-in/register/recovery flows. The homepage's sign-in and workspace actions point here.
 - `/verify-email` and `/reset-password` retain their existing URLs and fragment-token handling. Successful sign-in from these flows returns to `/app`.
 - Existing `/?view=…` bookmarks redirect to `/app?view=…`, preserving query values. Workspace navigation continues to use its existing `view` query.
@@ -17,7 +18,7 @@ Public page entries and guide readers are server components. Client components p
 
 `dashboard/public/product/` contains the approved design assets: a web empty-workspace screenshot, reconstructed Android/iOS Home designs, and desktop renderer status/service screenshots. The native images are not physical-device captures. Desktop status is synthetic and web inventory is empty; captions identify these examples. They contain no customer data and are presentation assets only. Native release/build/device acceptance remains pending as recorded in the platform validation documents. The page makes no download or app-store availability claim.
 
-The page links only to existing sections and workspace/account functionality. Separate legal, contact and download pages remain outside these increments; the homepage does not expose nonfunctional links or pretend those pages exist. This source implementation does not provision or deploy hosting.
+The page links only to existing sections and workspace/account functionality. Separate legal and download pages remain outside these increments; the homepage does not expose nonfunctional links or pretend those pages exist. This source implementation does not provision or deploy hosting.
 
 ## Product Overview
 
@@ -63,3 +64,12 @@ All public marketing navigation and the homepage Learn footer now link to Docume
 The public edition descriptions are separate from the backend sandbox catalog: synthetic TST amounts, sandbox capacity limits, retention bounds and trial periods are not published as commercial terms. Prices, final limits and availability remain unconfirmed; paid editions show “Coming soon”, and Free is labelled a proposed entry plan. No checkout, provider, discount, trial offer or billing mutation is added. Platform support, consent and permissions still constrain capabilities regardless of edition.
 
 Plan actions scroll to a single comparison, and the closing actions reach plans/FAQs through unique `pricing-*` IDs. A labelled, keyboard-focusable scroll region contains the semantic comparison table on small screens; the page itself does not overflow. FAQs use native `details`/`summary`, with the purchase answer initially open. The brand and footer reach real public routes. No new dependencies, remote assets, account requests or changes to workspace/native/API behavior are introduced. See [Pricing validation](../validation/pricing-page.md).
+
+
+## Contact
+
+`/contact` implements the approved simple lavender-and-white design with a two-column enquiry form/guidance layout, responsive stacking and native FAQ disclosures. Static metadata and page content stay in a server component; `ContactForm` handles local validation and the unavailable-delivery status. The shared marketing navigation includes Contact, identifies the current page and scrolls its action to `contact-form`. The homepage Learn footer and documentation header/footer also link to Contact. Documentation secondary links begin at 901px and its product action at 1101px to accommodate the extra destination; marketing desktop link gaps are reduced to preserve the existing 1280px breakpoint.
+
+The approved design is a non-sending form preview. No contact endpoint, recipient, email provider, storage or live message delivery is configured. The form explicitly says messages are not sent, never claims success and preserves entered values after a valid attempt. Native constraints cover required name/email/topic/message/reply agreement, email syntax and field lengths. Names must contain a non-whitespace character. The availability status is announced politely and cleared when fields change. Inputs have no submission names; a disabled fieldset keeps the form inert until its client handler is hydrated, and a no-JavaScript explanation links users to available documentation. No message data is put into URLs, browser storage or API requests.
+
+The documentation panel opens `/docs`; FAQ links reach the workspace guide, Pricing and availability guide. All local IDs use `contact-*` to avoid cached-route collisions. No invented email address, office location, response-time promise or delivery claim is introduced. Backend, workspace and native behavior are unchanged. See [Contact validation](../validation/contact-page.md).
