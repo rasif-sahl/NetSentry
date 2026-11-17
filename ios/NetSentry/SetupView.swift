@@ -3,35 +3,119 @@ import SwiftUI
 struct SetupView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.scenePhase) private var phase
-    @State private var tab = "Overview"
+    var body: some View {
+        Group {
+            if model.snapshot?.signedIn == true {
+                SignedInNavigation()
+                .id((model.snapshot?.user["id"].text ?? "") + "/" + (model.snapshot?.workspaceID ?? ""))
+            } else {
+                NavigationStack {
+                    VStack(spacing: 0) {
+                        NavigationStatus()
+                        SignInView().disabled(model.busy)
+                    }.navigationTitle("NetSentry")
+                }
+            }
+        }
+        .preferredColorScheme(model.snapshot?.user["preferences"]["theme"].text == "DARK" ? .dark : model.snapshot?.user["preferences"]["theme"].text == "LIGHT" ? .light : nil)
+        .transaction { if model.snapshot?.user["preferences"]["reducedMotion"].flag == true { $0.disablesAnimations = true } }
+        .task { await model.bootstrap() }
+        .onChange(of: phase) { _, value in
+            if value == .active {
+                model.local.reconcile()
+                if model.snapshot?.signedIn == true { model.run { try await $0.refresh() } }
+            }
+        }
+    }
+}
+
+private enum MobileTab: String, CaseIterable, Identifiable {
+    case home = "Home", usage = "Usage", family = "Family", computers = "Computers", more = "More"
+    var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .home: "house"
+        case .usage: "chart.bar"
+        case .family: "person.2"
+        case .computers: "desktopcomputer"
+        case .more: "ellipsis"
+        }
+    }
+    var destinations: [String] {
+        switch self {
+        case .home: ["Workspace selection", "This phone", "Device inventory", "Permissions & consent"]
+        case .usage: ["Usage reports", "Alerts & rules", "In-app notifications"]
+        case .family: ["Child profiles", "Wellbeing reports & policy status", "Sharing & consent", "Time requests & decisions", "Local Apple Screen Time controls"]
+        case .computers: ["Paired computers & services", "Command history"]
+        case .more: ["Business", "Subscription", "Profile & appearance", "Notification preferences", "Privacy & account", "Sessions"]
+        }
+    }
+}
+
+private struct NavigationStatus: View {
+    @EnvironmentObject private var model: AppModel
+    var body: some View {
+        if model.busy { ProgressView().accessibilityLabel("Contacting NetSentry") }
+        if !model.message.isEmpty {
+            Text(model.message).font(.callout).foregroundStyle(.red).padding().accessibilityAddTraits(.updatesFrequently)
+        }
+    }
+}
+
+private struct SignedInNavigation: View {
+    @EnvironmentObject private var model: AppModel
+    @Environment(\.scenePhase) private var phase
+    @State private var selected: MobileTab = .home
+    var body: some View {
+        TabView(selection: $selected) {
+            ForEach(MobileTab.allCases) { tab in
+                MobileMenu(tab: tab)
+                    .tabItem { Label(tab.rawValue, systemImage: tab.icon) }
+                    .tag(tab)
+            }
+        }
+        .task(id: "\(selected.rawValue)-\(phase)") {
+            while !Task.isCancelled && phase == .active && selected == .computers {
+                if model.snapshot?.signedIn == true && !model.busy { model.run { try await $0.desktop() } }
+                try? await Task.sleep(for: .seconds(5))
+            }
+        }
+    }
+}
+
+private struct MobileMenu: View {
+    @EnvironmentObject private var model: AppModel
+    let tab: MobileTab
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if model.busy { ProgressView().accessibilityLabel("Contacting NetSentry") }
-                if !model.message.isEmpty { Text(model.message).font(.callout).foregroundStyle(.red).padding().accessibilityAddTraits(.updatesFrequently) }
-                if model.snapshot?.signedIn == true {
-                    Picker("Section", selection: $tab) { ForEach(["Overview", "Computers", "Family", "Business", "Subscription", "Settings"], id: \.self) { Text($0) } }.pickerStyle(.menu).padding(.horizontal)
-                    Group { switch tab {
-                    case "Computers": ComputersView()
-                    case "Family": FamilyView()
-                    case "Business": BusinessView()
-                    case "Subscription": SubscriptionView()
-                    case "Settings": AccountSettingsView()
-                    default: OverviewView()
-                    } }.disabled(model.busy)
-                } else { SignInView().disabled(model.busy) }
-            }
-            .navigationTitle("NetSentry")
-            .preferredColorScheme(model.snapshot?.user["preferences"]["theme"].text == "DARK" ? .dark : model.snapshot?.user["preferences"]["theme"].text == "LIGHT" ? .light : nil)
-            .transaction { if model.snapshot?.user["preferences"]["reducedMotion"].flag == true { $0.disablesAnimations = true } }
-            .toolbar { if model.snapshot?.signedIn == true { Button("Refresh") { model.run { try await $0.refresh() } }.disabled(model.busy) } }
-            .task { await model.bootstrap() }
-            .onChange(of: phase) { _, value in if value == .active { model.local.reconcile(); if model.snapshot?.signedIn == true { model.run { try await $0.refresh() } } } }
-            .task(id: "\(tab)-\(phase)") {
-                while !Task.isCancelled && phase == .active && tab == "Computers" {
-                    if model.snapshot?.signedIn == true && !model.busy { model.run { try await $0.desktop() } }
-                    try? await Task.sleep(for: .seconds(5))
+                NavigationStatus()
+                List(tab.destinations, id: \.self) { destination in
+                    NavigationLink(destination, value: destination)
                 }
+            }
+            .navigationTitle(tab.rawValue)
+            .navigationDestination(for: String.self) { destination in
+                VStack(spacing: 0) {
+                    NavigationStatus()
+                    screen(destination).disabled(model.busy)
+                }
+                .navigationTitle(destination)
+                .navigationBarTitleDisplayMode(.inline)
+            }
+            .toolbar { Button("Refresh") { model.run { try await $0.refresh() } }.disabled(model.busy) }
+        }
+    }
+    @ViewBuilder private func screen(_ destination: String) -> some View {
+        switch tab {
+        case .home, .usage: OverviewView(section: destination)
+        case .family: FamilyView(section: destination)
+        case .computers: ComputersView(historyOnly: destination == "Command history")
+        case .more:
+            switch destination {
+            case "Business": BusinessView()
+            case "Subscription": SubscriptionView()
+            default: AccountSettingsView(section: destination)
             }
         }
     }

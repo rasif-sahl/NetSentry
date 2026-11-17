@@ -26,7 +26,7 @@ import com.netsentry.app.data.array
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@Composable internal fun ApplicationScreen(state: Repository.View, model: PersonalViewModel) {
+@Composable internal fun ApplicationScreen(state: Repository.View, model: PersonalViewModel, section: String) {
     var period by remember { mutableStateOf("day") }
     var application by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
@@ -35,7 +35,15 @@ import kotlinx.coroutines.withContext
     var correction by remember { mutableStateOf("unknown") }
     var seconds by remember { mutableStateOf("3600") }
     val report = state.applicationReport
-    Panel("Screen time and application usage") {
+    if (section != "Application usage") {
+        Text("Choose a device and load its application report for categories or timeline evidence.")
+        state.devices.forEach { phone ->
+            OutlinedButton(onClick = { device = phone.getString("id") }, enabled = !model.busy) { Text(phone.optString("name")) }
+        }
+        Choices(listOf("day", "week", "month"), period) { period = it }
+        Action("Load application report", model, device.isNotBlank()) { loadApplications(period, application, category, device) }
+    }
+    if (section == "Application usage") Panel("Screen time and application usage") {
         Text("Enable app-usage-v1 on the Phone tab first. Foreground-entry counts describe the accepted event stream, not cold starts. Unknown counts stay unknown; OS event gaps and multi-window behavior require device testing.")
         state.devices.forEach { phone ->
             OutlinedButton(onClick = { device = phone.getString("id") }, enabled = !model.busy) { Text("${if (device == phone.optString("id")) "✓ " else ""}${phone.optString("name")}") }
@@ -57,7 +65,7 @@ import kotlinx.coroutines.withContext
             Button(onClick = { model.exportApplications() }, enabled = !model.busy) { Text("Prepare application CSV export") }
         }
     }
-    report?.array("applications")?.forEach { app ->
+    if (section == "Application usage") report?.array("applications")?.forEach { app ->
         val id = app.getString("applicationId")
         Panel(if (app.isNull("label")) id else app.optString("label")) {
             Row { if (report.optString("deviceId") == state.ownDevice?.optString("id")) LocalApplicationIcon(id); Column(Modifier.weight(1f)) { Text(id); Text("${app.optString("category")} · ${app.optString("source")} · confidence ${app.optDouble("confidence")}") } }
@@ -74,7 +82,7 @@ import kotlinx.coroutines.withContext
             }
         }
     }
-    Panel("Categories and custom corrections") {
+    if (section == "Categories & corrections") Panel("Categories and custom corrections") {
         Text("Classification uses a permitted OS category (heuristic confidence 0.6), an explicit owner correction (1.0), or unknown (0.0). These are rule scores, not statistical probabilities. Corrections apply when reports are read. No app-store lookup or package-name guessing is used.")
         report?.optJSONArray("builtinCategories")?.let { Text("Built-ins: $it") }
         report?.array("categories")?.forEach { Text("${it.optString("name")} (${it.optString("id")}): ${it.optDouble("seconds")} observed foreground seconds") }
@@ -87,7 +95,7 @@ import kotlinx.coroutines.withContext
             Action("Create custom category", model, categoryName.isNotBlank()) { createCategory(categoryName); loadApplications(period, application, category, device) }
         }
     }
-    Panel("Timeline and evidence") {
+    if (section == "Timeline & evidence") Panel("Timeline and evidence") {
         Text("Detailed windows are available for ranges up to seven days within raw retention. Longer reports use daily summaries. A month view intentionally omits raw timeline detail.")
         report?.array("timeline")?.forEach { window ->
             Text("${window.optString("intervalStart")} – ${window.optString("intervalEnd")} · app context ${window.optBoolean("appKnown")} · screen context ${window.optBoolean("screenKnown")} · ${window.optJSONArray("issues")}")
@@ -95,7 +103,7 @@ import kotlinx.coroutines.withContext
             window.array("screen").forEach { Text("Unlocked screen: ${it.optString("start")} – ${it.optString("end")}") }
         }
     }
-    Panel("Limits and monitoring-health alerts") {
+    if (section == "Application usage") Panel("Limits and monitoring-health alerts") {
         report?.array("limits")?.forEach { limit -> Text("${limit.optString("metric")} · ${limit.optString("applicationId")} · ${limit.optString("period")} · ${limit.optString("quality")}: ${known(limit.opt("observedValue"))}/${limit.optDouble("threshold")} · ${known(limit.opt("percent"))}% reported. Reporting is not enforcement.") }
         if (device == state.ownDevice?.optString("id")) {
             Input("Screen-time threshold in seconds", seconds, { seconds = it }, keyboard = KeyboardType.Number)

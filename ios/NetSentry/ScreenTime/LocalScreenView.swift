@@ -30,6 +30,8 @@ private struct LocalControlsForm: View {
             DeviceActivityReport(.netSentrySummary, filter: DeviceActivityFilter(segment: .daily(during: Calendar.current.dateInterval(of: .day, for: Date())!), users: .all, devices: .all)).frame(minHeight: 160)
             Text("Apple-authorized report scope, rendered privately by the report extension. It is not uploaded to NetSentry or guaranteed to represent only this device.").font(.footnote)
         }
+        #else
+        Text("Family Controls is disabled in this build. Separate Apple approval, provisioning and device validation are required.").font(.footnote)
         #endif
         Button("Stop controls and erase selections", role: .destructive) { controller.stop(eraseSelection: true) }
     }
