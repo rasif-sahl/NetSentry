@@ -6,16 +6,17 @@ The approved storytelling homepage is implemented in the existing Next.js dashbo
 - `/product` is the public Product Overview page. It explains devices, reports/alerts, family/team sharing, developer tools, application roles and privacy choices without requesting account or monitoring data.
 - `/applications` is the public application guide, with separate web/Android/iOS/desktop previews, role comparison, setup requirements and availability FAQs.
 - `/solutions` is the public use-case guide for personal, family, team and developer workflows.
+- `/docs` is the searchable documentation home; `/docs/[slug]` contains twelve customer guides with topic navigation and article contents.
 - `/app` contains the existing workspace and its sign-in/register/recovery flows. The homepage's sign-in and workspace actions point here.
 - `/verify-email` and `/reset-password` retain their existing URLs and fragment-token handling. Successful sign-in from these flows returns to `/app`.
 - Existing `/?view=…` bookmarks redirect to `/app?view=…`, preserving query values. Workspace navigation continues to use its existing `view` query.
 - The workspace route group owns the dashboard stylesheet. All its selectors are scoped to `.workspace-app`, including theme overrides, to keep workspace styles separate from the public page during client navigation.
 
-All four public pages are server components. Client components are limited to the shared responsive navigation, homepage product showcases, the Product Overview feature explorer and screenshot preview controls. It preserves the approved straight, aligned screenshots, white/lavender palette, storytelling sections, platform distinctions, consent explanation, setup journey and availability FAQ. The mobile navigation exposes expanded state; screenshot previews use native dialogs with Escape dismissal and focus restoration. Screens do not rotate, tilt or overlap, and buttons contain no arrows.
+Public page entries and guide readers are server components. Client components provide responsive navigation, product previews, the feature explorer, documentation topic navigation and local guide search. It preserves the approved straight, aligned screenshots, white/lavender palette, storytelling sections, platform distinctions, consent explanation, setup journey and availability FAQ. The mobile navigation exposes expanded state; screenshot previews use native dialogs with Escape dismissal and focus restoration. Screens do not rotate, tilt or overlap, and buttons contain no arrows.
 
 `dashboard/public/product/` contains the approved design assets: a web empty-workspace screenshot, reconstructed Android/iOS Home designs, and desktop renderer status/service screenshots. The native images are not physical-device captures. Desktop status is synthetic and web inventory is empty; captions identify these examples. They contain no customer data and are presentation assets only. Native release/build/device acceptance remains pending as recorded in the platform validation documents. The page makes no download or app-store availability claim.
 
-The page links only to existing sections and workspace/account functionality. Separate documentation, legal, contact, pricing and download pages are outside this increment; the homepage does not expose nonfunctional links or pretend those pages exist. This source implementation does not provision or deploy hosting.
+The page links only to existing sections and workspace/account functionality. Separate legal, contact, pricing and download pages remain outside these increments; the homepage does not expose nonfunctional links or pretend those pages exist. This source implementation does not provision or deploy hosting.
 
 ## Product Overview
 
@@ -42,3 +43,13 @@ The approved `/solutions` design is implemented with Tailwind CSS 4, shared mark
 The page explains personal, family, team and developer use cases, their permissions and their suggested starting applications. Family and team diagrams are labelled conceptual models rather than customer dashboards. Android/router restriction adapters are explicitly described as non-enforcing; Apple controls remain eligibility/authorization/device-validation dependent. Employee acceptance and current organization roles stay distinct from collection or process-control authority. No employee productivity scores are claimed.
 
 The personal workspace and developer service screenshots remain upright and labelled empty examples. The developer preview uses a native dialog with a unique React-generated title ID, Escape dismissal and native focus restoration. Availability FAQs use native disclosures. Links reach real product/application routes or local sections; there are no new downloads, account requests, monitoring data or backend actions. No native or workspace behavior changes.
+
+## Customer documentation
+
+`/docs` implements the approved documentation home with six topic groups, twelve guides and local case-insensitive filtering of guide titles, summaries and categories. Search provides result counts, reset/clear and an empty state. Reader search submits a standard GET form to `/docs?q=…`; URL queries survive reload. A Suspense boundary isolates query access while rendering the full guide catalogue as the prerendered fallback. No search service or account/monitoring API is used.
+
+`/docs/[slug]` uses `generateStaticParams` for the twelve known guides, per-guide metadata and `notFound()` for unknown slugs. Guide bodies are typed paragraph/list/note/image/next-guide blocks, rendered as React elements rather than injected HTML. The shared docs layout owns one stable main target, and article fragment IDs include the guide slug so cached pages do not intercept section links.
+
+The desktop reader has a sticky topic sidebar and article contents rail; on smaller screens the topics collapse behind an expanded-state button with Escape/focus handling, and article contents appear above the guide. Active links follow the pathname, and topic navigation closes the mobile panel. The web screenshot remains upright and labelled an empty example. Guides preserve native release, permissions, sharing, platform and enforcement boundaries; customer guides are distinct from repository developer/architecture documentation.
+
+All public marketing navigation and the homepage Learn footer now link to Documentation. Public header navigation collapses below 1280px to leave room for the added link. Workspace/account/native/API behavior, hosting and external integrations are unchanged.

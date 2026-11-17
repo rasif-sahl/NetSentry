@@ -560,6 +560,7 @@ export default function Home() {
                   title: "Learn",
                   links: [
                     ["Common questions", "#faq"],
+                    ["Documentation", "/docs"],
                     ["Platform availability", "#availability"],
                     ["Privacy & choice", "#privacy"],
                   ],

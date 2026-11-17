@@ -60,25 +60,27 @@ export function MarketingNavigation({
         <nav
           aria-label="Main navigation"
           id={`main-navigation-${page}`}
-          className={`${open ? "flex" : "hidden"} absolute inset-x-0 top-[68px] flex-col gap-1 rounded-b-xl border border-[#e8e0ed] bg-white p-4 text-xs text-[#75657f] lg:static lg:flex lg:flex-row lg:gap-7 lg:border-0 lg:bg-transparent lg:p-0`}
+          className={`${open ? "flex" : "hidden"} absolute inset-x-0 top-[68px] flex-col gap-1 rounded-b-xl border border-[#e8e0ed] bg-white p-4 text-xs text-[#75657f] xl:static xl:flex xl:flex-row xl:gap-7 xl:border-0 xl:bg-transparent xl:p-0`}
         >
-          {navigation[page].map(([label, href]) => (
-            <Link
-              key={href}
-              href={href}
-              aria-current={
-                (page === "product" && href === "/product") ||
-                (page === "applications" && href === "/applications") ||
-                (page === "solutions" && href === "/solutions")
-                  ? "page"
-                  : undefined
-              }
-              onClick={() => setOpen(false)}
-              className="rounded-md px-2 py-3 hover:bg-[#f4eff8] aria-[current=page]:font-semibold aria-[current=page]:text-[#604675] lg:px-0"
-            >
-              {label}
-            </Link>
-          ))}
+          {[...navigation[page], ["Documentation", "/docs"]].map(
+            ([label, href]) => (
+              <Link
+                key={href}
+                href={href}
+                aria-current={
+                  (page === "product" && href === "/product") ||
+                  (page === "applications" && href === "/applications") ||
+                  (page === "solutions" && href === "/solutions")
+                    ? "page"
+                    : undefined
+                }
+                onClick={() => setOpen(false)}
+                className="rounded-md px-2 py-3 hover:bg-[#f4eff8] aria-[current=page]:font-semibold aria-[current=page]:text-[#604675] xl:px-0"
+              >
+                {label}
+              </Link>
+            ),
+          )}
         </nav>
         <div className="flex items-center gap-3 md:gap-5">
           {page === "home" && (
@@ -113,7 +115,7 @@ export function MarketingNavigation({
           </div>
           <button
             type="button"
-            className="flex size-11 items-center justify-center rounded-lg text-[#705283] hover:bg-[#f4eff8] lg:hidden"
+            className="flex size-11 items-center justify-center rounded-lg text-[#705283] hover:bg-[#f4eff8] xl:hidden"
             aria-label={open ? "Close navigation" : "Open navigation"}
             aria-expanded={open}
             aria-controls={`main-navigation-${page}`}

@@ -7,6 +7,7 @@ export default defineConfig({
     "product.spec.ts",
     "applications.spec.ts",
     "solutions.spec.ts",
+    "documentation.spec.ts",
   ],
   workers: 1,
   use: {

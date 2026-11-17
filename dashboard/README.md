@@ -96,3 +96,9 @@ Open `/applications`, linked from the homepage and Product Overview, to compare 
 Open `/solutions` for the approved personal, family, team and developer use-case page. The guide uses straight screenshots, conceptual family/team diagrams, links to relevant applications and explicit consent/platform boundaries. It is linked from public navigation and the homepage's “Who it’s for” footer.
 
 `npm --prefix dashboard run test:public` checks all four public pages, including Solutions section links, previews, responsive navigation and availability disclosures. See [Solutions page validation](../docs/validation/solutions-page.md).
+
+## Customer documentation
+
+Open `/docs` for the searchable documentation home, linked from public navigation and the homepage Learn footer. Twelve guides under `/docs/[slug]` cover setup, account access, pairing, permissions, reports/alerts, sharing, family requests, developer services, unavailable data, platform availability and privacy controls. The reader has topic navigation, article contents, direct section links, metadata and unknown-guide handling.
+
+Search is local to the guide catalogue and requires no account or external search service. Reader search links to `/docs?q=…`. `npm --prefix dashboard run test:public` checks documentation together with the other public pages. See [Documentation validation](../docs/validation/documentation-page.md).
