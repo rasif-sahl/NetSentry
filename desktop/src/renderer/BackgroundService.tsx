@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import type { BackgroundView } from "../main/background-service";
-export function BackgroundService({ refreshKey }: { refreshKey: string }) {
+export function BackgroundService({
+  refreshKey,
+  view: page = "status",
+}: {
+  refreshKey: string;
+  view?: "status" | "login";
+}) {
   const [view, setView] = useState<BackgroundView>(),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -37,11 +43,10 @@ export function BackgroundService({ refreshKey }: { refreshKey: string }) {
     };
   }, [refreshKey]);
   return (
-    <section
-      className="mt-8 rounded-2xl border border-line bg-surface p-6 max-[700px]:p-[18px]"
-      aria-labelledby="background-heading"
-    >
-      <h2 id="background-heading">Run at login</h2>
+    <section className="desktop-card" aria-labelledby="background-heading">
+      <h2 id="background-heading">
+        {page === "login" ? "Run at login" : "Background service status"}
+      </h2>
       <p>
         Register a per-user macOS service after reviewing your workspace grant.
         Confirming registration saves your local background choice. Stop the
@@ -76,34 +81,47 @@ export function BackgroundService({ refreshKey }: { refreshKey: string }) {
         >
           Refresh background status
         </button>
-        <button
-          disabled={
-            busy || !view?.verified || !view.canRegister || view.registered
-          }
-          onClick={() => void action("register")}
-        >
-          Register background service
-        </button>
-        <button
-          disabled={
-            busy ||
-            !view?.verified ||
-            !view.canRegister ||
-            !view.registered ||
-            view.running
-          }
-          onClick={() => void action("start")}
-        >
-          Start registered service
-        </button>
-        <button
-          className="border-danger-line bg-danger-surface text-danger"
-          disabled={busy || !view?.verified}
-          onClick={() => void action("remove")}
-        >
-          Remove background service
-        </button>
+        {page === "login" && (
+          <button
+            disabled={
+              busy || !view?.verified || !view.canRegister || view.registered
+            }
+            onClick={() => void action("register")}
+          >
+            Register background service
+          </button>
+        )}
+        {page === "status" && (
+          <button
+            disabled={
+              busy ||
+              !view?.verified ||
+              !view.canRegister ||
+              !view.registered ||
+              view.running
+            }
+            onClick={() => void action("start")}
+          >
+            Start registered service
+          </button>
+        )}
+        {page === "status" && (
+          <button
+            className="border-danger-line bg-danger-surface text-danger"
+            disabled={busy || !view?.verified}
+            onClick={() => void action("remove")}
+          >
+            Remove background service
+          </button>
+        )}
       </div>
+      <p>
+        <a href={page === "login" ? "#background" : "#login"}>
+          {page === "login"
+            ? "Review service status and removal"
+            : "Review run-at-login registration"}
+        </a>
+      </p>
       <p>
         Removal stops only the managed NetSentry job and preserves pairing,
         module choices and stored data. Removing the app itself does not

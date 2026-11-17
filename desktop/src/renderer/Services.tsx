@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Unavailable } from "./Navigation";
 import type {
   Action,
   Inventory,
@@ -48,10 +49,17 @@ function errorText(code: string): string {
 export function Services({
   enabled,
   installationId,
+  view = "inventory",
 }: {
   enabled: boolean;
   installationId: string;
+  view?: "inventory" | "projects" | "control" | "history";
 }) {
+  const [detailId, setDetailId] = useState<string>();
+  const detailHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (detailId) detailHeading.current?.focus();
+  }, [detailId]);
   const [inventory, setInventory] = useState<Inventory>();
   const [history, setHistory] = useState<Action[]>([]);
   const [historyOffset, setHistoryOffset] = useState(0);
@@ -76,6 +84,7 @@ export function Services({
   useEffect(() => {
     generation.current++;
     setInventory(undefined);
+    setDetailId(undefined);
     setHistory([]);
     setHistoryLoaded(false);
     setHistoryOffset(0);
@@ -93,6 +102,7 @@ export function Services({
     const epoch = generation.current;
     setBusy(true);
     setSelected(undefined);
+    setDetailId(undefined);
     try {
       const result = await window.netsentry?.listServices(search, offset);
       if (epoch !== generation.current) return;
@@ -242,70 +252,126 @@ export function Services({
       service,
     ]);
   }
+  const detail = inventory?.services.find((service) => service.id === detailId);
+  const endpoints = (service: Service) =>
+    service.endpoints
+      .map(
+        (e) =>
+          `${e.address.includes(":") ? `[${e.address}]` : e.address}:${e.port}`,
+      )
+      .join(", ");
   return (
-    <section
-      aria-labelledby="services-heading"
-      className="mt-8 break-words rounded-2xl border border-line bg-surface p-6 max-[700px]:p-[18px]"
-    >
-      <h2 id="services-heading">Development services</h2>
-      <p>
-        Local TCP listeners owned by your user. Runtime labels are inferred from
-        executable names. Full paths and command arguments stay on this
-        computer. Summary sharing and remote shutdown require separate consent
-        above.
-      </p>
+    <section aria-labelledby="services-heading" className="desktop-card">
+      <h2 id="services-heading">
+        {view === "history"
+          ? "Local action history"
+          : view === "control"
+            ? "Local shutdown permissions"
+            : view === "projects"
+              ? "Project associations"
+              : "Development services"}
+      </h2>
       {!enabled ? (
-        <p>
+        <Unavailable>
           Pair this computer and enable Developer Tools locally and in your
           workspace to inspect services.
-        </p>
+        </Unavailable>
       ) : (
         <>
-          <form
-            className="my-4 flex flex-wrap items-end gap-3 [&_label]:min-w-[200px] [&_label]:flex-1"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setActiveQuery(query);
-              void refresh(0, query);
-            }}
-          >
-            <label>
-              Search projects, runtimes, PIDs or ports
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                maxLength={100}
-              />
-            </label>
-            <button disabled={busy}>Refresh services</button>
-          </form>
-          <button
-            className="bg-surface text-primary"
-            disabled={busy}
-            onClick={() => void loadHistory()}
-          >
-            Load action history
-          </button>
-          <p role="status" aria-live="polite">
-            {message}
+          <p>
+            Local TCP listeners owned by your user. Full paths and command
+            arguments stay on this computer. Remote service access requires
+            separate consent in Sharing.
           </p>
-          {inventory && (
-            <>
+          {view === "history" ? (
+            <button disabled={busy} onClick={() => void loadHistory()}>
+              Load action history
+            </button>
+          ) : view === "control" ? (
+            <button disabled={busy} onClick={() => void refresh()}>
+              Refresh control status
+            </button>
+          ) : (
+            <form
+              className="desktop-search"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setActiveQuery(query);
+                void refresh(0, query);
+              }}
+            >
               <label>
+                Search projects, runtimes, PIDs or ports
                 <input
-                  type="checkbox"
-                  checked={inventory.localControlAllowed}
-                  disabled={busy || !inventory.platformSupported}
-                  onChange={(event) => void control(event.target.checked)}
-                />{" "}
-                Allow local service shutdown
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  maxLength={100}
+                />
               </label>
+              <button disabled={busy}>Refresh services</button>
+              <label className="desktop-filter">
+                Filter this page
+                <select
+                  value={filter}
+                  onChange={(event) => setFilter(event.target.value)}
+                >
+                  <option value="all">All listeners</option>
+                  <option value="controllable">Controllable services</option>
+                </select>
+              </label>
+            </form>
+          )}
+          {message && (
+            <p role="status" aria-live="polite" className="desktop-notice">
+              {message}
+            </p>
+          )}
+          {view === "control" && (
+            <>
               <p>
-                This is separate from module eligibility. It allows only
-                confirmed actions on supported processes owned by your user; it
-                grants no mobile or remote access.
+                This permission allows only separately confirmed local actions
+                on supported processes owned by your user. It does not grant
+                mobile or remote access.
               </p>
-              {inventory.platformSupported && (
+              {inventory ? (
+                <label className="desktop-setting-row">
+                  <span>
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      checked={inventory.localControlAllowed}
+                      disabled={busy || !inventory.platformSupported}
+                      onChange={(event) => void control(event.target.checked)}
+                    />
+                    Allow local service shutdown
+                  </span>
+                </label>
+              ) : (
+                <p className="desktop-empty">
+                  Refresh control status to read the current setting.
+                </p>
+              )}
+              {inventory && !inventory.platformSupported && (
+                <p>Local shutdown is unavailable on this platform.</p>
+              )}
+              <p>
+                Graceful stop and force stop require independent confirmations.
+                Force stop can discard unfinished work.
+              </p>
+              <a className="desktop-button secondary" href="#services">
+                Review services
+              </a>
+            </>
+          )}
+          {(view === "inventory" || view === "projects") && (
+            <>
+              {!inventory && (
+                <p className="desktop-empty">
+                  No service inventory loaded. Refresh services to inspect
+                  current observations.
+                </p>
+              )}
+              {inventory && (
                 <>
                   <p>
                     {inventory.total} matching services · observed{" "}
@@ -314,6 +380,12 @@ export function Services({
                       ? "Observation expired — refresh before changing or stopping services."
                       : "Observation is fresh."}
                   </p>
+                  {!inventory.platformSupported && (
+                    <p>
+                      Developer discovery and control are unavailable on this
+                      platform.
+                    </p>
+                  )}
                   {inventory.skippedProcesses > 0 && (
                     <p>
                       {inventory.skippedProcesses} processes could not be
@@ -327,162 +399,289 @@ export function Services({
                       not shown.
                     </p>
                   )}
-                  <label>
-                    Filter this page{" "}
-                    <select
-                      value={filter}
-                      onChange={(event) => setFilter(event.target.value)}
-                    >
-                      <option value="all">All listeners</option>
-                      <option value="controllable">
-                        Controllable services
-                      </option>
-                    </select>
-                  </label>
-                  {!visible.length && (
-                    <p>
-                      No matching services on this page. Try another search or
-                      page.
-                    </p>
-                  )}
-                  {[...groups.entries()].map(([id, services]) => (
-                    <div key={id} className="break-words">
-                      <h3>{services[0].project.name}</h3>
-                      <p>
-                        {services[0].project.evidence} ·{" "}
-                        {services[0].project.confidence.replaceAll("_", " ")}
-                      </p>
-                      {services.map((service) => (
-                        <article
-                          key={service.id}
-                          className="my-3 rounded-[10px] border border-line p-[18px] max-[700px]:p-3"
-                        >
-                          <h4>
-                            {service.runtime === "unknown"
-                              ? service.executable
-                              : service.runtime}{" "}
-                            · PID {service.pid}
-                          </h4>
+                  {inventory.platformSupported && (
+                    <>
+                      {!visible.length && (
+                        <p className="desktop-empty">
+                          No matching services on this page. Try another search
+                          or page.
+                        </p>
+                      )}
+                      {view === "inventory" &&
+                        !detail &&
+                        visible.length > 0 && (
+                          <div
+                            className="desktop-table-scroll"
+                            role="region"
+                            aria-label="Service inventory"
+                            tabIndex={0}
+                          >
+                            <table className="desktop-service-table">
+                              <thead>
+                                <tr>
+                                  <th>Project / runtime</th>
+                                  <th>Process</th>
+                                  <th>Listening on</th>
+                                  <th>Observation</th>
+                                  <th>Details</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {visible.map((service) => (
+                                  <tr key={service.id}>
+                                    <td>
+                                      <strong>{service.project.name}</strong>
+                                      <span>
+                                        {service.runtime === "unknown"
+                                          ? service.executable
+                                          : service.runtime}{" "}
+                                        ·{" "}
+                                        {service.project.confidence.replaceAll(
+                                          "_",
+                                          " ",
+                                        )}
+                                      </span>
+                                    </td>
+                                    <td>PID {service.pid}</td>
+                                    <td>
+                                      <code>{endpoints(service)}</code>
+                                      {service.additionalEndpoints > 0 && (
+                                        <span>
+                                          + {service.additionalEndpoints} more
+                                          listeners
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td>
+                                      <span className="desktop-state">
+                                        {expired ? "Expired" : "Fresh"}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <button
+                                        className="secondary"
+                                        disabled={busy}
+                                        onClick={() => setDetailId(service.id)}
+                                      >
+                                        Review service
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      {view === "inventory" && detail && (
+                        <article className="desktop-service-detail">
+                          <button
+                            className="secondary"
+                            onClick={() => setDetailId(undefined)}
+                          >
+                            Back to inventory
+                          </button>
+                          <h3 ref={detailHeading} tabIndex={-1}>
+                            {detail.project.name} · PID {detail.pid}
+                          </h3>
                           <p>
-                            Parent PID {service.parentPid} · Started{" "}
-                            {service.startedAt} · Running{" "}
-                            {Math.floor(service.uptimeSeconds / 60)} min ·{" "}
-                            {service.childCount} child processes
+                            {detail.runtime === "unknown"
+                              ? detail.executable
+                              : detail.runtime}{" "}
+                            · Parent PID {detail.parentPid} · Started{" "}
+                            {detail.startedAt} · Running{" "}
+                            {Math.floor(detail.uptimeSeconds / 60)} min ·{" "}
+                            {detail.childCount} child processes
                           </p>
-                          <p className="break-words font-mono">
-                            {service.endpoints
-                              .map(
-                                (e) =>
-                                  `${e.address.includes(":") ? `[${e.address}]` : e.address}:${e.port}`,
-                              )
-                              .join(", ")}
-                            {service.additionalEndpoints > 0
-                              ? ` and ${service.additionalEndpoints} more listeners`
-                              : ""}
+                          <p>
+                            <code>{endpoints(detail)}</code>
+                            {detail.additionalEndpoints > 0 &&
+                              ` and ${detail.additionalEndpoints} more listeners`}
                           </p>
-                          {!service.canStop && (
+                          <p>
+                            {detail.project.evidence} ·{" "}
+                            {detail.project.confidence.replaceAll("_", " ")}
+                          </p>
+                          {!detail.canStop && (
                             <p>
-                              {service.blockReason
+                              {detail.blockReason
                                 .replaceAll("_", " ")
                                 .toLowerCase()}
                             </p>
                           )}
-                          <ProjectForm
-                            service={service}
-                            disabled={busy || expired}
-                            save={(label) => void associate(service, label)}
-                          />
-                          <div className="mt-4 flex flex-wrap gap-2.5">
+                          <p>
+                            Local shutdown:{" "}
+                            {inventory.localControlAllowed
+                              ? "enabled"
+                              : "disabled"}
+                            . Service actions require fresh observations and
+                            current authorization.
+                          </p>
+                          <a
+                            className="desktop-button secondary"
+                            href="#control"
+                          >
+                            Review local shutdown permissions
+                          </a>
+                          <div className="desktop-actions">
                             <button
-                              disabled={busy || expired || !service.canStop}
+                              disabled={
+                                busy ||
+                                expired ||
+                                !detail.canStop ||
+                                !inventory.localControlAllowed
+                              }
                               onClick={() => {
                                 setChildren(false);
-                                setSelected({ service, mode: "graceful" });
+                                setSelected({
+                                  service: detail,
+                                  mode: "graceful",
+                                });
                               }}
                             >
                               Stop gracefully
                             </button>
                             <button
                               className="border-danger-line bg-danger-surface text-danger"
-                              disabled={busy || expired || !service.canStop}
+                              disabled={
+                                busy ||
+                                expired ||
+                                !detail.canStop ||
+                                !inventory.localControlAllowed
+                              }
                               onClick={() => {
                                 setChildren(false);
-                                setSelected({ service, mode: "force" });
+                                setSelected({ service: detail, mode: "force" });
                               }}
                             >
                               Force stop…
                             </button>
                           </div>
+                          <a
+                            className="desktop-button secondary"
+                            href="#history"
+                          >
+                            Review action history
+                          </a>
                         </article>
-                      ))}
-                    </div>
-                  ))}
-                  <div className="mt-4 flex flex-wrap gap-2.5">
+                      )}
+                      {view === "projects" &&
+                        [...groups.entries()].map(([id, services]) => (
+                          <article className="desktop-service-detail" key={id}>
+                            <h3>{services[0].project.name}</h3>
+                            <p>
+                              {services[0].project.evidence} ·{" "}
+                              {services[0].project.confidence.replaceAll(
+                                "_",
+                                " ",
+                              )}
+                            </p>
+                            {services.map((service) => (
+                              <div
+                                className="desktop-project-service"
+                                key={service.id}
+                              >
+                                <h4>
+                                  {service.runtime === "unknown"
+                                    ? service.executable
+                                    : service.runtime}{" "}
+                                  · PID {service.pid}
+                                </h4>
+                                <p>
+                                  <code>{endpoints(service)}</code>
+                                </p>
+                                <ProjectForm
+                                  service={service}
+                                  disabled={busy || expired}
+                                  save={(label) =>
+                                    void associate(service, label)
+                                  }
+                                />
+                              </div>
+                            ))}
+                          </article>
+                        ))}
+                      {!detail && (
+                        <div className="desktop-actions">
+                          <button
+                            className="secondary"
+                            disabled={busy || inventory.offset === 0}
+                            onClick={() =>
+                              void refresh(Math.max(0, inventory.offset - 10))
+                            }
+                          >
+                            Previous page
+                          </button>
+                          <button
+                            className="secondary"
+                            disabled={busy || inventory.nextOffset < 0}
+                            onClick={() => void refresh(inventory.nextOffset)}
+                          >
+                            Next page
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+            </>
+          )}
+          {view === "history" && (
+            <>
+              <p>
+                Up to 100 actions within seven days, 25 per page. A sent signal
+                is not a confirmed shutdown.
+              </p>
+              {!historyLoaded && (
+                <p className="desktop-empty">No action history loaded.</p>
+              )}
+              {historyLoaded && (
+                <>
+                  <ol className="desktop-action-history">
+                    {history.map((action) => (
+                      <li key={action.actionId}>
+                        <strong>
+                          {action.project} · PID {action.pid} · {action.mode}
+                        </strong>
+                        <p>{outcomeText[action.outcome] || action.outcome}</p>
+                        <small>
+                          {action.requestedAt} · {action.targetCount} captured
+                          targets
+                          {action.completedAt
+                            ? ` · checked ${action.completedAt}`
+                            : " · completion unknown"}
+                        </small>
+                      </li>
+                    ))}
+                  </ol>
+                  {!history.length && (
+                    <p className="desktop-empty">
+                      No action receipts on this page.
+                    </p>
+                  )}
+                  <div className="desktop-actions">
                     <button
-                      className="bg-surface text-primary"
-                      disabled={busy || inventory.offset === 0}
+                      className="secondary"
+                      disabled={busy || historyOffset === 0}
                       onClick={() =>
-                        void refresh(Math.max(0, inventory.offset - 10))
+                        void loadHistory(Math.max(0, historyOffset - 25))
                       }
                     >
-                      Previous page
+                      Previous history page
                     </button>
                     <button
-                      className="bg-surface text-primary"
-                      disabled={busy || inventory.nextOffset < 0}
-                      onClick={() => void refresh(inventory.nextOffset)}
+                      className="secondary"
+                      disabled={
+                        busy || history.length < 25 || historyOffset >= 75
+                      }
+                      onClick={() => void loadHistory(historyOffset + 25)}
                     >
-                      Next page
+                      Next history page
                     </button>
                   </div>
                 </>
               )}
             </>
-          )}
-          {historyLoaded && (
-            <div>
-              <h3>Local action history</h3>
-              <p>
-                Up to 100 actions within seven days, 25 per page. A sent signal
-                is not a confirmed shutdown.
-              </p>
-              <ol className="[&_li]:border-b [&_li]:border-line [&_li]:py-3 [&_strong]:break-words">
-                {history.map((action) => (
-                  <li key={action.actionId}>
-                    <strong>
-                      {action.project} · PID {action.pid} · {action.mode}
-                    </strong>
-                    <p>{outcomeText[action.outcome] || action.outcome}</p>
-                    <small>
-                      {action.requestedAt} · {action.targetCount} captured
-                      targets
-                      {action.completedAt
-                        ? ` · checked ${action.completedAt}`
-                        : " · completion unknown"}
-                    </small>
-                  </li>
-                ))}
-              </ol>
-              {!history.length && <p>No action receipts on this page.</p>}
-              <div className="mt-4 flex flex-wrap gap-2.5">
-                <button
-                  className="bg-surface text-primary"
-                  disabled={busy || historyOffset === 0}
-                  onClick={() =>
-                    void loadHistory(Math.max(0, historyOffset - 25))
-                  }
-                >
-                  Previous history page
-                </button>
-                <button
-                  className="bg-surface text-primary"
-                  disabled={busy || history.length < 25 || historyOffset >= 75}
-                  onClick={() => void loadHistory(historyOffset + 25)}
-                >
-                  Next history page
-                </button>
-              </div>
-            </div>
           )}
         </>
       )}

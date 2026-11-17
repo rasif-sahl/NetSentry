@@ -28,10 +28,7 @@ export function RemoteSharing({ enabled }: { enabled: boolean }) {
   }, [enabled]);
   if (!enabled) return null;
   return (
-    <section
-      className="mt-8 rounded-2xl border border-line bg-surface p-6 max-[700px]:p-[18px]"
-      aria-labelledby="remote-heading"
-    >
+    <section className="desktop-card" aria-labelledby="remote-heading">
       <h2 id="remote-heading">Remote service access</h2>
       <p>
         Sharing sends up to 32 owned service summaries, project labels,
@@ -83,6 +80,7 @@ export function RemoteSharing({ enabled }: { enabled: boolean }) {
           <label>
             <input
               type="checkbox"
+              role="switch"
               checked={sharing}
               disabled={busy}
               onChange={(event) => {
@@ -97,6 +95,7 @@ export function RemoteSharing({ enabled }: { enabled: boolean }) {
           <label>
             <input
               type="checkbox"
+              role="switch"
               checked={control}
               disabled={busy || !sharing || !preferences?.supported}
               onChange={(event) => setControl(event.target.checked)}

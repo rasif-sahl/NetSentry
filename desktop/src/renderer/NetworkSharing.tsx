@@ -28,10 +28,7 @@ export function NetworkSharing({ enabled }: { enabled: boolean }) {
   }, [enabled]);
   if (!enabled) return null;
   return (
-    <section
-      className="mt-8 rounded-2xl border border-line bg-surface p-6 max-[700px]:p-[18px]"
-      aria-labelledby="network-sharing-heading"
-    >
+    <section className="desktop-card" aria-labelledby="network-sharing-heading">
       <h2 id="network-sharing-heading">Network observation sharing</h2>
       <p>
         Copy the named network UUID from the web dashboard. The workspace must
@@ -98,6 +95,7 @@ export function NetworkSharing({ enabled }: { enabled: boolean }) {
           <label>
             <input
               type="checkbox"
+              role="switch"
               checked={sharing}
               onChange={(event) => setSharing(event.target.checked)}
               disabled={busy || !preferences?.supported}

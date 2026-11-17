@@ -57,3 +57,9 @@ Explicit per-user macOS registration, start, removal and update interlocking are
 ## Desktop diagnostics and recovery
 
 Explicit current-state diagnostics, user-confirmed stale-socket recovery and redacted JSON export are implemented. Repair requires verified trust, no managed job/registration, private state and exclusive runtime locking; it preserves credentials, settings and data and never starts/stops a process. Partial-registration and failure guidance is included. Signed native acceptance remains pending. See [validation and operation](../docs/validation/desktop-diagnostics.md).
+
+## Desktop navigation and approved pages
+
+The renderer now has a rounded floating sidebar with **Overview, Developer Tools, Sharing, Background Service and Settings**, containing 14 focused pages. It supports active submenu links, breadcrumbs, local hash deep links/Back, keyboard focus, narrow windows and theme persistence across pages. Service rows open a review/details view before separately confirmed stops; project associations, local permissions and action history have their own pages. All live values come from the existing bridge, with unavailable/setup states instead of proposal fixtures.
+
+See [navigation architecture](../docs/architecture/desktop-navigation.md) and [verification](../docs/validation/desktop-navigation.md). The production renderer builds and browser fixture checks pass; native Electron/Keychain/signing and real agent/device acceptance remain separate. `DESKTOP_NAV_SCREENSHOTS=/absolute/output/directory` optionally exports all destination screenshots during `npm run test:desktop-appearance` with an existing Chrome executable.

@@ -24,6 +24,8 @@ Android design source now applies the approved lavender light/dark theme, shared
 
 iOS design source now applies the approved white grouped forms, blue controls, shared page/menu styling and rounded floating material dock across its native pages and nested confirmation forms. See [iOS UI verification](docs/validation/ios-designs.md); native compilation and device screenshot parity remain pending.
 
+Desktop source now implements the approved floating sidebar with five groups and 14 focused pages, service review details, separate control/history/settings views and route-independent appearance. See [desktop navigation verification](docs/validation/desktop-navigation.md). Renderer build/browser checks are distinct from pending packaged Electron, Keychain and real-agent acceptance.
+
 ## Agreed technologies
 
 | Component | Technology | Responsibility |
