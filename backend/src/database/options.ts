@@ -1,6 +1,6 @@
 import { DeploymentWorkerState } from '../deployment/worker-state.entity';
-import {operationEntities} from '../operations/operations.entities';
-import {billingEntities} from '../billing/billing.entities';
+import { operationEntities } from '../operations/operations.entities';
+import { billingEntities } from '../billing/billing.entities';
 import { businessEntities } from '../business/business.entities';
 import {
   FamilyProfile,

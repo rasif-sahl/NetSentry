@@ -1,2 +1,6 @@
 import type { AgentBridge } from "../main/agent-types";
-declare global { interface Window { netsentry?: AgentBridge; } }
+declare global {
+  interface Window {
+    netsentry?: AgentBridge;
+  }
+}

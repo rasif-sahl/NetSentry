@@ -507,9 +507,12 @@ export async function checkApplications({
   );
   assert.equal(overnight.applications[0].lateNightSeconds, 16200);
   assert.equal(overnight.trends[0].expectedMs, 25 * 3600000);
-  assert.equal(overnight.timeline[0].sessions[0].start,'2026-11-01T04:00:00.000Z');
-  assert.equal(overnight.applications[0].firstUse,'2026-11-01T04:00:00.000Z');
-  assert.equal(overnight.trends[0].coverageMs,16200000);
+  assert.equal(
+    overnight.timeline[0].sessions[0].start,
+    '2026-11-01T04:00:00.000Z',
+  );
+  assert.equal(overnight.applications[0].firstUse, '2026-11-01T04:00:00.000Z');
+  assert.equal(overnight.trends[0].coverageMs, 16200000);
   await source.query('UPDATE workspaces SET timezone=$2 WHERE id=$1', [
     workspace.id,
     originalTimezone.timezone,

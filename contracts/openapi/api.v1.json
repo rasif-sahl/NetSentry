@@ -550,9 +550,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "revoked"
-                  ],
+                  "required": ["revoked"],
                   "properties": {
                     "revoked": {
                       "const": true
@@ -646,9 +644,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "revoked"
-                  ],
+                  "required": ["revoked"],
                   "properties": {
                     "revoked": {
                       "const": true
@@ -733,9 +729,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "loggedOut"
-                  ],
+                  "required": ["loggedOut"],
                   "properties": {
                     "loggedOut": {
                       "const": true
@@ -1114,9 +1108,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "accepted"
-                  ],
+                  "required": ["accepted"],
                   "properties": {
                     "accepted": {
                       "const": true
@@ -1210,9 +1202,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "verified"
-                  ],
+                  "required": ["verified"],
                   "properties": {
                     "verified": {
                       "const": true
@@ -1317,9 +1307,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "accepted"
-                  ],
+                  "required": ["accepted"],
                   "properties": {
                     "accepted": {
                       "const": true
@@ -1424,9 +1412,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "reset"
-                  ],
+                  "required": ["reset"],
                   "properties": {
                     "reset": {
                       "const": true
@@ -1628,10 +1614,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "joined",
-                    "workspaceId"
-                  ],
+                  "required": ["joined", "workspaceId"],
                   "properties": {
                     "joined": {
                       "const": true
@@ -1739,10 +1722,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "invitation",
-                    "token"
-                  ],
+                  "required": ["invitation", "token"],
                   "properties": {
                     "invitation": {
                       "$ref": "#/components/schemas/WorkspaceInvitation"
@@ -1960,9 +1940,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "revoked"
-                  ],
+                  "required": ["revoked"],
                   "properties": {
                     "revoked": {
                       "const": true
@@ -2373,9 +2351,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "updated"
-                  ],
+                  "required": ["updated"],
                   "properties": {
                     "updated": {
                       "const": true
@@ -2497,9 +2473,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "removed"
-                  ],
+                  "required": ["removed"],
                   "properties": {
                     "removed": {
                       "const": true
@@ -2613,9 +2587,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "transferred"
-                  ],
+                  "required": ["transferred"],
                   "properties": {
                     "transferred": {
                       "const": true
@@ -2818,10 +2790,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "token",
-                    "expiresAt"
-                  ],
+                  "required": ["token", "expiresAt"],
                   "properties": {
                     "token": {
                       "type": "string",
@@ -2931,10 +2900,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "device",
-                    "deviceToken"
-                  ],
+                  "required": ["device", "deviceToken"],
                   "properties": {
                     "device": {
                       "$ref": "#/components/schemas/RegisteredDevice"
@@ -3244,9 +3210,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "removed"
-                  ],
+                  "required": ["removed"],
                   "properties": {
                     "removed": {
                       "const": true
@@ -3351,10 +3315,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "deleted",
-                    "generation"
-                  ],
+                  "required": ["deleted", "generation"],
                   "properties": {
                     "deleted": {
                       "const": true
@@ -4367,9 +4328,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "deleted"
-                  ],
+                  "required": ["deleted"],
                   "properties": {
                     "deleted": {
                       "const": true
@@ -4693,11 +4652,7 @@
             "in": "query",
             "required": false,
             "schema": {
-              "enum": [
-                "day",
-                "week",
-                "month"
-              ]
+              "enum": ["day", "week", "month"]
             }
           },
           {
@@ -4865,11 +4820,7 @@
             "in": "query",
             "required": false,
             "schema": {
-              "enum": [
-                "day",
-                "week",
-                "month"
-              ]
+              "enum": ["day", "week", "month"]
             }
           },
           {
@@ -5352,9 +5303,7 @@
                     "maxLength": 100
                   }
                 },
-                "required": [
-                  "name"
-                ]
+                "required": ["name"]
               }
             }
           }
@@ -5454,11 +5403,7 @@
                       "const": true
                     }
                   },
-                  "required": [
-                    "assigned",
-                    "generation",
-                    "requiresConsent"
-                  ]
+                  "required": ["assigned", "generation", "requiresConsent"]
                 }
               }
             }
@@ -5497,10 +5442,7 @@
                     "format": "uuid"
                   }
                 },
-                "required": [
-                  "deviceId",
-                  "networkId"
-                ]
+                "required": ["deviceId", "networkId"]
               }
             }
           }
@@ -5930,9 +5872,7 @@
                       "const": true
                     }
                   },
-                  "required": [
-                    "deleted"
-                  ]
+                  "required": ["deleted"]
                 }
               }
             }
@@ -6386,10 +6326,7 @@
                             "format": "uuid"
                           },
                           "deviceId": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
+                            "type": ["string", "null"],
                             "format": "uuid"
                           },
                           "kind": {
@@ -6399,10 +6336,7 @@
                             "type": "string"
                           },
                           "errorCode": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
+                            "type": ["string", "null"]
                           },
                           "createdAt": {
                             "type": "string",
@@ -6434,10 +6368,7 @@
                             "minimum": 0
                           }
                         },
-                        "required": [
-                          "status",
-                          "count"
-                        ]
+                        "required": ["status", "count"]
                       }
                     },
                     "pushProviders": {
@@ -6451,17 +6382,10 @@
                           "const": "unconfigured"
                         }
                       },
-                      "required": [
-                        "android",
-                        "ios"
-                      ]
+                      "required": ["android", "ios"]
                     }
                   },
-                  "required": [
-                    "runs",
-                    "deliveries",
-                    "pushProviders"
-                  ]
+                  "required": ["runs", "deliveries", "pushProviders"]
                 }
               }
             }
@@ -6877,10 +6801,7 @@
                       "pattern": "Z$"
                     }
                   },
-                  "required": [
-                    "token",
-                    "expiresAt"
-                  ]
+                  "required": ["token", "expiresAt"]
                 }
               }
             }
@@ -7347,10 +7268,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "version",
-                    "text"
-                  ]
+                  "required": ["version", "text"]
                 }
               }
             }
@@ -7453,11 +7371,7 @@
                       "$ref": "#/components/schemas/AgentConfiguration"
                     }
                   },
-                  "required": [
-                    "agent",
-                    "agentToken",
-                    "configuration"
-                  ]
+                  "required": ["agent", "agentToken", "configuration"]
                 }
               }
             }
@@ -7784,10 +7698,7 @@
                       "minimum": 0
                     }
                   },
-                  "required": [
-                    "accepted",
-                    "duplicates"
-                  ]
+                  "required": ["accepted", "duplicates"]
                 }
               }
             }
@@ -7824,9 +7735,7 @@
     "/agents/developer-disclosure": {
       "get": {
         "operationId": "getDeveloperDisclosure",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [],
         "parameters": [],
         "responses": {
@@ -7916,9 +7825,7 @@
     "/workspaces/{workspaceId}/developer": {
       "get": {
         "operationId": "listPairedComputers",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "bearerAuth": []
@@ -8026,9 +7933,7 @@
     "/workspaces/{workspaceId}/agents/{agentId}/developer-policy": {
       "patch": {
         "operationId": "updateDeveloperPolicy",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "bearerAuth": []
@@ -8151,9 +8056,7 @@
     "/workspaces/{workspaceId}/agents/{agentId}/commands": {
       "get": {
         "operationId": "listRemoteCommands",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "bearerAuth": []
@@ -8268,9 +8171,7 @@
       },
       "post": {
         "operationId": "createRemoteCommand",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "bearerAuth": []
@@ -8393,9 +8294,7 @@
     "/workspaces/{workspaceId}/agents/{agentId}/commands/{commandId}/cancel": {
       "post": {
         "operationId": "cancelRemoteCommand",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "bearerAuth": []
@@ -8517,9 +8416,7 @@
     "/agents/{agentId}/developer/configuration": {
       "get": {
         "operationId": "getAgentDeveloperConfiguration",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "agentTokenAuth": []
@@ -8623,9 +8520,7 @@
     "/agents/{agentId}/developer/snapshot": {
       "post": {
         "operationId": "publishAgentServices",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "agentTokenAuth": []
@@ -8657,9 +8552,7 @@
                       "maximum": 32
                     }
                   },
-                  "required": [
-                    "accepted"
-                  ]
+                  "required": ["accepted"]
                 }
               }
             }
@@ -8750,9 +8643,7 @@
     "/agents/{agentId}/developer/poll": {
       "post": {
         "operationId": "pollRemoteCommand",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "agentTokenAuth": []
@@ -8789,9 +8680,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "command"
-                  ]
+                  "required": ["command"]
                 }
               }
             }
@@ -8872,9 +8761,7 @@
     "/agents/{agentId}/developer/commands/{commandId}/start": {
       "post": {
         "operationId": "authorizeCommandExecution",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "agentTokenAuth": []
@@ -8918,10 +8805,7 @@
                       "maximum": 10000
                     }
                   },
-                  "required": [
-                    "allowed",
-                    "remainingMs"
-                  ]
+                  "required": ["allowed", "remainingMs"]
                 }
               }
             }
@@ -9012,9 +8896,7 @@
     "/agents/{agentId}/developer/commands/{commandId}/result": {
       "post": {
         "operationId": "recordRemoteCommandOutcome",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "agentTokenAuth": []
@@ -9053,9 +8935,7 @@
                       "const": true
                     }
                   },
-                  "required": [
-                    "recorded"
-                  ]
+                  "required": ["recorded"]
                 }
               }
             }
@@ -9146,9 +9026,7 @@
     "/agents/{agentId}/developer/pause": {
       "post": {
         "operationId": "pauseAgentDeveloperSharing",
-        "tags": [
-          "developer"
-        ],
+        "tags": ["developer"],
         "security": [
           {
             "agentTokenAuth": []
@@ -9173,9 +9051,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "cleared"
-                  ],
+                  "required": ["cleared"],
                   "properties": {
                     "cleared": {
                       "const": true
@@ -9416,11 +9292,7 @@
             "in": "query",
             "required": false,
             "schema": {
-              "enum": [
-                "day",
-                "week",
-                "month"
-              ]
+              "enum": ["day", "week", "month"]
             }
           },
           {
@@ -9574,11 +9446,7 @@
             "in": "query",
             "required": false,
             "schema": {
-              "enum": [
-                "day",
-                "week",
-                "month"
-              ]
+              "enum": ["day", "week", "month"]
             }
           },
           {
@@ -16881,9 +16749,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "status"
-                  ],
+                  "required": ["status"],
                   "properties": {
                     "status": {
                       "const": "ready"
@@ -17008,11 +16874,7 @@
             "type": "string"
           },
           "status": {
-            "enum": [
-              "ACTIVE",
-              "PENDING_DELETION",
-              "SUSPENDED"
-            ]
+            "enum": ["ACTIVE", "PENDING_DELETION", "SUSPENDED"]
           },
           "preferences": {
             "type": "object",
@@ -17040,11 +16902,7 @@
       "AuthSession": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "accessToken",
-          "refreshToken",
-          "user"
-        ],
+        "required": ["accessToken", "refreshToken", "user"],
         "properties": {
           "accessToken": {
             "type": "string"
@@ -17060,10 +16918,7 @@
       "LoginRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "email",
-          "password"
-        ],
+        "required": ["email", "password"],
         "properties": {
           "email": {
             "type": "string",
@@ -17077,11 +16932,7 @@
       "RegisterRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "email",
-          "displayName",
-          "password"
-        ],
+        "required": ["email", "displayName", "password"],
         "properties": {
           "email": {
             "type": "string",
@@ -17102,9 +16953,7 @@
       "RefreshRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "refreshToken"
-        ],
+        "required": ["refreshToken"],
         "properties": {
           "refreshToken": {
             "type": "string"
@@ -17132,11 +16981,7 @@
             "type": "string"
           },
           "type": {
-            "enum": [
-              "PERSONAL",
-              "FAMILY",
-              "BUSINESS"
-            ]
+            "enum": ["PERSONAL", "FAMILY", "BUSINESS"]
           },
           "timezone": {
             "type": "string"
@@ -17168,21 +17013,14 @@
       "CreateWorkspaceRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "type"
-        ],
+        "required": ["name", "type"],
         "properties": {
           "name": {
             "type": "string",
             "maxLength": 100
           },
           "type": {
-            "enum": [
-              "PERSONAL",
-              "FAMILY",
-              "BUSINESS"
-            ]
+            "enum": ["PERSONAL", "FAMILY", "BUSINESS"]
           },
           "timezone": {
             "anyOf": [
@@ -17199,12 +17037,7 @@
       "RegisterDeviceRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "workspaceId",
-          "installationId",
-          "name",
-          "platform"
-        ],
+        "required": ["workspaceId", "installationId", "name", "platform"],
         "properties": {
           "workspaceId": {
             "type": "string",
@@ -17219,14 +17052,7 @@
             "maxLength": 100
           },
           "platform": {
-            "enum": [
-              "ANDROID",
-              "IOS",
-              "WINDOWS",
-              "MACOS",
-              "WEB",
-              "OTHER"
-            ]
+            "enum": ["ANDROID", "IOS", "WINDOWS", "MACOS", "WEB", "OTHER"]
           },
           "operatingSystemVersion": {
             "anyOf": [
@@ -17303,14 +17129,7 @@
             "type": "string"
           },
           "platform": {
-            "enum": [
-              "ANDROID",
-              "IOS",
-              "WINDOWS",
-              "MACOS",
-              "WEB",
-              "OTHER"
-            ]
+            "enum": ["ANDROID", "IOS", "WINDOWS", "MACOS", "WEB", "OTHER"]
           },
           "operatingSystemVersion": {
             "anyOf": [
@@ -17351,12 +17170,7 @@
             "pattern": "Z$"
           },
           "state": {
-            "enum": [
-              "UNVERIFIED",
-              "ACTIVE",
-              "REVOKED",
-              "REMOVED"
-            ]
+            "enum": ["UNVERIFIED", "ACTIVE", "REVOKED", "REMOVED"]
           },
           "generation": {
             "type": "integer",
@@ -17369,10 +17183,7 @@
             "type": "array",
             "uniqueItems": true,
             "items": {
-              "enum": [
-                "network_usage",
-                "app_usage"
-              ]
+              "enum": ["network_usage", "app_usage"]
             }
           },
           "enrolledAt": {
@@ -17444,20 +17255,10 @@
             ]
           },
           "batteryOptimizationStatus": {
-            "enum": [
-              "unknown",
-              "restricted",
-              "unrestricted",
-              "not_applicable"
-            ]
+            "enum": ["unknown", "restricted", "unrestricted", "not_applicable"]
           },
           "permissionStatus": {
-            "enum": [
-              "unknown",
-              "granted",
-              "denied",
-              "revoked"
-            ]
+            "enum": ["unknown", "granted", "denied", "revoked"]
           },
           "monitoringHealth": {
             "enum": [
@@ -17549,10 +17350,7 @@
       "Health": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "status",
-          "apiVersion"
-        ],
+        "required": ["status", "apiVersion"],
         "properties": {
           "status": {
             "const": "ok"
@@ -17565,9 +17363,7 @@
       "ActionTokenRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "token"
-        ],
+        "required": ["token"],
         "properties": {
           "token": {
             "type": "string",
@@ -17578,9 +17374,7 @@
       "ForgotPasswordRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "properties": {
           "email": {
             "type": "string",
@@ -17592,10 +17386,7 @@
       "ResetPasswordRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "token",
-          "password"
-        ],
+        "required": ["token", "password"],
         "properties": {
           "token": {
             "type": "string",
@@ -17611,9 +17402,7 @@
       "UpdateProfileRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "displayName"
-        ],
+        "required": ["displayName"],
         "properties": {
           "displayName": {
             "type": "string",
@@ -17629,11 +17418,7 @@
         "required": [],
         "properties": {
           "theme": {
-            "enum": [
-              "SYSTEM",
-              "LIGHT",
-              "DARK"
-            ]
+            "enum": ["SYSTEM", "LIGHT", "DARK"]
           },
           "reducedMotion": {
             "type": "boolean"
@@ -17659,9 +17444,7 @@
       "ConfirmPasswordRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "password"
-        ],
+        "required": ["password"],
         "properties": {
           "password": {
             "type": "string",
@@ -17673,10 +17456,7 @@
       "InvitationRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "email",
-          "role"
-        ],
+        "required": ["email", "role"],
         "properties": {
           "email": {
             "type": "string",
@@ -17699,9 +17479,7 @@
       "ChangeRoleRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "role"
-        ],
+        "required": ["role"],
         "properties": {
           "role": {
             "enum": [
@@ -17719,9 +17497,7 @@
       "TransferOwnerRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "userId"
-        ],
+        "required": ["userId"],
         "properties": {
           "userId": {
             "type": "string",
@@ -17805,12 +17581,7 @@
       "WorkspaceMember": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "userId",
-          "role",
-          "email",
-          "displayName"
-        ],
+        "required": ["userId", "role", "email", "displayName"],
         "properties": {
           "userId": {
             "type": "string",
@@ -17840,11 +17611,7 @@
       "WorkspacePermissions": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "workspaceId",
-          "role",
-          "permissions"
-        ],
+        "required": ["workspaceId", "role", "permissions"],
         "properties": {
           "workspaceId": {
             "type": "string",
@@ -17935,12 +17702,7 @@
                   "minLength": 1
                 },
                 "source": {
-                  "enum": [
-                    "os",
-                    "router",
-                    "agent",
-                    "permission_check"
-                  ]
+                  "enum": ["os", "router", "agent", "permission_check"]
                 },
                 "checkedAt": {
                   "type": "string",
@@ -17996,11 +17758,7 @@
       "DeviceEnrolmentRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "workspaceId",
-          "installationId",
-          "platform"
-        ],
+        "required": ["workspaceId", "installationId", "platform"],
         "properties": {
           "workspaceId": {
             "type": "string",
@@ -18013,26 +17771,14 @@
             "pattern": "\\S"
           },
           "platform": {
-            "enum": [
-              "ANDROID",
-              "IOS",
-              "WINDOWS",
-              "MACOS",
-              "WEB",
-              "OTHER"
-            ]
+            "enum": ["ANDROID", "IOS", "WINDOWS", "MACOS", "WEB", "OTHER"]
           }
         }
       },
       "RedeemEnrolmentRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "token",
-          "name",
-          "disclosureVersion",
-          "accepted"
-        ],
+        "required": ["token", "name", "disclosureVersion", "accepted"],
         "properties": {
           "token": {
             "type": "string",
@@ -18055,9 +17801,7 @@
       "RenameDeviceRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "name": {
             "type": "string",
@@ -18070,11 +17814,7 @@
       "DeviceConsentRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "disclosureVersion",
-          "accepted",
-          "scopes"
-        ],
+        "required": ["disclosureVersion", "accepted", "scopes"],
         "properties": {
           "disclosureVersion": {
             "const": "monitoring-v3"
@@ -18086,10 +17826,7 @@
             "type": "array",
             "uniqueItems": true,
             "items": {
-              "enum": [
-                "network_usage",
-                "app_usage"
-              ]
+              "enum": ["network_usage", "app_usage"]
             },
             "minItems": 1
           },
@@ -18101,9 +17838,7 @@
       "DeviceHealthRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "generation"
-        ],
+        "required": ["generation"],
         "properties": {
           "generation": {
             "type": "integer",
@@ -18125,20 +17860,10 @@
             "maxLength": 100
           },
           "batteryOptimizationStatus": {
-            "enum": [
-              "unknown",
-              "restricted",
-              "unrestricted",
-              "not_applicable"
-            ]
+            "enum": ["unknown", "restricted", "unrestricted", "not_applicable"]
           },
           "permissionStatus": {
-            "enum": [
-              "unknown",
-              "granted",
-              "denied",
-              "revoked"
-            ]
+            "enum": ["unknown", "granted", "denied", "revoked"]
           },
           "monitoringHealth": {
             "enum": [
@@ -18185,10 +17910,7 @@
             "type": "array",
             "uniqueItems": true,
             "items": {
-              "enum": [
-                "network_usage",
-                "app_usage"
-              ]
+              "enum": ["network_usage", "app_usage"]
             }
           },
           "syncPolicy": {
@@ -18274,20 +17996,12 @@
       "Disclosures": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "enrolment",
-          "monitoring",
-          "applications"
-        ],
+        "required": ["enrolment", "monitoring", "applications"],
         "properties": {
           "enrolment": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "version",
-              "text",
-              "hash"
-            ],
+            "required": ["version", "text", "hash"],
             "properties": {
               "version": {
                 "type": "string"
@@ -18304,11 +18018,7 @@
           "monitoring": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "version",
-              "text",
-              "hash"
-            ],
+            "required": ["version", "text", "hash"],
             "properties": {
               "version": {
                 "type": "string"
@@ -18325,11 +18035,7 @@
           "applications": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "version",
-              "text",
-              "hash"
-            ],
+            "required": ["version", "text", "hash"],
             "properties": {
               "version": {
                 "type": "string"
@@ -18348,12 +18054,7 @@
       "PrivacyEvent": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "userId",
-          "kind",
-          "createdAt"
-        ],
+        "required": ["id", "userId", "kind", "createdAt"],
         "properties": {
           "id": {
             "type": "string",
@@ -18413,10 +18114,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "workspaceId",
-                "role"
-              ],
+              "required": ["workspaceId", "role"],
               "properties": {
                 "workspaceId": {
                   "type": "string",
@@ -18683,12 +18381,7 @@
           "family": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "profiles",
-              "assignments",
-              "requests",
-              "events"
-            ],
+            "required": ["profiles", "assignments", "requests", "events"],
             "properties": {
               "profiles": {
                 "type": "array",
@@ -18722,22 +18415,11 @@
                     },
                     "avatar": {
                       "type": "string",
-                      "enum": [
-                        "star",
-                        "leaf",
-                        "fox",
-                        "owl",
-                        "rocket",
-                        "sun"
-                      ]
+                      "enum": ["star", "leaf", "fox", "owl", "rocket", "sun"]
                     },
                     "ageBand": {
                       "type": "string",
-                      "enum": [
-                        "under_13",
-                        "teen",
-                        "adult"
-                      ]
+                      "enum": ["under_13", "teen", "adult"]
                     },
                     "userId": {
                       "anyOf": [
@@ -18787,11 +18469,7 @@
           "business": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "employees",
-              "sharing",
-              "events"
-            ],
+            "required": ["employees", "sharing", "events"],
             "properties": {
               "employees": {
                 "type": "array",
@@ -18816,10 +18494,7 @@
           "billing": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "requests",
-              "operatorActions"
-            ],
+            "required": ["requests", "operatorActions"],
             "properties": {
               "requests": {
                 "type": "array",
@@ -18840,10 +18515,7 @@
       "DeleteAccountRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "password",
-          "confirmation"
-        ],
+        "required": ["password", "confirmation"],
         "properties": {
           "password": {
             "type": "string",
@@ -18903,26 +18575,15 @@
             "minimum": 0
           },
           "unit": {
-            "enum": [
-              "bytes",
-              "seconds"
-            ]
+            "enum": ["bytes", "seconds"]
           },
           "source": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "kind",
-              "collectorVersion"
-            ],
+            "required": ["kind", "collectorVersion"],
             "properties": {
               "kind": {
-                "enum": [
-                  "android",
-                  "ios",
-                  "router",
-                  "agent"
-                ]
+                "enum": ["android", "ios", "router", "agent"]
               },
               "collectorVersion": {
                 "type": "string",
@@ -18947,10 +18608,7 @@
             "pattern": "Z$"
           },
           "quality": {
-            "enum": [
-              "measured",
-              "estimated"
-            ]
+            "enum": ["measured", "estimated"]
           },
           "applicationId": {
             "type": "string",
@@ -18994,9 +18652,7 @@
               }
             },
             "then": {
-              "required": [
-                "applicationId"
-              ]
+              "required": ["applicationId"]
             }
           }
         ]
@@ -19089,13 +18745,7 @@
       "MeasurementReceipt": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "batchId",
-          "accepted",
-          "duplicates",
-          "gaps",
-          "replayed"
-        ],
+        "required": ["batchId", "accepted", "duplicates", "gaps", "replayed"],
         "properties": {
           "batchId": {
             "type": "string",
@@ -19134,11 +18784,7 @@
             "format": "date"
           },
           "period": {
-            "enum": [
-              "day",
-              "week",
-              "month"
-            ]
+            "enum": ["day", "week", "month"]
           },
           "metric": {
             "type": "string"
@@ -19161,16 +18807,10 @@
                   "format": "date"
                 },
                 "measured": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 },
                 "estimated": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 },
                 "measuredCoverageMs": {
                   "type": "integer",
@@ -19212,22 +18852,13 @@
                 "format": "date"
               },
               "measured": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "currentMeasured": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "percentChange": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               }
             },
             "required": [
@@ -19249,10 +18880,7 @@
                   "format": "uuid"
                 },
                 "networkId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
+                  "type": ["string", "null"],
                   "format": "uuid"
                 },
                 "localDate": {
@@ -19266,10 +18894,7 @@
                   "type": "string"
                 },
                 "quality": {
-                  "enum": [
-                    "measured",
-                    "estimated"
-                  ]
+                  "enum": ["measured", "estimated"]
                 },
                 "value": {
                   "type": "string"
@@ -19316,12 +18941,7 @@
                   "format": "date-time"
                 }
               },
-              "required": [
-                "deviceId",
-                "reason",
-                "intervalStart",
-                "intervalEnd"
-              ]
+              "required": ["deviceId", "reason", "intervalStart", "intervalEnd"]
             }
           },
           "qualityNote": {
@@ -19356,11 +18976,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "fileName",
-          "contentType",
-          "content"
-        ]
+        "required": ["fileName", "contentType", "content"]
       },
       "RetentionRequest": {
         "type": "object",
@@ -19387,12 +19003,7 @@
             "maximum": 30
           }
         },
-        "required": [
-          "rawDays",
-          "aggregateDays",
-          "alertDays",
-          "diagnosticDays"
-        ]
+        "required": ["rawDays", "aggregateDays", "alertDays", "diagnosticDays"]
       },
       "RetentionPolicy": {
         "type": "object",
@@ -19423,10 +19034,7 @@
             "maximum": 30
           },
           "effectiveAt": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "date-time"
           }
         },
@@ -19455,10 +19063,7 @@
             "type": "string"
           },
           "createdById": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "uuid"
           },
           "createdAt": {
@@ -19466,13 +19071,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "workspaceId",
-          "name",
-          "createdById",
-          "createdAt"
-        ]
+        "required": ["id", "workspaceId", "name", "createdById", "createdAt"]
       },
       "AlertRuleRequest": {
         "type": "object",
@@ -19498,23 +19097,15 @@
             "type": "string"
           },
           "period": {
-            "enum": [
-              "day",
-              "week",
-              "month"
-            ]
+            "enum": ["day", "week", "month"]
           },
           "threshold": {
             "type": "number",
-            "minimum": 1e-06,
+            "minimum": 1e-6,
             "maximum": 9007199254
           },
           "severity": {
-            "enum": [
-              "info",
-              "warning",
-              "critical"
-            ]
+            "enum": ["info", "warning", "critical"]
           },
           "channels": {
             "type": "array",
@@ -19522,12 +19113,7 @@
             "maxItems": 4,
             "uniqueItems": true,
             "items": {
-              "enum": [
-                "in_app",
-                "android_push",
-                "ios_push",
-                "email"
-              ]
+              "enum": ["in_app", "android_push", "ios_push", "email"]
             }
           },
           "quietHours": {
@@ -19546,11 +19132,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "start",
-              "end",
-              "timezone"
-            ]
+            "required": ["start", "end", "timezone"]
           },
           "enabled": {
             "type": "boolean"
@@ -19565,10 +19147,7 @@
           },
           "quality": {
             "type": "string",
-            "enum": [
-              "measured",
-              "estimated"
-            ],
+            "enum": ["measured", "estimated"],
             "description": "Threshold source quality. Defaults to measured; estimated is a separate explicit rule and is never summed with measured."
           }
         },
@@ -19598,17 +19177,11 @@
             "format": "uuid"
           },
           "deviceId": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "uuid"
           },
           "networkId": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "uuid"
           },
           "config": {
@@ -19635,23 +19208,15 @@
                 "type": "string"
               },
               "period": {
-                "enum": [
-                  "day",
-                  "week",
-                  "month"
-                ]
+                "enum": ["day", "week", "month"]
               },
               "threshold": {
                 "type": "number",
-                "minimum": 1e-06,
+                "minimum": 1e-6,
                 "maximum": 9007199254
               },
               "severity": {
-                "enum": [
-                  "info",
-                  "warning",
-                  "critical"
-                ]
+                "enum": ["info", "warning", "critical"]
               },
               "channels": {
                 "type": "array",
@@ -19659,12 +19224,7 @@
                 "maxItems": 4,
                 "uniqueItems": true,
                 "items": {
-                  "enum": [
-                    "in_app",
-                    "android_push",
-                    "ios_push",
-                    "email"
-                  ]
+                  "enum": ["in_app", "android_push", "ios_push", "email"]
                 }
               },
               "quietHours": {
@@ -19683,21 +19243,14 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "start",
-                  "end",
-                  "timezone"
-                ]
+                "required": ["start", "end", "timezone"]
               },
               "enabled": {
                 "type": "boolean"
               },
               "quality": {
                 "type": "string",
-                "enum": [
-                  "measured",
-                  "estimated"
-                ],
+                "enum": ["measured", "estimated"],
                 "description": "Threshold source quality. Defaults to measured; estimated is a separate explicit rule and is never summed with measured."
               }
             },
@@ -19772,41 +19325,24 @@
                 "type": "string"
               },
               "value": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "windowKey": {
                 "type": "string"
               },
               "quality": {
                 "type": "string",
-                "enum": [
-                  "measured",
-                  "estimated"
-                ]
+                "enum": ["measured", "estimated"]
               }
             },
-            "required": [
-              "kind",
-              "severity",
-              "value",
-              "windowKey"
-            ]
+            "required": ["kind", "severity", "value", "windowKey"]
           },
           "acknowledgedAt": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "date-time"
           },
           "resolvedAt": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "date-time"
           },
           "createdAt": {
@@ -19838,12 +19374,7 @@
             "format": "uuid"
           },
           "channel": {
-            "enum": [
-              "in_app",
-              "android_push",
-              "ios_push",
-              "email"
-            ]
+            "enum": ["in_app", "android_push", "ios_push", "email"]
           },
           "status": {
             "enum": [
@@ -19878,17 +19409,10 @@
                   "type": "string"
                 },
                 "code": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 }
               },
-              "required": [
-                "at",
-                "outcome",
-                "code"
-              ]
+              "required": ["at", "outcome", "code"]
             }
           }
         },
@@ -19936,41 +19460,24 @@
                 "type": "string"
               },
               "value": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "windowKey": {
                 "type": "string"
               },
               "quality": {
                 "type": "string",
-                "enum": [
-                  "measured",
-                  "estimated"
-                ]
+                "enum": ["measured", "estimated"]
               }
             },
-            "required": [
-              "kind",
-              "severity",
-              "value",
-              "windowKey"
-            ]
+            "required": ["kind", "severity", "value", "windowKey"]
           },
           "acknowledgedAt": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "date-time"
           },
           "resolvedAt": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "date-time"
           },
           "createdAt": {
@@ -20010,10 +19517,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "inApp",
-          "push"
-        ]
+        "required": ["inApp", "push"]
       },
       "NotificationPreference": {
         "type": "object",
@@ -20037,11 +19541,7 @@
             "const": false
           }
         },
-        "required": [
-          "userId",
-          "inApp",
-          "push"
-        ]
+        "required": ["userId", "inApp", "push"]
       },
       "AgentSettingsRequest": {
         "type": "object",
@@ -20058,10 +19558,7 @@
                 "type": "boolean"
               }
             },
-            "required": [
-              "network",
-              "developer"
-            ]
+            "required": ["network", "developer"]
           },
           "backgroundAllowed": {
             "type": "boolean"
@@ -20095,10 +19592,7 @@
                 "type": "boolean"
               }
             },
-            "required": [
-              "network",
-              "developer"
-            ]
+            "required": ["network", "developer"]
           },
           "backgroundAllowed": {
             "type": "boolean"
@@ -20114,11 +19608,7 @@
             "format": "uuid"
           },
           "platform": {
-            "enum": [
-              "darwin",
-              "windows",
-              "linux"
-            ]
+            "enum": ["darwin", "windows", "linux"]
           },
           "name": {
             "type": "string",
@@ -20150,18 +19640,10 @@
             "format": "uuid"
           },
           "platform": {
-            "enum": [
-              "darwin",
-              "windows",
-              "linux"
-            ]
+            "enum": ["darwin", "windows", "linux"]
           }
         },
-        "required": [
-          "token",
-          "installationId",
-          "platform"
-        ]
+        "required": ["token", "installationId", "platform"]
       },
       "Agent": {
         "type": "object",
@@ -20187,17 +19669,10 @@
             "type": "string"
           },
           "platform": {
-            "enum": [
-              "darwin",
-              "windows",
-              "linux"
-            ]
+            "enum": ["darwin", "windows", "linux"]
           },
           "state": {
-            "enum": [
-              "ACTIVE",
-              "REVOKED"
-            ]
+            "enum": ["ACTIVE", "REVOKED"]
           },
           "generation": {
             "type": "integer",
@@ -20214,39 +19689,24 @@
                 "type": "boolean"
               }
             },
-            "required": [
-              "network",
-              "developer"
-            ]
+            "required": ["network", "developer"]
           },
           "backgroundAllowed": {
             "type": "boolean"
           },
           "lastSeenAt": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "date-time"
           },
           "lastSyncedAt": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "date-time"
           },
           "version": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "architecture": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "capabilities": {
             "type": "object"
@@ -20268,11 +19728,7 @@
             "pattern": "Z$"
           },
           "connection": {
-            "enum": [
-              "revoked",
-              "recently_seen",
-              "unavailable"
-            ]
+            "enum": ["revoked", "recently_seen", "unavailable"]
           }
         },
         "required": [
@@ -20327,10 +19783,7 @@
                 "type": "boolean"
               }
             },
-            "required": [
-              "network",
-              "developer"
-            ]
+            "required": ["network", "developer"]
           },
           "backgroundAllowed": {
             "type": "boolean"
@@ -20394,10 +19847,7 @@
             "maxLength": 100
           },
           "architecture": {
-            "enum": [
-              "amd64",
-              "arm64"
-            ]
+            "enum": ["amd64", "arm64"]
           },
           "reportedAt": {
             "type": "string",
@@ -20415,10 +19865,7 @@
                 "type": "boolean"
               }
             },
-            "required": [
-              "network",
-              "developer"
-            ]
+            "required": ["network", "developer"]
           },
           "backgroundAllowed": {
             "type": "boolean"
@@ -20467,12 +19914,7 @@
             "pattern": "\\.\\d{3}Z$"
           }
         },
-        "required": [
-          "eventId",
-          "kind",
-          "code",
-          "occurredAt"
-        ]
+        "required": ["eventId", "kind", "code", "occurredAt"]
       },
       "AgentSyncRequest": {
         "type": "object",
@@ -20494,11 +19936,7 @@
             }
           }
         },
-        "required": [
-          "schemaVersion",
-          "generation",
-          "events"
-        ]
+        "required": ["schemaVersion", "generation", "events"]
       },
       "DeveloperDisclosure": {
         "type": "object",
@@ -20512,10 +19950,7 @@
             "maxLength": 2000
           }
         },
-        "required": [
-          "version",
-          "text"
-        ]
+        "required": ["version", "text"]
       },
       "DeveloperPolicyInput": {
         "type": "object",
@@ -20717,21 +20152,14 @@
             "maxLength": 20
           },
           "state": {
-            "enum": [
-              "ACTIVE",
-              "REVOKED"
-            ]
+            "enum": ["ACTIVE", "REVOKED"]
           },
           "ownerId": {
             "type": "string",
             "format": "uuid"
           },
           "connection": {
-            "enum": [
-              "online",
-              "unavailable",
-              "revoked"
-            ]
+            "enum": ["online", "unavailable", "revoked"]
           },
           "sharingAllowed": {
             "type": "boolean"
@@ -20815,10 +20243,7 @@
             "format": "uuid"
           },
           "mode": {
-            "enum": [
-              "graceful",
-              "force"
-            ]
+            "enum": ["graceful", "force"]
           },
           "includeChildren": {
             "type": "boolean"
@@ -20866,10 +20291,7 @@
             "$ref": "#/components/schemas/RemoteService"
           },
           "mode": {
-            "enum": [
-              "graceful",
-              "force"
-            ]
+            "enum": ["graceful", "force"]
           },
           "includeChildren": {
             "type": "boolean"
@@ -20977,13 +20399,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "commandId",
-          "event",
-          "outcome",
-          "occurredAt"
-        ]
+        "required": ["id", "commandId", "event", "outcome", "occurredAt"]
       },
       "RemoteCommandHistory": {
         "type": "object",
@@ -21019,10 +20435,7 @@
             "$ref": "#/components/schemas/RemoteService"
           },
           "mode": {
-            "enum": [
-              "graceful",
-              "force"
-            ]
+            "enum": ["graceful", "force"]
           },
           "includeChildren": {
             "type": "boolean"
@@ -21147,10 +20560,7 @@
             "$ref": "#/components/schemas/RemoteService"
           },
           "mode": {
-            "enum": [
-              "graceful",
-              "force"
-            ]
+            "enum": ["graceful", "force"]
           },
           "includeChildren": {
             "type": "boolean"
@@ -21280,9 +20690,7 @@
             "pattern": "^[A-Za-z0-9_-]{43}$"
           }
         },
-        "required": [
-          "leaseToken"
-        ]
+        "required": ["leaseToken"]
       },
       "CommandResultInput": {
         "type": "object",
@@ -21316,10 +20724,7 @@
             ]
           }
         },
-        "required": [
-          "leaseToken",
-          "outcome"
-        ]
+        "required": ["leaseToken", "outcome"]
       },
       "ApplicationUsageBatch": {
         "type": "object",
@@ -21389,11 +20794,7 @@
                   "pattern": "\\.\\d{3}Z$"
                 }
               },
-              "required": [
-                "applicationId",
-                "start",
-                "end"
-              ]
+              "required": ["applicationId", "start", "end"]
             }
           },
           "screen": {
@@ -21414,10 +20815,7 @@
                   "pattern": "\\.\\d{3}Z$"
                 }
               },
-              "required": [
-                "start",
-                "end"
-              ]
+              "required": ["start", "end"]
             }
           },
           "launches": {
@@ -21439,10 +20837,7 @@
                   "pattern": "\\.\\d{3}Z$"
                 }
               },
-              "required": [
-                "applicationId",
-                "at"
-              ]
+              "required": ["applicationId", "at"]
             }
           },
           "applications": {
@@ -21459,10 +20854,7 @@
                   "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
                 },
                 "label": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
+                  "type": ["string", "null"],
                   "maxLength": 100
                 },
                 "platformCategory": {
@@ -21480,11 +20872,7 @@
                   ]
                 }
               },
-              "required": [
-                "applicationId",
-                "label",
-                "platformCategory"
-              ]
+              "required": ["applicationId", "label", "platformCategory"]
             }
           },
           "issues": {
@@ -21545,10 +20933,7 @@
                   "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
                 },
                 "label": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
+                  "type": ["string", "null"],
                   "maxLength": 100
                 },
                 "platformCategory": {
@@ -21566,11 +20951,7 @@
                   ]
                 }
               },
-              "required": [
-                "applicationId",
-                "label",
-                "platformCategory"
-              ]
+              "required": ["applicationId", "label", "platformCategory"]
             }
           },
           "categories": {
@@ -21587,10 +20968,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "id",
-                "name"
-              ]
+              "required": ["id", "name"]
             }
           },
           "overrides": {
@@ -21600,12 +20978,7 @@
             }
           }
         },
-        "required": [
-          "deviceId",
-          "applications",
-          "categories",
-          "overrides"
-        ]
+        "required": ["deviceId", "applications", "categories", "overrides"]
       },
       "ApplicationCategoryRequest": {
         "type": "object",
@@ -21621,10 +20994,7 @@
             "maxLength": 40
           }
         },
-        "required": [
-          "deviceId",
-          "name"
-        ]
+        "required": ["deviceId", "name"]
       },
       "ApplicationCorrectionRequest": {
         "type": "object",
@@ -21638,17 +21008,10 @@
             "type": "string"
           },
           "categoryId": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           }
         },
-        "required": [
-          "deviceId",
-          "applicationId",
-          "categoryId"
-        ]
+        "required": ["deviceId", "applicationId", "categoryId"]
       },
       "ApplicationSummary": {
         "type": "object",
@@ -21658,10 +21021,7 @@
             "type": "string"
           },
           "label": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "platformCategory": {
             "type": "string"
@@ -21673,11 +21033,7 @@
             "type": "string"
           },
           "source": {
-            "enum": [
-              "manual",
-              "unknown",
-              "os_category"
-            ]
+            "enum": ["manual", "unknown", "os_category"]
           },
           "confidence": {
             "type": "number",
@@ -21688,34 +21044,22 @@
             "type": "number"
           },
           "previousSeconds": {
-            "type": [
-              "number",
-              "null"
-            ]
+            "type": ["number", "null"]
           },
           "observedLaunches": {
             "type": "integer",
             "minimum": 0
           },
           "launchCount": {
-            "type": [
-              "integer",
-              "null"
-            ],
+            "type": ["integer", "null"],
             "minimum": 0
           },
           "firstUse": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "date-time"
           },
           "lastUse": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "format": "date-time"
           },
           "lateNightSeconds": {
@@ -21763,11 +21107,7 @@
             "format": "date"
           },
           "period": {
-            "enum": [
-              "day",
-              "week",
-              "month"
-            ]
+            "enum": ["day", "week", "month"]
           },
           "applications": {
             "type": "array",
@@ -21791,11 +21131,7 @@
                   "type": "number"
                 }
               },
-              "required": [
-                "id",
-                "name",
-                "seconds"
-              ]
+              "required": ["id", "name", "seconds"]
             }
           },
           "customCategories": {
@@ -21812,10 +21148,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "id",
-                "name"
-              ]
+              "required": ["id", "name"]
             }
           },
           "builtinCategories": {
@@ -21835,16 +21168,10 @@
                   "format": "date"
                 },
                 "foregroundSeconds": {
-                  "type": [
-                    "number",
-                    "null"
-                  ]
+                  "type": ["number", "null"]
                 },
                 "screenSeconds": {
-                  "type": [
-                    "number",
-                    "null"
-                  ]
+                  "type": ["number", "null"]
                 },
                 "expectedMs": {
                   "type": "number"
@@ -21856,10 +21183,7 @@
                   "type": "number"
                 },
                 "screenLateNightSeconds": {
-                  "type": [
-                    "number",
-                    "null"
-                  ]
+                  "type": ["number", "null"]
                 }
               },
               "required": [
@@ -21887,10 +21211,7 @@
                   "type": "string"
                 },
                 "applicationId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 },
                 "period": {
                   "type": "string"
@@ -21902,16 +21223,10 @@
                   "type": "number"
                 },
                 "observedValue": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 },
                 "percent": {
-                  "type": [
-                    "number",
-                    "null"
-                  ]
+                  "type": ["number", "null"]
                 }
               },
               "required": [
@@ -21991,11 +21306,7 @@
                         "pattern": "\\.\\d{3}Z$"
                       }
                     },
-                    "required": [
-                      "applicationId",
-                      "start",
-                      "end"
-                    ]
+                    "required": ["applicationId", "start", "end"]
                   }
                 },
                 "screen": {
@@ -22016,10 +21327,7 @@
                         "pattern": "\\.\\d{3}Z$"
                       }
                     },
-                    "required": [
-                      "start",
-                      "end"
-                    ]
+                    "required": ["start", "end"]
                   }
                 }
               },
@@ -22048,16 +21356,10 @@
                 "format": "date"
               },
               "currentSeconds": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "previousSeconds": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "percentChange": {
                 "type": "null"
@@ -22090,12 +21392,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "code",
-                "applicationId",
-                "seconds",
-                "evidence"
-              ]
+              "required": ["code", "applicationId", "seconds", "evidence"]
             }
           },
           "qualityNote": {
@@ -22123,10 +21420,7 @@
       "NetworkSiteInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "cidrs"
-        ],
+        "required": ["name", "cidrs"],
         "properties": {
           "name": {
             "type": "string",
@@ -22147,12 +21441,7 @@
       "NetworkSite": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "networkId",
-          "name",
-          "cidrs",
-          "createdAt"
-        ],
+        "required": ["networkId", "name", "cidrs", "createdAt"],
         "properties": {
           "networkId": {
             "type": "string",
@@ -22176,12 +21465,7 @@
       "NetworkGrantInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "agentId",
-          "enabled",
-          "accepted",
-          "disclosureVersion"
-        ],
+        "required": ["agentId", "enabled", "accepted", "disclosureVersion"],
         "properties": {
           "agentId": {
             "type": "string",
@@ -22259,11 +21543,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "name",
-                "cidr",
-                "gateway"
-              ],
+              "required": ["name", "cidr", "gateway"],
               "properties": {
                 "name": {
                   "type": "string",
@@ -22461,11 +21741,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "name",
-                "cidr",
-                "gateway"
-              ],
+              "required": ["name", "cidr", "gateway"],
               "properties": {
                 "name": {
                   "type": "string",
@@ -22494,11 +21770,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "address",
-                "mac",
-                "evidence"
-              ],
+              "required": ["address", "mac", "evidence"],
               "properties": {
                 "address": {
                   "type": "string"
@@ -22516,11 +21788,7 @@
                 },
                 "evidence": {
                   "type": "string",
-                  "enum": [
-                    "reachable",
-                    "cached",
-                    "unknown"
-                  ]
+                  "enum": ["reachable", "cached", "unknown"]
                 }
               }
             },
@@ -22652,10 +21920,7 @@
       "NetworkSnapshotAck": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "accepted",
-          "replayed"
-        ],
+        "required": ["accepted", "replayed"],
         "properties": {
           "accepted": {
             "const": true
@@ -22880,11 +22145,7 @@
           },
           "trust": {
             "type": "string",
-            "enum": [
-              "unknown",
-              "trusted",
-              "blocked_label"
-            ]
+            "enum": ["unknown", "trusted", "blocked_label"]
           },
           "notes": {
             "type": "string",
@@ -22984,11 +22245,7 @@
           },
           "trust": {
             "type": "string",
-            "enum": [
-              "unknown",
-              "trusted",
-              "blocked_label"
-            ]
+            "enum": ["unknown", "trusted", "blocked_label"]
           },
           "notes": {
             "type": "string",
@@ -23101,11 +22358,7 @@
           },
           "trust": {
             "type": "string",
-            "enum": [
-              "unknown",
-              "trusted",
-              "blocked_label"
-            ]
+            "enum": ["unknown", "trusted", "blocked_label"]
           },
           "notes": {
             "type": "string",
@@ -23147,22 +22400,14 @@
           },
           "presence": {
             "type": "string",
-            "enum": [
-              "recently_observed",
-              "not_recently_observed"
-            ]
+            "enum": ["recently_observed", "not_recently_observed"]
           },
           "observations": {
             "type": "array",
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "agentId",
-                "address",
-                "evidence",
-                "observedAt"
-              ],
+              "required": ["agentId", "address", "evidence", "observedAt"],
               "properties": {
                 "agentId": {
                   "type": "string",
@@ -23195,21 +22440,14 @@
       "NetworkEventInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "acknowledged",
-          "severity"
-        ],
+        "required": ["acknowledged", "severity"],
         "properties": {
           "acknowledged": {
             "type": "boolean"
           },
           "severity": {
             "type": "string",
-            "enum": [
-              "info",
-              "warning",
-              "critical"
-            ]
+            "enum": ["info", "warning", "critical"]
           }
         }
       },
@@ -23274,11 +22512,7 @@
           },
           "severity": {
             "type": "string",
-            "enum": [
-              "info",
-              "warning",
-              "critical"
-            ]
+            "enum": ["info", "warning", "critical"]
           },
           "occurredAt": {
             "type": "string",
@@ -23355,10 +22589,7 @@
           },
           "evidence": {
             "type": "string",
-            "enum": [
-              "fixture_only",
-              "operator_reported"
-            ]
+            "enum": ["fixture_only", "operator_reported"]
           },
           "testedAt": {
             "type": "string",
@@ -23436,10 +22667,7 @@
           },
           "evidence": {
             "type": "string",
-            "enum": [
-              "fixture_only",
-              "operator_reported"
-            ]
+            "enum": ["fixture_only", "operator_reported"]
           },
           "testedAt": {
             "type": "string",
@@ -23456,11 +22684,7 @@
       "NetworkDisclosure": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "version",
-          "text",
-          "adapterProfiles"
-        ],
+        "required": ["version", "text", "adapterProfiles"],
         "properties": {
           "version": {
             "const": "network-sharing-v1"
@@ -23607,11 +22831,7 @@
                   "items": {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": [
-                      "name",
-                      "cidr",
-                      "gateway"
-                    ],
+                    "required": ["name", "cidr", "gateway"],
                     "properties": {
                       "name": {
                         "type": "string",
@@ -23721,10 +22941,7 @@
                 "minimum": 0
               },
               "peakRecentBitsPerSecond": {
-                "type": [
-                  "number",
-                  "null"
-                ],
+                "type": ["number", "null"],
                 "minimum": 0
               },
               "samples": {
@@ -23885,13 +23102,7 @@
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "at",
-                    "rx",
-                    "tx",
-                    "samples",
-                    "gaps"
-                  ],
+                  "required": ["at", "rx", "tx", "samples", "gaps"],
                   "properties": {
                     "at": {
                       "type": "string",
@@ -23994,11 +23205,7 @@
       "NetworkTestPending": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "requestId",
-          "state",
-          "expiresAt"
-        ],
+        "required": ["requestId", "state", "expiresAt"],
         "properties": {
           "requestId": {
             "type": "string",
@@ -24016,9 +23223,7 @@
       "NetworkRemoved": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "removed"
-        ],
+        "required": ["removed"],
         "properties": {
           "removed": {
             "const": true
@@ -24028,9 +23233,7 @@
       "NetworkPaused": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "cleared"
-        ],
+        "required": ["cleared"],
         "properties": {
           "cleared": {
             "const": true
@@ -24106,22 +23309,11 @@
           },
           "avatar": {
             "type": "string",
-            "enum": [
-              "star",
-              "leaf",
-              "fox",
-              "owl",
-              "rocket",
-              "sun"
-            ]
+            "enum": ["star", "leaf", "fox", "owl", "rocket", "sun"]
           },
           "ageBand": {
             "type": "string",
-            "enum": [
-              "under_13",
-              "teen",
-              "adult"
-            ]
+            "enum": ["under_13", "teen", "adult"]
           },
           "userId": {
             "anyOf": [
@@ -24199,22 +23391,11 @@
           },
           "avatar": {
             "type": "string",
-            "enum": [
-              "star",
-              "leaf",
-              "fox",
-              "owl",
-              "rocket",
-              "sun"
-            ]
+            "enum": ["star", "leaf", "fox", "owl", "rocket", "sun"]
           },
           "ageBand": {
             "type": "string",
-            "enum": [
-              "under_13",
-              "teen",
-              "adult"
-            ]
+            "enum": ["under_13", "teen", "adult"]
           },
           "userId": {
             "anyOf": [
@@ -24261,11 +23442,7 @@
       "FamilyAssignmentInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "deviceId",
-          "accepted",
-          "disclosureVersion"
-        ],
+        "required": ["deviceId", "accepted", "disclosureVersion"],
         "properties": {
           "deviceId": {
             "type": "string",
@@ -24353,10 +23530,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "id",
-                "minutes"
-              ],
+              "required": ["id", "minutes"],
               "properties": {
                 "id": {
                   "type": "string"
@@ -24375,10 +23549,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "id",
-                "minutes"
-              ],
+              "required": ["id", "minutes"],
               "properties": {
                 "id": {
                   "type": "string",
@@ -24391,11 +23562,7 @@
                 },
                 "purpose": {
                   "type": "string",
-                  "enum": [
-                    "education",
-                    "entertainment",
-                    "other"
-                  ]
+                  "enum": ["education", "entertainment", "other"]
                 }
               }
             },
@@ -24420,20 +23587,11 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "kind",
-                "days",
-                "start",
-                "end"
-              ],
+              "required": ["kind", "days", "start", "end"],
               "properties": {
                 "kind": {
                   "type": "string",
-                  "enum": [
-                    "bedtime",
-                    "study",
-                    "weekend"
-                  ]
+                  "enum": ["bedtime", "study", "weekend"]
                 },
                 "days": {
                   "type": "array",
@@ -24559,12 +23717,7 @@
       "FamilyRequestInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "minutes",
-          "reason",
-          "policyRevision"
-        ],
+        "required": ["id", "minutes", "reason", "policyRevision"],
         "properties": {
           "id": {
             "type": "string",
@@ -24637,13 +23790,7 @@
           },
           "state": {
             "type": "string",
-            "enum": [
-              "pending",
-              "approved",
-              "rejected",
-              "cancelled",
-              "expired"
-            ]
+            "enum": ["pending", "approved", "rejected", "cancelled", "expired"]
           },
           "requestedAt": {
             "type": "string",
@@ -24691,35 +23838,22 @@
       "FamilyDecisionInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "decision"
-        ],
+        "required": ["decision"],
         "properties": {
           "decision": {
             "type": "string",
-            "enum": [
-              "approved",
-              "rejected",
-              "cancelled"
-            ]
+            "enum": ["approved", "rejected", "cancelled"]
           }
         }
       },
       "FamilyFeedbackInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "rating",
-          "note"
-        ],
+        "required": ["rating", "note"],
         "properties": {
           "rating": {
             "type": "string",
-            "enum": [
-              "helpful",
-              "not_helpful",
-              "not_enough_data"
-            ]
+            "enum": ["helpful", "not_helpful", "not_enough_data"]
           },
           "note": {
             "type": "string",
@@ -24773,20 +23907,12 @@
       "FamilyOverview": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "disclosure",
-          "canCreate",
-          "profiles",
-          "adapters"
-        ],
+        "required": ["disclosure", "canCreate", "profiles", "adapters"],
         "properties": {
           "disclosure": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "version",
-              "text"
-            ],
+            "required": ["version", "text"],
             "properties": {
               "version": {
                 "const": "family-sharing-v1"
@@ -24845,13 +23971,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "id",
-                "platform",
-                "status",
-                "actions",
-                "reason"
-              ],
+              "required": ["id", "platform", "status", "actions", "reason"],
               "properties": {
                 "id": {
                   "type": "string"
@@ -24917,11 +24037,7 @@
           "desired": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "state",
-              "reasons",
-              "warnings"
-            ],
+            "required": ["state", "reasons", "warnings"],
             "properties": {
               "state": {
                 "type": "string"
@@ -25035,10 +24151,7 @@
               },
               "confidence": {
                 "type": "string",
-                "enum": [
-                  "partial_observations",
-                  "insufficient_data"
-                ]
+                "enum": ["partial_observations", "insufficient_data"]
               },
               "evidence": {
                 "type": "string"
@@ -25055,11 +24168,7 @@
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "id",
-                    "currentMinutes",
-                    "previousMinutes"
-                  ],
+                  "required": ["id", "currentMinutes", "previousMinutes"],
                   "properties": {
                     "id": {
                       "type": "string"
@@ -25081,11 +24190,7 @@
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "id",
-                    "currentMinutes",
-                    "previousMinutes"
-                  ],
+                  "required": ["id", "currentMinutes", "previousMinutes"],
                   "properties": {
                     "id": {
                       "type": "string"
@@ -25170,13 +24275,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "id",
-                "platform",
-                "status",
-                "actions",
-                "reason"
-              ],
+              "required": ["id", "platform", "status", "actions", "reason"],
               "properties": {
                 "id": {
                   "type": "string"
@@ -25203,10 +24302,7 @@
           "disclosure": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "version",
-              "text"
-            ],
+            "required": ["version", "text"],
             "properties": {
               "version": {
                 "const": "family-sharing-v1"
@@ -25221,9 +24317,7 @@
       "FamilyDeviceInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "generation"
-        ],
+        "required": ["generation"],
         "properties": {
           "generation": {
             "type": "integer",
@@ -25255,22 +24349,14 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "unsupported",
-              "failed",
-              "not_requested"
-            ]
+            "enum": ["unsupported", "failed", "not_requested"]
           }
         }
       },
       "FamilyDeviceConfiguration": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "schemaVersion",
-          "assignment",
-          "adapters"
-        ],
+        "required": ["schemaVersion", "assignment", "adapters"],
         "properties": {
           "schemaVersion": {
             "const": 1
@@ -25355,13 +24441,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "id",
-                "platform",
-                "status",
-                "actions",
-                "reason"
-              ],
+              "required": ["id", "platform", "status", "actions", "reason"],
               "properties": {
                 "id": {
                   "type": "string"
@@ -25390,9 +24470,7 @@
       "FamilyAccepted": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "accepted"
-        ],
+        "required": ["accepted"],
         "properties": {
           "accepted": {
             "const": true
@@ -25402,9 +24480,7 @@
       "FamilySaved": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "saved"
-        ],
+        "required": ["saved"],
         "properties": {
           "saved": {
             "const": true
@@ -25414,10 +24490,7 @@
       "BusinessNameInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "expectedRevision",
-          "name"
-        ],
+        "required": ["expectedRevision", "name"],
         "properties": {
           "expectedRevision": {
             "type": "integer",
@@ -25434,11 +24507,7 @@
       "BusinessDepartmentInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "expectedRevision",
-          "name",
-          "locationId"
-        ],
+        "required": ["expectedRevision", "name", "locationId"],
         "properties": {
           "expectedRevision": {
             "type": "integer",
@@ -25459,9 +24528,7 @@
       "BusinessEmployeeInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "userId"
-        ],
+        "required": ["userId"],
         "properties": {
           "userId": {
             "type": "string",
@@ -25483,9 +24550,7 @@
       "BusinessEmployeeUpdate": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "expectedRevision"
-        ],
+        "required": ["expectedRevision"],
         "properties": {
           "expectedRevision": {
             "type": "integer",
@@ -25507,9 +24572,7 @@
       "BusinessNetworkLocationInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "locationId"
-        ],
+        "required": ["locationId"],
         "properties": {
           "locationId": {
             "type": "string",
@@ -25520,10 +24583,7 @@
       "BusinessAssignmentInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "employeeId",
-          "expectedRevision"
-        ],
+        "required": ["employeeId", "expectedRevision"],
         "properties": {
           "employeeId": {
             "type": "string",
@@ -25564,10 +24624,7 @@
       "BusinessCustodyInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "accepted",
-          "disclosureVersion"
-        ],
+        "required": ["accepted", "disclosureVersion"],
         "properties": {
           "accepted": {
             "const": true
@@ -25607,10 +24664,7 @@
       "BusinessAlertInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "expectedRevision",
-          "resolved"
-        ],
+        "required": ["expectedRevision", "resolved"],
         "properties": {
           "expectedRevision": {
             "type": "integer",
@@ -25635,9 +24689,7 @@
       "BusinessOffboardInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "confirmation"
-        ],
+        "required": ["confirmation"],
         "properties": {
           "confirmation": {
             "const": "OFFBOARD"
@@ -25647,9 +24699,7 @@
       "BusinessUnenrolInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "confirmation"
-        ],
+        "required": ["confirmation"],
         "properties": {
           "confirmation": {
             "const": "UNENROL"
@@ -25676,11 +24726,7 @@
           "organization": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "id",
-              "name",
-              "timezone"
-            ],
+            "required": ["id", "name", "timezone"],
             "properties": {
               "id": {
                 "type": "string",
@@ -25740,10 +24786,7 @@
             }
           },
           "policy": {
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": ["object", "null"]
           },
           "qualityNote": {
             "type": "string"
@@ -25807,12 +24850,7 @@
       },
       "BusinessAuditExport": {
         "type": "object",
-        "required": [
-          "workspaceId",
-          "rows",
-          "retentionDays",
-          "generatedAt"
-        ],
+        "required": ["workspaceId", "rows", "retentionDays", "generatedAt"],
         "properties": {
           "workspaceId": {
             "type": "string",
@@ -25837,9 +24875,7 @@
       "BusinessEndpointDepartmentInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "expectedRevision"
-        ],
+        "required": ["expectedRevision"],
         "properties": {
           "expectedRevision": {
             "type": "integer",
@@ -25861,12 +24897,7 @@
       "BillingPlanInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "requestId",
-          "expectedRevision",
-          "plan",
-          "interval"
-        ],
+        "required": ["requestId", "expectedRevision", "plan", "interval"],
         "properties": {
           "requestId": {
             "type": "string",
@@ -25877,26 +24908,17 @@
             "minimum": 0
           },
           "plan": {
-            "enum": [
-              "premium",
-              "family",
-              "business"
-            ]
+            "enum": ["premium", "family", "business"]
           },
           "interval": {
-            "enum": [
-              "monthly",
-              "annual"
-            ]
+            "enum": ["monthly", "annual"]
           }
         }
       },
       "BillingRevisionInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "expectedRevision"
-        ],
+        "required": ["expectedRevision"],
         "properties": {
           "expectedRevision": {
             "type": "integer",
@@ -25907,9 +24929,7 @@
       "BillingConfirmInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "requestId"
-        ],
+        "required": ["requestId"],
         "properties": {
           "requestId": {
             "type": "string",
@@ -25950,25 +24970,13 @@
             "format": "date-time"
           },
           "plan": {
-            "enum": [
-              "free",
-              "premium",
-              "family",
-              "business"
-            ]
+            "enum": ["free", "premium", "family", "business"]
           },
           "interval": {
-            "enum": [
-              "monthly",
-              "annual"
-            ]
+            "enum": ["monthly", "annual"]
           },
           "status": {
-            "enum": [
-              "active",
-              "past_due",
-              "cancelled"
-            ]
+            "enum": ["active", "past_due", "cancelled"]
           },
           "periodEnd": {
             "type": "string",
@@ -26005,12 +25013,7 @@
         ],
         "properties": {
           "edition": {
-            "enum": [
-              "free",
-              "premium",
-              "family",
-              "business"
-            ]
+            "enum": ["free", "premium", "family", "business"]
           },
           "status": {
             "type": "string"
@@ -26019,10 +25022,7 @@
             "type": "boolean"
           },
           "mode": {
-            "enum": [
-              "disabled",
-              "sandbox"
-            ]
+            "enum": ["disabled", "sandbox"]
           },
           "limits": {
             "type": "object"
@@ -26076,10 +25076,7 @@
       "OperatorStatusInput": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "password",
-          "status"
-        ],
+        "required": ["password", "status"],
         "properties": {
           "password": {
             "type": "string",
@@ -26087,10 +25084,7 @@
             "maxLength": 128
           },
           "status": {
-            "enum": [
-              "ACTIVE",
-              "SUSPENDED"
-            ]
+            "enum": ["ACTIVE", "SUSPENDED"]
           }
         }
       },
@@ -26112,10 +25106,7 @@
             "maxLength": 128
           },
           "scope": {
-            "enum": [
-              "global",
-              "workspace"
-            ]
+            "enum": ["global", "workspace"]
           },
           "workspaceId": {
             "type": "string",
@@ -26162,12 +25153,7 @@
             "pattern": "^[a-z0-9][a-z0-9_.-]{1,79}$"
           },
           "kind": {
-            "enum": [
-              "router",
-              "device",
-              "agent",
-              "category"
-            ]
+            "enum": ["router", "device", "agent", "category"]
           },
           "label": {
             "type": "string",
@@ -26175,12 +25161,7 @@
             "maxLength": 100
           },
           "status": {
-            "enum": [
-              "unverified",
-              "candidate",
-              "verified",
-              "unsupported"
-            ]
+            "enum": ["unverified", "candidate", "verified", "unsupported"]
           },
           "evidence": {
             "type": "string",

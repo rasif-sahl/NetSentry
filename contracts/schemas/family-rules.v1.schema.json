@@ -37,10 +37,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "minutes"
-        ],
+        "required": ["id", "minutes"],
         "properties": {
           "id": {
             "type": "string"
@@ -59,10 +56,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id",
-          "minutes"
-        ],
+        "required": ["id", "minutes"],
         "properties": {
           "id": {
             "type": "string",
@@ -75,11 +69,7 @@
           },
           "purpose": {
             "type": "string",
-            "enum": [
-              "education",
-              "entertainment",
-              "other"
-            ]
+            "enum": ["education", "entertainment", "other"]
           }
         }
       },
@@ -104,20 +94,11 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "kind",
-          "days",
-          "start",
-          "end"
-        ],
+        "required": ["kind", "days", "start", "end"],
         "properties": {
           "kind": {
             "type": "string",
-            "enum": [
-              "bedtime",
-              "study",
-              "weekend"
-            ]
+            "enum": ["bedtime", "study", "weekend"]
           },
           "days": {
             "type": "array",

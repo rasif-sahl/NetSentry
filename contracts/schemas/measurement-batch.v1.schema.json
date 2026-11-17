@@ -3,13 +3,7 @@
   "$id": "https://netsentry.example/schemas/measurement-batch.v1.json",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "batchId",
-    "generation",
-    "events",
-    "gaps"
-  ],
+  "required": ["schemaVersion", "batchId", "generation", "events", "gaps"],
   "properties": {
     "schemaVersion": {
       "const": 1

@@ -3,12 +3,7 @@
   "$id": "https://netsentry.example/schemas/local-ipc.v1.json",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "requestId",
-    "method",
-    "payload"
-  ],
+  "required": ["schemaVersion", "requestId", "method", "payload"],
   "properties": {
     "schemaVersion": {
       "const": 1
@@ -18,11 +13,7 @@
       "format": "uuid"
     },
     "method": {
-      "enum": [
-        "get_status",
-        "list_services",
-        "request_stop"
-      ]
+      "enum": ["get_status", "list_services", "request_stop"]
     },
     "payload": {
       "type": "object"

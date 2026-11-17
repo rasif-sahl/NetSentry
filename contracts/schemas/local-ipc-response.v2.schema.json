@@ -5,13 +5,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "ok",
-        "code",
-        "data"
-      ],
+      "required": ["schemaVersion", "requestId", "ok", "code", "data"],
       "properties": {
         "schemaVersion": {
           "const": 2
@@ -59,30 +53,18 @@
               "type": "string"
             },
             "platform": {
-              "enum": [
-                "darwin",
-                "windows",
-                "linux"
-              ]
+              "enum": ["darwin", "windows", "linux"]
             },
             "paired": {
               "type": "boolean"
             },
             "connection": {
-              "enum": [
-                "unpaired",
-                "offline",
-                "online",
-                "revoked"
-              ]
+              "enum": ["unpaired", "offline", "online", "revoked"]
             },
             "requested": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "network",
-                "developer"
-              ],
+              "required": ["network", "developer"],
               "properties": {
                 "network": {
                   "type": "boolean"
@@ -95,10 +77,7 @@
             "authorized": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "network",
-                "developer"
-              ],
+              "required": ["network", "developer"],
               "properties": {
                 "network": {
                   "type": "boolean"
@@ -111,10 +90,7 @@
             "effective": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "network",
-                "developer"
-              ],
+              "required": ["network", "developer"],
               "properties": {
                 "network": {
                   "type": "boolean"
@@ -155,13 +131,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "ok",
-        "code",
-        "data"
-      ],
+      "required": ["schemaVersion", "requestId", "ok", "code", "data"],
       "properties": {
         "schemaVersion": {
           "const": 2

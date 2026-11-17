@@ -36,7 +36,9 @@ export function TeamPanel({
   }>();
   const roles = [
     "VIEWER",
-    ...(workspace.type === "BUSINESS" ? ["EMPLOYEE", "ANALYST", "NETWORK_ADMIN"] : ["MEMBER"]),
+    ...(workspace.type === "BUSINESS"
+      ? ["EMPLOYEE", "ANALYST", "NETWORK_ADMIN"]
+      : ["MEMBER"]),
     ...(workspace.type === "FAMILY" && workspace.role === "OWNER"
       ? ["GUARDIAN"]
       : []),

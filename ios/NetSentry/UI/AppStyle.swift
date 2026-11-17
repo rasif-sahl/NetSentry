@@ -42,7 +42,8 @@ struct AppStatusNotice: View {
     let message: String
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "info.circle").foregroundStyle(AppAppearance.accent).accessibilityHidden(true)
+            Image(systemName: "info.circle").foregroundStyle(AppAppearance.accent)
+                .accessibilityHidden(true)
             Text(message).font(.callout).foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
@@ -50,7 +51,10 @@ struct AppStatusNotice: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(AppAppearance.card, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous).stroke(AppAppearance.hairline, lineWidth: 1))
+        .overlay(
+            RoundedRectangle(cornerRadius: 13, style: .continuous).stroke(
+                AppAppearance.hairline, lineWidth: 1)
+        )
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .accessibilityElement(children: .combine)
@@ -63,15 +67,20 @@ struct AppFloatingNavigation: View {
     var body: some View {
         HStack(spacing: 2) {
             ForEach(MobileTab.allCases) { tab in
-                Button { selected = tab } label: {
+                Button {
+                    selected = tab
+                } label: {
                     VStack(spacing: 5) {
-                        Image(systemName: tab.icon).font(.system(size: 19)).accessibilityHidden(true)
+                        Image(systemName: tab.icon).font(.system(size: 19)).accessibilityHidden(
+                            true)
                         Text(tab.rawValue).font(.caption2).lineLimit(1).minimumScaleFactor(0.8)
                     }
                     .frame(maxWidth: .infinity, minHeight: 56)
                     .foregroundStyle(selected == tab ? AppAppearance.accent : Color.secondary)
-                    .background(selected == tab ? AppAppearance.accent.opacity(0.12) : Color.clear,
-                        in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .background(
+                        selected == tab ? AppAppearance.accent.opacity(0.12) : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    )
                     .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
                 .buttonStyle(.plain)
@@ -82,7 +91,10 @@ struct AppFloatingNavigation: View {
         }
         .padding(8)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(AppAppearance.hairline, lineWidth: 1))
+        .overlay(
+            RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(
+                AppAppearance.hairline, lineWidth: 1)
+        )
         .shadow(color: .black.opacity(0.12), radius: 12, y: 4)
         .padding(.horizontal, 16)
         .padding(.top, 8)

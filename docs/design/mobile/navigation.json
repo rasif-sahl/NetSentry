@@ -1,162 +1,67 @@
 {
   "android": {
     "Home": {
-      "Workspace selection": [
-        4
-      ],
-      "This phone": [
-        6,
-        7,
-        9
-      ],
-      "Device inventory": [
-        7
-      ],
-      "Permissions & consent": [
-        5,
-        8
-      ]
+      "Workspace selection": [4],
+      "This phone": [6, 7, 9],
+      "Device inventory": [7],
+      "Permissions & consent": [5, 8]
     },
     "Usage": {
-      "Usage reports": [
-        10
-      ],
-      "Alerts & rules": [
-        11
-      ],
-      "In-app notifications": [
-        12
-      ],
-      "Application usage": [
-        13,
-        14
-      ],
-      "Categories & corrections": [
-        15
-      ],
-      "Timeline & evidence": [
-        16
-      ]
+      "Usage reports": [10],
+      "Alerts & rules": [11],
+      "In-app notifications": [12],
+      "Application usage": [13, 14],
+      "Categories & corrections": [15],
+      "Timeline & evidence": [16]
     },
     "Family": {
-      "Child profiles": [
-        17
-      ],
-      "Wellbeing reports & policy status": [
-        18
-      ],
-      "Sharing & consent": [
-        18
-      ],
-      "Time requests & decisions": [
-        19
-      ]
+      "Child profiles": [17],
+      "Wellbeing reports & policy status": [18],
+      "Sharing & consent": [18],
+      "Time requests & decisions": [19]
     },
     "Computers": {
-      "Paired computers & services": [
-        22,
-        23
-      ],
-      "Command history": [
-        24
-      ]
+      "Paired computers & services": [22, 23],
+      "Command history": [24]
     },
     "More": {
-      "Business": [
-        20
-      ],
-      "Subscription": [
-        21
-      ],
-      "Profile & appearance": [
-        25
-      ],
-      "Notification preferences": [
-        26
-      ],
-      "Privacy & account": [
-        27,
-        28
-      ]
+      "Business": [20],
+      "Subscription": [21],
+      "Profile & appearance": [25],
+      "Notification preferences": [26],
+      "Privacy & account": [27, 28]
     }
   },
   "ios": {
     "Home": {
-      "Workspace selection": [
-        4
-      ],
-      "This phone": [
-        5,
-        6
-      ],
-      "Device inventory": [
-        7
-      ],
-      "Permissions & consent": [
-        5
-      ]
+      "Workspace selection": [4],
+      "This phone": [5, 6],
+      "Device inventory": [7],
+      "Permissions & consent": [5]
     },
     "Usage": {
-      "Usage reports": [
-        8
-      ],
-      "Alerts & rules": [
-        9,
-        10,
-        11
-      ],
-      "In-app notifications": [
-        9
-      ]
+      "Usage reports": [8],
+      "Alerts & rules": [9, 10, 11],
+      "In-app notifications": [9]
     },
     "Family": {
-      "Child profiles": [
-        15
-      ],
-      "Wellbeing reports & policy status": [
-        15
-      ],
-      "Sharing & consent": [
-        16
-      ],
-      "Time requests & decisions": [
-        17
-      ],
-      "Local Apple Screen Time controls": [
-        18,
-        19,
-        20
-      ]
+      "Child profiles": [15],
+      "Wellbeing reports & policy status": [15],
+      "Sharing & consent": [16],
+      "Time requests & decisions": [17],
+      "Local Apple Screen Time controls": [18, 19, 20]
     },
     "Computers": {
-      "Paired computers & services": [
-        12,
-        13
-      ],
-      "Command history": [
-        14
-      ]
+      "Paired computers & services": [12, 13],
+      "Command history": [14]
     },
     "More": {
-      "Business": [
-        21
-      ],
-      "Subscription": [
-        22
-      ],
-      "Profile & appearance": [
-        23
-      ],
-      "Notification preferences": [
-        24
-      ],
-      "Privacy & account": [
-        26,
-        27
-      ],
-      "Sessions": [
-        25
-      ]
+      "Business": [21],
+      "Subscription": [22],
+      "Profile & appearance": [23],
+      "Notification preferences": [24],
+      "Privacy & account": [26, 27],
+      "Sessions": [25]
     }
   }
 }

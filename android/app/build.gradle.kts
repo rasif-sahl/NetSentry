@@ -17,7 +17,10 @@ android {
     }
 
     buildTypes {
-        debug { applicationIdSuffix = ".native.dev"; versionNameSuffix = "-dev" }
+        debug {
+            applicationIdSuffix = ".native.dev"
+            versionNameSuffix = "-dev"
+        }
     }
 
     compileOptions {

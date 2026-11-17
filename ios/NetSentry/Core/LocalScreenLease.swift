@@ -10,13 +10,18 @@ struct LocalScreenLease: Codable, Equatable, Sendable {
     let start: Date
     let end: Date
     let thresholdMinutes: Int?
-    func valid(now: Date = Date(), uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) -> Bool {
+    func valid(now: Date = Date(), uptime: TimeInterval = ProcessInfo.processInfo.systemUptime)
+        -> Bool
+    {
         let elapsed = uptime - createdUptime
         let parts = scope.split(separator: "/")
-        return parts.count == 2 && parts.allSatisfy { UUID(uuidString: String($0)) != nil } && elapsed >= 0 && abs(now.timeIntervalSince(createdAt) - elapsed) < 60 &&
-            start >= createdAt.addingTimeInterval(-5) && end.timeIntervalSince(start) >= 900 &&
-            end.timeIntervalSince(createdAt) <= 86400 && now < end &&
-            (thresholdMinutes == nil || (1...1440).contains(thresholdMinutes!))
+        return parts.count == 2 && parts.allSatisfy { UUID(uuidString: String($0)) != nil }
+            && elapsed >= 0 && abs(now.timeIntervalSince(createdAt) - elapsed) < 60
+            && start >= createdAt.addingTimeInterval(-5) && end.timeIntervalSince(start) >= 900
+            && end.timeIntervalSince(createdAt) <= 86400 && now < end
+            && (thresholdMinutes == nil || (1...1440).contains(thresholdMinutes!))
     }
-    func active(now: Date = Date(), uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) -> Bool { valid(now: now, uptime: uptime) && now >= start }
+    func active(now: Date = Date(), uptime: TimeInterval = ProcessInfo.processInfo.systemUptime)
+        -> Bool
+    { valid(now: now, uptime: uptime) && now >= start }
 }

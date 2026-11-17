@@ -4,10 +4,7 @@
   "title": "NetSentry agent capability report v1",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "modules"
-  ],
+  "required": ["schemaVersion", "modules"],
   "properties": {
     "schemaVersion": {
       "const": 1
@@ -23,18 +20,10 @@
     "module": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "enabled",
-        "status",
-        "reason"
-      ],
+      "required": ["id", "enabled", "status", "reason"],
       "properties": {
         "id": {
-          "enum": [
-            "network",
-            "developer"
-          ]
+          "enum": ["network", "developer"]
         },
         "enabled": {
           "type": "boolean"

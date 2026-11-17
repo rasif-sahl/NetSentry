@@ -35,18 +35,12 @@
       "format": "uuid"
     },
     "action": {
-      "enum": [
-        "stop",
-        "force_stop"
-      ]
+      "enum": ["stop", "force_stop"]
     },
     "expectedProcess": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "pid",
-        "startedAt"
-      ],
+      "required": ["pid", "startedAt"],
       "properties": {
         "pid": {
           "type": "integer",

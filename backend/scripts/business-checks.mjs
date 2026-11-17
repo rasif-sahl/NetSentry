@@ -415,15 +415,13 @@ export async function checkBusiness({ request, source, alice, app }) {
     { name: 'Synthetic assigned-event LAN', cidrs: ['192.168.90.0/24'] },
     network.accessToken,
   );
-  const endpoint = await source
-    .getRepository(NetworkEndpoint)
-    .save({
-      networkId: alertSite.networkId,
-      identity: randomUUID(),
-      name: 'Synthetic department printer',
-      firstSeenAt: new Date(),
-      lastSeenAt: new Date(),
-    });
+  const endpoint = await source.getRepository(NetworkEndpoint).save({
+    networkId: alertSite.networkId,
+    identity: randomUUID(),
+    name: 'Synthetic department printer',
+    firstSeenAt: new Date(),
+    lastSeenAt: new Date(),
+  });
   const endpointLink = await request(
     'PATCH',
     `${base}/endpoints/${endpoint.id}/department`,

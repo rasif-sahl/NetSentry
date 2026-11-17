@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { api, readJSON, validatePayload } from "./validation.mjs";
 
 const fixtures = [
- ["family-rules.v1.schema.json","family-rules.v1.json"],
- ["local-ipc.v5.schema.json","local-ipc.v5.json"],
- ["network-snapshot.v1.schema.json","network-snapshot.v1.json"],
- ["local-ipc.v4.schema.json","local-ipc.v4.json"],
- ["local-ipc.v3.schema.json","local-ipc.v3.json"],
+  ["family-rules.v1.schema.json", "family-rules.v1.json"],
+  ["local-ipc.v5.schema.json", "local-ipc.v5.json"],
+  ["network-snapshot.v1.schema.json", "network-snapshot.v1.json"],
+  ["local-ipc.v4.schema.json", "local-ipc.v4.json"],
+  ["local-ipc.v3.schema.json", "local-ipc.v3.json"],
   ["local-auth.v1.schema.json", "local-auth.v1.json"],
   ["local-ipc.v2.schema.json", "local-ipc.v2.json"],
   ["capability-report.schema.json", "agent-disabled.json"],

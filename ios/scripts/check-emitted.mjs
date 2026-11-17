@@ -1,10 +1,23 @@
-import { readFileSync } from 'node:fs';
-import assert from 'node:assert/strict';
-import { validatePayload, validateApiPayload } from '../../contracts/scripts/validation.mjs';
-const capabilities = JSON.parse(readFileSync(`${process.argv[2]}/capabilities.json`));
+import { readFileSync } from "node:fs";
+import assert from "node:assert/strict";
+import {
+  validatePayload,
+  validateApiPayload,
+} from "../../contracts/scripts/validation.mjs";
+const capabilities = JSON.parse(
+  readFileSync(`${process.argv[2]}/capabilities.json`),
+);
 const command = JSON.parse(readFileSync(`${process.argv[2]}/command.json`));
-validatePayload('device-capabilities.v1.schema.json', capabilities);
-validateApiPayload('RemoteCommandInput', command);
-assert.ok(capabilities.capabilities.every(c => c.status !== 'supported' && c.availableActions.length === 0));
-assert.throws(() => validateApiPayload('RemoteCommandInput', { ...command, pid: 123 }));
-console.log('Actual Swift-emitted capability and remote-stop payloads match shared contracts.');
+validatePayload("device-capabilities.v1.schema.json", capabilities);
+validateApiPayload("RemoteCommandInput", command);
+assert.ok(
+  capabilities.capabilities.every(
+    (c) => c.status !== "supported" && c.availableActions.length === 0,
+  ),
+);
+assert.throws(() =>
+  validateApiPayload("RemoteCommandInput", { ...command, pid: 123 }),
+);
+console.log(
+  "Actual Swift-emitted capability and remote-stop payloads match shared contracts.",
+);

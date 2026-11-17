@@ -5,12 +5,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "method",
-        "payload"
-      ],
+      "required": ["schemaVersion", "requestId", "method", "payload"],
       "properties": {
         "schemaVersion": {
           "const": 3
@@ -25,10 +20,7 @@
         "payload": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "query",
-            "offset"
-          ],
+          "required": ["query", "offset"],
           "properties": {
             "query": {
               "type": "string",
@@ -47,12 +39,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "method",
-        "payload"
-      ],
+      "required": ["schemaVersion", "requestId", "method", "payload"],
       "properties": {
         "schemaVersion": {
           "const": 3
@@ -88,10 +75,7 @@
               "format": "uuid"
             },
             "mode": {
-              "enum": [
-                "graceful",
-                "force"
-              ]
+              "enum": ["graceful", "force"]
             },
             "includeChildren": {
               "type": "boolean"
@@ -103,12 +87,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "method",
-        "payload"
-      ],
+      "required": ["schemaVersion", "requestId", "method", "payload"],
       "properties": {
         "schemaVersion": {
           "const": 3
@@ -123,11 +102,7 @@
         "payload": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "serviceId",
-            "observationId",
-            "label"
-          ],
+          "required": ["serviceId", "observationId", "label"],
           "properties": {
             "serviceId": {
               "type": "string",
@@ -149,12 +124,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "method",
-        "payload"
-      ],
+      "required": ["schemaVersion", "requestId", "method", "payload"],
       "properties": {
         "schemaVersion": {
           "const": 3
@@ -183,12 +153,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "method",
-        "payload"
-      ],
+      "required": ["schemaVersion", "requestId", "method", "payload"],
       "properties": {
         "schemaVersion": {
           "const": 3
@@ -203,9 +168,7 @@
         "payload": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "allowed"
-          ],
+          "required": ["allowed"],
           "properties": {
             "allowed": {
               "type": "boolean"

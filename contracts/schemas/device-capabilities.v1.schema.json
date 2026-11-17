@@ -64,12 +64,7 @@
             "minLength": 1
           },
           "source": {
-            "enum": [
-              "os",
-              "router",
-              "agent",
-              "permission_check"
-            ]
+            "enum": ["os", "router", "agent", "permission_check"]
           },
           "checkedAt": {
             "type": "string",

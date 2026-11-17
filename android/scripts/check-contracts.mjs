@@ -1,13 +1,30 @@
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { validatePayload, validateApiPayload } from '../../contracts/scripts/validation.mjs';
-const file = process.argv[2] ?? fileURLToPath(new URL('../test/fixtures/wire.v1.json', import.meta.url));
-const evidence = JSON.parse(readFileSync(file, 'utf8'));
-validatePayload('measurement-batch.v1.schema.json', evidence.batch);
-validatePayload('device-capabilities.v1.schema.json', evidence.capabilities);
-validateApiPayload('RemoteCommandInput', evidence.command);
-assert.ok(evidence.batch.events.every((event) => event.quality === 'estimated' && event.source.kind === 'android'));
-assert.ok(evidence.capabilities.capabilities.find((c) => c.id === 'network.hotspot_clients').availableActions.length === 0);
-assert.throws(() => validateApiPayload('RemoteCommandInput', { ...evidence.command, pid: 123 }));
-console.log('Kotlin-emitted Android measurement/capability/remote payloads match shared contracts. Data is synthetic; no phone execution is implied.');
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import {
+  validatePayload,
+  validateApiPayload,
+} from "../../contracts/scripts/validation.mjs";
+const file =
+  process.argv[2] ??
+  fileURLToPath(new URL("../test/fixtures/wire.v1.json", import.meta.url));
+const evidence = JSON.parse(readFileSync(file, "utf8"));
+validatePayload("measurement-batch.v1.schema.json", evidence.batch);
+validatePayload("device-capabilities.v1.schema.json", evidence.capabilities);
+validateApiPayload("RemoteCommandInput", evidence.command);
+assert.ok(
+  evidence.batch.events.every(
+    (event) => event.quality === "estimated" && event.source.kind === "android",
+  ),
+);
+assert.ok(
+  evidence.capabilities.capabilities.find(
+    (c) => c.id === "network.hotspot_clients",
+  ).availableActions.length === 0,
+);
+assert.throws(() =>
+  validateApiPayload("RemoteCommandInput", { ...evidence.command, pid: 123 }),
+);
+console.log(
+  "Kotlin-emitted Android measurement/capability/remote payloads match shared contracts. Data is synthetic; no phone execution is implied.",
+);
