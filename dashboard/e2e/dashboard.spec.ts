@@ -8,7 +8,7 @@ async function fixtures() {
 }
 async function login(page: Page, account = "owner") {
   const data = await fixtures();
-  await page.goto("/");
+  await page.goto("/app");
   await page.getByLabel("Email address").fill(data.accounts[account].email);
   await page.getByLabel("Password", { exact: true }).fill(data.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
@@ -75,7 +75,7 @@ test("reject cross-origin mutations and device-credential routes", async ({
 test("invalid credentials stay on sign in with a useful error", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/app");
   await page
     .getByLabel("Email address")
     .fill("owner@dashboard.example.invalid");
@@ -306,7 +306,7 @@ test("expired access cookies refresh safely across browser tabs", async ({
 }) => {
   await login(page);
   const second = await context.newPage();
-  await second.goto("/");
+  await second.goto("/app");
   await expect(
     second.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
@@ -343,7 +343,7 @@ test("team invitations bind a recipient and management changes take effect", asy
   const token = await page.getByTestId("invitation-token").innerText();
   const recipient = await browser.newContext();
   const guest = await recipient.newPage();
-  await guest.goto("/");
+  await guest.goto("/app");
   await guest.getByLabel("Email address").fill(data.accounts.recovery.email);
   await guest.getByLabel("Password", { exact: true }).fill(data.password);
   await guest.getByRole("button", { name: "Sign in", exact: true }).click();
@@ -560,7 +560,7 @@ test("registration and password-confirmed account deletion clear the browser ses
   page,
   context,
 }) => {
-  await page.goto("/");
+  await page.goto("/app");
   await page
     .getByRole("button", { name: "Create an account", exact: true })
     .click();
@@ -686,7 +686,7 @@ test("signing out or changing accounts clears other tabs instead of mixing user 
 }) => {
   const data = await login(page);
   const other = await context.newPage();
-  await other.goto("/");
+  await other.goto("/app");
   await expect(
     other.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
@@ -1063,7 +1063,7 @@ test("Business roles review organization structure and employees explicitly acce
   ).toBeVisible();
   const employeeContext = await browser.newContext();
   const employee = await employeeContext.newPage();
-  await employee.goto("/");
+  await employee.goto("/app");
   await employee.getByLabel("Email address").fill(data.accounts.employee.email);
   await employee.getByLabel("Password", { exact: true }).fill(data.password);
   await employee.getByRole("button", { name: "Sign in", exact: true }).click();
@@ -1097,7 +1097,7 @@ test("Business roles review organization structure and employees explicitly acce
   await employeeContext.close();
   const analystContext = await browser.newContext();
   const analyst = await analystContext.newPage();
-  await analyst.goto("/");
+  await analyst.goto("/app");
   await analyst
     .getByLabel("Email address")
     .fill(data.accounts.businessAnalyst.email);

@@ -1,4 +1,4 @@
-# NetSentry web dashboard
+# NetSentry public website and web dashboard
 
 The responsive Next.js/React/TypeScript/Tailwind dashboard connects to the account, workspace, device and monitoring APIs delivered in Phases 2–3. It uses actual API responses; there are no simulated scans, sample security scores or hardcoded usage totals in the product interface.
 
@@ -11,7 +11,7 @@ cp dashboard/.env.example dashboard/.env.local
 npm run dev:dashboard
 ```
 
-Open `http://localhost:3001`. Set the private `NETSENTRY_API_URL` to the full backend API base, normally `http://127.0.0.1:3000/api/v1`, and `DASHBOARD_ORIGIN` to the exact browser origin. These values are server-only; no JWT signing or account-mail encryption secret belongs in the dashboard environment. Never put credentials in a `NEXT_PUBLIC_` variable.
+Open `http://localhost:3001` for the product homepage and `http://localhost:3001/app` for the workspace. Set the private `NETSENTRY_API_URL` to the full backend API base, normally `http://127.0.0.1:3000/api/v1`, and `DASHBOARD_ORIGIN` to the exact browser origin. These values are server-only; no JWT signing or account-mail encryption secret belongs in the dashboard environment. Never put credentials in a `NEXT_PUBLIC_` variable.
 
 `DASHBOARD_ORIGIN` is mandatory in production. Production dashboard/API origins require HTTPS, with HTTP exceptions only for local loopback testing. A changed deployment hostname requires the matching configured origin. Forwarding untrusted client IP headers is deliberately disabled; backend IP-based rate limits currently share the dashboard proxy address. Configure a reviewed trusted-ingress/rate policy before a multi-user production rollout. Browser fixtures replace only their isolated rate counter, not production authentication or authorization.
 
@@ -72,3 +72,61 @@ Phase 10 Networks now separates manual labels from monitored networks. It suppor
 Phase 11 Family navigation uses real scoped API profiles, consent, policies, schedules, child requests/guardian decisions, reports/feedback and action history. Viewers have no child-profile access; guardian membership alone grants none. Saved restrictions remain unsupported intent, with no applied claim. Browser fixtures never execute restrictions. See [family validation](../docs/validation/phase-11.md).
 
 Phase 16 adds account email opt-in and an email rule channel with visible delivery-disabled states. The dashboard uses Tailwind CSS 4 via PostCSS and `@theme` tokens alongside custom CSS. No alert-email transport is enabled.
+
+## Public product homepage
+
+The approved storytelling homepage uses Tailwind CSS 4 and local product UI assets. Dashboard, Android, iOS and desktop showcases stay upright and aligned; previews can be enlarged and desktop screens can be switched. Captions identify empty/synthetic states and native release limitations. The homepage makes no monitoring API requests. Sign in opens `/app`; verification/reset URLs are unchanged, and old `/?view=…` workspace bookmarks redirect with their queries intact.
+
+Run `npm --prefix dashboard run test:homepage` after building to check the public page without a test database. Set `PLAYWRIGHT_CHROME_EXECUTABLE` to an existing browser when needed. See [public website architecture](../docs/architecture/public-website.md) and [validation](../docs/validation/public-homepage.md). Other legal and download pages remain separate work.
+
+## Product Overview
+
+Open `/product` for the approved product feature page, also linked from the homepage. It explains devices, reports/alerts, family/team sharing, developer tools, application roles and privacy. The responsive feature explorer supports pointer and keyboard navigation. Screens stay upright, buttons have no arrows, and availability/preview captions distinguish designs from released apps or live reports.
+
+Run `npm --prefix dashboard run test:public` after building for the homepage and product-page browser checks without a database. `test:homepage` remains an alias for the same public suite. These checks cover cross-page navigation, responsive layouts, tab keyboard behavior, screenshot assets and platform availability disclosure. See [Product Overview validation](../docs/validation/product-overview.md).
+
+## Applications guide
+
+Open `/applications`, linked from the homepage and Product Overview, to compare the web, Android, iOS and desktop apps. The guide implements the approved simple design with straight screens, enlarged previews, a desktop screen switcher, an accessible app-role comparison, setup guidance and availability FAQs. Native screenshots remain labelled design reconstructions; downloads are not advertised before native release validation.
+
+`npm --prefix dashboard run test:public` now checks all three public pages, including navigation, preview dialogs, keyboard focus, mobile comparison scrolling and responsive layouts. See [Applications page validation](../docs/validation/applications-page.md).
+
+## Solutions guide
+
+Open `/solutions` for the approved personal, family, team and developer use-case page. The guide uses straight screenshots, conceptual family/team diagrams, links to relevant applications and explicit consent/platform boundaries. It is linked from public navigation and the homepage's “Who it’s for” footer.
+
+`npm --prefix dashboard run test:public` checks all four public pages, including Solutions section links, previews, responsive navigation and availability disclosures. See [Solutions page validation](../docs/validation/solutions-page.md).
+
+## Customer documentation
+
+Open `/docs` for the searchable documentation home, linked from public navigation and the homepage Learn footer. Twelve guides under `/docs/[slug]` cover setup, account access, pairing, permissions, reports/alerts, sharing, family requests, developer services, unavailable data, platform availability and privacy controls. The reader has topic navigation, article contents, direct section links, metadata and unknown-guide handling.
+
+Search is local to the guide catalogue and requires no account or external search service. Reader search links to `/docs?q=…`. `npm --prefix dashboard run test:public` checks documentation together with the other public pages. See [Documentation validation](../docs/validation/documentation-page.md).
+
+
+## Pricing
+
+Open `/pricing` for the approved four-edition pricing design: aligned plan cards, a comparison table, shared privacy/availability principles and keyboard-accessible FAQs. Public navigation, the homepage Learn footer and documentation link to the page. The comparison scrolls within its labelled region on narrow screens.
+
+Prices, final commercial limits and launch availability remain unconfirmed. The page does not publish backend sandbox amounts or enable checkout; paid plans show “Coming soon”. `npm --prefix dashboard run test:public` checks Pricing alongside the other public pages. See [Pricing validation](../docs/validation/pricing-page.md).
+
+
+## Contact
+
+Open `/contact` for the approved enquiry form, guidance panel and FAQs. Public navigation, the homepage Learn footer and documentation link to the page. Documentation guidance and FAQ links reach existing public routes.
+
+This is a non-sending form preview: required fields and email syntax are validated locally, and valid attempts report that delivery is unavailable. No recipient, provider, storage or contact endpoint is configured. The form is disabled without JavaScript, and documentation remains accessible. `npm --prefix dashboard run test:public` checks navigation, local validation, no transmission, responsive layouts and no-JavaScript behavior. See [Contact validation](../docs/validation/contact-page.md).
+
+
+## Draft Privacy Policy
+
+Open `/privacy` for the approved ten-section Privacy Policy design, linked from the public footers. The page keeps a visible draft notice and an unconfirmed effective date; policy/operator/provider/retention/regional details are not finalized. The desktop contents become a native disclosure on mobile, with direct section links and hash-based selection. The closing action opens the existing privacy-controls guide at `/docs/privacy`.
+
+This page does not create an effective legal policy, change product data processing or submit privacy requests. `npm --prefix dashboard run test:public` checks footer navigation, section links, browser history, responsive layouts and no-JavaScript access. See [Privacy Policy validation](../docs/validation/privacy-policy-page.md).
+
+
+## Draft Terms and Conditions
+
+Open `/terms` for the approved twelve-section Terms and Conditions design, linked from public footers including Privacy Policy. Shared legal contents navigation supports unique section links, hash selection, browser history and a mobile native disclosure. The page retains a visible draft notice and unconfirmed effective date.
+
+This page records no acceptance and adds no registration requirement or effective commercial/legal terms. `npm --prefix dashboard run test:public` checks Terms together with Privacy Policy and the existing public pages, including mobile and no-JavaScript access. See [Terms validation](../docs/validation/terms-and-conditions-page.md).

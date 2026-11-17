@@ -2,6 +2,16 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/",
+        has: [{ type: "query", key: "view" }],
+        destination: "/app",
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {

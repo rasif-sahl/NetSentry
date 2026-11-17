@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "./dashboard.css";
 
 export const metadata: Metadata = {
-  title: "NetSentry — Workspace",
-  description: "Your devices, reported usage, alerts and workspace settings.",
+  title: "NetSentry — Bring your digital world into focus",
+  description:
+    "Device reports, digital wellbeing and developer tools across web, mobile and desktop. Understand what’s happening. Choose what happens next.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
