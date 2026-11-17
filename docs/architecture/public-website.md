@@ -9,6 +9,7 @@ The approved storytelling homepage is implemented in the existing Next.js dashbo
 - `/docs` is the searchable documentation home; `/docs/[slug]` contains twelve customer guides with topic navigation and article contents.
 - `/pricing` presents the proposed Personal Free, Personal Premium, Family and Business editions, comparison and launch-pricing FAQs.
 - `/contact` provides the approved enquiry form preview, contact guidance, documentation links and FAQs. Message delivery is not configured.
+- `/privacy` is the draft Privacy Policy, with ten sections and responsive contents navigation. It is not an effective policy.
 - `/app` contains the existing workspace and its sign-in/register/recovery flows. The homepage's sign-in and workspace actions point here.
 - `/verify-email` and `/reset-password` retain their existing URLs and fragment-token handling. Successful sign-in from these flows returns to `/app`.
 - Existing `/?view=…` bookmarks redirect to `/app?view=…`, preserving query values. Workspace navigation continues to use its existing `view` query.
@@ -18,7 +19,7 @@ Public page entries and guide readers are server components. Client components p
 
 `dashboard/public/product/` contains the approved design assets: a web empty-workspace screenshot, reconstructed Android/iOS Home designs, and desktop renderer status/service screenshots. The native images are not physical-device captures. Desktop status is synthetic and web inventory is empty; captions identify these examples. They contain no customer data and are presentation assets only. Native release/build/device acceptance remains pending as recorded in the platform validation documents. The page makes no download or app-store availability claim.
 
-The page links only to existing sections and workspace/account functionality. Separate legal and download pages remain outside these increments; the homepage does not expose nonfunctional links or pretend those pages exist. This source implementation does not provision or deploy hosting.
+The page links only to existing sections and workspace/account functionality. Other legal and download pages remain outside these increments; the homepage does not expose nonfunctional links or pretend those pages exist. This source implementation does not provision or deploy hosting.
 
 ## Product Overview
 
@@ -73,3 +74,14 @@ Plan actions scroll to a single comparison, and the closing actions reach plans/
 The approved design is a non-sending form preview. No contact endpoint, recipient, email provider, storage or live message delivery is configured. The form explicitly says messages are not sent, never claims success and preserves entered values after a valid attempt. Native constraints cover required name/email/topic/message/reply agreement, email syntax and field lengths. Names must contain a non-whitespace character. The availability status is announced politely and cleared when fields change. Inputs have no submission names; a disabled fieldset keeps the form inert until its client handler is hydrated, and a no-JavaScript explanation links users to available documentation. No message data is put into URLs, browser storage or API requests.
 
 The documentation panel opens `/docs`; FAQ links reach the workspace guide, Pricing and availability guide. All local IDs use `contact-*` to avoid cached-route collisions. No invented email address, office location, response-time promise or delivery claim is introduced. Backend, workspace and native behavior are unchanged. See [Contact validation](../validation/contact-page.md).
+
+
+## Draft Privacy Policy
+
+`/privacy` implements the approved Privacy Policy design using Tailwind CSS 4, shared public navigation, typography/buttons and cached copyright. The page is a server component with explicit draft metadata, a visible draft notice and an unconfirmed effective date. Its ten sections cover scope, information categories, uses, sharing/access, devices/permissions, storage/retention, security, cookies/local storage, choices/requests and updates/contact. Typed text/list/note blocks preserve the approved draft copy without injecting HTML.
+
+The content is not an effective policy or a compliance assertion. Operator identity, recipients/providers, processing grounds, retention/deletion periods, hosting/transfers, regional rights, child-account requirements, security wording and a verified contact channel remain to be finalized. No facts or sale/security/retention promises are invented to fill those gaps. The current Contact form is accurately identified as non-sending.
+
+Desktop contents are always visible; below 651px a closed native disclosure exposes the same section links. Selection follows clicks, URL hash changes, browser history and direct-link hydration. Native anchors and mobile disclosure work without JavaScript. All targets use unique `privacy-*` IDs to avoid collisions with hidden cached routes. The header action scrolls to choices; the closing action and sidebar guidance open `/docs/privacy`. The home, Product, Applications, Solutions, Pricing, Contact and Documentation footers link to the draft policy, while existing product privacy-section links remain intact.
+
+No account, monitoring, contact or privacy-request API is called, and no consent record is created. This increment changes no data processing, workspace, backend or native behavior and does not configure hosting. See [Privacy Policy validation](../validation/privacy-policy-page.md).

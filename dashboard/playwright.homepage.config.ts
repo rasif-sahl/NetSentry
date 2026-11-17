@@ -10,6 +10,7 @@ export default defineConfig({
     "documentation.spec.ts",
     "pricing.spec.ts",
     "contact.spec.ts",
+    "privacy.spec.ts",
   ],
   workers: 1,
   use: {

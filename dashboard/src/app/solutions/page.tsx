@@ -714,7 +714,8 @@ export default function SolutionsPage() {
             <p>
               © <CopyrightYear /> NetSentry
             </p>
-            <div className="flex gap-6">
+            <div className="flex flex-wrap gap-6">
+              <Link href="/privacy">Privacy Policy</Link>
               <Link href="/">Home</Link>
               <Link href="/applications">Applications</Link>
               <a href="#solutions-choices">Privacy &amp; choice</a>

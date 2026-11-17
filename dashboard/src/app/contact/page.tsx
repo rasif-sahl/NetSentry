@@ -209,6 +209,7 @@ export default function ContactPage() {
           className="flex flex-wrap gap-x-6 gap-y-3"
         >
           <Link href="/product">Product</Link>
+          <Link href="/privacy">Privacy Policy</Link>
           <Link href="/docs">Documentation</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/contact">Contact</Link>

@@ -565,6 +565,7 @@ export default function Home() {
                     ["Contact", "/contact"],
                     ["Platform availability", "#availability"],
                     ["Privacy & choice", "#privacy"],
+                    ["Privacy Policy", "/privacy"],
                   ],
                 },
               ].map(({ title, links }) => (

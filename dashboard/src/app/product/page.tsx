@@ -662,7 +662,8 @@ export default function ProductPage() {
             <p>
               © <CopyrightYear /> NetSentry
             </p>
-            <div className="flex gap-6">
+            <div className="flex flex-wrap gap-6">
+              <Link href="/privacy">Privacy Policy</Link>
               <a href="#product-features">Features</a>
               <Link href="/applications">Applications</Link>
               <a href="#product-privacy">Privacy &amp; choice</a>
