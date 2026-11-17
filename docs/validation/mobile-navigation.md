@@ -23,3 +23,7 @@
 - Apple approval, entitlements and provisioning for Screen Time; no capability or enforcement is granted by navigation.
 
 No Android Studio, SDK, emulator, simulator, Xcode or browser runtime was installed.
+
+## Floating dock refinement
+
+The Android bottom bar is now clipped to a rounded 28 dp surface with side margins and navigation-bar-safe bottom spacing. The iOS tab selection is presented through a custom rounded material dock above the home indicator, while `TabView` keeps the per-tab stacks. Both designs include a soft shadow and selected-tab highlighting. Existing destination counts and Back behavior are preserved. Swift syntax checks, Kotlin/core checks and the browser navigation checks pass after the styling change; native rendering and inset/keyboard/accessibility checks remain pending.

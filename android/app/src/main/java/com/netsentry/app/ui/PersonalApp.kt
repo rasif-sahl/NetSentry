@@ -15,6 +15,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -118,11 +122,26 @@ internal val mobileDestinations = linkedMapOf(
         }
     }
     Scaffold(bottomBar = {
-        if (state?.signedIn == true) NavigationBar {
-            val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.Person, Icons.Default.Build, Icons.Default.Menu)
-            mobileDestinations.keys.forEachIndexed { index, label ->
-                NavigationBarItem(selected = tab == label, onClick = { tab = label; destination = null },
-                icon = { Icon(icons[index], contentDescription = null) }, label = { Text(label) })
+        if (state?.signedIn == true) Surface(
+            modifier = Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+            shape = RoundedCornerShape(28.dp),
+            shadowElevation = 8.dp,
+            color = MaterialTheme.colorScheme.surfaceContainer
+        ) {
+            NavigationBar(
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 0.dp
+            ) {
+                val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.Person, Icons.Default.Build, Icons.Default.Menu)
+                mobileDestinations.keys.forEachIndexed { index, label ->
+                    NavigationBarItem(
+                        selected = tab == label,
+                        onClick = { tab = label; destination = null },
+                        icon = { Icon(icons[index], contentDescription = null) },
+                        label = { Text(label) }
+                    )
+                }
             }
         }
     }) { insets ->

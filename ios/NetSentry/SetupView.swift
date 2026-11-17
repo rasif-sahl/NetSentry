@@ -74,6 +74,32 @@ private struct SignedInNavigation: View {
                     .tag(tab)
             }
         }
+        .toolbar(.hidden, for: .tabBar)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            HStack(spacing: 2) {
+                ForEach(MobileTab.allCases) { tab in
+                    Button { selected = tab } label: {
+                        VStack(spacing: 5) {
+                            Image(systemName: tab.icon).font(.system(size: 19))
+                            Text(tab.rawValue).font(.caption2).lineLimit(1).minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                        .foregroundStyle(selected == tab ? Color.accentColor : Color.secondary)
+                        .background(selected == tab ? Color.accentColor.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 20))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(tab.rawValue)
+                    .accessibilityAddTraits(selected == tab ? .isSelected : [])
+                }
+            }
+            .padding(8)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(Color.primary.opacity(0.06), lineWidth: 1))
+            .shadow(color: .black.opacity(0.12), radius: 12, y: 4)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
+        }
         .task(id: "\(selected.rawValue)-\(phase)") {
             while !Task.isCancelled && phase == .active && selected == .computers {
                 if model.snapshot?.signedIn == true && !model.busy { model.run { try await $0.desktop() } }
@@ -95,6 +121,7 @@ private struct MobileMenu: View {
                 }
             }
             .navigationTitle(tab.rawValue)
+            .toolbar(.hidden, for: .tabBar)
             .navigationDestination(for: String.self) { destination in
                 VStack(spacing: 0) {
                     NavigationStatus()

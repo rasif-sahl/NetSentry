@@ -19,7 +19,7 @@ page = f'''<!doctype html>
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NetSentry mobile navigation designs</title><style>{css}</style>
 <header><h1 id="title">Mobile navigation designs</h1>
-<p>Five persistent bottom tabs: Home, Usage, Family, Computers and More. Android has 21 submenu destinations; iOS has 20. Includes 66 previews of menus, sections, states and dialogs. These are source-based HTML reconstructions, not native screenshots. Native builds and device validation remain pending. Apple Screen Time requires separate authorization and provisioning.</p>
+<p>Five persistent floating bottom tabs: Home, Usage, Family, Computers and More. Android has 21 submenu destinations; iOS has 20. Includes 66 previews of menus, sections, states and dialogs. These are source-based HTML reconstructions, not native screenshots. Native builds and device validation remain pending. Apple Screen Time requires separate authorization and provisioning.</p>
 <nav class="controls" aria-label="Catalogue controls"><button data-platform="android">Android</button><button data-platform="ios">iOS</button><button id="mode">View all screens</button><input id="search" aria-label="Find a screen" placeholder="Find a screen…" hidden></nav></header>
 <main><div class="workspace" id="workspace"><aside class="outline" id="outline" aria-label="Navigation map"></aside><div id="preview"></div></div><div id="gallery" hidden></div></main><script>{js}</script></html>'''
 (root / 'index.html').write_text(page)
