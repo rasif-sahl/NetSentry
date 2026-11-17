@@ -5,13 +5,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "ok",
-        "code",
-        "data"
-      ],
+      "required": ["schemaVersion", "requestId", "ok", "code", "data"],
       "properties": {
         "schemaVersion": {
           "const": 3
@@ -122,11 +116,7 @@
                         "items": {
                           "type": "object",
                           "additionalProperties": false,
-                          "required": [
-                            "address",
-                            "port",
-                            "socketId"
-                          ],
+                          "required": ["address", "port", "socketId"],
                           "properties": {
                             "address": {
                               "type": "string",
@@ -274,10 +264,7 @@
                   "pattern": "^[a-f0-9]{64}$"
                 },
                 "mode": {
-                  "enum": [
-                    "graceful",
-                    "force"
-                  ]
+                  "enum": ["graceful", "force"]
                 },
                 "includeChildren": {
                   "type": "boolean"
@@ -361,10 +348,7 @@
                     "pattern": "^[a-f0-9]{64}$"
                   },
                   "mode": {
-                    "enum": [
-                      "graceful",
-                      "force"
-                    ]
+                    "enum": ["graceful", "force"]
                   },
                   "includeChildren": {
                     "type": "boolean"
@@ -424,9 +408,7 @@
             {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "saved"
-              ],
+              "required": ["saved"],
               "properties": {
                 "saved": {
                   "const": true
@@ -436,9 +418,7 @@
             {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "allowed"
-              ],
+              "required": ["allowed"],
               "properties": {
                 "allowed": {
                   "type": "boolean"
@@ -452,13 +432,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "ok",
-        "code",
-        "data"
-      ],
+      "required": ["schemaVersion", "requestId", "ok", "code", "data"],
       "properties": {
         "schemaVersion": {
           "const": 3

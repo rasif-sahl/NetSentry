@@ -68,11 +68,7 @@
             "pattern": "\\.\\d{3}Z$"
           }
         },
-        "required": [
-          "applicationId",
-          "start",
-          "end"
-        ]
+        "required": ["applicationId", "start", "end"]
       }
     },
     "screen": {
@@ -93,10 +89,7 @@
             "pattern": "\\.\\d{3}Z$"
           }
         },
-        "required": [
-          "start",
-          "end"
-        ]
+        "required": ["start", "end"]
       }
     },
     "launches": {
@@ -118,10 +111,7 @@
             "pattern": "\\.\\d{3}Z$"
           }
         },
-        "required": [
-          "applicationId",
-          "at"
-        ]
+        "required": ["applicationId", "at"]
       }
     },
     "applications": {
@@ -138,10 +128,7 @@
             "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+$"
           },
           "label": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "maxLength": 100
           },
           "platformCategory": {
@@ -159,11 +146,7 @@
             ]
           }
         },
-        "required": [
-          "applicationId",
-          "label",
-          "platformCategory"
-        ]
+        "required": ["applicationId", "label", "platformCategory"]
       }
     },
     "issues": {

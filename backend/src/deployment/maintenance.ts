@@ -63,14 +63,12 @@ export async function maintenanceBatch(source: DataSource, limit = 50) {
         failures++;
       }
     }
-    const workspaces = await source
-      .getRepository(Workspace)
-      .find({
-        select: { id: true },
-        where: state.cursor ? { id: MoreThan(state.cursor) } : {},
-        order: { id: 'ASC' },
-        take: limit,
-      });
+    const workspaces = await source.getRepository(Workspace).find({
+      select: { id: true },
+      where: state.cursor ? { id: MoreThan(state.cursor) } : {},
+      order: { id: 'ASC' },
+      take: limit,
+    });
     for (const workspace of workspaces) {
       for (const [kind, work] of tasks) {
         try {

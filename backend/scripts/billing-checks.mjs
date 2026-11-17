@@ -444,14 +444,12 @@ export async function checkBilling({ request, source, alice, app }) {
     const {
       OperatorAudit,
     } = require('../dist/operations/operations.entities.js');
-    const oldAudit = await source
-      .getRepository(OperatorAudit)
-      .save({
-        actorId: operator.user.id,
-        workspaceId: w.id,
-        action: 'synthetic_expired_audit',
-        occurredAt: new Date(Date.now() - 91 * 86400000),
-      });
+    const oldAudit = await source.getRepository(OperatorAudit).save({
+      actorId: operator.user.id,
+      workspaceId: w.id,
+      action: 'synthetic_expired_audit',
+      occurredAt: new Date(Date.now() - 91 * 86400000),
+    });
     const cleanup = await maintainOperations(source);
     assert.ok(cleanup.expiredGrants >= 1);
     assert.ok(cleanup.expiredAudit >= 1);

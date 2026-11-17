@@ -3,35 +3,163 @@ import SwiftUI
 struct SetupView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.scenePhase) private var phase
-    @State private var tab = "Overview"
+    var body: some View {
+        Group {
+            if model.snapshot?.signedIn == true {
+                SignedInNavigation()
+                    .id(
+                        (model.snapshot?.user["id"].text ?? "") + "/"
+                            + (model.snapshot?.workspaceID ?? ""))
+            } else {
+                NavigationStack {
+                    VStack(spacing: 0) {
+                        NavigationStatus()
+                        SignInView().disabled(model.busy)
+                    }
+                    .navigationTitle("NetSentry")
+                    .navigationBarTitleDisplayMode(.large)
+                    .appPageStyle()
+                }
+            }
+        }
+        .tint(AppAppearance.accent)
+        .preferredColorScheme(
+            model.snapshot?.user["preferences"]["theme"].text == "DARK"
+                ? .dark
+                : model.snapshot?.user["preferences"]["theme"].text == "LIGHT" ? .light : nil
+        )
+        .transaction {
+            if model.snapshot?.user["preferences"]["reducedMotion"].flag == true {
+                $0.disablesAnimations = true
+            }
+        }
+        .task { await model.bootstrap() }
+        .onChange(of: phase) { _, value in
+            if value == .active {
+                model.local.reconcile()
+                if model.snapshot?.signedIn == true { model.run { try await $0.refresh() } }
+            }
+        }
+    }
+}
+
+enum MobileTab: String, CaseIterable, Identifiable {
+    case home = "Home", usage = "Usage", family = "Family", computers = "Computers", more = "More"
+    var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .home: "house"
+        case .usage: "chart.bar"
+        case .family: "person.2"
+        case .computers: "desktopcomputer"
+        case .more: "ellipsis"
+        }
+    }
+    var destinations: [String] {
+        switch self {
+        case .home:
+            ["Workspace selection", "This phone", "Device inventory", "Permissions & consent"]
+        case .usage: ["Usage reports", "Alerts & rules", "In-app notifications"]
+        case .family:
+            [
+                "Child profiles", "Wellbeing reports & policy status", "Sharing & consent",
+                "Time requests & decisions", "Local Apple Screen Time controls",
+            ]
+        case .computers: ["Paired computers & services", "Command history"]
+        case .more:
+            [
+                "Business", "Subscription", "Profile & appearance", "Notification preferences",
+                "Privacy & account", "Sessions",
+            ]
+        }
+    }
+}
+
+private struct NavigationStatus: View {
+    @EnvironmentObject private var model: AppModel
+    var body: some View {
+        if model.busy { ProgressView().accessibilityLabel("Contacting NetSentry") }
+        if !model.message.isEmpty {
+            AppStatusNotice(message: model.message)
+        }
+    }
+}
+
+private struct SignedInNavigation: View {
+    @EnvironmentObject private var model: AppModel
+    @Environment(\.scenePhase) private var phase
+    @State private var selected: MobileTab = .home
+    var body: some View {
+        TabView(selection: $selected) {
+            ForEach(MobileTab.allCases) { tab in
+                MobileMenu(tab: tab)
+                    .tabItem { Label(tab.rawValue, systemImage: tab.icon) }
+                    .tag(tab)
+            }
+        }
+        .toolbar(.hidden, for: .tabBar)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            AppFloatingNavigation(selected: $selected)
+        }
+        .tint(AppAppearance.accent)
+        .task(id: "\(selected.rawValue)-\(phase)") {
+            while !Task.isCancelled && phase == .active && selected == .computers {
+                if model.snapshot?.signedIn == true && !model.busy {
+                    model.run { try await $0.desktop() }
+                }
+                try? await Task.sleep(for: .seconds(5))
+            }
+        }
+    }
+}
+
+private struct MobileMenu: View {
+    @EnvironmentObject private var model: AppModel
+    let tab: MobileTab
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if model.busy { ProgressView().accessibilityLabel("Contacting NetSentry") }
-                if !model.message.isEmpty { Text(model.message).font(.callout).foregroundStyle(.red).padding().accessibilityAddTraits(.updatesFrequently) }
-                if model.snapshot?.signedIn == true {
-                    Picker("Section", selection: $tab) { ForEach(["Overview", "Computers", "Family", "Business", "Subscription", "Settings"], id: \.self) { Text($0) } }.pickerStyle(.menu).padding(.horizontal)
-                    Group { switch tab {
-                    case "Computers": ComputersView()
-                    case "Family": FamilyView()
-                    case "Business": BusinessView()
-                    case "Subscription": SubscriptionView()
-                    case "Settings": AccountSettingsView()
-                    default: OverviewView()
-                    } }.disabled(model.busy)
-                } else { SignInView().disabled(model.busy) }
-            }
-            .navigationTitle("NetSentry")
-            .preferredColorScheme(model.snapshot?.user["preferences"]["theme"].text == "DARK" ? .dark : model.snapshot?.user["preferences"]["theme"].text == "LIGHT" ? .light : nil)
-            .transaction { if model.snapshot?.user["preferences"]["reducedMotion"].flag == true { $0.disablesAnimations = true } }
-            .toolbar { if model.snapshot?.signedIn == true { Button("Refresh") { model.run { try await $0.refresh() } }.disabled(model.busy) } }
-            .task { await model.bootstrap() }
-            .onChange(of: phase) { _, value in if value == .active { model.local.reconcile(); if model.snapshot?.signedIn == true { model.run { try await $0.refresh() } } } }
-            .task(id: "\(tab)-\(phase)") {
-                while !Task.isCancelled && phase == .active && tab == "Computers" {
-                    if model.snapshot?.signedIn == true && !model.busy { model.run { try await $0.desktop() } }
-                    try? await Task.sleep(for: .seconds(5))
+                NavigationStatus()
+                List {
+                    Section {
+                        ForEach(tab.destinations, id: \.self) { destination in
+                            AppMenuRow(title: destination)
+                        }
+                    }
                 }
+                .listStyle(.insetGrouped)
+                .environment(\.defaultMinListRowHeight, 48)
+                .scrollContentBackground(.hidden)
+                .background(AppAppearance.background)
+            }
+            .navigationTitle(tab.rawValue)
+            .navigationBarTitleDisplayMode(.large)
+            .appPageStyle()
+            .toolbar(.hidden, for: .tabBar)
+            .navigationDestination(for: String.self) { destination in
+                VStack(spacing: 0) {
+                    NavigationStatus()
+                    screen(destination).disabled(model.busy)
+                }
+                .navigationTitle(destination)
+                .navigationBarTitleDisplayMode(.inline)
+                .appPageStyle()
+            }
+            .toolbar {
+                Button("Refresh") { model.run { try await $0.refresh() } }.disabled(model.busy)
+            }
+        }
+    }
+    @ViewBuilder private func screen(_ destination: String) -> some View {
+        switch tab {
+        case .home, .usage: OverviewView(section: destination)
+        case .family: FamilyView(section: destination)
+        case .computers: ComputersView(historyOnly: destination == "Command history")
+        case .more:
+            switch destination {
+            case "Business": BusinessView()
+            case "Subscription": SubscriptionView()
+            default: AccountSettingsView(section: destination)
             }
         }
     }
@@ -42,22 +170,48 @@ struct SignInView: View {
     @State private var base = "https://", email = "", password = "", name = "", token = ""
     @State private var register = false
     var body: some View {
-        Form {
+        AppForm {
             Section("Account") {
-                TextField("HTTPS API address ending in /api/v1", text: $base).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
-                TextField("Email", text: $email).textContentType(.username).textInputAutocapitalization(.never).keyboardType(.emailAddress)
-                SecureField("Password", text: $password).textContentType(register ? .newPassword : .password)
+                TextField("HTTPS API address ending in /api/v1", text: $base)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
+                TextField("Email", text: $email).textContentType(.username)
+                    .textInputAutocapitalization(.never).keyboardType(.emailAddress)
+                SecureField("Password", text: $password).textContentType(
+                    register ? .newPassword : .password)
                 Toggle("Create an account", isOn: $register)
                 if register { TextField("Display name", text: $name) }
-                Button(register ? "Create account" : "Sign in") { let secret = password; password = ""; model.run { try await $0.authenticate(base: base, email: email, password: secret, name: register ? name : nil) } }
+                Button(register ? "Create account" : "Sign in") {
+                    let secret = password; password = "";
+                    model.run {
+                        try await $0.authenticate(
+                            base: base, email: email, password: secret, name: register ? name : nil)
+                    }
+                }
             }
             Section("Recover or verify") {
-                TextField("Verification or reset token", text: $token).textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                Button("Request password reset") { model.run { try await $0.recovery(base: base, action: "forgot", email: email) } }
-                Button("Reset password using token") { let secret = password, code = token; password = ""; token = ""; model.run { try await $0.recovery(base: base, action: "reset", token: code, password: secret) } }
-                Button("Verify email using token") { let code = token; token = ""; model.run { try await $0.recovery(base: base, action: "verify", token: code) } }
+                TextField("Verification or reset token", text: $token).textInputAutocapitalization(
+                    .never
+                ).autocorrectionDisabled().privacySensitive()
+                Button("Request password reset") {
+                    model.run { try await $0.recovery(base: base, action: "forgot", email: email) }
+                }
+                Button("Reset password using token") {
+                    let secret = password, code = token; password = ""; token = "";
+                    model.run {
+                        try await $0.recovery(
+                            base: base, action: "reset", token: code, password: secret)
+                    }
+                }
+                Button("Verify email using token") {
+                    let code = token; token = "";
+                    model.run { try await $0.recovery(base: base, action: "verify", token: code) }
+                }
             }
-            Section { Text("Pairing is separate from monitoring consent. iOS device-wide mobile/Wi-Fi usage is unavailable. Screen Time requires separate Apple provisioning and authorization.").font(.footnote) }
+            Section {
+                Text(
+                    "Pairing is separate from monitoring consent. iOS device-wide mobile/Wi-Fi usage is unavailable. Screen Time requires separate Apple provisioning and authorization."
+                ).font(.footnote)
+            }
             Button("Clear local credentials", role: .destructive) { model.recoverLocal() }
         }
     }
@@ -66,7 +220,15 @@ struct SignInView: View {
 /// Render quality and gap metadata with the report; never turn absent fields into zero.
 struct ServerDetails: View {
     let title: String, value: JSONValue
-    var body: some View { DisclosureGroup(title) { DetailValue(value: value, depth: 0) } }
+    var body: some View {
+        DisclosureGroup {
+            DetailValue(value: value, depth: 0)
+        } label: {
+            Text(title).foregroundStyle(AppAppearance.accent)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .tint(AppAppearance.accent)
+    }
 }
 private struct DetailValue: View {
     let value: JSONValue, depth: Int
@@ -74,20 +236,31 @@ private struct DetailValue: View {
         Group {
             switch value {
             case .null: Text("Unavailable").foregroundStyle(.secondary)
-            case .string(let text): Text(text.isEmpty ? "Not provided" : text).textSelection(.enabled)
+            case .string(let text):
+                Text(text.isEmpty ? "Not provided" : text).textSelection(.enabled)
             case .number(let number): Text(number.formatted()).textSelection(.enabled)
             case .bool(let flag): Text(flag ? "Yes" : "No")
             case .array(let values):
-                if values.isEmpty { Text("No records available").foregroundStyle(.secondary) }
-                else { ForEach(Array(values.enumerated()), id: \.offset) { _, item in AnyView(DetailValue(value: item, depth: depth + 1)).padding(.vertical, 3) } }
+                if values.isEmpty {
+                    Text("No records available").foregroundStyle(.secondary)
+                } else {
+                    ForEach(Array(values.enumerated()), id: \.offset) { _, item in
+                        AnyView(DetailValue(value: item, depth: depth + 1)).padding(.vertical, 3)
+                    }
+                }
             case .object(let fields):
                 ForEach(fields.keys.sorted(), id: \.self) { key in
-                    if depth < 10 { DisclosureGroup(label(key)) { AnyView(DetailValue(value: fields[key] ?? .null, depth: depth + 1)) } }
+                    if depth < 10 {
+                        DisclosureGroup(label(key)) {
+                            AnyView(DetailValue(value: fields[key] ?? .null, depth: depth + 1))
+                        }
+                    }
                 }
             }
         }.font(.callout).frame(maxWidth: .infinity, alignment: .leading)
     }
     private func label(_ key: String) -> String {
-        key.replacingOccurrences(of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression).replacingOccurrences(of: "_", with: " ").capitalized
+        key.replacingOccurrences(of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression)
+            .replacingOccurrences(of: "_", with: " ").capitalized
     }
 }

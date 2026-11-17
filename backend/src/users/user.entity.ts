@@ -25,7 +25,8 @@ export class User {
   status!: AccountStatus;
   @Column({ type: 'jsonb', default: {} })
   preferences!: Record<string, unknown>;
-  @Column({ type: 'timestamptz', nullable: true }) emailVerifiedAt!: Date | null;
+  @Column({ type: 'timestamptz', nullable: true })
+  emailVerifiedAt!: Date | null;
   @CreateDateColumn() createdAt!: Date;
   @UpdateDateColumn() updatedAt!: Date;
   @OneToMany(() => Session, (session) => session.user) sessions!: Session[];

@@ -168,12 +168,8 @@ export function BillingPanel({ workspace, permissions }: PageContext) {
                   </Field>
                   <Field label="Billing interval">
                     <select name="interval">
-                      <option value="monthly">
-                        Monthly sandbox period
-                      </option>
-                      <option value="annual">
-                        Annual sandbox period
-                      </option>
+                      <option value="monthly">Monthly sandbox period</option>
+                      <option value="annual">Annual sandbox period</option>
                     </select>
                   </Field>
                 </ActionForm>

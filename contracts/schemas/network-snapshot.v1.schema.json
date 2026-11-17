@@ -43,11 +43,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "cidr",
-          "gateway"
-        ],
+        "required": ["name", "cidr", "gateway"],
         "properties": {
           "name": {
             "type": "string",
@@ -76,11 +72,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "address",
-          "mac",
-          "evidence"
-        ],
+        "required": ["address", "mac", "evidence"],
         "properties": {
           "address": {
             "type": "string"
@@ -98,11 +90,7 @@
           },
           "evidence": {
             "type": "string",
-            "enum": [
-              "reachable",
-              "cached",
-              "unknown"
-            ]
+            "enum": ["reachable", "cached", "unknown"]
           }
         }
       },

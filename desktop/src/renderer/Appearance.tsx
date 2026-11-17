@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-type Theme = "SYSTEM" | "LIGHT" | "DARK";
+export type Theme = "SYSTEM" | "LIGHT" | "DARK";
 const storageKey = "netsentry.desktop.theme";
-export function Appearance() {
+export function useAppearance() {
   const [theme, setTheme] = useState<Theme>(() => {
     try {
       const value = localStorage.getItem(storageKey);
@@ -42,17 +42,42 @@ export function Appearance() {
     window.addEventListener("storage", sync);
     return () => window.removeEventListener("storage", sync);
   }, []);
+  return { theme, setTheme };
+}
+export function Appearance({
+  theme,
+  setTheme,
+}: {
+  theme: Theme;
+  setTheme: (value: Theme) => void;
+}) {
   return (
-    <label>
-      Appearance on this computer
-      <select
-        value={theme}
-        onChange={(event) => setTheme(event.target.value as Theme)}
-      >
-        <option value="SYSTEM">Use system theme</option>
-        <option value="LIGHT">Light</option>
-        <option value="DARK">Dark</option>
-      </select>
-    </label>
+    <section className="desktop-card" aria-labelledby="appearance-heading">
+      <h2 id="appearance-heading">Desktop appearance</h2>
+      <p>
+        Choose Light, Dark or System. Your choice is stored locally on this
+        computer.
+      </p>
+      <fieldset className="desktop-appearance-choices">
+        <legend>Appearance on this computer</legend>
+        {(["LIGHT", "DARK", "SYSTEM"] as const).map((value) => (
+          <label className={theme === value ? "chosen" : ""} key={value}>
+            <input
+              type="radio"
+              name="appearance"
+              checked={theme === value}
+              onChange={() => setTheme(value)}
+            />
+            <span>
+              {value === "SYSTEM"
+                ? "Use system theme"
+                : value === "LIGHT"
+                  ? "Light"
+                  : "Dark"}
+            </span>
+          </label>
+        ))}
+      </fieldset>
+    </section>
   );
 }

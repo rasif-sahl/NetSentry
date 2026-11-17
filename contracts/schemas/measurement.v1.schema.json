@@ -48,26 +48,15 @@
       "minimum": 0
     },
     "unit": {
-      "enum": [
-        "bytes",
-        "seconds"
-      ]
+      "enum": ["bytes", "seconds"]
     },
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind",
-        "collectorVersion"
-      ],
+      "required": ["kind", "collectorVersion"],
       "properties": {
         "kind": {
-          "enum": [
-            "android",
-            "ios",
-            "router",
-            "agent"
-          ]
+          "enum": ["android", "ios", "router", "agent"]
         },
         "collectorVersion": {
           "type": "string",
@@ -92,10 +81,7 @@
       "pattern": "Z$"
     },
     "quality": {
-      "enum": [
-        "measured",
-        "estimated"
-      ]
+      "enum": ["measured", "estimated"]
     },
     "applicationId": {
       "type": "string",
@@ -108,10 +94,7 @@
       "if": {
         "properties": {
           "metric": {
-            "enum": [
-              "screen_time_seconds",
-              "application_foreground_seconds"
-            ]
+            "enum": ["screen_time_seconds", "application_foreground_seconds"]
           }
         }
       },
@@ -139,9 +122,7 @@
         }
       },
       "then": {
-        "required": [
-          "applicationId"
-        ]
+        "required": ["applicationId"]
       }
     }
   ]

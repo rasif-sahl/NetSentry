@@ -42,3 +42,11 @@ Phase 14 adds a read-only SwiftUI Subscription tab with entitlement status and l
 Phase 15 makes Debug bundle identifiers use `com.netsentry.app.native.dev` with matching extension prefixes; Release retains `com.netsentry.app`. `NETSENTRY_BUNDLE_PREFIX` can be set consistently on the separately prepared build host. No signing authority is added. Follow [the physical-device handoff](../docs/release/ios-device-testing.md); iOS compilation, privacy manifest review, provisioning and hardware acceptance remain pending.
 
 Phase 16 adds optional email-alert preference editing alongside existing account themes. Updates from older callers preserve email opt-in. Delivery remains hard-disabled with no active alert transport; SwiftUI/device validation remains pending.
+
+## Bottom navigation
+
+The signed-in app now uses **Home, Usage, Family, Computers, More** bottom tabs with a separate navigation stack per tab and 20 submenu destinations. Native Back returns from detail pages. Account/workspace changes reset scoped navigation. The Local Apple Screen Time route retains its separate provisioning/authorization gate. See [navigation design and verification](../docs/architecture/mobile-navigation.md) and the [offline design catalogue](../docs/design/mobile/index.html). Native SwiftUI rendering, accessibility and device acceptance remain pending.
+
+## Approved iOS designs
+
+The native app now applies a shared SwiftUI design system across account, device, report/alert, Family, Business, computer, subscription and settings/privacy pages, including nested confirmation forms. It preserves the approved iOS white grouped forms, blue controls, native Back/disclosures and the rounded floating material dock, with semantic dark appearance and Dynamic Type. Local Screen Time/report-extension styling retains its authorization/provisioning and privacy boundaries. See [implementation coverage and verification](../docs/validation/ios-designs.md). Host checks pass; native compilation, screenshot parity and physical-device checks remain pending.

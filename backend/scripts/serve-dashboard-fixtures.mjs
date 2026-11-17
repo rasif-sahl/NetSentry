@@ -136,10 +136,18 @@ try {
     'businessAnalyst',
     'businessNetwork',
   ]) {
-    const input = { email: `${name}@dashboard.example.invalid`, displayName: `Fixture ${name}`, password };
+    const input = {
+      email: `${name}@dashboard.example.invalid`,
+      displayName: `Fixture ${name}`,
+      password,
+    };
     // Bulk synthetic setup uses the real service, preserving production rate limits.
-    const session = ['employee','businessAnalyst','businessNetwork'].includes(name)
-      ? await app.get(require('../dist/auth/auth.service.js').AuthService).register(input,{})
+    const session = ['employee', 'businessAnalyst', 'businessNetwork'].includes(
+      name,
+    )
+      ? await app
+          .get(require('../dist/auth/auth.service.js').AuthService)
+          .register(input, {})
       : await call('/auth/register', 'POST', input);
     accounts[name] = session;
     if (name !== 'unverified')
@@ -618,9 +626,20 @@ try {
   await mkdir(new URL('../../dashboard/.test/', import.meta.url), {
     recursive: true,
   });
-  const { seedBusiness } = await import("./business-dashboard-fixtures.mjs");
-  const business = await seedBusiness({call,source,owner,accounts});
-  await source.getRepository(require('../dist/operations/operations.entities.js').OperatorGrant).save({userId:owner.user.id,role:'ADMIN',workspaceIds:[workspace.id,business.workspaceId],globalAccounts:false,globalCatalog:true,expiresAt:new Date(Date.now()+3600000)});
+  const { seedBusiness } = await import('./business-dashboard-fixtures.mjs');
+  const business = await seedBusiness({ call, source, owner, accounts });
+  await source
+    .getRepository(
+      require('../dist/operations/operations.entities.js').OperatorGrant,
+    )
+    .save({
+      userId: owner.user.id,
+      role: 'ADMIN',
+      workspaceIds: [workspace.id, business.workspaceId],
+      globalAccounts: false,
+      globalCatalog: true,
+      expiresAt: new Date(Date.now() + 3600000),
+    });
   await writeFile(
     file,
     JSON.stringify({

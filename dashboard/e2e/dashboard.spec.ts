@@ -1038,13 +1038,11 @@ test("Business roles review organization structure and employees explicitly acce
   await page
     .getByRole("heading", { name: "Network device departments", exact: true })
     .scrollIntoViewIfNeeded();
-  const observed = page
-    .locator(".row")
-    .filter({
-      has: page
-        .locator("strong")
-        .filter({ hasText: /^Synthetic office printer$/ }),
-    });
+  const observed = page.locator(".row").filter({
+    has: page
+      .locator("strong")
+      .filter({ hasText: /^Synthetic office printer$/ }),
+  });
   await observed
     .getByLabel("Department", { exact: true })
     .selectOption(data.business.departmentId);
@@ -1121,45 +1119,110 @@ test("Business roles review organization structure and employees explicitly acce
   await analystContext.close();
 });
 
-test("sandbox billing is owner-only and operator flags require separate authority",async({page,browser})=>{
- const data=await login(page);
- await page.getByRole('button',{name:'Subscription',exact:true}).click();
- await expect(page.getByRole('heading',{name:'Subscription and editions',exact:true})).toBeVisible();
- await expect(page.getByText(/Provider-neutral sandbox: no real charge/)).toBeVisible();
- page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Start sandbox trial',exact:true}).click();
- await expect(page.getByText(/Edition: family · status: trialing/)).toBeVisible();
- await page.getByRole('button',{name:'Prepare sandbox plan change',exact:true}).click();
- page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Simulate sandbox payment',exact:true}).click();
- await expect(page.getByText(/Edition: family · status: active/)).toBeVisible();
- await expect(page.getByText(/TST test minor units/)).toBeVisible();
- await page.getByRole('button',{name:'Operations',exact:true}).click();
- await expect(page.getByRole('heading',{name:'Platform operations',exact:true})).toBeVisible();
- await page.getByLabel('Feature key',{exact:true}).selectOption('developer');
- await page.getByLabel('Confirm operator password',{exact:true}).first().fill(data.password);
- await page.getByRole('button',{name:'Save feature setting',exact:true}).click();
- await expect(page.getByText(/developer · Disabled · revision 1/)).toBeVisible();
- const context=await browser.newContext();const viewer=await context.newPage();await login(viewer,'viewer');
- await viewer.getByRole('button',{name:'Subscription',exact:true}).click();
- await expect(viewer.getByRole('heading',{name:'Subscription and editions',exact:true})).toBeVisible();
- await expect(viewer.getByRole('button',{name:'Start sandbox trial',exact:true})).toHaveCount(0);
- await viewer.getByRole('button',{name:'Operations',exact:true}).click();
- await expect(viewer.getByText(/Workspace ownership does not grant/)).toBeVisible();await context.close();
+test("sandbox billing is owner-only and operator flags require separate authority", async ({
+  page,
+  browser,
+}) => {
+  const data = await login(page);
+  await page.getByRole("button", { name: "Subscription", exact: true }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Subscription and editions",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Provider-neutral sandbox: no real charge/),
+  ).toBeVisible();
+  page.once("dialog", (d) => d.accept());
+  await page
+    .getByRole("button", { name: "Start sandbox trial", exact: true })
+    .click();
+  await expect(
+    page.getByText(/Edition: family · status: trialing/),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Prepare sandbox plan change", exact: true })
+    .click();
+  page.once("dialog", (d) => d.accept());
+  await page
+    .getByRole("button", { name: "Simulate sandbox payment", exact: true })
+    .click();
+  await expect(
+    page.getByText(/Edition: family · status: active/),
+  ).toBeVisible();
+  await expect(page.getByText(/TST test minor units/)).toBeVisible();
+  await page.getByRole("button", { name: "Operations", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Platform operations", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Feature key", { exact: true })
+    .selectOption("developer");
+  await page
+    .getByLabel("Confirm operator password", { exact: true })
+    .first()
+    .fill(data.password);
+  await page
+    .getByRole("button", { name: "Save feature setting", exact: true })
+    .click();
+  await expect(
+    page.getByText(/developer · Disabled · revision 1/),
+  ).toBeVisible();
+  const context = await browser.newContext();
+  const viewer = await context.newPage();
+  await login(viewer, "viewer");
+  await viewer
+    .getByRole("button", { name: "Subscription", exact: true })
+    .click();
+  await expect(
+    viewer.getByRole("heading", {
+      name: "Subscription and editions",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    viewer.getByRole("button", { name: "Start sandbox trial", exact: true }),
+  ).toHaveCount(0);
+  await viewer.getByRole("button", { name: "Operations", exact: true }).click();
+  await expect(
+    viewer.getByText(/Workspace ownership does not grant/),
+  ).toBeVisible();
+  await context.close();
 });
 
 // Opt-in records intent only. This increment contains no active email transport.
-test("email alert opt-in stays visibly disabled and saved themes follow account preference", async ({page}) => {
+test("email alert opt-in stays visibly disabled and saved themes follow account preference", async ({
+  page,
+}) => {
   await login(page);
-  await page.getByRole("button", {name:"Settings & privacy", exact:true}).click();
+  await page
+    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .click();
   await page.getByLabel("Color theme").selectOption("DARK");
-  await page.getByRole("button", {name:"Save display preferences", exact:true}).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+  await page
+    .getByRole("button", { name: "Save display preferences", exact: true })
+    .click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.getByLabel("Opt in to email alerts (delivery disabled)").check();
-  await page.getByRole("button", {name:"Save notification preferences", exact:true}).click();
+  await page
+    .getByRole("button", { name: "Save notification preferences", exact: true })
+    .click();
   await page.reload();
-  await page.getByRole("button", {name:"Settings & privacy", exact:true}).click();
-  await expect(page.getByLabel("Opt in to email alerts (delivery disabled)")).toBeChecked();
-  await expect(page.getByText("Email alert delivery is disabled. Saving preferences sends no email.")).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+  await page
+    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Opt in to email alerts (delivery disabled)"),
+  ).toBeChecked();
+  await expect(
+    page.getByText(
+      "Email alert delivery is disabled. Saving preferences sends no email.",
+    ),
+  ).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.getByLabel("Opt in to email alerts (delivery disabled)").uncheck();
-  await page.getByRole("button", {name:"Save notification preferences", exact:true}).click();
+  await page
+    .getByRole("button", { name: "Save notification preferences", exact: true })
+    .click();
 });

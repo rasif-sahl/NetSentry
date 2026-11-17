@@ -109,326 +109,231 @@
       "id": "server.build",
       "platform": "server",
       "stage": "build",
-      "artifacts": [
-        "server-manifest"
-      ],
+      "artifacts": ["server-manifest"],
       "title": "Build the candidate backend and dashboard and record reviewed image digests"
     },
     {
       "id": "server.boundaries",
       "platform": "server",
       "stage": "integration",
-      "artifacts": [
-        "server-manifest"
-      ],
+      "artifacts": ["server-manifest"],
       "title": "Verify authorization, tenant isolation, sessions, consent, export, retention and erasure"
     },
     {
       "id": "server.recovery",
       "platform": "server",
       "stage": "integration",
-      "artifacts": [
-        "server-manifest"
-      ],
+      "artifacts": ["server-manifest"],
       "title": "Restore an encrypted backup into an isolated database and verify schema and application access"
     },
     {
       "id": "server.deployment",
       "platform": "server",
       "stage": "deployment",
-      "artifacts": [
-        "server-manifest"
-      ],
+      "artifacts": ["server-manifest"],
       "title": "Run actual reviewed containers with HTTPS, secrets, readiness, scheduled workers and failure monitoring"
     },
     {
       "id": "android.build",
       "platform": "android",
       "stage": "build",
-      "artifacts": [
-        "android-app"
-      ],
+      "artifacts": ["android-app"],
       "title": "Compile and lint the actual Kotlin/Compose app; inspect APK and signing identity"
     },
     {
       "id": "android.account",
       "platform": "android",
       "stage": "physical",
-      "artifacts": [
-        "android-app",
-        "server-manifest"
-      ],
+      "artifacts": ["android-app", "server-manifest"],
       "title": "Exercise accounts, enrolment, scope changes, offline logout and Keystore recovery on a phone"
     },
     {
       "id": "android.permissions",
       "platform": "android",
       "stage": "physical",
-      "artifacts": [
-        "android-app",
-        "server-manifest"
-      ],
+      "artifacts": ["android-app", "server-manifest"],
       "title": "Deny and revoke usage access; confirm collection stops and unavailable data stays unknown"
     },
     {
       "id": "android.lifecycle",
       "platform": "android",
       "stage": "physical",
-      "artifacts": [
-        "android-app",
-        "server-manifest"
-      ],
+      "artifacts": ["android-app", "server-manifest"],
       "title": "Test battery restriction, backgrounding, process death, reboot and delayed work on a phone"
     },
     {
       "id": "android.measurements",
       "platform": "android",
       "stage": "physical",
-      "artifacts": [
-        "android-app",
-        "server-manifest"
-      ],
+      "artifacts": ["android-app", "server-manifest"],
       "title": "Compare controlled usage with phone settings; record time, source, coverage and error bounds"
     },
     {
       "id": "android.offline",
       "platform": "android",
       "stage": "physical",
-      "artifacts": [
-        "android-app",
-        "server-manifest"
-      ],
+      "artifacts": ["android-app", "server-manifest"],
       "title": "Test offline queue/reconnection, duplicates, consent expiry and stale-generation discard"
     },
     {
       "id": "android.privacy",
       "platform": "android",
       "stage": "physical",
-      "artifacts": [
-        "android-app",
-        "server-manifest"
-      ],
+      "artifacts": ["android-app", "server-manifest"],
       "title": "Verify pause, withdrawal, export, local clearing and server erasure; inspect shared-device behavior"
     },
     {
       "id": "android.family-business",
       "platform": "android",
       "stage": "physical",
-      "artifacts": [
-        "android-app",
-        "server-manifest"
-      ],
+      "artifacts": ["android-app", "server-manifest"],
       "title": "Verify real device sharing/withdrawal and unsupported enforcement states without invented restrictions"
     },
     {
       "id": "android.notifications",
       "platform": "android",
       "stage": "physical",
-      "artifacts": [
-        "android-app",
-        "server-manifest"
-      ],
+      "artifacts": ["android-app", "server-manifest"],
       "title": "Verify scheduled in-app alerts and honest unavailable push delivery"
     },
     {
       "id": "android.remote",
       "platform": "android",
       "stage": "physical",
-      "artifacts": [
-        "android-app",
-        "server-manifest",
-        "agent"
-      ],
+      "artifacts": ["android-app", "server-manifest", "agent"],
       "title": "Stop only a controlled sample from a phone on another network; test expiry, stale targets, offline and revocation"
     },
     {
       "id": "android.distribution",
       "platform": "android",
       "stage": "distribution",
-      "artifacts": [
-        "android-app"
-      ],
+      "artifacts": ["android-app"],
       "title": "Review release signing, install/upgrade/data preservation, store disclosures and approved distribution"
     },
     {
       "id": "ios.build",
       "platform": "ios",
       "stage": "build",
-      "artifacts": [
-        "ios-app"
-      ],
+      "artifacts": ["ios-app"],
       "title": "Compile and sign the default SwiftUI app for a real iPhone; inspect the actual product"
     },
     {
       "id": "ios.account",
       "platform": "ios",
       "stage": "physical",
-      "artifacts": [
-        "ios-app",
-        "server-manifest"
-      ],
+      "artifacts": ["ios-app", "server-manifest"],
       "title": "Exercise accounts, enrolment, workspace races, Keychain persistence and offline sign-out on an iPhone"
     },
     {
       "id": "ios.capabilities",
       "platform": "ios",
       "stage": "physical",
-      "artifacts": [
-        "ios-app",
-        "server-manifest"
-      ],
+      "artifacts": ["ios-app", "server-manifest"],
       "title": "Verify unsupported iOS telemetry, honest missing data, reports and foreground-only refresh"
     },
     {
       "id": "ios.privacy",
       "platform": "ios",
       "stage": "physical",
-      "artifacts": [
-        "ios-app",
-        "server-manifest"
-      ],
+      "artifacts": ["ios-app", "server-manifest"],
       "title": "Test sharing/withdrawal, exports, server erasure, scope changes and local cleanup on an iPhone"
     },
     {
       "id": "ios.notifications",
       "platform": "ios",
       "stage": "physical",
-      "artifacts": [
-        "ios-app",
-        "server-manifest"
-      ],
+      "artifacts": ["ios-app", "server-manifest"],
       "title": "Verify in-app alerts and unavailable APNs state without implying push delivery"
     },
     {
       "id": "ios.remote",
       "platform": "ios",
       "stage": "physical",
-      "artifacts": [
-        "ios-app",
-        "server-manifest",
-        "agent"
-      ],
+      "artifacts": ["ios-app", "server-manifest", "agent"],
       "title": "Stop only a controlled sample from an iPhone on another network; test uncertain outcomes, expiry and revocation"
     },
     {
       "id": "ios.distribution",
       "platform": "ios",
       "stage": "distribution",
-      "artifacts": [
-        "ios-app"
-      ],
+      "artifacts": ["ios-app"],
       "title": "Review archive signing, provisioning, install/upgrade, privacy manifest and approved distribution"
     },
     {
       "id": "screen-time.provisioning",
       "platform": "screen-time",
       "stage": "distribution",
-      "artifacts": [
-        "ios-screen-time-app"
-      ],
+      "artifacts": ["ios-screen-time-app"],
       "title": "Verify approved app/extension entitlements, App Group, profiles and four embedded signed extensions"
     },
     {
       "id": "screen-time.enforcement",
       "platform": "screen-time",
       "stage": "physical",
-      "artifacts": [
-        "ios-screen-time-app",
-        "server-manifest"
-      ],
+      "artifacts": ["ios-screen-time-app", "server-manifest"],
       "title": "Observe authorized selection, schedules, threshold, shield and overrides on a real iPhone"
     },
     {
       "id": "screen-time.cleanup",
       "platform": "screen-time",
       "stage": "physical",
-      "artifacts": [
-        "ios-screen-time-app",
-        "server-manifest"
-      ],
+      "artifacts": ["ios-screen-time-app", "server-manifest"],
       "title": "Verify actual shield cleanup across expiry, revocation, reboot, clock changes, withdrawal and sign-out"
     },
     {
       "id": "screen-time.isolation",
       "platform": "screen-time",
       "stage": "physical",
-      "artifacts": [
-        "ios-screen-time-app",
-        "server-manifest"
-      ],
+      "artifacts": ["ios-screen-time-app", "server-manifest"],
       "title": "Confirm report-extension privacy, opaque token scope and no measurement export to server"
     },
     {
       "id": "desktop.runtime",
       "platform": "desktop",
       "stage": "physical",
-      "artifacts": [
-        "desktop-app",
-        "agent",
-        "server-manifest"
-      ],
+      "artifacts": ["desktop-app", "agent", "server-manifest"],
       "title": "Run actual Electron and native secure storage with the paired foreground agent"
     },
     {
       "id": "desktop.processes",
       "platform": "desktop",
       "stage": "physical",
-      "artifacts": [
-        "desktop-app",
-        "agent",
-        "server-manifest"
-      ],
+      "artifacts": ["desktop-app", "agent", "server-manifest"],
       "title": "Verify listener/project identity, graceful/force stop, descendants, replacement and unrelated-process preservation"
     },
     {
       "id": "desktop.revocation",
       "platform": "desktop",
       "stage": "physical",
-      "artifacts": [
-        "desktop-app",
-        "agent",
-        "server-manifest"
-      ],
+      "artifacts": ["desktop-app", "agent", "server-manifest"],
       "title": "Withdraw local/remote sharing and grants; check reconnection, history and no expired replay"
     },
     {
       "id": "desktop.distribution",
       "platform": "desktop",
       "stage": "distribution",
-      "artifacts": [
-        "desktop-app",
-        "agent"
-      ],
+      "artifacts": ["desktop-app", "agent"],
       "title": "Verify signing/notarization, packaged trusted agent, install/uninstall and protected state"
     },
     {
       "id": "desktop.recovery",
       "platform": "desktop",
       "stage": "distribution",
-      "artifacts": [
-        "desktop-app",
-        "agent"
-      ],
+      "artifacts": ["desktop-app", "agent"],
       "title": "Verify protected release root, rollback state, atomic replacement and interrupted-update recovery"
     },
     {
       "id": "network.hardware",
       "platform": "network",
       "stage": "physical",
-      "artifacts": [
-        "agent",
-        "server-manifest"
-      ],
+      "artifacts": ["agent", "server-manifest"],
       "title": "Record exact authorized router model/firmware and validate only implemented observations against ground truth"
     },
     {
       "id": "network.revocation",
       "platform": "network",
       "stage": "physical",
-      "artifacts": [
-        "agent",
-        "server-manifest"
-      ],
+      "artifacts": ["agent", "server-manifest"],
       "title": "Test credentials, disconnect, counter reset, stale data, sharing withdrawal and unavailable controls"
     }
   ]

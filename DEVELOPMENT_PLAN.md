@@ -1,6 +1,6 @@
 # NetSentry development plan
 
-Updated: 16 November 2026
+Updated: 17 November 2026
 
 NetSentry will provide personal device and network monitoring, family digital wellbeing and supported parental controls, business network management, and developer service monitoring across desktop and mobile. Features depend on verified operating-system, device, permission, agent, and router capabilities.
 
@@ -15,6 +15,16 @@ Develop Kotlin Android and Swift/SwiftUI source against versioned contracts and 
 Use separate progress states: source implemented, build verified, integration verified, and physical-device/hardware verified. A phase may proceed with documented pending hardware checks, but the affected mobile or router feature is not release-ready until those checks pass. Test fixtures validate contracts and behavior without pretending to be real monitoring data. Permission/background behavior, usage measurement accuracy, push delivery, battery behavior, and policy enforcement require real-device validation. Reserve follow-up work for findings from those tests.
 
 Real Android packaging still requires compatible Android build tools, and iOS device distribution requires compatible Apple build/signing tools. Installation or a remote build environment can be arranged when explicitly requested for device testing. This plan does not provision either environment, create paid services, or assume signing credentials are already available.
+
+## Native mobile navigation update
+
+Android and iOS source now use Home, Usage, Family, Computers and More bottom tabs, with scoped submenus and Back behavior. Android has 21 submenu destinations; iOS has 20. The offline design catalogue includes the five tab landing pages for each platform and existing detail/state previews. See [navigation architecture and checks](docs/architecture/mobile-navigation.md). Available host checks and browser design checks remain separate from pending native builds and physical-device navigation/accessibility acceptance.
+
+Android design source now applies the approved lavender light/dark theme, shared cards/fields, page headers, submenu rows and floating selected-tab dock across its native screens. See [Android UI verification](docs/validation/android-designs.md); native compilation and device screenshot parity remain pending.
+
+iOS design source now applies the approved white grouped forms, blue controls, shared page/menu styling and rounded floating material dock across its native pages and nested confirmation forms. See [iOS UI verification](docs/validation/ios-designs.md); native compilation and device screenshot parity remain pending.
+
+Desktop source now implements the approved floating sidebar with five groups and 14 focused pages, service review details, separate control/history/settings views and route-independent appearance. See [desktop navigation verification](docs/validation/desktop-navigation.md). Renderer build/browser checks are distinct from pending packaged Electron, Keychain and real-agent acceptance.
 
 ## Agreed technologies
 

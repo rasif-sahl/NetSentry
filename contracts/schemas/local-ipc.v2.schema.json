@@ -5,12 +5,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "method",
-        "payload"
-      ],
+      "required": ["schemaVersion", "requestId", "method", "payload"],
       "properties": {
         "schemaVersion": {
           "const": 2
@@ -33,12 +28,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "method",
-        "payload"
-      ],
+      "required": ["schemaVersion", "requestId", "method", "payload"],
       "properties": {
         "schemaVersion": {
           "const": 2
@@ -53,10 +43,7 @@
         "payload": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "network",
-            "developer"
-          ],
+          "required": ["network", "developer"],
           "properties": {
             "network": {
               "type": "boolean"
@@ -71,12 +58,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "method",
-        "payload"
-      ],
+      "required": ["schemaVersion", "requestId", "method", "payload"],
       "properties": {
         "schemaVersion": {
           "const": 2
@@ -91,9 +73,7 @@
         "payload": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "allowed"
-          ],
+          "required": ["allowed"],
           "properties": {
             "allowed": {
               "type": "boolean"
@@ -105,12 +85,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "method",
-        "payload"
-      ],
+      "required": ["schemaVersion", "requestId", "method", "payload"],
       "properties": {
         "schemaVersion": {
           "const": 2
@@ -125,9 +100,7 @@
         "payload": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "token"
-          ],
+          "required": ["token"],
           "properties": {
             "token": {
               "type": "string",

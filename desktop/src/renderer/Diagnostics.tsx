@@ -21,10 +21,7 @@ export function Diagnostics() {
     }
   }
   return (
-    <section
-      className="mt-8 rounded-2xl border border-line bg-surface p-6 max-[700px]:p-[18px]"
-      aria-labelledby="diagnostics-heading"
-    >
+    <section className="desktop-card" aria-labelledby="diagnostics-heading">
       <h2 id="diagnostics-heading">Diagnostics and recovery</h2>
       <p>
         Check app trust, service ownership, runtime lock, local socket and

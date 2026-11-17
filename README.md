@@ -145,3 +145,7 @@ Phase 13 adds Business organizations, location/network/department structure, emp
 Phase 16 first increment adds Android/account and desktop/local themes plus opt-in alert email preferences with delivery hard-disabled. The web dashboard uses Tailwind CSS 4 alongside custom CSS; desktop now also uses Tailwind CSS 4, Android uses Compose and iOS SwiftUI. See [Phase 16 evidence and boundaries](docs/validation/phase-16.md). Other optional extensions and Phase 15 hardware acceptance remain separate.
 
 Desktop packaging/update follow-up: macOS preview packaging, signed DMG/ZIP configuration and a user-confirmed authenticated update flow are implemented. Production signing/hosting are unconfigured, so updates remain disabled; actual signed replacement/recovery and service registration remain pending. See [packaging instructions](desktop/packaging/README.md) and [verification](docs/validation/desktop-packaging.md).
+
+## Code formatting
+
+Use `npm run format:check` to audit the active codebases and `npm run format:write` to apply their language formatters. The commands use prepared local tools, preserve the Flutter reference, and report unavailable formatters rather than installing SDKs or runtimes. See [formatting standards, tool configuration and verification](docs/validation/formatting.md). Use blank lines to separate logical sections and declarations; avoid decorative divider banners.

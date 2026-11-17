@@ -38,7 +38,10 @@ export async function ruleAccess(manager: EntityManager, rule: AlertRule) {
     !rule.deviceId ||
     Boolean(rule.networkId) ||
     devices.some((d) => d.registeredById !== rule.userId);
-  if (shared && workspace.type === 'BUSINESS') throw new ForbiddenException('Use consent-scoped Business reports and network alerts; personal usage rules require an explicitly owned device.');
+  if (shared && workspace.type === 'BUSINESS')
+    throw new ForbiddenException(
+      'Use consent-scoped Business reports and network alerts; personal usage rules require an explicitly owned device.',
+    );
   if (shared && workspace.type === 'FAMILY' && member.role === 'GUARDIAN')
     throw new ForbiddenException(
       'Use explicitly scoped family observations for child alerts.',
@@ -497,7 +500,11 @@ export async function deliverWorkspace(
           userId: rule.userId,
         })) ?? manager.create(NotificationPreference, { userId: rule.userId });
       if (
-        delivery.channel === 'in_app' ? !preferences.inApp : delivery.channel === 'email' ? !preferences.email : !preferences.push
+        delivery.channel === 'in_app'
+          ? !preferences.inApp
+          : delivery.channel === 'email'
+            ? !preferences.email
+            : !preferences.push
       ) {
         delivery.status = 'suppressed';
         await manager.save(delivery);

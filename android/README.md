@@ -79,3 +79,11 @@ Phase 14 adds a read-only Subscription tab for selected-workspace entitlement st
 Phase 15 adds [the physical-device build/test handoff](../docs/release/android-device-testing.md), candidate-bound evidence and a read-only existing-tool prerequisite inspector. No APK or Android native build is claimed; use an independently prepared build host while this repository retains its no-install constraint.
 
 Phase 16 applies the account SYSTEM/LIGHT/DARK preference to Material 3 and adds appearance choices plus opt-in alert email settings. Email delivery remains hard-disabled; saving preferences sends no email. Native Compose builds/device acceptance remain pending.
+
+## Bottom navigation
+
+The signed-in app now uses persistent **Home, Usage, Family, Computers, More** tabs, with 21 submenu destinations and explicit Back navigation. Reports, application details, Family sections and privacy settings open from their corresponding submenu. Navigation resets on account/workspace changes; source implementation does not establish native UI validation. See [navigation design and verification](../docs/architecture/mobile-navigation.md) and the [offline design catalogue](../docs/design/mobile/index.html).
+
+## Android design implementation
+
+The native screens now use the approved lavender visual system: light/dark palettes, rounded cards and fields, chevron submenu cards, focused headers, workspace context and the floating five-tab dock with selected-tab capsules. Shared components apply across account, device, usage/application, Family, Business, Subscription, computer and privacy/settings screens. Read the [implementation and verification record](../docs/validation/android-designs.md). Available JVM/grammar checks pass; native Compose compilation, screenshot parity, APKs and physical-device checks remain pending.

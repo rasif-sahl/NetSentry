@@ -37,3 +37,7 @@ Device Activity report totals are computed and rendered **inside the report exte
 - [Shield configuration isolation](https://developer.apple.com/documentation/managedsettingsui/shieldconfigurationdatasource) and [shield action delegate](https://developer.apple.com/documentation/managedsettings/shieldactiondelegate)
 
 These references inform source design; they do not establish app approval or tested OS behavior. APNs provider configuration, device token registration and delivery remain pending. Reports and family views use authorized backend data with quality/gap labels; no demonstration measurements ship in the app.
+
+## Shared UI styling
+
+`UI/AppStyle.swift` centralizes the approved iOS grouped form appearance, menu rows, page backgrounds, status cards and safe-area floating tab dock. It uses semantic system colors and native text styles for light/dark appearance and Dynamic Type. Account and every signed-in destination use the shared form/chrome while native confirmation dialogs, activity pickers and document exporters remain system-owned surfaces. Report-extension styling remains independent from this app-only source. See [iOS design coverage and checks](../validation/ios-designs.md) for implementation details and pending native verification.

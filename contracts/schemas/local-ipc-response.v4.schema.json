@@ -5,13 +5,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "ok",
-        "code",
-        "data"
-      ],
+      "required": ["schemaVersion", "requestId", "ok", "code", "data"],
       "properties": {
         "schemaVersion": {
           "const": 4
@@ -29,11 +23,7 @@
         "data": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "sharing",
-            "control",
-            "supported"
-          ],
+          "required": ["sharing", "control", "supported"],
           "properties": {
             "sharing": {
               "type": "boolean"
@@ -51,13 +41,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "schemaVersion",
-        "requestId",
-        "ok",
-        "code",
-        "data"
-      ],
+      "required": ["schemaVersion", "requestId", "ok", "code", "data"],
       "properties": {
         "schemaVersion": {
           "const": 4
@@ -70,10 +54,7 @@
           "const": false
         },
         "code": {
-          "enum": [
-            "INVALID_REQUEST",
-            "REMOTE_SETTINGS_FAILED"
-          ]
+          "enum": ["INVALID_REQUEST", "REMOTE_SETTINGS_FAILED"]
         },
         "data": {
           "type": "null"

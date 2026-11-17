@@ -1,4 +1,4 @@
-import {assertCapacity} from '../billing/policy';
+import { assertCapacity } from '../billing/policy';
 import { BusinessAssignment } from '../business/business.entities';
 import { businessAudit } from '../business/business.lifecycle';
 import { FamilyAssignment } from '../family/family.entities';
@@ -115,7 +115,8 @@ export class DeviceService {
           throw new ConflictException(
             'This installation is already registered elsewhere.',
           );
-        if(!device||device.state!=='ACTIVE') await assertCapacity(manager,code.workspaceId,'devices');
+        if (!device || device.state !== 'ACTIVE')
+          await assertCapacity(manager, code.workspaceId, 'devices');
         const token = randomBytes(32).toString('base64url');
         device = manager.merge(
           RegisteredDevice,

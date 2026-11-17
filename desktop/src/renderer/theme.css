@@ -23,3 +23,13 @@
   --danger-surface: #48242e;
   --danger-border: #a65e70;
 }
+:root {
+  --muted: #7d6b88;
+  --soft: #f1ebf5;
+  --subtle: #fcfafd;
+}
+:root[data-theme="dark"] {
+  --muted: #c1aecb;
+  --soft: #352a40;
+  --subtle: #211b29;
+}

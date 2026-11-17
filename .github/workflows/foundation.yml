@@ -30,7 +30,7 @@ jobs:
           --health-retries 10
     env:
       TEST_DATABASE_URL: postgresql://netsentry:isolated-test-password@127.0.0.1:5432/netsentry_phase1_test
-      TEST_DATABASE_SSL: 'false'
+      TEST_DATABASE_SSL: "false"
       TZ: UTC
     steps:
       - uses: actions/checkout@v7
@@ -158,9 +158,9 @@ jobs:
           --health-retries 10
     env:
       TEST_DATABASE_URL: postgresql://netsentry:isolated-test-password@127.0.0.1:5432/netsentry_phase4_web_test
-      TEST_DATABASE_SSL: 'false'
+      TEST_DATABASE_SSL: "false"
       TZ: UTC
-      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -215,7 +215,7 @@ jobs:
           --health-retries 10
     env:
       TEST_DATABASE_URL: postgresql://netsentry:isolated-test-password@127.0.0.1:5432/netsentry_android_jvm_test
-      TEST_DATABASE_SSL: 'false'
+      TEST_DATABASE_SSL: "false"
       TZ: UTC
     steps:
       - uses: actions/checkout@v7
@@ -225,7 +225,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
       - name: Prepare checksum-pinned standalone Kotlin and JSON tooling
         run: |
           mkdir -p "$RUNNER_TEMP/android-jvm-tools"
@@ -295,7 +295,7 @@ jobs:
           docker build --build-arg SERVER_NODE_IMAGE="$TEST_SERVER_NODE_IMAGE" -f infra/dashboard.Dockerfile -t netsentry-fixture-dashboard:ci .
       - name: Verify isolated production-mode runtime and recovery
         env:
-          RUN_PRODUCTION_FIXTURE: '1'
+          RUN_PRODUCTION_FIXTURE: "1"
           TEST_BACKEND_IMAGE: netsentry-fixture-backend:ci
           TEST_DASHBOARD_IMAGE: netsentry-fixture-dashboard:ci
         run: node infra/scripts/check-production.mjs

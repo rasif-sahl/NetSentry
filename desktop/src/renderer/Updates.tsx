@@ -36,10 +36,7 @@ export function Updates() {
     };
   }, [view?.state]);
   return (
-    <section
-      className="mt-8 rounded-2xl border border-line bg-surface p-6 max-[700px]:p-[18px]"
-      aria-labelledby="updates-heading"
-    >
+    <section className="desktop-card" aria-labelledby="updates-heading">
       <h2 id="updates-heading">Desktop updates</h2>
       <p>
         Updates require a signed macOS application and a configured update host.

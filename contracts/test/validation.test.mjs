@@ -287,27 +287,110 @@ test("family policies contain bounded intent and cannot authorize arbitrary acti
 });
 
 test("Business sharing needs a displayed generation and cannot claim another employee or custody", () => {
-  const sharing = {generation:2,expectedRevision:1,accepted:true,disclosureVersion:"business-sharing-v1"};
-  validateApiPayload("BusinessSharingInput",sharing);
-  for(const changed of [{...sharing,generation:0},{...sharing,accepted:false},{...sharing,userId:"11111111-1111-4111-8111-111111111111"}]) assert.throws(()=>validateApiPayload("BusinessSharingInput",changed));
-  assert.throws(()=>validateApiPayload("BusinessAssignmentInput",{employeeId:"11111111-1111-4111-8111-111111111111",expectedRevision:0,ownership:"organization"}));
-  assert.throws(()=>validateApiPayload("BusinessCustodyInput",{accepted:false,disclosureVersion:"business-custody-v1"}));
+  const sharing = {
+    generation: 2,
+    expectedRevision: 1,
+    accepted: true,
+    disclosureVersion: "business-sharing-v1",
+  };
+  validateApiPayload("BusinessSharingInput", sharing);
+  for (const changed of [
+    { ...sharing, generation: 0 },
+    { ...sharing, accepted: false },
+    { ...sharing, userId: "11111111-1111-4111-8111-111111111111" },
+  ])
+    assert.throws(() => validateApiPayload("BusinessSharingInput", changed));
+  assert.throws(() =>
+    validateApiPayload("BusinessAssignmentInput", {
+      employeeId: "11111111-1111-4111-8111-111111111111",
+      expectedRevision: 0,
+      ownership: "organization",
+    }),
+  );
+  assert.throws(() =>
+    validateApiPayload("BusinessCustodyInput", {
+      accepted: false,
+      disclosureVersion: "business-custody-v1",
+    }),
+  );
 });
 
-test('billing events and operator mutations reject customer-side privilege and payment forgeries',()=>{
- const id='11111111-1111-4111-8111-111111111111';
- validateApiPayload('BillingPlanInput',{requestId:id,expectedRevision:0,plan:'premium',interval:'annual'});
- assert.throws(()=>validateApiPayload('BillingPlanInput',{requestId:id,expectedRevision:0,plan:'premium',interval:'annual',paid:true}));
- assert.throws(()=>validateApiPayload('OperatorFlagInput',{scope:'workspace',workspaceId:id,key:'shell',enabled:true,expectedRevision:0,password:'fixture'}));
- assert.throws(()=>validateApiPayload('BillingEventInput',{id,workspaceId:id,sequence:1,plan:'enterprise'}));
+test("billing events and operator mutations reject customer-side privilege and payment forgeries", () => {
+  const id = "11111111-1111-4111-8111-111111111111";
+  validateApiPayload("BillingPlanInput", {
+    requestId: id,
+    expectedRevision: 0,
+    plan: "premium",
+    interval: "annual",
+  });
+  assert.throws(() =>
+    validateApiPayload("BillingPlanInput", {
+      requestId: id,
+      expectedRevision: 0,
+      plan: "premium",
+      interval: "annual",
+      paid: true,
+    }),
+  );
+  assert.throws(() =>
+    validateApiPayload("OperatorFlagInput", {
+      scope: "workspace",
+      workspaceId: id,
+      key: "shell",
+      enabled: true,
+      expectedRevision: 0,
+      password: "fixture",
+    }),
+  );
+  assert.throws(() =>
+    validateApiPayload("BillingEventInput", {
+      id,
+      workspaceId: id,
+      sequence: 1,
+      plan: "enterprise",
+    }),
+  );
 });
 
-test('email opt-in is optional for old clients and all four rule channels validate', () => {
-  validateApiPayload('NotificationPreferenceRequest', {inApp:true,push:false});
-  validateApiPayload('NotificationPreferenceRequest', {inApp:true,push:false,email:true});
-  assert.throws(()=>validateApiPayload('NotificationPreferenceRequest', {inApp:true,push:false,email:'true'}));
-  assert.throws(()=>validateApiPayload('NotificationPreferenceRequest', {inApp:true,push:false,emailDeliveryAvailable:true}));
-  const rule={kind:'threshold',metric:'mobile_data_bytes',quality:'measured',period:'day',threshold:1,severity:'warning',channels:['in_app','android_push','ios_push','email'],enabled:true};
-  validateApiPayload('AlertRuleRequest',rule);
-  assert.throws(()=>validateApiPayload('AlertRuleRequest',{...rule,channels:[...rule.channels,'email']}));
+test("email opt-in is optional for old clients and all four rule channels validate", () => {
+  validateApiPayload("NotificationPreferenceRequest", {
+    inApp: true,
+    push: false,
+  });
+  validateApiPayload("NotificationPreferenceRequest", {
+    inApp: true,
+    push: false,
+    email: true,
+  });
+  assert.throws(() =>
+    validateApiPayload("NotificationPreferenceRequest", {
+      inApp: true,
+      push: false,
+      email: "true",
+    }),
+  );
+  assert.throws(() =>
+    validateApiPayload("NotificationPreferenceRequest", {
+      inApp: true,
+      push: false,
+      emailDeliveryAvailable: true,
+    }),
+  );
+  const rule = {
+    kind: "threshold",
+    metric: "mobile_data_bytes",
+    quality: "measured",
+    period: "day",
+    threshold: 1,
+    severity: "warning",
+    channels: ["in_app", "android_push", "ios_push", "email"],
+    enabled: true,
+  };
+  validateApiPayload("AlertRuleRequest", rule);
+  assert.throws(() =>
+    validateApiPayload("AlertRuleRequest", {
+      ...rule,
+      channels: [...rule.channels, "email"],
+    }),
+  );
 });

@@ -788,8 +788,10 @@ function Organization({ workspace, user, reloadDevices }: PageContext) {
           {audit && (
             <>
               <p>
-                Organization-wide records: Business actions retain {audit.retentionDays} days; network events retain 30 days and developer outcomes 7 days.
-                No usage measurements or credentials are included.
+                Organization-wide records: Business actions retain{" "}
+                {audit.retentionDays} days; network events retain 30 days and
+                developer outcomes 7 days. No usage measurements or credentials
+                are included.
               </p>
               {audit.rows.map((a) => (
                 <p key={a.id}>

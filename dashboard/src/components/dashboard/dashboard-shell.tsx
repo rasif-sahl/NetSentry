@@ -277,11 +277,7 @@ function WorkspaceShell({
       trigger?.focus();
     };
   }, [menu]);
-  const future = [
-    "Policies",
-    "Network Security",
-    "Insights",
-  ];
+  const future = ["Policies", "Network Security", "Insights"];
   function choose(label: string) {
     setSection(label);
     if (section !== label)
