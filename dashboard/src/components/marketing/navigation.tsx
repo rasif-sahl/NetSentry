@@ -7,7 +7,7 @@ import { Brand, primaryButton } from "./ui";
 
 const links = [
   ["The product", "/product"],
-  ["Who it’s for", "#features"],
+  ["Solutions", "/solutions"],
   ["Our apps", "/applications"],
   ["How it works", "#how-it-works"],
 ];
@@ -17,6 +17,7 @@ const productLinks = [
   ["Product", "/product"],
   ["Applications", "/applications"],
   ["Privacy & choice", "#product-privacy"],
+  ["Solutions", "/solutions"],
 ];
 
 const applicationLinks = [
@@ -24,17 +25,25 @@ const applicationLinks = [
   ["Product", "/product"],
   ["Applications", "/applications"],
   ["Getting started", "#applications-setup"],
+  ["Solutions", "/solutions"],
+];
+const solutionLinks = [
+  ["Home", "/"],
+  ["Product", "/product"],
+  ["Applications", "/applications"],
+  ["Solutions", "/solutions"],
 ];
 const navigation = {
   home: links,
   product: productLinks,
   applications: applicationLinks,
+  solutions: solutionLinks,
 };
 
 export function MarketingNavigation({
   page = "home",
 }: {
-  page?: "home" | "product" | "applications";
+  page?: "home" | "product" | "applications" | "solutions";
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -59,7 +68,8 @@ export function MarketingNavigation({
               href={href}
               aria-current={
                 (page === "product" && href === "/product") ||
-                (page === "applications" && href === "/applications")
+                (page === "applications" && href === "/applications") ||
+                (page === "solutions" && href === "/solutions")
                   ? "page"
                   : undefined
               }
@@ -82,19 +92,23 @@ export function MarketingNavigation({
           <div className="hidden sm:block">
             <Link
               href={
-                page === "applications"
-                  ? "#applications-compare"
-                  : page === "product"
-                    ? "#product-features"
-                    : "/product"
+                page === "solutions"
+                  ? "#solutions-paths"
+                  : page === "applications"
+                    ? "#applications-compare"
+                    : page === "product"
+                      ? "#product-features"
+                      : "/product"
               }
               className={primaryButton}
             >
-              {page === "applications"
-                ? "Compare the apps"
-                : page === "product"
-                  ? "Explore the features"
-                  : "Meet NetSentry"}
+              {page === "solutions"
+                ? "Find your starting point"
+                : page === "applications"
+                  ? "Compare the apps"
+                  : page === "product"
+                    ? "Explore the features"
+                    : "Meet NetSentry"}
             </Link>
           </div>
           <button

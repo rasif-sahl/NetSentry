@@ -90,10 +90,10 @@ test("narrow layout keeps screens straight and navigation accessible", async ({
   ).toHaveAttribute("aria-expanded", "true");
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Who it’s for" })
+    .getByRole("link", { name: "How it works" })
     .click();
   await expect(menu).toHaveAttribute("aria-expanded", "false");
-  await expect(page).toHaveURL(/#features$/);
+  await expect(page).toHaveURL(/#how-it-works$/);
   await page
     .locator("summary")
     .filter({ hasText: "Does every feature work on every device?" })

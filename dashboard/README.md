@@ -90,3 +90,9 @@ Run `npm --prefix dashboard run test:public` after building for the homepage and
 Open `/applications`, linked from the homepage and Product Overview, to compare the web, Android, iOS and desktop apps. The guide implements the approved simple design with straight screens, enlarged previews, a desktop screen switcher, an accessible app-role comparison, setup guidance and availability FAQs. Native screenshots remain labelled design reconstructions; downloads are not advertised before native release validation.
 
 `npm --prefix dashboard run test:public` now checks all three public pages, including navigation, preview dialogs, keyboard focus, mobile comparison scrolling and responsive layouts. See [Applications page validation](../docs/validation/applications-page.md).
+
+## Solutions guide
+
+Open `/solutions` for the approved personal, family, team and developer use-case page. The guide uses straight screenshots, conceptual family/team diagrams, links to relevant applications and explicit consent/platform boundaries. It is linked from public navigation and the homepage's “Who it’s for” footer.
+
+`npm --prefix dashboard run test:public` checks all four public pages, including Solutions section links, previews, responsive navigation and availability disclosures. See [Solutions page validation](../docs/validation/solutions-page.md).

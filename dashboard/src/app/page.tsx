@@ -544,7 +544,7 @@ export default function Home() {
                   title: "Discover",
                   links: [
                     ["The product", "/product"],
-                    ["Who it’s for", "#features"],
+                    ["Who it’s for", "/solutions"],
                     ["How it works", "#how-it-works"],
                   ],
                 },
