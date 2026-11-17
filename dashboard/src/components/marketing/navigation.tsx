@@ -6,13 +6,24 @@ import { useState } from "react";
 import { Brand, primaryButton } from "./ui";
 
 const links = [
-  ["The product", "#story"],
+  ["The product", "/product"],
   ["Who it’s for", "#features"],
   ["Our apps", "#apps"],
   ["How it works", "#how-it-works"],
 ];
 
-export function MarketingNavigation() {
+const productLinks = [
+  ["Home", "/"],
+  ["Product", "/product"],
+  ["Applications", "#product-applications"],
+  ["Privacy & choice", "#product-privacy"],
+];
+
+export function MarketingNavigation({
+  page = "home",
+}: {
+  page?: "home" | "product";
+}) {
   const [open, setOpen] = useState(false);
   return (
     <header
@@ -27,38 +38,46 @@ export function MarketingNavigation() {
         </Link>
         <nav
           aria-label="Main navigation"
-          id="main-navigation"
+          id={`main-navigation-${page}`}
           className={`${open ? "flex" : "hidden"} absolute inset-x-0 top-[68px] flex-col gap-1 rounded-b-xl border border-[#e8e0ed] bg-white p-4 text-xs text-[#75657f] lg:static lg:flex lg:flex-row lg:gap-7 lg:border-0 lg:bg-transparent lg:p-0`}
         >
-          {links.map(([label, href]) => (
-            <a
+          {(page === "product" ? productLinks : links).map(([label, href]) => (
+            <Link
               key={href}
               href={href}
+              aria-current={
+                page === "product" && href === "/product" ? "page" : undefined
+              }
               onClick={() => setOpen(false)}
-              className="rounded-md px-2 py-3 hover:bg-[#f4eff8] lg:px-0"
+              className="rounded-md px-2 py-3 hover:bg-[#f4eff8] aria-[current=page]:font-semibold aria-[current=page]:text-[#604675] lg:px-0"
             >
               {label}
-            </a>
+            </Link>
           ))}
         </nav>
         <div className="flex items-center gap-3 md:gap-5">
-          <Link
-            href="/app"
-            className="inline-flex min-h-11 items-center px-1 text-xs text-[#715d7f]"
-          >
-            Sign in
-          </Link>
+          {page === "home" && (
+            <Link
+              href="/app"
+              className="inline-flex min-h-11 items-center px-1 text-xs text-[#715d7f]"
+            >
+              Sign in
+            </Link>
+          )}
           <div className="hidden sm:block">
-            <a href="#story" className={primaryButton}>
-              Meet NetSentry
-            </a>
+            <Link
+              href={page === "product" ? "#product-features" : "/product"}
+              className={primaryButton}
+            >
+              {page === "product" ? "Explore the features" : "Meet NetSentry"}
+            </Link>
           </div>
           <button
             type="button"
             className="flex size-11 items-center justify-center rounded-lg text-[#705283] hover:bg-[#f4eff8] lg:hidden"
             aria-label={open ? "Close navigation" : "Open navigation"}
             aria-expanded={open}
-            aria-controls="main-navigation"
+            aria-controls={`main-navigation-${page}`}
             onClick={() => setOpen(!open)}
           >
             {open ? <X size={20} /> : <Menu size={20} />}

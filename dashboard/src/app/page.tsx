@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CopyrightYear } from "@/components/marketing/copyright-year";
 import {
   Building2,
   Check,
@@ -50,11 +51,6 @@ const faqs = [
     "Only supported, paired computers with explicit local consent and current controller grants may accept requests. An accepted or pending request does not prove that a service stopped; the recorded outcome matters.",
   ],
 ];
-
-async function CopyrightYear() {
-  "use cache";
-  return new Date().getFullYear();
-}
 
 export default function Home() {
   return (
@@ -547,7 +543,7 @@ export default function Home() {
                 {
                   title: "Discover",
                   links: [
-                    ["The product", "#story"],
+                    ["The product", "/product"],
                     ["Who it’s for", "#features"],
                     ["How it works", "#how-it-works"],
                   ],

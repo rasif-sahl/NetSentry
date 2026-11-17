@@ -78,3 +78,9 @@ Phase 16 adds account email opt-in and an email rule channel with visible delive
 The approved storytelling homepage uses Tailwind CSS 4 and local product UI assets. Dashboard, Android, iOS and desktop showcases stay upright and aligned; previews can be enlarged and desktop screens can be switched. Captions identify empty/synthetic states and native release limitations. The homepage makes no monitoring API requests. Sign in opens `/app`; verification/reset URLs are unchanged, and old `/?view=…` workspace bookmarks redirect with their queries intact.
 
 Run `npm --prefix dashboard run test:homepage` after building to check the public page without a test database. Set `PLAYWRIGHT_CHROME_EXECUTABLE` to an existing browser when needed. See [public website architecture](../docs/architecture/public-website.md) and [validation](../docs/validation/public-homepage.md). Documentation, legal, contact, pricing and download pages remain separate work.
+
+## Product Overview
+
+Open `/product` for the approved product feature page, also linked from the homepage. It explains devices, reports/alerts, family/team sharing, developer tools, application roles and privacy. The responsive feature explorer supports pointer and keyboard navigation. Screens stay upright, buttons have no arrows, and availability/preview captions distinguish designs from released apps or live reports.
+
+Run `npm --prefix dashboard run test:public` after building for the homepage and product-page browser checks without a database. `test:homepage` remains an alias for the same public suite. These checks cover cross-page navigation, responsive layouts, tab keyboard behavior, screenshot assets and platform availability disclosure. See [Product Overview validation](../docs/validation/product-overview.md).
