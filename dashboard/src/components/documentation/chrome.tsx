@@ -56,6 +56,7 @@ export function DocumentationFooter() {
         <Link href="/contact">Contact</Link>
         <Link href="/docs/privacy">Privacy controls</Link>
         <Link href="/privacy">Privacy Policy</Link>
+        <Link href="/terms">Terms and Conditions</Link>
       </div>
     </footer>
   );

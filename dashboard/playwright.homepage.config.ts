@@ -11,6 +11,7 @@ export default defineConfig({
     "pricing.spec.ts",
     "contact.spec.ts",
     "privacy.spec.ts",
+    "terms.spec.ts",
   ],
   workers: 1,
   use: {

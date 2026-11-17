@@ -10,6 +10,7 @@ The approved storytelling homepage is implemented in the existing Next.js dashbo
 - `/pricing` presents the proposed Personal Free, Personal Premium, Family and Business editions, comparison and launch-pricing FAQs.
 - `/contact` provides the approved enquiry form preview, contact guidance, documentation links and FAQs. Message delivery is not configured.
 - `/privacy` is the draft Privacy Policy, with ten sections and responsive contents navigation. It is not an effective policy.
+- `/terms` presents twelve draft Terms and Conditions sections with responsive contents navigation. No acceptance is recorded.
 - `/app` contains the existing workspace and its sign-in/register/recovery flows. The homepage's sign-in and workspace actions point here.
 - `/verify-email` and `/reset-password` retain their existing URLs and fragment-token handling. Successful sign-in from these flows returns to `/app`.
 - Existing `/?view=…` bookmarks redirect to `/app?view=…`, preserving query values. Workspace navigation continues to use its existing `view` query.
@@ -85,3 +86,12 @@ The content is not an effective policy or a compliance assertion. Operator ident
 Desktop contents are always visible; below 651px a closed native disclosure exposes the same section links. Selection follows clicks, URL hash changes, browser history and direct-link hydration. Native anchors and mobile disclosure work without JavaScript. All targets use unique `privacy-*` IDs to avoid collisions with hidden cached routes. The header action scrolls to choices; the closing action and sidebar guidance open `/docs/privacy`. The home, Product, Applications, Solutions, Pricing, Contact and Documentation footers link to the draft policy, while existing product privacy-section links remain intact.
 
 No account, monitoring, contact or privacy-request API is called, and no consent record is created. This increment changes no data processing, workspace, backend or native behavior and does not configure hosting. See [Privacy Policy validation](../validation/privacy-policy-page.md).
+
+
+## Draft Terms and Conditions
+
+`/terms` implements the approved twelve-section Terms and Conditions design in Tailwind CSS 4. Typed paragraphs, lists and notes preserve the approved draft wording. Static metadata, a visible draft notice and an unconfirmed effective date distinguish the page from an effective agreement. The sections cover scope, accounts/eligibility, authority, acceptable use, feature availability, plans/payments, ownership, privacy, third parties, ending use, responsibilities/disputes and updates/contact.
+
+The existing `PolicyContents` component now accepts a `privacy` or `terms` prefix, retaining Privacy Policy defaults while giving Terms separate fragment IDs and navigation labels. Desktop contents remain visible; mobile contents use a closed native disclosure. Clicks, hash changes, direct-link hydration and browser history select the matching contents link. Native anchors and the mobile disclosure also work without JavaScript. Terms IDs use `terms-*`, so cached legal routes do not intercept each other’s links. The header scrolls to the overview; the closing action scrolls to authority; the sidebar reaches Documentation, and the footer links to Privacy Policy and Contact.
+
+All existing public footers link to Terms, including the Privacy Policy footer. Footer links wrap on narrow screens. There is no accept checkbox, agreement event, new registration gate or API call. Commercial terms, operator identity, eligibility rules, warranties/liability, dispute procedures and governing law remain unconfirmed; no refund, service or release commitment is invented. Sandbox amounts are not advertised as prices, and Contact remains non-sending. This increment changes no backend, workspace, native, billing or data-processing behavior and provisions no hosting. See [Terms validation](../validation/terms-and-conditions-page.md).

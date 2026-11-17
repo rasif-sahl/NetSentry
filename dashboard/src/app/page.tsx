@@ -566,6 +566,7 @@ export default function Home() {
                     ["Platform availability", "#availability"],
                     ["Privacy & choice", "#privacy"],
                     ["Privacy Policy", "/privacy"],
+                    ["Terms and Conditions", "/terms"],
                   ],
                 },
               ].map(({ title, links }) => (

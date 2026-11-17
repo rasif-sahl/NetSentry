@@ -376,6 +376,7 @@ export default function PricingPage() {
         >
           <Link href="/product">Product</Link>
           <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/terms">Terms and Conditions</Link>
           <Link href="/applications">Applications</Link>
           <Link href="/docs">Documentation</Link>
           <Link href="/pricing">Pricing</Link>

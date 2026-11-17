@@ -46,6 +46,7 @@ const navigation = {
   pricing: pricingLinks,
   contact: pricingLinks,
   privacy: pricingLinks,
+  terms: pricingLinks,
 };
 
 export function MarketingNavigation({
@@ -58,7 +59,8 @@ export function MarketingNavigation({
     | "solutions"
     | "pricing"
     | "contact"
-    | "privacy";
+    | "privacy"
+    | "terms";
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -114,35 +116,39 @@ export function MarketingNavigation({
           <div className="hidden sm:block">
             <Link
               href={
-                page === "privacy"
-                  ? "#privacy-choices"
-                  : page === "contact"
-                    ? "#contact-form"
-                    : page === "pricing"
-                      ? "#pricing-plans"
-                      : page === "solutions"
-                        ? "#solutions-paths"
-                        : page === "applications"
-                          ? "#applications-compare"
-                          : page === "product"
-                            ? "#product-features"
-                            : "/product"
+                page === "terms"
+                  ? "#terms-overview"
+                  : page === "privacy"
+                    ? "#privacy-choices"
+                    : page === "contact"
+                      ? "#contact-form"
+                      : page === "pricing"
+                        ? "#pricing-plans"
+                        : page === "solutions"
+                          ? "#solutions-paths"
+                          : page === "applications"
+                            ? "#applications-compare"
+                            : page === "product"
+                              ? "#product-features"
+                              : "/product"
               }
               className={primaryButton}
             >
-              {page === "privacy"
-                ? "Your privacy choices"
-                : page === "contact"
-                  ? "Get in touch"
-                  : page === "pricing"
-                    ? "Explore the plans"
-                    : page === "solutions"
-                      ? "Find your starting point"
-                      : page === "applications"
-                        ? "Compare the apps"
-                        : page === "product"
-                          ? "Explore the features"
-                          : "Meet NetSentry"}
+              {page === "terms"
+                ? "Read the terms"
+                : page === "privacy"
+                  ? "Your privacy choices"
+                  : page === "contact"
+                    ? "Get in touch"
+                    : page === "pricing"
+                      ? "Explore the plans"
+                      : page === "solutions"
+                        ? "Find your starting point"
+                        : page === "applications"
+                          ? "Compare the apps"
+                          : page === "product"
+                            ? "Explore the features"
+                            : "Meet NetSentry"}
             </Link>
           </div>
           <button

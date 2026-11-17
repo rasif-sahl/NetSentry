@@ -626,6 +626,7 @@ export default function ApplicationsPage() {
             </p>
             <div className="flex flex-wrap gap-6">
               <Link href="/privacy">Privacy Policy</Link>
+              <Link href="/terms">Terms and Conditions</Link>
               <Link href="/">Home</Link>
               <Link href="/product">Product</Link>
               <a href="#applications-availability">Availability</a>

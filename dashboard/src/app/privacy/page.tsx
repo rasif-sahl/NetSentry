@@ -175,6 +175,7 @@ export default function PrivacyPolicyPage() {
         <nav aria-label="Privacy footer" className="flex flex-wrap gap-6">
           <Link href="/docs">Documentation</Link>
           <Link href="/contact">Contact</Link>
+          <Link href="/terms">Terms and Conditions</Link>
           <Link
             href="/privacy"
             aria-current="page"

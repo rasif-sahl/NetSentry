@@ -664,6 +664,7 @@ export default function ProductPage() {
             </p>
             <div className="flex flex-wrap gap-6">
               <Link href="/privacy">Privacy Policy</Link>
+              <Link href="/terms">Terms and Conditions</Link>
               <a href="#product-features">Features</a>
               <Link href="/applications">Applications</Link>
               <a href="#product-privacy">Privacy &amp; choice</a>

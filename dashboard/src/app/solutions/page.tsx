@@ -716,6 +716,7 @@ export default function SolutionsPage() {
             </p>
             <div className="flex flex-wrap gap-6">
               <Link href="/privacy">Privacy Policy</Link>
+              <Link href="/terms">Terms and Conditions</Link>
               <Link href="/">Home</Link>
               <Link href="/applications">Applications</Link>
               <a href="#solutions-choices">Privacy &amp; choice</a>

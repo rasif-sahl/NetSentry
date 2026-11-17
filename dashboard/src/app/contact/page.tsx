@@ -210,6 +210,7 @@ export default function ContactPage() {
         >
           <Link href="/product">Product</Link>
           <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/terms">Terms and Conditions</Link>
           <Link href="/docs">Documentation</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/contact">Contact</Link>

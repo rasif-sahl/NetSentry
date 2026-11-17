@@ -123,3 +123,10 @@ This is a non-sending form preview: required fields and email syntax are validat
 Open `/privacy` for the approved ten-section Privacy Policy design, linked from the public footers. The page keeps a visible draft notice and an unconfirmed effective date; policy/operator/provider/retention/regional details are not finalized. The desktop contents become a native disclosure on mobile, with direct section links and hash-based selection. The closing action opens the existing privacy-controls guide at `/docs/privacy`.
 
 This page does not create an effective legal policy, change product data processing or submit privacy requests. `npm --prefix dashboard run test:public` checks footer navigation, section links, browser history, responsive layouts and no-JavaScript access. See [Privacy Policy validation](../docs/validation/privacy-policy-page.md).
+
+
+## Draft Terms and Conditions
+
+Open `/terms` for the approved twelve-section Terms and Conditions design, linked from public footers including Privacy Policy. Shared legal contents navigation supports unique section links, hash selection, browser history and a mobile native disclosure. The page retains a visible draft notice and unconfirmed effective date.
+
+This page records no acceptance and adds no registration requirement or effective commercial/legal terms. `npm --prefix dashboard run test:public` checks Terms together with Privacy Policy and the existing public pages, including mobile and no-JavaScript access. See [Terms validation](../docs/validation/terms-and-conditions-page.md).
