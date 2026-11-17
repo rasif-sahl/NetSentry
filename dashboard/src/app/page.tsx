@@ -551,9 +551,9 @@ export default function Home() {
                 {
                   title: "Applications",
                   links: [
-                    ["Web dashboard", "#dashboard"],
-                    ["Android & iOS", "#apps"],
-                    ["Desktop app", "#desktop"],
+                    ["Web dashboard", "/applications#applications-web"],
+                    ["Android & iOS", "/applications#applications-phones"],
+                    ["Desktop app", "/applications#applications-desktop"],
                   ],
                 },
                 {

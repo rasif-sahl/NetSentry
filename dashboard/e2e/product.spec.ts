@@ -123,10 +123,10 @@ test("product layout keeps upright previews and usable navigation across screen 
   await menu.click();
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Applications", exact: true })
+    .getByRole("link", { name: "Privacy & choice", exact: true })
     .click();
   await expect(menu).toHaveAttribute("aria-expanded", "false");
-  await expect(page).toHaveURL(/#product-applications$/);
+  await expect(page).toHaveURL(/#product-privacy$/);
   await menu.click();
   await page.keyboard.press("Escape");
   await expect(menu).toHaveAttribute("aria-expanded", "false");

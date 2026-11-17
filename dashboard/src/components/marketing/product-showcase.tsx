@@ -4,34 +4,11 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { button, caption, ProductImage, WindowFrame } from "./ui";
 
-const screens = {
-  dashboard: {
-    src: "/product/dashboard.png",
-    title: "Web dashboard",
-    alt: "Web workspace showing sidebar navigation, an empty device inventory and monitoring availability",
-  },
-  android: {
-    src: "/product/android.png",
-    title: "Android app",
-    alt: "Android Home with workspace, phone, device and permissions links above floating bottom tabs",
-  },
-  ios: {
-    src: "/product/ios.png",
-    title: "iOS app",
-    alt: "iOS Home with grouped menu rows and rounded floating bottom navigation",
-  },
-  desktop: {
-    src: "/product/desktop.png",
-    title: "Computer status",
-    alt: "Desktop app with a rounded sidebar, computer status cards and quick access links",
-  },
-  services: {
-    src: "/product/services.png",
-    title: "Service inventory",
-    alt: "Desktop service inventory with project search and an empty development services list",
-  },
-};
-type Screen = keyof typeof screens;
+import {
+  productScreens as screens,
+  type ProductScreen as Screen,
+} from "./product-screens";
+
 const enlargeButton =
   "min-h-11 rounded-lg border border-[#dfd3e7] bg-white px-3 py-2 text-[10px] font-semibold text-[#705380] hover:bg-[#f2edf6]";
 

@@ -8,21 +8,33 @@ import { Brand, primaryButton } from "./ui";
 const links = [
   ["The product", "/product"],
   ["Who it’s for", "#features"],
-  ["Our apps", "#apps"],
+  ["Our apps", "/applications"],
   ["How it works", "#how-it-works"],
 ];
 
 const productLinks = [
   ["Home", "/"],
   ["Product", "/product"],
-  ["Applications", "#product-applications"],
+  ["Applications", "/applications"],
   ["Privacy & choice", "#product-privacy"],
 ];
+
+const applicationLinks = [
+  ["Home", "/"],
+  ["Product", "/product"],
+  ["Applications", "/applications"],
+  ["Getting started", "#applications-setup"],
+];
+const navigation = {
+  home: links,
+  product: productLinks,
+  applications: applicationLinks,
+};
 
 export function MarketingNavigation({
   page = "home",
 }: {
-  page?: "home" | "product";
+  page?: "home" | "product" | "applications";
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -41,12 +53,15 @@ export function MarketingNavigation({
           id={`main-navigation-${page}`}
           className={`${open ? "flex" : "hidden"} absolute inset-x-0 top-[68px] flex-col gap-1 rounded-b-xl border border-[#e8e0ed] bg-white p-4 text-xs text-[#75657f] lg:static lg:flex lg:flex-row lg:gap-7 lg:border-0 lg:bg-transparent lg:p-0`}
         >
-          {(page === "product" ? productLinks : links).map(([label, href]) => (
+          {navigation[page].map(([label, href]) => (
             <Link
               key={href}
               href={href}
               aria-current={
-                page === "product" && href === "/product" ? "page" : undefined
+                (page === "product" && href === "/product") ||
+                (page === "applications" && href === "/applications")
+                  ? "page"
+                  : undefined
               }
               onClick={() => setOpen(false)}
               className="rounded-md px-2 py-3 hover:bg-[#f4eff8] aria-[current=page]:font-semibold aria-[current=page]:text-[#604675] lg:px-0"
@@ -66,10 +81,20 @@ export function MarketingNavigation({
           )}
           <div className="hidden sm:block">
             <Link
-              href={page === "product" ? "#product-features" : "/product"}
+              href={
+                page === "applications"
+                  ? "#applications-compare"
+                  : page === "product"
+                    ? "#product-features"
+                    : "/product"
+              }
               className={primaryButton}
             >
-              {page === "product" ? "Explore the features" : "Meet NetSentry"}
+              {page === "applications"
+                ? "Compare the apps"
+                : page === "product"
+                  ? "Explore the features"
+                  : "Meet NetSentry"}
             </Link>
           </div>
           <button

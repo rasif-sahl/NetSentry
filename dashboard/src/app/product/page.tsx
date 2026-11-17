@@ -637,9 +637,9 @@ export default function ProductPage() {
             begin.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <a className={primaryButton} href="#product-applications">
+            <Link className={primaryButton} href="/applications">
               Explore the applications
-            </a>
+            </Link>
             <Link className={button} href="/">
               Back to the home page
             </Link>
@@ -664,7 +664,7 @@ export default function ProductPage() {
             </p>
             <div className="flex gap-6">
               <a href="#product-features">Features</a>
-              <a href="#product-applications">Applications</a>
+              <Link href="/applications">Applications</Link>
               <a href="#product-privacy">Privacy &amp; choice</a>
             </div>
           </div>

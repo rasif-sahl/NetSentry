@@ -84,3 +84,9 @@ Run `npm --prefix dashboard run test:homepage` after building to check the publi
 Open `/product` for the approved product feature page, also linked from the homepage. It explains devices, reports/alerts, family/team sharing, developer tools, application roles and privacy. The responsive feature explorer supports pointer and keyboard navigation. Screens stay upright, buttons have no arrows, and availability/preview captions distinguish designs from released apps or live reports.
 
 Run `npm --prefix dashboard run test:public` after building for the homepage and product-page browser checks without a database. `test:homepage` remains an alias for the same public suite. These checks cover cross-page navigation, responsive layouts, tab keyboard behavior, screenshot assets and platform availability disclosure. See [Product Overview validation](../docs/validation/product-overview.md).
+
+## Applications guide
+
+Open `/applications`, linked from the homepage and Product Overview, to compare the web, Android, iOS and desktop apps. The guide implements the approved simple design with straight screens, enlarged previews, a desktop screen switcher, an accessible app-role comparison, setup guidance and availability FAQs. Native screenshots remain labelled design reconstructions; downloads are not advertised before native release validation.
+
+`npm --prefix dashboard run test:public` now checks all three public pages, including navigation, preview dialogs, keyboard focus, mobile comparison scrolling and responsive layouts. See [Applications page validation](../docs/validation/applications-page.md).
