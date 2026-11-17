@@ -1,3 +1,6 @@
+import { Diagnostics } from "./Diagnostics";
+import { BackgroundService } from "./BackgroundService";
+import { Updates } from "./Updates";
 import { Appearance } from "./Appearance";
 import { NetworkSharing } from "./NetworkSharing";
 import { RemoteSharing } from "./RemoteSharing";
@@ -41,6 +44,11 @@ export function App() {
       </p>
       <h1>Connect this computer</h1>
       <Appearance />
+      <Updates />
+      <Diagnostics />
+      <BackgroundService
+        refreshKey={`${status?.backgroundRequested}-${status?.connection}`}
+      />
       <p>
         Manage the shared agent’s pairing and local preferences. Inspect
         development services and confirm local shutdown on supported macOS
@@ -155,7 +163,8 @@ export function App() {
             <p>
               Workspace background authorization:{" "}
               {status.backgroundAllowed ? "allowed" : "not active"}. This
-              setting does not install or start a system service.
+              permission alone does not install a service. Use Run at login to
+              register it; turning this off also removes an owned registration.
             </p>
             <p>
               Remote access is off until explicitly enabled below and authorized

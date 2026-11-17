@@ -358,10 +358,24 @@ func Delay(attempt int) time.Duration {
 }
 func (r *Runner) Run(ctx context.Context, background bool) error {
 	r.mu.Lock()
-	locallyAllowed := r.Config.BackgroundAllowed
+	localConfig := r.Config
+	locallyAllowed := localConfig.BackgroundAllowed
 	r.mu.Unlock()
 	if background && !locallyAllowed {
 		return errors.New("background operation is not locally enabled")
+	}
+	if background {
+		current, err := BackgroundConfiguration(ctx, localConfig, r.Store)
+		if err != nil {
+			return err
+		}
+		r.mu.Lock()
+		if !r.Config.BackgroundAllowed || r.binding.Token == "" || r.binding.AgentID != current.AgentID || r.binding.WorkspaceID != current.WorkspaceID || r.binding.Generation != current.Generation {
+			r.mu.Unlock()
+			return errors.New("local background consent was withdrawn")
+		}
+		r.remote = current
+		r.mu.Unlock()
 	}
 	remoteCtx, cancelRemote := context.WithCancel(ctx)
 	remoteDone := make(chan struct{})

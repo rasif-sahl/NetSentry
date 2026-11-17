@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 )
 
+var ErrRuntimeBusy = errors.New("another agent process is already using this installation")
+
 func UUID() string {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {

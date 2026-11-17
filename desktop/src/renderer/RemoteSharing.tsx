@@ -123,7 +123,8 @@ export function RemoteSharing({ enabled }: { enabled: boolean }) {
       <p>
         Disabling sharing stops uploads; cached summaries expire.
         Revocation/unpairing clears local command receipts and resets remote
-        consent. No service or login item is installed.
+        consent. These sharing choices leave service registration to the Run at
+        login controls.
       </p>
     </section>
   );

@@ -116,6 +116,20 @@ try {
   await paired.addInitScript(() => {
     window.__fixtureStops = 0;
     window.netsentry = {
+      backgroundService: async () => ({
+        verified: true,
+        registered: false,
+        loaded: false,
+        running: false,
+        canRegister: false,
+        message:
+          "Fixture: registration requires a signed installed application.",
+      }),
+      desktopUpdate: async () => ({
+        state: "disabled",
+        version: "0.1.0",
+        message: "Production updates are unavailable until configured.",
+      }),
       getAgentStatus: async () => ({
         ok: true,
         status: {
@@ -209,6 +223,156 @@ try {
   await controls
     .getByRole("button", { name: "Stop gracefully", exact: true })
     .waitFor();
+  await controls
+    .getByRole("button", { name: "Update status", exact: true })
+    .click();
+  await controls
+    .getByText("Production updates are unavailable until configured.", {
+      exact: true,
+    })
+    .waitFor();
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Check for updates", exact: true })
+      .isDisabled(),
+    true,
+  );
+  await controls
+    .getByRole("heading", { name: "Run at login", exact: true })
+    .waitFor();
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Register background service", exact: true })
+      .isDisabled(),
+    true,
+  );
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Remove background service", exact: true })
+      .isDisabled(),
+    false,
+  );
+  await controls.evaluate(() => {
+    let registered = false;
+    window.__fixtureBackgroundActions = [];
+    window.netsentry.backgroundService = async (action) => {
+      window.__fixtureBackgroundActions.push(action);
+      if (action === "register") registered = true;
+      if (action === "remove") registered = false;
+      return {
+        verified: true,
+        registered,
+        loaded: registered,
+        running: registered,
+        canRegister: true,
+        message: registered
+          ? "Fixture: managed background service registered."
+          : "Fixture: no managed service remains.",
+      };
+    };
+  });
+  await controls
+    .getByRole("button", { name: "Refresh background status", exact: true })
+    .click();
+  await controls
+    .getByRole("button", { name: "Register background service", exact: true })
+    .click();
+  await controls
+    .getByText("Fixture: managed background service registered.", {
+      exact: true,
+    })
+    .waitFor();
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Register background service", exact: true })
+      .isDisabled(),
+    true,
+  );
+  await controls
+    .getByRole("button", { name: "Remove background service", exact: true })
+    .click();
+  await controls
+    .getByText("Fixture: no managed service remains.", { exact: true })
+    .waitFor();
+  assert.deepEqual(
+    await controls.evaluate(() => window.__fixtureBackgroundActions),
+    ["status", "register", "remove"],
+  );
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Repair stale socket", exact: true })
+      .isDisabled(),
+    true,
+  );
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Export redacted diagnostics", exact: true })
+      .isDisabled(),
+    true,
+  );
+  await controls.evaluate(() => {
+    window.__fixtureDiagnostics = [];
+    window.netsentry.desktopDiagnostics = async (action) => {
+      window.__fixtureDiagnostics.push(action);
+      return {
+        schemaVersion: 1,
+        checkedAt: new Date().toISOString(),
+        environment: {
+          platform: "darwin",
+          architecture: "arm64",
+          appVersion: "fixture",
+        },
+        checks: [
+          {
+            code: "SOCKET_STALE",
+            message: "Fixture: private socket without a listener.",
+            nextStep: "Explicit recovery only.",
+          },
+        ],
+        canRepair: action === "check",
+        ...(action === "repair"
+          ? { outcome: "REPAIR_CANCELLED" }
+          : action === "export"
+            ? { outcome: "EXPORT_CANCELLED" }
+            : {}),
+      };
+    };
+  });
+  assert.deepEqual(
+    await controls.evaluate(() => window.__fixtureDiagnostics),
+    [],
+  );
+  await controls
+    .getByRole("button", { name: "Check desktop diagnostics", exact: true })
+    .click();
+  await controls
+    .getByText("Fixture: private socket without a listener.", { exact: true })
+    .waitFor();
+  assert.equal(
+    await controls
+      .getByRole("button", { name: "Repair stale socket", exact: true })
+      .isDisabled(),
+    false,
+  );
+  await controls
+    .getByRole("button", { name: "Repair stale socket", exact: true })
+    .click();
+  await controls
+    .getByText("Socket recovery was cancelled. No socket was changed.", {
+      exact: true,
+    })
+    .waitFor();
+  await controls
+    .getByRole("button", { name: "Export redacted diagnostics", exact: true })
+    .click();
+  await controls
+    .getByText("Diagnostic export was cancelled.", { exact: true })
+    .waitFor();
+  assert.deepEqual(await controls.evaluate(() => window.__fixtureDiagnostics), [
+    "check",
+    "repair",
+    "export",
+  ]);
   const layout = () =>
     controls.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
   assert.equal(await layout(), true);

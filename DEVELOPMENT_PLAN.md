@@ -348,6 +348,12 @@ Completion: acceptance evidence identifies which platforms/features are source-c
 
 Current status: **in progress; physical acceptance pending**. Phase 15 adds candidate-bound release evidence tooling, read-only existing-tool prerequisite checks, platform-specific build/testing handoffs and an explicit support matrix. iOS Debug identifiers are isolated from the Flutter reference. Native builds/signing, phone/router observations, production runtime and installer/update acceptance remain pending; no mobile tooling is installed and Flutter is not retired. See `docs/release/README.md` and `docs/validation/phase-15.md`.
 
+Desktop packaging/update follow-up: local macOS preview packaging and the signed update controller/provider are implemented. Production identity, notarization and host are unconfigured; actual signed install/replacement/recovery remain pending. Explicit per-user macOS background-service registration/removal is implemented; signed packaged-agent/Keychain and login/device acceptance remain pending. See `docs/validation/desktop-background-service.md`. See `desktop/packaging/README.md` and `docs/validation/desktop-packaging.md`.
+
+Desktop diagnostics/recovery follow-up: explicit current-state checks, fixed public failure reasons, guarded stale-socket repair and redacted diagnostic export are implemented. Recovery never kills/restarts processes or resets pairing/settings. Signed packaged Electron/Keychain acceptance remains pending. See `docs/validation/desktop-diagnostics.md`.
+
+Production deployment/recovery follow-up: digest-gated single-host container rollout, HTTPS ingress, explicit schema operations, a durable bounded maintenance worker and authenticated backup scheduling/health are implemented. Migration eighteen adds operational worker state. No hosting is provisioned; real DNS/TLS/registry/DB roles, off-site storage and measured live acceptance remain pending. See `infra/production/README.md` and `docs/validation/production-deployment.md`.
+
 ### Phase 16 Optional later extensions
 
 - Expand Windows and supported Linux desktop targets, plus explicit Docker/WSL support.

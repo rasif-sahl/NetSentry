@@ -14,7 +14,7 @@ npm run dev:renderer
 
 `dev:renderer` serves an ordinary browser on 127.0.0.1:5173; bridging is unavailable there. `npm start` loads built files and needs an existing Electron runtime. Use `npm ci --ignore-scripts` when preparing source dependencies to avoid automatic binary downloads. No Electron runtime or mobile tooling is installed by these build/test commands.
 
-Build and initialize the agent separately using [its README](../agent/README.md), then run it in the foreground. Development-only Electron main environment overrides are `NETSENTRY_AGENT_BINARY` (absolute path to your built executable) and optional `NETSENTRY_AGENT_STATE_DIR` (private directory). Packaged builds ignore overrides and resolve the executable at `resources/agent/netsentry-agent`, with state under the user's application-data `NetSentry/agent` directory. The current repository does not produce a signed installer or bundle that binary automatically.
+Build and initialize the agent separately using [its README](../agent/README.md), then run it in the foreground. Development-only Electron main environment overrides are `NETSENTRY_AGENT_BINARY` (absolute path to your built executable) and optional `NETSENTRY_AGENT_STATE_DIR` (private directory). Packaged builds ignore overrides and resolve the executable at `resources/agent/netsentry-agent`, with state under the user's application-data `NetSentry/agent` directory. The packaging flow now bundles the matching binary and can prepare signed DMG/ZIP artifacts on a configured signing host. The current unsigned preview blocks bundled-agent execution and production updates. See [packaging and update instructions](packaging/README.md).
 
 The UI shows the installation UUID needed to issue a workspace-bound enrolment code through the backend API. Paste the single-use code, then enable the desired local preferences. Pairing and module eligibility do not grant process-control authority. Backend online status proves a recent heartbeat only. Network collectors remain unavailable; macOS service eligibility is reported separately by v3 inventory. Phase 7 remote consent uses v4 and additionally requires explicit backend controller grants. Background preference is separate from a registered service and requires workspace allowance as well.
 
@@ -36,7 +36,7 @@ Results distinguish still running, identity/tree changes, denied/unknown/partial
 
 ## Phase 7 sharing and remote consent
 
-Paired Developer Tools exposes independent summary-sharing and remote-shutdown choices, initially off. Read and accept the disclosure before enabling; disabling sharing clears control. Workspace/controller grants are managed in the web dashboard and are required separately. No background service is installed. See [remote architecture](../docs/architecture/remote-service-commands.md) and [verification](../docs/validation/phase-7.md).
+Paired Developer Tools exposes independent summary-sharing and remote-shutdown choices, initially off. Read and accept the disclosure before enabling; disabling sharing clears control. Workspace/controller grants are managed in the web dashboard and are required separately. Sharing settings do not install a background service. Explicit Run at login controls are documented below. See [remote architecture](../docs/architecture/remote-service-commands.md) and [verification](../docs/validation/phase-7.md).
 
 Phase 10 adds Network observation sharing with a named network UUID and separate `network-sharing-v1` acceptance. The web dashboard must grant the same installation/network; enabling a module alone is insufficient. Authenticated local IPC v5 exposes only get/set network preferences. Developer control remains independently gated. Renderer builds and Node-Go IPC fixtures are checked; packaged Electron/real-host collection remains pending.
 
@@ -49,3 +49,11 @@ Phase 16 adds local SYSTEM/LIGHT/DARK appearance, OS/cross-window updates and bl
 The desktop renderer compiles Tailwind CSS 4.3.3 through `postcss.config.mjs` with pinned PostCSS 8.5.23. `styles.css` explicitly scans renderer TSX, maps runtime colors with `@theme inline` and uses Tailwind base rules for shared form/typography defaults. Components use utilities for responsive layouts, cards, actions, focus and dialogs. `theme.css` contains runtime light/dark tokens. CSS is bundled locally by Vite; no CDN, remote fonts, inline style permission or runtime compiler is added.
 
 Build with `npm run build:desktop`; verify appearance with the existing Chromium setup via `npm run test:desktop-appearance`. Browser agent data is synthetic and no stop action is submitted. Native Electron/Keychain/signing/device acceptance remains pending. See [migration evidence](../docs/validation/desktop-tailwind.md).
+
+## Desktop background-service follow-up
+
+Explicit per-user macOS registration, start, removal and update interlocking are implemented. Registration requires native confirmation, fresh workspace authorization and a signed application installed in Applications. No production service was registered during development. Signed packaged-agent/Keychain and actual login acceptance remain pending. See [validation](../docs/validation/desktop-background-service.md).
+
+## Desktop diagnostics and recovery
+
+Explicit current-state diagnostics, user-confirmed stale-socket recovery and redacted JSON export are implemented. Repair requires verified trust, no managed job/registration, private state and exclusive runtime locking; it preserves credentials, settings and data and never starts/stops a process. Partial-registration and failure guidance is included. Signed native acceptance remains pending. See [validation and operation](../docs/validation/desktop-diagnostics.md).

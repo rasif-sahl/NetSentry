@@ -13,6 +13,9 @@ try {
     SERVER_ENV_FILE: envFile,
     DASHBOARD_ENV_FILE: envFile,
     SERVER_SECRET_DIR: root,
+    INGRESS_IMAGE: "example.invalid/nginx@sha256:" + "c".repeat(64),
+    INGRESS_CONFIG_FILE: envFile,
+    TLS_CERT_DIR: root,
   };
   execFileSync(
     "docker",
@@ -22,6 +25,8 @@ try {
       envFile,
       "-f",
       resolve("infra/compose.yaml"),
+      "-f",
+      resolve("infra/compose.https.yaml"),
       "config",
       "--quiet",
     ],
