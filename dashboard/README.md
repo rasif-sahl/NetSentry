@@ -77,7 +77,7 @@ Phase 16 adds account email opt-in and an email rule channel with visible delive
 
 The approved storytelling homepage uses Tailwind CSS 4 and local product UI assets. Dashboard, Android, iOS and desktop showcases stay upright and aligned; previews can be enlarged and desktop screens can be switched. Captions identify empty/synthetic states and native release limitations. The homepage makes no monitoring API requests. Sign in opens `/app`; verification/reset URLs are unchanged, and old `/?view=…` workspace bookmarks redirect with their queries intact.
 
-Run `npm --prefix dashboard run test:homepage` after building to check the public page without a test database. Set `PLAYWRIGHT_CHROME_EXECUTABLE` to an existing browser when needed. See [public website architecture](../docs/architecture/public-website.md) and [validation](../docs/validation/public-homepage.md). Documentation, legal, contact, pricing and download pages remain separate work.
+Run `npm --prefix dashboard run test:homepage` after building to check the public page without a test database. Set `PLAYWRIGHT_CHROME_EXECUTABLE` to an existing browser when needed. See [public website architecture](../docs/architecture/public-website.md) and [validation](../docs/validation/public-homepage.md). Legal, contact and download pages remain separate work.
 
 ## Product Overview
 
@@ -102,3 +102,10 @@ Open `/solutions` for the approved personal, family, team and developer use-case
 Open `/docs` for the searchable documentation home, linked from public navigation and the homepage Learn footer. Twelve guides under `/docs/[slug]` cover setup, account access, pairing, permissions, reports/alerts, sharing, family requests, developer services, unavailable data, platform availability and privacy controls. The reader has topic navigation, article contents, direct section links, metadata and unknown-guide handling.
 
 Search is local to the guide catalogue and requires no account or external search service. Reader search links to `/docs?q=…`. `npm --prefix dashboard run test:public` checks documentation together with the other public pages. See [Documentation validation](../docs/validation/documentation-page.md).
+
+
+## Pricing
+
+Open `/pricing` for the approved four-edition pricing design: aligned plan cards, a comparison table, shared privacy/availability principles and keyboard-accessible FAQs. Public navigation, the homepage Learn footer and documentation link to the page. The comparison scrolls within its labelled region on narrow screens.
+
+Prices, final commercial limits and launch availability remain unconfirmed. The page does not publish backend sandbox amounts or enable checkout; paid plans show “Coming soon”. `npm --prefix dashboard run test:public` checks Pricing alongside the other public pages. See [Pricing validation](../docs/validation/pricing-page.md).

@@ -561,6 +561,7 @@ export default function Home() {
                   links: [
                     ["Common questions", "#faq"],
                     ["Documentation", "/docs"],
+                    ["Pricing", "/pricing"],
                     ["Platform availability", "#availability"],
                     ["Privacy & choice", "#privacy"],
                   ],

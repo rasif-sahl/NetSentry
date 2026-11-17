@@ -8,6 +8,7 @@ export default defineConfig({
     "applications.spec.ts",
     "solutions.spec.ts",
     "documentation.spec.ts",
+    "pricing.spec.ts",
   ],
   workers: 1,
   use: {

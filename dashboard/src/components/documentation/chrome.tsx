@@ -16,11 +16,12 @@ export function DocumentationHeader() {
           ["Product", "/product"],
           ["Applications", "/applications"],
           ["Solutions", "/solutions"],
+          ["Pricing", "/pricing"],
         ].map(([label, href]) => (
           <Link
             key={href}
             href={href}
-            className="hidden hover:text-[#604675] min-[601px]:block"
+            className="hidden hover:text-[#604675] min-[801px]:block"
           >
             {label}
           </Link>
@@ -50,6 +51,7 @@ export function DocumentationFooter() {
       </p>
       <div className="flex gap-5">
         <Link href="/applications">Applications</Link>
+        <Link href="/pricing">Pricing</Link>
         <Link href="/docs/privacy">Privacy controls</Link>
       </div>
     </footer>

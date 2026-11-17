@@ -33,17 +33,23 @@ const solutionLinks = [
   ["Applications", "/applications"],
   ["Solutions", "/solutions"],
 ];
+const pricingLinks = [
+  ["Product", "/product"],
+  ["Applications", "/applications"],
+  ["Solutions", "/solutions"],
+];
 const navigation = {
   home: links,
   product: productLinks,
   applications: applicationLinks,
   solutions: solutionLinks,
+  pricing: pricingLinks,
 };
 
 export function MarketingNavigation({
   page = "home",
 }: {
-  page?: "home" | "product" | "applications" | "solutions";
+  page?: "home" | "product" | "applications" | "solutions" | "pricing";
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -62,25 +68,28 @@ export function MarketingNavigation({
           id={`main-navigation-${page}`}
           className={`${open ? "flex" : "hidden"} absolute inset-x-0 top-[68px] flex-col gap-1 rounded-b-xl border border-[#e8e0ed] bg-white p-4 text-xs text-[#75657f] xl:static xl:flex xl:flex-row xl:gap-7 xl:border-0 xl:bg-transparent xl:p-0`}
         >
-          {[...navigation[page], ["Documentation", "/docs"]].map(
-            ([label, href]) => (
-              <Link
-                key={href}
-                href={href}
-                aria-current={
-                  (page === "product" && href === "/product") ||
-                  (page === "applications" && href === "/applications") ||
-                  (page === "solutions" && href === "/solutions")
-                    ? "page"
-                    : undefined
-                }
-                onClick={() => setOpen(false)}
-                className="rounded-md px-2 py-3 hover:bg-[#f4eff8] aria-[current=page]:font-semibold aria-[current=page]:text-[#604675] xl:px-0"
-              >
-                {label}
-              </Link>
-            ),
-          )}
+          {[
+            ...navigation[page],
+            ["Documentation", "/docs"],
+            ["Pricing", "/pricing"],
+          ].map(([label, href]) => (
+            <Link
+              key={href}
+              href={href}
+              aria-current={
+                (page === "product" && href === "/product") ||
+                (page === "applications" && href === "/applications") ||
+                (page === "solutions" && href === "/solutions") ||
+                (page === "pricing" && href === "/pricing")
+                  ? "page"
+                  : undefined
+              }
+              onClick={() => setOpen(false)}
+              className="rounded-md px-2 py-3 hover:bg-[#f4eff8] aria-[current=page]:font-semibold aria-[current=page]:text-[#604675] xl:px-0"
+            >
+              {label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-3 md:gap-5">
           {page === "home" && (
@@ -94,23 +103,27 @@ export function MarketingNavigation({
           <div className="hidden sm:block">
             <Link
               href={
-                page === "solutions"
-                  ? "#solutions-paths"
-                  : page === "applications"
-                    ? "#applications-compare"
-                    : page === "product"
-                      ? "#product-features"
-                      : "/product"
+                page === "pricing"
+                  ? "#pricing-plans"
+                  : page === "solutions"
+                    ? "#solutions-paths"
+                    : page === "applications"
+                      ? "#applications-compare"
+                      : page === "product"
+                        ? "#product-features"
+                        : "/product"
               }
               className={primaryButton}
             >
-              {page === "solutions"
-                ? "Find your starting point"
-                : page === "applications"
-                  ? "Compare the apps"
-                  : page === "product"
-                    ? "Explore the features"
-                    : "Meet NetSentry"}
+              {page === "pricing"
+                ? "Explore the plans"
+                : page === "solutions"
+                  ? "Find your starting point"
+                  : page === "applications"
+                    ? "Compare the apps"
+                    : page === "product"
+                      ? "Explore the features"
+                      : "Meet NetSentry"}
             </Link>
           </div>
           <button
