@@ -1,8 +1,7 @@
 "use client";
 import { api, download } from "@/lib/api";
 import { useResource } from "@/lib/use-resource";
-import type { Retention, Session, User } from "@/lib/types";
-import type { PageContext } from "./dashboard-shell";
+import type { Retention, Session, User, Workspace } from "@/lib/types";
 import { NotificationPreferencesPanel } from "./alerts-panel";
 import {
   ActionButton,
@@ -27,18 +26,33 @@ type Diagnostics = {
   deliveries: { status: string; count: number }[];
   pushProviders: { android: string; ios: string };
 };
-export function SettingsPanel(context: PageContext) {
-  const { user, workspace, permissions, updateUser, accountDeleted } = context;
+export function SettingsPanel({
+  user,
+  workspace,
+  permissions,
+  updateUser,
+  accountDeleted,
+}: {
+  user: User;
+  workspace?: Workspace;
+  permissions?: string[];
+  updateUser: (user: User) => void;
+  accountDeleted: () => void;
+}) {
   const sessions = useResource<Session[]>("/auth/sessions");
   const privacy =
     useResource<{ id: string; kind: string; createdAt: string }[]>(
       "/privacy/history",
     );
-  const base = `/workspaces/${workspace.id}/monitoring`;
-  const audit = permissions.includes("audit:read");
-  const retention = useResource<Retention>(audit ? `${base}/retention` : null);
+  const auditBase =
+    workspace && permissions?.includes("audit:read")
+      ? `/workspaces/${workspace.id}/monitoring`
+      : undefined;
+  const retention = useResource<Retention>(
+    auditBase ? `${auditBase}/retention` : null,
+  );
   const diagnostics = useResource<Diagnostics>(
-    audit ? `${base}/diagnostics` : null,
+    auditBase ? `${auditBase}/diagnostics` : null,
     true,
   );
   return (
@@ -201,7 +215,7 @@ export function SettingsPanel(context: PageContext) {
         </ul>
         {privacy.data?.length === 0 && <p>No privacy actions recorded yet.</p>}
       </Card>
-      {audit ? (
+      {auditBase ? (
         <>
           <Card title="Workspace data retention">
             <ErrorNotice error={retention.error} />
@@ -220,7 +234,7 @@ export function SettingsPanel(context: PageContext) {
                     : "default policy (no override)"}
                   . Cleanup requires scheduled monitoring maintenance.
                 </small>
-                {workspace.role === "OWNER" ? (
+                {workspace?.role === "OWNER" ? (
                   <ActionForm
                     submit="Update retention policy"
                     action={async (form) => {
@@ -234,7 +248,7 @@ export function SettingsPanel(context: PageContext) {
                         throw new Error(
                           "Aggregate retention must cover raw retention.",
                         );
-                      await api(`${base}/retention`, "PATCH", policy);
+                      await api(`${auditBase}/retention`, "PATCH", policy);
                       retention.reload();
                       return "Retention policy updated. Shortened retention applies on the next cleanup pass.";
                     }}

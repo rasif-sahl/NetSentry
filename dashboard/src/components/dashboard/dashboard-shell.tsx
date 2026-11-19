@@ -61,7 +61,23 @@ const navigation = [
   { label: "Team", icon: Users },
   { label: "Settings & privacy", icon: Settings },
   { label: "More modules", icon: Laptop },
-];
+] as const;
+type Section = (typeof navigation)[number]["label"];
+
+const deviceSections: ReadonlySet<Section> = new Set([
+  "Overview",
+  "Devices",
+  "Usage & reports",
+  "Alerts",
+  "Networks",
+  "Family",
+]);
+
+function sectionFromUrl(): Section {
+  if (typeof window === "undefined") return "Overview";
+  const view = new URLSearchParams(window.location.search).get("view");
+  return navigation.find(({ label }) => label === view)?.label ?? "Overview";
+}
 export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
   const router = useRouter();
   const [session, setSession] = useState<{
@@ -183,11 +199,7 @@ function WorkspaceShell({
   const [switching, setSwitching] = useState(false);
   const switchPending = useRef(false);
   const [selected, setSelected] = useState<string>();
-  const [section, setSection] = useState(() => {
-    if (typeof window === "undefined") return "Overview";
-    const view = new URLSearchParams(window.location.search).get("view");
-    return navigation.some((item) => item.label === view) ? view! : "Overview";
-  });
+  const [section, setSection] = useState(sectionFromUrl);
   const [menu, setMenu] = useState(false);
   const workspace =
     workspaces.data?.find(
@@ -201,13 +213,18 @@ function WorkspaceShell({
     workspace ? `/workspaces/${workspace.id}/devices` : null,
     true,
   );
+  const needsWorkspace =
+    section !== "Settings & privacy" &&
+    section !== "Operations" &&
+    section !== "More modules";
+  const needsDevices = deviceSections.has(section);
   const context =
-    workspace && permission.data && devices.data
+    workspace && permission.data && (!needsDevices || devices.data)
       ? {
           user,
           workspace,
           permissions: permission.data.permissions,
-          devices: devices.data,
+          devices: devices.data ?? [],
           reloadDevices: devices.reload,
           updateUser,
           accountDeleted,
@@ -236,10 +253,7 @@ function WorkspaceShell({
   }, [user.preferences.theme, user.preferences.reducedMotion]);
   useEffect(() => {
     const back = () => {
-      const view = new URLSearchParams(window.location.search).get("view");
-      setSection(
-        navigation.some((item) => item.label === view) ? view! : "Overview",
-      );
+      setSection(sectionFromUrl());
       setMenu(false);
     };
     window.addEventListener("popstate", back);
@@ -278,14 +292,14 @@ function WorkspaceShell({
     };
   }, [menu]);
   const future = ["Policies", "Network Security", "Insights"];
-  function choose(label: string) {
-    setSection(label);
-    if (section !== label)
-      history.pushState(
-        null,
-        "",
-        "/?" + new URLSearchParams({ view: label }).toString(),
-      );
+  function choose(label: Section) {
+    if (section !== label) {
+      const url = new URL(window.location.href);
+      url.pathname = "/app";
+      url.searchParams.set("view", label);
+      history.pushState(null, "", url.pathname + url.search + url.hash);
+      setSection(label);
+    }
     setMenu(false);
     requestAnimationFrame(() => contentRef.current?.focus());
     window.scrollTo({ top: 0 });
@@ -441,19 +455,38 @@ function WorkspaceShell({
               </ActionButton>
             </Notice>
           )}
-          <ErrorNotice
-            error={
-              selectionError ??
-              workspaces.error ??
-              permission.error ??
-              devices.error
-            }
-          />
-          {(workspaces.loading || permission.loading || devices.loading) && (
-            <Loading />
+          <ErrorNotice error={selectionError} />
+          {section === "Operations" && (
+            <div className="page-stack">
+              <OperationsPanel />
+            </div>
           )}
-          {context ? (
-            <div key={workspace!.id} className="page-stack">
+          {section === "Settings & privacy" && (
+            <div className="page-stack" key={workspace?.id}>
+              <SettingsPanel
+                user={user}
+                workspace={workspace}
+                permissions={permission.data?.permissions}
+                updateUser={updateUser}
+                accountDeleted={accountDeleted}
+              />
+            </div>
+          )}
+          {needsWorkspace && (
+            <ErrorNotice
+              error={
+                workspaces.error ??
+                permission.error ??
+                (needsDevices ? devices.error : undefined)
+              }
+            />
+          )}
+          {needsWorkspace &&
+            (workspaces.loading ||
+              permission.loading ||
+              (needsDevices && devices.loading)) && <Loading />}
+          {needsWorkspace && context ? (
+            <div key={context.workspace.id} className="page-stack">
               {section === "Overview" && (
                 <>
                   <div className="metric-grid">
@@ -541,52 +574,16 @@ function WorkspaceShell({
                   </Card>
                 </>
               )}
-              {section !== "Overview" && section !== "More modules" && (
+              {section !== "Overview" && (
                 <ConnectedSection
                   section={section}
                   context={context}
                   workspacesChanged={workspaces.reload}
-                  signedOut={onSignOut}
                 />
-              )}
-              {section === "More modules" && (
-                <>
-                  <Notice>
-                    These modules are planned. No monitoring, blocking, billing
-                    or remote service control is active here.
-                  </Notice>
-                  <div className="module-grid">
-                    {future.map((label) => (
-                      <Card key={label} title={label}>
-                        <span className="badge">Planned</span>
-                        <p>
-                          {
-                            {
-                              Family:
-                                "Profiles and supported digital wellbeing controls.",
-                              Policies:
-                                "Rules and supported device enforcement.",
-                              Organizations:
-                                "Business structure and organization management.",
-                              Locations:
-                                "Site-level organization and network views.",
-                              Audit: "Full workspace action history.",
-                              Subscription:
-                                "Editions, entitlements and billing.",
-                              "Network Security":
-                                "Advanced security analysis beyond the inventory and health events available in Networks.",
-                              Insights:
-                                "Digital wellbeing summaries based on authorized observations.",
-                            }[label]
-                          }
-                        </p>
-                      </Card>
-                    ))}
-                  </div>
-                </>
               )}
             </div>
           ) : (
+            needsWorkspace &&
             !workspaces.loading &&
             !workspaces.error &&
             !workspace && (
@@ -594,6 +591,40 @@ function WorkspaceShell({
                 Create or join a workspace after verifying your email.
               </Empty>
             )
+          )}
+          {section === "More modules" && (
+            <>
+              <Notice>
+                These modules are planned. No monitoring, blocking, billing or
+                remote service control is active here.
+              </Notice>
+              <div className="module-grid">
+                {future.map((label) => (
+                  <Card key={label} title={label}>
+                    <span className="badge">Planned</span>
+                    <p>
+                      {
+                        {
+                          Family:
+                            "Profiles and supported digital wellbeing controls.",
+                          Policies: "Rules and supported device enforcement.",
+                          Organizations:
+                            "Business structure and organization management.",
+                          Locations:
+                            "Site-level organization and network views.",
+                          Audit: "Full workspace action history.",
+                          Subscription: "Editions, entitlements and billing.",
+                          "Network Security":
+                            "Advanced security analysis beyond the inventory and health events available in Networks.",
+                          Insights:
+                            "Digital wellbeing summaries based on authorized observations.",
+                        }[label]
+                      }
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </>
           )}
         </main>
       </div>
@@ -605,13 +636,11 @@ function ConnectedSection({
   context,
   workspacesChanged,
 }: {
-  section: string;
+  section: Section;
   context: PageContext;
   workspacesChanged: () => void;
-  signedOut: () => Promise<void>;
 }) {
   if (section === "Subscription") return <BillingPanel {...context} />;
-  if (section === "Operations") return <OperationsPanel />;
   if (section === "Business") return <BusinessPanel {...context} />;
   if (section === "Family") return <FamilyPanel {...context} />;
   if (section === "Developer Tools") return <DeveloperPanel {...context} />;
@@ -623,6 +652,5 @@ function ConnectedSection({
     return (
       <TeamPanel context={context} workspacesChanged={workspacesChanged} />
     );
-  if (section === "Settings & privacy") return <SettingsPanel {...context} />;
   return null;
 }
