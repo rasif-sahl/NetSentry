@@ -22,7 +22,7 @@ import {
   subscriptionState,
 } from './catalog';
 import { billingMode, entitlements } from './policy';
-import { PlanRequestDto, BillingEventDto } from './billing.dto';
+import { PlanRequestDto, BillingEventDto } from './dto/billing.dto';
 import { payloadHash } from './signature';
 @Injectable()
 export class BillingService {

@@ -19,7 +19,7 @@ import {
   DeveloperSnapshotDto,
   RemoteCommandDto,
   CommandResultDto,
-} from './developer.dto';
+} from './dto/developer.dto';
 import { workspacePolicy } from '../workspaces/workspace-policy';
 import {
   WorkspacePermission,

@@ -15,7 +15,7 @@ import { User, AccountStatus } from '../users/user.entity';
 import { Session } from '../auth/session.entity';
 import { Workspace } from '../workspaces/workspace.entity';
 import { PasswordHasher } from '../auth/password-hasher';
-import { CompatibilityDto, FlagDto } from './operations.dto';
+import { CompatibilityDto, FlagDto } from './dto/operations.dto';
 @Injectable()
 export class OperationsService {
   constructor(

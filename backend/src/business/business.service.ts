@@ -26,7 +26,6 @@ import {
   BusinessNetworkLocation as NetworkLocation,
   BusinessPolicy as Policy,
   BusinessAlertAssignment as AlertAssignment,
-  BusinessAudit as Audit,
 } from './business.entities';
 import {
   NameDto,
@@ -38,7 +37,7 @@ import {
   ComplianceDto,
   BusinessAlertDto,
   BusinessReportQuery,
-} from './business.dto';
+} from './dto/business.dto';
 import { businessAudit, revokeBusinessDevice } from './business.lifecycle';
 
 export const businessDisclosure = {

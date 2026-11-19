@@ -76,3 +76,6 @@ export class EndpointDepartmentDto {
   @IsInt() @Min(0) expectedRevision!: number;
   @IsOptional() @IsUUID() departmentId?: string;
 }
+export class BusinessScopeQuery {
+  @IsOptional() @IsUUID() locationId?: string;
+}

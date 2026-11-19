@@ -15,8 +15,8 @@ import {
   ArrayUnique,
   IsArray,
 } from 'class-validator';
-import { DevicePlatform } from '../workspaces/registered-device.entity';
-import { ActionTokenDto } from '../auth/dto/account.dto';
+import { DevicePlatform } from '../../workspaces/registered-device.entity';
+import { ActionTokenDto } from '../../auth/dto/account.dto';
 export class EnrolmentRequestDto {
   @IsUUID() workspaceId!: string;
   @IsString()

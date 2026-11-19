@@ -48,7 +48,7 @@ export class FamilyAssignmentDto {
 export class FamilyPolicyDto {
   @IsInt() @Min(0) expectedRevision!: number;
   // Rules are validated by the pure validator, including rejection of unknown nested keys.
-  @IsObject() rules!: import('./family.rules').FamilyRules;
+  @IsObject() rules!: import('../family.rules').FamilyRules;
   @IsBoolean() @IsIn([true]) accepted!: boolean;
   @IsIn(['family-sharing-v1']) disclosureVersion!: string;
 }

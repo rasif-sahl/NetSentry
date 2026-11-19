@@ -1,6 +1,4 @@
 import { DataSource } from 'typeorm';
-import { AccountAction } from '../auth/account-action.entity';
-import { MailOutbox } from './mail-outbox.entity';
 
 // This maintenance path requires no SMTP connection or decryption key.
 export async function cleanupAccountMail(source: DataSource) {

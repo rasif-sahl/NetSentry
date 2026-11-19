@@ -1,21 +1,9 @@
-import { NetworkService } from '../networks/network.service';
-import {
-  NetworkController,
-  NetworkDisclosureController,
-  AgentNetworkController,
-} from '../networks/network.controller';
-import { DeveloperService } from './developer.service';
-import {
-  WorkspaceDeveloperController,
-  DeveloperAgentController,
-} from './developer.controller';
 import {
   Body,
   Controller,
   Delete,
   Get,
   Headers,
-  Module,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -23,7 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { AuthModule } from '../auth/auth.module';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/request-user';
@@ -34,7 +21,7 @@ import {
   AgentRedeemDto,
   AgentSettingsDto,
   AgentSyncDto,
-} from './agent.dto';
+} from './dto/agent.dto';
 function bearer(value: string | undefined) {
   const [scheme, token, extra] = (value ?? '').split(' ');
   return scheme === 'Bearer' && !extra ? (token ?? '') : '';
@@ -115,17 +102,3 @@ export class AgentController {
     return this.agents.sync(id, bearer(auth), input);
   }
 }
-@Module({
-  imports: [AuthModule],
-  controllers: [
-    NetworkController,
-    NetworkDisclosureController,
-    AgentNetworkController,
-    WorkspaceAgentController,
-    AgentController,
-    WorkspaceDeveloperController,
-    DeveloperAgentController,
-  ],
-  providers: [AgentService, DeveloperService, NetworkService],
-})
-export class AgentModule {}

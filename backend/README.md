@@ -1,3 +1,7 @@
+## Backend source layout
+
+Organize HTTP features by domain under `src/`. Use `*.module.ts` for NestJS wiring, `*.controller.ts` for HTTP routes, `*.service.ts` for use cases, and `dto/` for request validation classes. Keep TypeORM entities and domain helpers with their feature, migrations under `src/database/migrations/`, and integration checks under `scripts/`.
+
 # Device enrolment and lifecycle
 
 Verified users with workspace registration permission issue one-time, account/workspace/installation/platform-bound enrolment codes. Codes expire after ten minutes and cannot be reused. Redemption acknowledges the versioned pairing disclosure and returns a new opaque device credential once; only its hash is stored. An installation already owned elsewhere cannot be taken over. This is installation pairing, not hardware attestation; native device-side acceptance is still pending.

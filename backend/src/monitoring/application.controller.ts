@@ -20,7 +20,7 @@ import {
   ApplicationCategoryDto,
   ApplicationCorrectionDto,
   ApplicationQuery,
-} from './application.dto';
+} from './dto/application.dto';
 @Controller({ path: 'devices', version: '1' })
 export class ApplicationIngestionController {
   constructor(private readonly applications: ApplicationService) {}

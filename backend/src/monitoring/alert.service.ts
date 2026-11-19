@@ -18,7 +18,7 @@ import {
   NotificationDelivery,
   NotificationPreference,
 } from './alert.entities';
-import { AlertRuleDto, NotificationPreferenceDto } from './alert.dto';
+import { AlertRuleDto, NotificationPreferenceDto } from './dto/alert.dto';
 import { DailyUsage, MonitoringRun, UsageNetwork } from './entities';
 import { decimal, micro } from './values';
 import { defaultAdapters, type NotificationAdapter } from './delivery';
@@ -201,7 +201,13 @@ export class AlertService {
         if (typeof input.email === 'boolean') existing.email = input.email;
         await manager.save(existing);
       }
-      return { ...existing, emailDeliveryAvailable: false };
+      return {
+        userId: existing.userId,
+        inApp: existing.inApp,
+        push: existing.push,
+        email: existing.email,
+        emailDeliveryAvailable: false,
+      };
     });
   }
   list(userId: string, workspaceId: string, notifications = false) {

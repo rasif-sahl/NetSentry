@@ -13,7 +13,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/request-user';
 import { AlertService } from './alert.service';
-import { AlertRuleDto, NotificationPreferenceDto } from './alert.dto';
+import { AlertRuleDto, NotificationPreferenceDto } from './dto/alert.dto';
 @Controller({ path: 'workspaces/:workspaceId/monitoring', version: '1' })
 @UseGuards(AuthGuard)
 export class AlertController {

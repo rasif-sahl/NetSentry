@@ -18,7 +18,7 @@ import {
   RetentionDto,
   NetworkDto,
   NetworkAssignmentDto,
-} from './report.dto';
+} from './dto/report.dto';
 @Controller({ path: 'workspaces/:workspaceId/monitoring', version: '1' })
 @UseGuards(AuthGuard)
 export class ReportController {

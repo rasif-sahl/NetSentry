@@ -4,15 +4,17 @@ export async function checkHistory(source: DataSource, pendingAllowed = false) {
     "SELECT to_regclass('public.netsentry_migrations') AS name",
   );
   const actual: string[] = table.name
-    ? (await source.query('SELECT name FROM netsentry_migrations'))
-        .map((r: { name: string }) => r.name)
-        .sort()
+    ? (await source.query('SELECT name FROM netsentry_migrations')).map(
+        (row: { name: string }) => row.name,
+      )
     : [];
-  const expected = source.migrations.map((m) => m.name).sort();
+  const expected = new Set(
+    source.migrations.map((migration) => migration.name),
+  );
   if (
-    actual.some((name) => !expected.includes(name)) ||
+    actual.some((name) => !expected.has(name)) ||
     new Set(actual).size !== actual.length ||
-    (!pendingAllowed && actual.join('|') !== expected.join('|'))
+    (!pendingAllowed && (!table.name || actual.length !== expected.size))
   )
     throw new Error('Migration history does not match this release.');
 }

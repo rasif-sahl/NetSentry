@@ -21,7 +21,7 @@ import {
   RetentionPolicy,
   UsageNetwork,
 } from './entities';
-import { UsageQuery, RetentionDto } from './report.dto';
+import { UsageQuery, RetentionDto } from './dto/report.dto';
 import { decimal, micro } from './values';
 
 export function csvCell(value: string | number | boolean | null | undefined) {

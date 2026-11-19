@@ -1,14 +1,11 @@
 import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { IsIn } from 'class-validator';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/request-user';
 import { ConfirmPasswordDto } from '../auth/dto/account.dto';
+import { DeleteAccountDto } from './dto/privacy.dto';
 import { PrivacyService } from './privacy.service';
-export class DeleteAccountDto extends ConfirmPasswordDto {
-  @IsIn(['DELETE']) confirmation!: string;
-}
 @Controller({ path: 'privacy', version: '1' })
 @UseGuards(AuthGuard)
 export class PrivacyController {

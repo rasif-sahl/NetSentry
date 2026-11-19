@@ -1,9 +1,10 @@
 import { ReadinessController } from './common/readiness.controller';
-import { OperationsModule } from './operations/operations.controller';
-import { BillingModule } from './billing/billing.controller';
-import { BusinessModule } from './business/business.controller';
-import { FamilyModule } from './family/family.controller';
-import { AgentModule } from './agents/agent.controller';
+import { OperationsModule } from './operations/operations.module';
+import { BillingModule } from './billing/billing.module';
+import { BusinessModule } from './business/business.module';
+import { FamilyModule } from './family/family.module';
+import { AgentModule } from './agents/agent.module';
+import { NetworkModule } from './networks/network.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { PrivacyModule } from './account/privacy.module';
 import { DeviceModule } from './devices/device.module';
@@ -42,6 +43,7 @@ import { WorkspaceModule } from './workspaces/workspace.module';
     }),
     AuthModule,
     AgentModule,
+    NetworkModule,
     DeviceModule,
     PrivacyModule,
     MonitoringModule,

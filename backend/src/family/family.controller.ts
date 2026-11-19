@@ -1,5 +1,4 @@
 import {
-  Module,
   Controller,
   Get,
   Post,
@@ -11,7 +10,6 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { AuthModule } from '../auth/auth.module';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/request-user';
@@ -26,7 +24,7 @@ import {
   FamilyFeedbackDto,
   FamilyDeviceDto,
   FamilyReceiptDto,
-} from './family.dto';
+} from './dto/family.dto';
 @Controller({ path: 'workspaces/:workspaceId/family', version: '1' })
 @UseGuards(AuthGuard)
 export class FamilyController {
@@ -152,13 +150,3 @@ export class FamilyPrivacyController {
     return this.family.withdrawOwn(u.userId, id);
   }
 }
-@Module({
-  imports: [AuthModule],
-  controllers: [
-    FamilyController,
-    FamilyDeviceController,
-    FamilyPrivacyController,
-  ],
-  providers: [FamilyService, DeviceGuard],
-})
-export class FamilyModule {}
