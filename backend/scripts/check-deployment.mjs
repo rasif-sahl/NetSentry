@@ -8,12 +8,15 @@ const {
   maintenanceBatch,
   maintenanceHealth,
   maintenanceLock,
-} = require('../dist/deployment/maintenance.js');
-const { checkSchema, checkHistory } = require('../dist/deployment/schema.js');
+} = require('../dist/deployment/other/maintenance.js');
+const {
+  checkSchema,
+  checkHistory,
+} = require('../dist/deployment/other/schema.js');
 const {
   DeploymentWorkerState,
-} = require('../dist/deployment/worker-state.entity.js');
-const { cleanupAccountMail } = require('../dist/mail/cleanup.js');
+} = require('../dist/deployment/entity/worker-state.entity.js');
+const { cleanupAccountMail } = require('../dist/mail/other/cleanup.js');
 const url = process.env.TEST_DATABASE_URL;
 assert.ok(
   url && new URL(url).pathname.endsWith('_test'),
@@ -22,6 +25,7 @@ assert.ok(
 const source = await new DataSource(
   databaseOptions({ NODE_ENV: 'test', DATABASE_URL: url, DATABASE_SSL: false }),
 ).initialize();
+let installedMigrationCount = 0;
 try {
   assert.equal(
     (
@@ -32,7 +36,8 @@ try {
     0,
   );
   await assert.rejects(checkHistory(source));
-  await source.runMigrations();
+  installedMigrationCount = (await source.runMigrations({ transaction: 'all' }))
+    .length;
   await checkSchema(source);
   const [{ id: userId }] = await source.query(
     `INSERT INTO users(email,"displayName","passwordHash") VALUES ('deployment-fixture@example.invalid','Synthetic deployment','not-a-password') RETURNING id`,
@@ -99,12 +104,11 @@ try {
     'Deployment migration/schema parity, all-workspace cursor/restart, advisory exclusion, health staleness/failure and bounded cleanup checks passed with synthetic records.',
   );
 } finally {
-  while (
-    Number(
-      (await source.query('SELECT count(*) AS n FROM netsentry_migrations'))[0]
-        .n,
-    )
-  )
-    await source.undoLastMigration();
-  await source.destroy();
+  try {
+    for (let index = 0; index < installedMigrationCount; index++) {
+      await source.undoLastMigration();
+    }
+  } finally {
+    await source.destroy();
+  }
 }

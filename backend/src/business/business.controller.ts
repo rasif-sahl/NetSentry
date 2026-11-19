@@ -1,6 +1,4 @@
-import { IsOptional, IsUUID } from 'class-validator';
 import {
-  Module,
   Controller,
   UseGuards,
   Get,
@@ -12,12 +10,10 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { AuthModule } from '../auth/auth.module';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
 import { CollaborationService } from '../workspaces/collaboration.service';
-import { WorkspaceModule } from '../workspaces/workspace.module';
 import { BusinessService } from './business.service';
 import {
   EndpointDepartmentDto,
@@ -32,12 +28,10 @@ import {
   ComplianceDto,
   BusinessAlertDto,
   BusinessReportQuery,
+  BusinessScopeQuery,
   ConfirmOffboardDto,
   ConfirmUnenrolDto,
-} from './business.dto';
-export class BusinessScopeQuery {
-  @IsOptional() @IsUUID() locationId?: string;
-}
+} from './dto/business.dto';
 @Controller({ path: 'workspaces/:workspaceId/business', version: '1' })
 @UseGuards(AuthGuard)
 export class BusinessController {
@@ -211,9 +205,3 @@ export class BusinessController {
     return this.business.audit(u.userId, w, i, true);
   }
 }
-@Module({
-  imports: [AuthModule, WorkspaceModule],
-  controllers: [BusinessController],
-  providers: [BusinessService],
-})
-export class BusinessModule {}

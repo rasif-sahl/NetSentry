@@ -26,8 +26,8 @@ Object.assign(process.env, {
   JWT_REFRESH_TOKEN_SECRET:
     'isolated-api-test-refresh-secret-not-for-production',
 });
-const { deliverOne } = require('../dist/mail/delivery.js');
-const { decryptMail } = require('../dist/mail/mail-crypto.js');
+const { deliverOne } = require('../dist/mail/other/delivery.js');
+const { decryptMail } = require('../dist/mail/other/mail-crypto.js');
 const { DataSource } = require('typeorm');
 const { databaseOptions } = require('../dist/database/options.js');
 const { NestFactory } = require('@nestjs/core');
@@ -129,10 +129,22 @@ try {
   await request('GET', '/health', 200, 'Health');
   const alice = await request('POST', '/auth/register', 201, 'AuthSession', {
     email: 'alice@example.invalid',
-    displayName: 'Alice fixture',
+    displayName: ' Alice fixture ',
     password: 'fixture-password-1234',
   });
+  assert.equal(alice.user.displayName, 'Alice fixture');
   await verify('alice@example.invalid');
+  await request(
+    'POST',
+    '/workspaces',
+    400,
+    'ApiError',
+    {
+      name: '  ',
+      type: 'BUSINESS',
+    },
+    alice.accessToken,
+  );
   await request('GET', '/auth/me', 200, 'User', null, alice.accessToken);
   const [workspace] = await request(
     'GET',

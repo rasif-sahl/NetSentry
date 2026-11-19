@@ -218,6 +218,34 @@ test("report failures have a recoverable error state", async ({ page }) => {
     page.getByRole("heading", { name: "Usage over time", exact: true }),
   ).toBeVisible();
 });
+test("account settings and Operations stay available during an inventory outage", async ({
+  page,
+}) => {
+  const data = await login(page);
+  await page.route(
+    `**/api/backend/workspaces/${data.workspaceId}/devices`,
+    (route) =>
+      route.fulfill({
+        status: 503,
+        json: { message: "Synthetic inventory outage" },
+      }),
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Synthetic inventory outage" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Your profile", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Operations", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Platform operations", exact: true }),
+  ).toBeVisible();
+});
+
 test("manual network labels are explicit and editable", async ({ page }) => {
   await login(page);
   await page.getByRole("button", { name: "Networks", exact: true }).click();
@@ -664,6 +692,7 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
   await page.getByRole("button", { name: "More modules", exact: true }).click();
+  await expect(page).toHaveURL(/\/app\?view=More\+modules$/);
   await expect(
     page.getByRole("heading", { name: "Network Security", exact: true }),
   ).toBeVisible();

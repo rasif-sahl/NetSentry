@@ -427,7 +427,7 @@ export async function checkApplications({
     auth,
   );
   assert.equal(unknown.applications[0].launchCount, null);
-  const { dailyParts } = require('../dist/monitoring/aggregate.js');
+  const { dailyParts } = require('../dist/monitoring/other/aggregate.js');
   const parts = await dailyParts(
     source.manager,
     new Date('2026-11-01T04:00:00.000Z'),
@@ -436,7 +436,7 @@ export async function checkApplications({
   );
   assert.equal(parts[0].milliseconds, 25 * 3600000);
   // Retention uses a simulated maintenance date; the actual API clock/consent checks stay unchanged.
-  const { retainWorkspace } = require('../dist/monitoring/retention.js');
+  const { retainWorkspace } = require('../dist/monitoring/other/retention.js');
   await retainWorkspace(
     source,
     workspace.id,

@@ -302,7 +302,7 @@ export async function checkMonitoring({
     auth,
   );
   assert.equal(empty.buckets[0].measured, null);
-  const { dailyParts } = require('../dist/monitoring/aggregate.js');
+  const { dailyParts } = require('../dist/monitoring/other/aggregate.js');
   for (const [first, last, hours] of [
     ['2026-03-08T05:00:00.000Z', '2026-03-09T04:00:00.000Z', 23],
     ['2026-11-01T04:00:00.000Z', '2026-11-02T05:00:00.000Z', 25],
@@ -345,10 +345,10 @@ export async function checkMonitoring({
     'UPDATE measurements SET "intervalEnd"=$2 WHERE "eventId"=$1',
     [next.eventId, new Date(Date.now() - 2 * 86400000)],
   );
-  const { retainWorkspace } = require('../dist/monitoring/retention.js');
+  const { retainWorkspace } = require('../dist/monitoring/other/retention.js');
   await assert.rejects(retainWorkspace(source, workspace.id));
   const worker = fileURLToPath(
-    new URL('../dist/monitoring/work-cli.js', import.meta.url),
+    new URL('../dist/monitoring/other/work-cli.js', import.meta.url),
   );
   await assert.rejects(
     execute(process.execPath, [worker, workspace.id], { env: process.env }),

@@ -1,3 +1,9 @@
+## Backend source layout
+
+Organize features by domain under `src/`. Keep `*.module.ts`, `*.controller.ts`, and `*.service.ts` at the feature root. Put request DTOs in `dto/` and TypeORM models in `entity/`. Keep guards, helpers, and worker entry points in `other/`, with feature tests in `other/test/`.
+
+Keep shared HTTP and configuration files in `src/common/` and `src/config/`. Database migrations and their historical entity snapshots live in `src/database/`. Integration checks live in `scripts/`.
+
 # Device enrolment and lifecycle
 
 Verified users with workspace registration permission issue one-time, account/workspace/installation/platform-bound enrolment codes. Codes expire after ten minutes and cannot be reused. Redemption acknowledges the versioned pairing disclosure and returns a new opaque device credential once; only its hash is stored. An installation already owned elsewhere cannot be taken over. This is installation pairing, not hardware attestation; native device-side acceptance is still pending.

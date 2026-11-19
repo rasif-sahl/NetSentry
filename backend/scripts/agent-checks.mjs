@@ -230,7 +230,7 @@ export async function checkAgents({ request, source, alice, bob, workspace }) {
     `UPDATE agent_enrolments SET "expiresAt"=now()-interval '1 day' WHERE "workspaceId"=$1`,
     [workspace.id],
   );
-  const { cleanupAgents } = await import('../dist/agents/cleanup.js');
+  const { cleanupAgents } = await import('../dist/agents/other/cleanup.js');
   const cleaned = await cleanupAgents(source, workspace.id);
   assert.equal(cleaned.eventsRemoved, 1);
   assert.ok(Number.isInteger(cleaned.codesRemoved) && cleaned.codesRemoved > 0);

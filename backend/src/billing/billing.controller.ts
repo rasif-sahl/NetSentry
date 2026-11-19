@@ -1,6 +1,5 @@
 import {
   Controller,
-  Module,
   Get,
   Post,
   Param,
@@ -12,18 +11,17 @@ import {
 } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
-import { AuthModule } from '../auth/auth.module';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
 import { BillingService } from './billing.service';
 import {
   PlanRequestDto,
   BillingRevisionDto,
   SandboxConfirmDto,
   BillingEventDto,
-} from './billing.dto';
-import { verifyBillingSignature, payloadHash } from './signature';
+} from './dto/billing.dto';
+import { verifyBillingSignature, payloadHash } from './other/signature';
 @Controller({ path: 'workspaces/:workspaceId/billing', version: '1' })
 @UseGuards(AuthGuard)
 export class BillingController {
@@ -94,9 +92,3 @@ export class BillingEventsController {
     return this.billing.event(i, payloadHash(req.rawBody!));
   }
 }
-@Module({
-  imports: [AuthModule],
-  controllers: [BillingController, BillingEventsController],
-  providers: [BillingService],
-})
-export class BillingModule {}

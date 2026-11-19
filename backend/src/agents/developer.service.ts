@@ -8,25 +8,25 @@ import {
 import { DataSource, EntityManager, In } from 'typeorm';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { AgentService } from './agent.service';
-import { Agent } from './agent.entities';
+import { Agent } from './entity/agent.entities';
 import {
   AgentDeveloper,
   DeveloperCommand,
   DeveloperAudit,
-} from './developer.entities';
+} from './entity/developer.entities';
 import {
   DeveloperPolicyDto,
   DeveloperSnapshotDto,
   RemoteCommandDto,
   CommandResultDto,
-} from './developer.dto';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+} from './dto/developer.dto';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import {
   WorkspacePermission,
   roleAllows,
 } from '../workspaces/workspace-access.service';
 import { hashToken } from '../auth/account-actions.service';
-import { fingerprint } from '../monitoring/values';
+import { fingerprint } from '../monitoring/other/values';
 export const developerDisclosure =
   'Share up to 32 owned TCP service summaries (project labels, runtime, PID/start time and ports) with workspace viewers. Explicit named controllers must also hold the workspace service-control role. The computer separately opts into sharing and remote shutdown. No paths, command arguments, shell commands or traffic are uploaded. Commands expire quickly and cancellation is available only before execution starts. Audit/command records expire after seven days. Capability reports never grant control.';
 function publicCommand(command: DeveloperCommand) {
@@ -340,16 +340,30 @@ export class DeveloperService {
         order: { requestedAt: 'DESC' },
         take: 25,
       });
-      return Promise.all(
-        commands.map(async (c) => ({
-          ...publicCommand(c),
-          audit: await m.find(DeveloperAudit, {
-            where: { commandId: c.id },
-            order: { occurredAt: 'ASC' },
-            take: 20,
-          }),
-        })),
+      if (!commands.length) return [];
+      const audits: DeveloperAudit[] = await m.query(
+        `SELECT audit.*
+         FROM unnest($1::uuid[]) AS command(id)
+         CROSS JOIN LATERAL (
+           SELECT id, "commandId", event, outcome, "occurredAt"
+           FROM developer_audit
+           WHERE "commandId" = command.id
+           ORDER BY "occurredAt", id
+           LIMIT 20
+         ) AS audit
+         ORDER BY audit."occurredAt", audit.id`,
+        [commands.map((command) => command.id)],
       );
+      const auditsByCommand = new Map<string, DeveloperAudit[]>();
+      for (const audit of audits) {
+        const history = auditsByCommand.get(audit.commandId);
+        if (history) history.push(audit);
+        else auditsByCommand.set(audit.commandId, [audit]);
+      }
+      return commands.map((command) => ({
+        ...publicCommand(command),
+        audit: auditsByCommand.get(command.id) ?? [],
+      }));
     });
   }
   async cancel(userId: string, wid: string, id: string, commandId: string) {

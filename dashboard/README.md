@@ -2,6 +2,13 @@
 
 The responsive Next.js/React/TypeScript/Tailwind dashboard connects to the account, workspace, device and monitoring APIs delivered in Phases 2–3. It uses actual API responses; there are no simulated scans, sample security scores or hardcoded usage totals in the product interface.
 
+## Source layout
+
+- `src/app/` owns Next.js routes, layouts, metadata, and route handlers.
+- `src/features/` groups page content, components, and supporting code by feature. The workspace shell composes the dashboard features, and the marketing feature owns the public site chrome.
+- `src/shared/` holds reusable UI, the API client and server adapter, polling, and common types.
+- `e2e/` contains Playwright browser tests for public and workspace flows.
+
 ## Local setup
 
 With the existing backend environment/migrations configured and dashboard dependencies prepared:

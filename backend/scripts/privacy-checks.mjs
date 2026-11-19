@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { cleanupAccountMail } = require('../dist/mail/cleanup.js');
+const { cleanupAccountMail } = require('../dist/mail/other/cleanup.js');
 export async function checkPrivacy({ request, source, alice, bob, workspace }) {
   const auth = alice.accessToken;
   const password = 'final-fixture-password-7890';

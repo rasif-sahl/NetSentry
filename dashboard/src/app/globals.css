@@ -24,6 +24,12 @@
 }
 
 @theme inline {
+  --color-marketing-border: #e6dced;
+  --color-marketing-nav-border: #e8e0ed;
+  --color-marketing-copy: #766a81;
+  --color-marketing-label: #685374;
+  --color-marketing-caption: #887493;
+  --color-marketing-hover: #f4eff8;
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-lavender: var(--surface-lavender);

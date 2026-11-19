@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { maintainFamily } = require('../dist/family/family-maintenance.js');
+const {
+  maintainFamily,
+} = require('../dist/family/other/family-maintenance.js');
 const { DeviceService } = require('../dist/devices/device.service.js');
 const { AuthService } = require('../dist/auth/auth.service.js');
 const {

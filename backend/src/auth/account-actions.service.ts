@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import { DataSource, EntityManager, IsNull } from 'typeorm';
-import { User, AccountStatus } from '../users/user.entity';
+import { User, AccountStatus } from '../users/entity/user.entity';
 import { MailService } from '../mail/mail.service';
-import { AccountAction } from './account-action.entity';
-import { PasswordHasher } from './password-hasher';
-import { Session } from './session.entity';
+import { AccountAction } from './entity/account-action.entity';
+import { PasswordHasher } from './other/password-hasher';
+import { Session } from './entity/session.entity';
 
 export const hashToken = (token: string) =>
   createHash('sha256').update(token).digest('hex');

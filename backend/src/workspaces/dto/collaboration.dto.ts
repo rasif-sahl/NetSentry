@@ -1,6 +1,6 @@
 import { IsIn, IsUUID } from 'class-validator';
 import { EmailDto, ActionTokenDto } from '../../auth/dto/account.dto';
-import { WorkspaceRole } from '../membership.entity';
+import { WorkspaceRole } from '../entity/membership.entity';
 export class InvitationDto extends EmailDto {
   @IsIn([
     WorkspaceRole.NETWORK_ADMIN,

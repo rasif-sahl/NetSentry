@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './other/auth.guard';
 import { AccountActionsService } from './account-actions.service';
 import {
   EmailDto,
@@ -22,9 +22,9 @@ import {
   UpdateProfileDto,
 } from './dto/account.dto';
 import { AuthService } from './auth.service';
-import { CurrentUser } from './current-user.decorator';
+import { CurrentUser } from './other/current-user.decorator';
 import { LoginDto, RefreshDto, RegisterDto } from './dto/auth.dto';
-import type { RequestUser } from './request-user';
+import type { RequestUser } from './other/request-user';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {

@@ -11,10 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
-import { DeviceGuard, type DeviceRequest } from './device.guard';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
+import { DeviceGuard, type DeviceRequest } from './other/device.guard';
 import { DeviceService } from './device.service';
 import {
   ConsentDto,
@@ -22,8 +22,8 @@ import {
   EnrolmentRequestDto,
   RedeemEnrolmentDto,
   RenameDeviceDto,
-} from './device.dto';
-import { disclosureHash, disclosures } from './disclosures';
+} from './dto/device.dto';
+import { disclosureHash, disclosures } from './other/disclosures';
 
 @Controller({ path: 'privacy', version: '1' })
 export class DisclosureController {

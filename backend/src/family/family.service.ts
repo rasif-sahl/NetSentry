@@ -1,5 +1,5 @@
-import { Workspace } from '../workspaces/workspace.entity';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { Workspace } from '../workspaces/entity/workspace.entity';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import { WorkspacePermission as P } from '../workspaces/workspace-access.service';
 import {
   Injectable,
@@ -16,8 +16,8 @@ import {
   FamilyRequest,
   FamilyReceipt,
   FamilyEvent,
-} from './family.entities';
-import { familyScope, familyAuthor } from './family.access';
+} from './entity/family.entities';
+import { familyScope, familyAuthor } from './other/family.access';
 import {
   familyDisclosure,
   enforcementAdapters,
@@ -25,7 +25,7 @@ import {
   evaluateFamily,
   wallTime,
   type FamilyRules,
-} from './family.rules';
+} from './other/family.rules';
 import {
   ProfileDto,
   FamilyAssignmentDto,
@@ -33,15 +33,15 @@ import {
   FamilyRequestDto,
   FamilyFeedbackDto,
   FamilyReceiptDto,
-} from './family.dto';
-import { Membership } from '../workspaces/membership.entity';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { User, AccountStatus } from '../users/user.entity';
-import { UsageNetwork } from '../monitoring/entities';
+} from './dto/family.dto';
+import { Membership } from '../workspaces/entity/membership.entity';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { User, AccountStatus } from '../users/entity/user.entity';
+import { UsageNetwork } from '../monitoring/entity/entities';
 import {
   ApplicationDay,
   ApplicationCatalog,
-} from '../monitoring/application.entities';
+} from '../monitoring/entity/application.entities';
 import { classification } from '../monitoring/application.service';
 @Injectable()
 export class FamilyService {
@@ -586,6 +586,14 @@ export class FamilyService {
         order: { requestedAt: 'DESC' },
         take: 100,
       });
+      const receipts = bindings.length
+        ? await m.findBy(FamilyReceipt, {
+            deviceId: In(bindings.map(({ device }) => device.id)),
+          })
+        : [];
+      const receiptByDevice = new Map(
+        receipts.map((receipt) => [receipt.deviceId, receipt]),
+      );
       return {
         profile: p,
         canManage:
@@ -607,29 +615,25 @@ export class FamilyService {
             },
         overrideUntil: override,
         report: publicReport,
-        devices: await Promise.all(
-          bindings.map(async ({ assignment: a, device: d }) => {
-            const receipt = await m.findOneBy(FamilyReceipt, {
-              deviceId: d.id,
-            });
-            return {
-              deviceId: d.id,
-              name: d.name,
-              platform: d.platform,
-              generation: d.generation,
-              consentedAt: a.consentedAt,
-              enforcement:
-                receipt &&
-                receipt.policyRevision === policy?.revision &&
-                receipt.profileRevision === p.revision &&
-                receipt.generation === d.generation &&
-                Date.now() - receipt.receivedAt.getTime() < 90000
-                  ? receipt.status
-                  : 'unconfirmed',
-              receivedAt: receipt?.receivedAt ?? null,
-            };
-          }),
-        ),
+        devices: bindings.map(({ assignment: a, device: d }) => {
+          const receipt = receiptByDevice.get(d.id);
+          return {
+            deviceId: d.id,
+            name: d.name,
+            platform: d.platform,
+            generation: d.generation,
+            consentedAt: a.consentedAt,
+            enforcement:
+              receipt &&
+              receipt.policyRevision === policy?.revision &&
+              receipt.profileRevision === p.revision &&
+              receipt.generation === d.generation &&
+              Date.now() - receipt.receivedAt.getTime() < 90000
+                ? receipt.status
+                : 'unconfirmed',
+            receivedAt: receipt?.receivedAt ?? null,
+          };
+        }),
         requests: requests.map((r) =>
           Object.assign({}, r, {
             state:

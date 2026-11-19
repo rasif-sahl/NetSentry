@@ -4,7 +4,7 @@ const require = createRequire(import.meta.url);
 const {
   AlertOccurrence,
   NotificationDelivery,
-} = require('../dist/monitoring/alert.entities.js');
+} = require('../dist/monitoring/entity/alert.entities.js');
 const { deliverWorkspace } = require('../dist/monitoring/alert.service.js');
 export async function checkEmailAlerts({ request, source, alice }) {
   const token = alice.accessToken;

@@ -64,7 +64,8 @@ export function runtimeCommand(kind) {
       "maintenance-worker",
     ].includes(kind)
   )
-    return ["dist/deployment/cli.js", kind];
-  if (kind === "operations-worker") return ["dist/operations/work-cli.js"];
+    return ["dist/deployment/other/cli.js", kind];
+  if (kind === "operations-worker")
+    return ["dist/operations/other/work-cli.js"];
   throw new Error("Unsupported runtime mode.");
 }

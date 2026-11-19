@@ -48,7 +48,7 @@ test("runtime modes are explicit and secret inputs reject ambiguity, links and l
     await symlink(key, link);
     await assert.rejects(loadSecrets({ DATABASE_URL_FILE: link }));
     assert.deepEqual(runtimeCommand("migrate"), [
-      "dist/deployment/cli.js",
+      "dist/deployment/other/cli.js",
       "migrate",
     ]);
     assert.throws(() => runtimeCommand("shell"));

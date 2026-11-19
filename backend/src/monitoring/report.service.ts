@@ -1,4 +1,4 @@
-import { assertCapacity, entitlements } from '../billing/policy';
+import { assertCapacity, entitlements } from '../billing/other/policy';
 import {
   ConflictException,
   BadRequestException,
@@ -6,13 +6,13 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { DataSource, EntityManager, In, Between } from 'typeorm';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import {
   WorkspacePermission,
   roleAllows,
 } from '../workspaces/workspace-access.service';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { WorkspaceRole } from '../workspaces/membership.entity';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { WorkspaceRole } from '../workspaces/entity/membership.entity';
 import {
   CollectionGap,
   DailyUsage,
@@ -20,9 +20,9 @@ import {
   MonitoringRun,
   RetentionPolicy,
   UsageNetwork,
-} from './entities';
-import { UsageQuery, RetentionDto } from './report.dto';
-import { decimal, micro } from './values';
+} from './entity/entities';
+import { UsageQuery, RetentionDto } from './dto/report.dto';
+import { decimal, micro } from './other/values';
 
 export function csvCell(value: string | number | boolean | null | undefined) {
   const text = String(value ?? '');

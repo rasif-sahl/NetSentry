@@ -1,4 +1,4 @@
-import { assertCapacity } from '../billing/policy';
+import { assertCapacity } from '../billing/other/policy';
 import {
   BadRequestException,
   ConflictException,
@@ -8,15 +8,15 @@ import {
 import { DataSource, EntityManager, In, MoreThanOrEqual } from 'typeorm';
 import { randomUUID, X509Certificate } from 'node:crypto';
 import { AgentService } from '../agents/agent.service';
-import { Agent } from '../agents/agent.entities';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { Agent } from '../agents/entity/agent.entities';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import { WorkspacePermission as P } from '../workspaces/workspace-access.service';
-import { Membership } from '../workspaces/membership.entity';
-import { User, AccountStatus } from '../users/user.entity';
+import { Membership } from '../workspaces/entity/membership.entity';
+import { User, AccountStatus } from '../users/entity/user.entity';
 import { roleAllows } from '../workspaces/workspace-access.service';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { UsageNetwork } from '../monitoring/entities';
-import { fingerprint } from '../monitoring/values';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { UsageNetwork } from '../monitoring/entity/entities';
+import { fingerprint } from '../monitoring/other/values';
 import {
   NetworkPresence,
   NetworkProfile,
@@ -27,16 +27,15 @@ import {
   NetworkSample,
   NetworkEvent,
   NetworkCompatibility,
-} from './network.entities';
+} from './entity/network.entities';
 import {
   contains,
   prefix,
   routerURL,
   encryptRouter,
   decryptRouter,
-  counter,
   adapterProfiles,
-} from './network-values';
+} from './other/network-values';
 import {
   NetworkSiteDto,
   NetworkGrantDto,
@@ -46,8 +45,11 @@ import {
   EndpointUpdateDto,
   NetworkEventDto,
   CompatibilityDto,
-} from './network.dto';
-import { eraseNetworkAgent } from './network-lifecycle';
+} from './dto/network.dto';
+import { eraseNetworkAgent } from './other/network-lifecycle';
+import { recordNetworkEvent } from './other/network-events';
+import { recordNeighborObservations } from './other/network-inventory';
+import { recordRouterSample } from './other/network-router-samples';
 function publicRouter(router: NetworkRouter | null) {
   if (!router) return null;
   return {
@@ -86,29 +88,6 @@ export class NetworkService {
       throw new ForbiddenException('Network is outside this workspace.');
     return { label, profile };
   }
-  private async event(
-    m: EntityManager,
-    networkId: string,
-    kind: string,
-    severity = 'info',
-    agentId: string | null = null,
-    endpointId: string | null = null,
-    actorId: string | null = null,
-    at = new Date(),
-  ) {
-    return m.save(
-      m.create(NetworkEvent, {
-        networkId,
-        kind,
-        severity,
-        agentId,
-        endpointId,
-        actorId,
-        occurredAt: at,
-        acknowledgedAt: null,
-      }),
-    );
-  }
   async list(userId: string, wid: string) {
     return this.source.transaction(async (m) => {
       await workspacePolicy(m, userId, wid, P.READ_NETWORKS);
@@ -118,10 +97,11 @@ export class NetworkService {
             networkId: In(labels.map((n) => n.id)),
           })
         : [];
-      return profiles.map((p) => ({
-        ...p,
-        name: labels.find((n) => n.id === p.networkId)!.name,
-      }));
+      return profiles.map((profile) =>
+        Object.assign({}, profile, {
+          name: labels.find((label) => label.id === profile.networkId)!.name,
+        }),
+      );
     });
   }
   async save(userId: string, wid: string, input: NetworkSiteDto, id?: string) {
@@ -165,7 +145,7 @@ export class NetworkService {
           [id],
         );
       }
-      await this.event(
+      await recordNetworkEvent(
         m,
         label.id,
         'network_updated',
@@ -174,7 +154,7 @@ export class NetworkService {
         null,
         userId,
       );
-      return { ...profile, name: label.name };
+      return Object.assign({}, profile, { name: label.name });
     });
   }
   async remove(userId: string, wid: string, id: string) {
@@ -221,7 +201,7 @@ export class NetworkService {
           health: input.enabled ? 'unknown' : 'disabled',
         }),
       );
-      await this.event(
+      await recordNetworkEvent(
         m,
         id,
         'collector_policy_updated',
@@ -383,7 +363,7 @@ export class NetworkService {
       });
       await m.save(router);
       await m.increment(NetworkCollector, { networkId: id }, 'revision', 1);
-      await this.event(
+      await recordNetworkEvent(
         m,
         id,
         'router_credentials_updated',
@@ -401,7 +381,15 @@ export class NetworkService {
       await this.site(m, wid, id);
       await m.delete(NetworkRouter, { networkId: id });
       await m.increment(NetworkCollector, { networkId: id }, 'revision', 1);
-      await this.event(m, id, 'router_removed', 'info', null, null, userId);
+      await recordNetworkEvent(
+        m,
+        id,
+        'router_removed',
+        'info',
+        null,
+        null,
+        userId,
+      );
       return { removed: true };
     });
   }
@@ -460,300 +448,26 @@ export class NetworkService {
             'Interface is outside the named private network.',
           );
       }
-      if (
-        new Set(input.neighbors.map((n) => n.address)).size !==
-        input.neighbors.length
-      )
-        throw new BadRequestException(
-          'Neighbor addresses must be unique per source snapshot.',
-        );
-      for (const neighbor of input.neighbors) {
-        if (
-          !contains(profile.cidrs, neighbor.address) ||
-          neighbor.mac === '00:00:00:00:00:00' ||
-          neighbor.mac === 'ff:ff:ff:ff:ff:ff' ||
-          (neighbor.mac !== null &&
-            (parseInt(neighbor.mac.slice(0, 2), 16) & 1) !== 0)
-        )
-          throw new BadRequestException(
-            'Neighbor identity is outside supported unicast scope.',
-          );
-        const identity = neighbor.mac
-          ? `mac:${neighbor.mac}`
-          : `source:${id}:${neighbor.address}`;
-        let endpoint = await m
-          .getRepository(NetworkEndpoint)
-          .createQueryBuilder('e')
-          .addSelect('e.identity')
-          .where('e."networkId"=:network AND e.identity=:identity', {
-            network: c.networkId,
-            identity,
-          })
-          .getOne();
-        if (!endpoint) {
-          if (
-            (await m.countBy(NetworkEndpoint, { networkId: c.networkId })) >=
-            2000
-          )
-            throw new BadRequestException('Network endpoint capacity reached.');
-          endpoint = await m.save(
-            m.create(NetworkEndpoint, {
-              networkId: c.networkId,
-              identity,
-              mac: neighbor.mac,
-              sourceAgentIds: [id],
-              firstSeenAt: observed,
-              lastSeenAt: observed,
-              name: '',
-              notes: '',
-              category: 'unknown',
-              trust: 'unknown',
-              archived: false,
-              assignedUserId: null,
-              registeredDeviceId: null,
-            }),
-          );
-          await this.event(
-            m,
-            c.networkId,
-            'new_endpoint',
-            'warning',
-            id,
-            endpoint.id,
-            null,
-            observed,
-          );
-        } else {
-          if (!endpoint.sourceAgentIds.includes(id))
-            endpoint.sourceAgentIds.push(id);
-          if (endpoint.sourceAgentIds.length > 20)
-            throw new BadRequestException('Endpoint source limit reached.');
-          if (endpoint.lastSeenAt < observed) endpoint.lastSeenAt = observed;
-          await m.save(endpoint);
-        }
-        const old = await m.findOneBy(NetworkSighting, {
-          agentId: id,
-          endpointId: endpoint.id,
-        });
-        if (old && old.address !== neighbor.address)
-          await this.event(
-            m,
-            c.networkId,
-            'address_changed',
-            'info',
-            id,
-            endpoint.id,
-            null,
-            observed,
-          );
-        const conflict = await m
-          .getRepository(NetworkSighting)
-          .createQueryBuilder('s')
-          .innerJoin(NetworkEndpoint, 'e', 'e.id=s."endpointId"')
-          .where(
-            'e."networkId"=:network AND s.address=:address AND s."endpointId"<>:endpoint AND s."observedAt">:fresh',
-            {
-              network: c.networkId,
-              address: neighbor.address,
-              endpoint: endpoint.id,
-              fresh: new Date(Date.now() - 120000),
-            },
-          )
-          .getExists();
-        if (conflict)
-          await this.event(
-            m,
-            c.networkId,
-            'conflicting_address_observations',
-            'warning',
-            id,
-            endpoint.id,
-            null,
-            observed,
-          );
-        const previousPresence = await m.findOne(NetworkPresence, {
-          where: { agentId: id, endpointId: endpoint.id },
-          order: { lastObservedAt: 'DESC' },
-        });
-        if (
-          previousPresence &&
-          previousPresence.address === neighbor.address &&
-          observed.getTime() - previousPresence.lastObservedAt.getTime() <=
-            120000
-        ) {
-          previousPresence.lastObservedAt = observed;
-          previousPresence.evidence = neighbor.evidence;
-          await m.save(previousPresence);
-        } else {
-          if (
-            (await m.countBy(NetworkPresence, { networkId: c.networkId })) >=
-            100000
-          )
-            throw new BadRequestException(
-              'Presence history capacity reached; run retention.',
-            );
-          await m.save(
-            m.create(NetworkPresence, {
-              networkId: c.networkId,
-              agentId: id,
-              endpointId: endpoint.id,
-              address: neighbor.address,
-              evidence: neighbor.evidence,
-              firstObservedAt: observed,
-              lastObservedAt: observed,
-            }),
-          );
-        }
-        await m.upsert(
-          NetworkSighting,
-          {
-            agentId: id,
-            endpointId: endpoint.id,
-            address: neighbor.address,
-            evidence: neighbor.evidence,
-            observedAt: observed,
-          },
-          ['agentId', 'endpointId'],
-        );
-      }
+      await recordNeighborObservations(
+        m,
+        c.networkId,
+        id,
+        profile.cidrs,
+        observed,
+        input.neighbors,
+      );
       if (input.router) {
-        const router = await m.findOneBy(NetworkRouter, {
-          id: input.router.routerId,
-          networkId: c.networkId,
-          agentId: id,
-        });
-        if (!router || router.revision !== input.router.revision)
-          throw new ConflictException('Router source/revision changed.');
-        const value = input.router,
-          rx = counter(value.rxBytes),
-          tx = counter(value.txBytes);
-        if (
-          (rx === null) !== (tx === null) ||
-          (value.status !== 'ok' &&
-            (rx !== null ||
-              tx !== null ||
-              value.wanUp !== null ||
-              value.uptimeSeconds !== null))
-        )
-          throw new BadRequestException(
-            'Unavailable router data cannot contain active counters/state.',
-          );
-        if ((await m.countBy(NetworkSample, { routerId: router.id })) >= 100000)
-          throw new BadRequestException(
-            'Router history capacity reached; run retention.',
-          );
-        const previous = await m.findOne(NetworkSample, {
-          where: { routerId: router.id },
-          order: { observedAt: 'DESC' },
-        });
-        if (previous && observed <= previous.observedAt)
-          throw new ConflictException(
-            'Router time must advance across sources and revisions.',
-          );
-        let quality = 'unavailable',
-          rxDelta: string | null = null,
-          txDelta: string | null = null,
-          intervalStart: Date | null = null;
-        if (rx !== null && tx !== null) {
-          quality = 'baseline';
-          if (
-            previous &&
-            previous.agentId === id &&
-            previous.revision === router.revision &&
-            previous.rxBytes !== null &&
-            previous.txBytes !== null
-          ) {
-            const gap = observed.getTime() - previous.observedAt.getTime();
-            if (gap <= 0)
-              throw new ConflictException(
-                'Router source time did not advance.',
-              );
-            if (
-              rx < BigInt(previous.rxBytes) ||
-              tx < BigInt(previous.txBytes) ||
-              (value.uptimeSeconds !== null &&
-                previous.uptimeSeconds !== null &&
-                BigInt(value.uptimeSeconds) < BigInt(previous.uptimeSeconds))
-            ) {
-              quality = 'counter_reset';
-              await this.event(
-                m,
-                c.networkId,
-                'router_counter_reset',
-                'info',
-                id,
-                null,
-                null,
-                observed,
-              );
-            } else if (gap > 300000) quality = 'gap';
-            else {
-              quality = 'measured';
-              intervalStart = previous.observedAt;
-              rxDelta = (rx - BigInt(previous.rxBytes)).toString();
-              txDelta = (tx - BigInt(previous.txBytes)).toString();
-            }
-          }
-        }
-        await m.save(
-          m.create(NetworkSample, {
-            routerId: router.id,
-            agentId: id,
-            snapshotId: input.snapshotId,
-            revision: router.revision,
-            observedAt: observed,
-            status: value.status,
-            wanUp: value.wanUp,
-            uptimeSeconds: value.uptimeSeconds,
-            rxBytes: value.rxBytes,
-            txBytes: value.txBytes,
-            rxDelta,
-            txDelta,
-            intervalStart,
-            quality,
-          }),
+        await recordRouterSample(
+          m,
+          c.networkId,
+          id,
+          input.snapshotId,
+          observed,
+          input.router,
         );
-        if (previous?.status !== value.status) {
-          await this.event(
-            m,
-            c.networkId,
-            value.status === 'ok'
-              ? 'router_recovered'
-              : value.status === 'auth_failed'
-                ? 'router_auth_failed'
-                : 'router_unavailable',
-            value.status === 'ok' ? 'info' : 'warning',
-            id,
-            null,
-            null,
-            observed,
-          );
-        }
-        if (previous?.wanUp === true && value.wanUp === false)
-          await this.event(
-            m,
-            c.networkId,
-            'wan_interface_down',
-            'warning',
-            id,
-            null,
-            null,
-            observed,
-          );
-        router.reportedModel = value.model;
-        router.reportedFirmware = value.firmware;
-        if (
-          value.testRequestId &&
-          value.testRequestId === router.testRequestId &&
-          router.testStatus === 'pending' &&
-          router.testRequestedAt &&
-          Date.now() - router.testRequestedAt.getTime() <= 90000
-        )
-          router.testStatus = value.status === 'ok' ? 'succeeded' : 'failed';
-        await m.save(router);
       }
       if (c.health === 'not_reporting')
-        await this.event(
+        await recordNetworkEvent(
           m,
           c.networkId,
           'collector_recovered',
@@ -814,7 +528,15 @@ export class NetworkService {
         );
       Object.assign(endpoint, input);
       await m.save(endpoint);
-      await this.event(m, id, 'endpoint_updated', 'info', null, eid, userId);
+      await recordNetworkEvent(
+        m,
+        id,
+        'endpoint_updated',
+        'info',
+        null,
+        eid,
+        userId,
+      );
       return endpoint;
     });
   }
@@ -837,7 +559,7 @@ export class NetworkService {
       event.severity = input.severity;
       event.acknowledgedAt = input.acknowledged ? new Date() : null;
       await m.save(event);
-      await this.event(
+      await recordNetworkEvent(
         m,
         id,
         'event_reviewed',
@@ -866,11 +588,13 @@ export class NetworkService {
           'Compatibility date/record limit is invalid.',
         );
       return m.save(
-        m.create(NetworkCompatibility, {
-          networkId: id,
-          ...input,
-          authentication: 'ubus-session-verified-https',
-        }),
+        m.create(
+          NetworkCompatibility,
+          Object.assign({}, input, {
+            networkId: id,
+            authentication: 'ubus-session-verified-https',
+          }),
+        ),
       );
     });
   }
@@ -961,25 +685,26 @@ export class NetworkService {
             observedAt: MoreThanOrEqual(new Date(Date.now() - 120000)),
           })
         : [];
-      const inventory = endpoints.map((e) => ({
-        ...e,
-        presence: observations.some((s) => s.endpointId === e.id)
-          ? 'recently_observed'
-          : 'not_recently_observed',
-        observations: observations
-          .filter((s) => s.endpointId === e.id)
-          .map((s) => ({
-            agentId: s.agentId,
-            address: s.address,
-            evidence: s.evidence,
-            observedAt: s.observedAt,
-          })),
-        hostname: null,
-        manufacturer: null,
-        identityConfidence: e.mac
-          ? 'network_scoped_mac_observation'
-          : 'source_scoped_address_observation',
-      }));
+      const inventory = endpoints.map((e) =>
+        Object.assign({}, e, {
+          presence: observations.some((s) => s.endpointId === e.id)
+            ? 'recently_observed'
+            : 'not_recently_observed',
+          observations: observations
+            .filter((s) => s.endpointId === e.id)
+            .map((s) => ({
+              agentId: s.agentId,
+              address: s.address,
+              evidence: s.evidence,
+              observedAt: s.observedAt,
+            })),
+          hostname: null,
+          manufacturer: null,
+          identityConfidence: e.mac
+            ? 'network_scoped_mac_observation'
+            : 'source_scoped_address_observation',
+        }),
+      );
       const router = await m
         .getRepository(NetworkRouter)
         .createQueryBuilder('r')
@@ -1018,8 +743,7 @@ export class NetworkService {
         const ms = s.intervalStart
           ? s.observedAt.getTime() - s.intervalStart.getTime()
           : 0;
-        return {
-          ...s,
+        return Object.assign({}, s, {
           rxBitsPerSecond:
             ms > 0 && s.rxDelta !== null
               ? (Number(s.rxDelta) * 8000) / ms
@@ -1028,7 +752,7 @@ export class NetworkService {
             ms > 0 && s.txDelta !== null
               ? (Number(s.txDelta) * 8000) / ms
               : null,
-        };
+        });
       });
       const measuredRates = rates.filter(
         (s) =>

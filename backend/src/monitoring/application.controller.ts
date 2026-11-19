@@ -11,16 +11,16 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
-import { DeviceGuard, type DeviceRequest } from '../devices/device.guard';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
+import { DeviceGuard, type DeviceRequest } from '../devices/other/device.guard';
 import { ApplicationService } from './application.service';
 import {
   ApplicationCategoryDto,
   ApplicationCorrectionDto,
   ApplicationQuery,
-} from './application.dto';
+} from './dto/application.dto';
 @Controller({ path: 'devices', version: '1' })
 export class ApplicationIngestionController {
   constructor(private readonly applications: ApplicationService) {}

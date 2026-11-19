@@ -34,7 +34,7 @@ const { databaseOptions } = require('../dist/database/options.js');
 const { NestFactory } = require('@nestjs/core');
 const { ConfigService } = require('@nestjs/config');
 const { configureHttp } = require('../dist/common/configure-http.js');
-const { decryptMail } = require('../dist/mail/mail-crypto.js');
+const { decryptMail } = require('../dist/mail/other/mail-crypto.js');
 const source = await new DataSource(databaseOptions(process.env)).initialize();
 let ready = false;
 let developerTimer;
@@ -630,7 +630,7 @@ try {
   const business = await seedBusiness({ call, source, owner, accounts });
   await source
     .getRepository(
-      require('../dist/operations/operations.entities.js').OperatorGrant,
+      require('../dist/operations/entity/operations.entities.js').OperatorGrant,
     )
     .save({
       userId: owner.user.id,

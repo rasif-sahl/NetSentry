@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import { randomUUID, createHmac } from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { OperatorGrant } = require('../dist/operations/operations.entities.js');
-const { Subscription } = require('../dist/billing/billing.entities.js');
+const {
+  OperatorGrant,
+} = require('../dist/operations/entity/operations.entities.js');
+const { Subscription } = require('../dist/billing/entity/billing.entities.js');
 export async function checkBilling({ request, source, alice, app }) {
   const previous = {
     mode: process.env.BILLING_MODE,
@@ -440,10 +442,12 @@ export async function checkBilling({ request, source, alice, app }) {
       null,
       operator.accessToken,
     );
-    const { maintainOperations } = require('../dist/operations/maintenance.js');
+    const {
+      maintainOperations,
+    } = require('../dist/operations/other/maintenance.js');
     const {
       OperatorAudit,
-    } = require('../dist/operations/operations.entities.js');
+    } = require('../dist/operations/entity/operations.entities.js');
     const oldAudit = await source.getRepository(OperatorAudit).save({
       actorId: operator.user.id,
       workspaceId: w.id,

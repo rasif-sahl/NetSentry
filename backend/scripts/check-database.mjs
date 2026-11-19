@@ -92,7 +92,7 @@ try {
     [measurementDevice.id],
   );
   await source.runMigrations();
-  const { fingerprint } = require('../dist/monitoring/values.js');
+  const { fingerprint } = require('../dist/monitoring/other/values.js');
   const backfilled = (
     await source.query(
       'SELECT * FROM measurement_receipts WHERE "eventId"=$1',

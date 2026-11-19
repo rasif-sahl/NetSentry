@@ -5,14 +5,15 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   MaxLength,
   ValidateBy,
 } from 'class-validator';
-import { DevicePlatform } from '../registered-device.entity';
-import { WorkspaceType } from '../workspace.entity';
+import { DevicePlatform } from '../entity/registered-device.entity';
+import { WorkspaceType } from '../entity/workspace.entity';
 
 export class CreateWorkspaceDto {
-  @IsString() @MaxLength(100) name!: string;
+  @IsString() @Matches(/\S/) @MaxLength(100) name!: string;
   @IsEnum(WorkspaceType) type!: WorkspaceType;
   @IsOptional() @IsTimeZone() timezone?: string;
 }
