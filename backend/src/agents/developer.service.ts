@@ -340,16 +340,30 @@ export class DeveloperService {
         order: { requestedAt: 'DESC' },
         take: 25,
       });
-      return Promise.all(
-        commands.map(async (c) => ({
-          ...publicCommand(c),
-          audit: await m.find(DeveloperAudit, {
-            where: { commandId: c.id },
-            order: { occurredAt: 'ASC' },
-            take: 20,
-          }),
-        })),
+      if (!commands.length) return [];
+      const audits: DeveloperAudit[] = await m.query(
+        `SELECT audit.*
+         FROM unnest($1::uuid[]) AS command(id)
+         CROSS JOIN LATERAL (
+           SELECT id, "commandId", event, outcome, "occurredAt"
+           FROM developer_audit
+           WHERE "commandId" = command.id
+           ORDER BY "occurredAt", id
+           LIMIT 20
+         ) AS audit
+         ORDER BY audit."occurredAt", audit.id`,
+        [commands.map((command) => command.id)],
       );
+      const auditsByCommand = new Map<string, DeveloperAudit[]>();
+      for (const audit of audits) {
+        const history = auditsByCommand.get(audit.commandId);
+        if (history) history.push(audit);
+        else auditsByCommand.set(audit.commandId, [audit]);
+      }
+      return commands.map((command) => ({
+        ...publicCommand(command),
+        audit: auditsByCommand.get(command.id) ?? [],
+      }));
     });
   }
   async cancel(userId: string, wid: string, id: string, commandId: string) {

@@ -586,6 +586,14 @@ export class FamilyService {
         order: { requestedAt: 'DESC' },
         take: 100,
       });
+      const receipts = bindings.length
+        ? await m.findBy(FamilyReceipt, {
+            deviceId: In(bindings.map(({ device }) => device.id)),
+          })
+        : [];
+      const receiptByDevice = new Map(
+        receipts.map((receipt) => [receipt.deviceId, receipt]),
+      );
       return {
         profile: p,
         canManage:
@@ -607,29 +615,25 @@ export class FamilyService {
             },
         overrideUntil: override,
         report: publicReport,
-        devices: await Promise.all(
-          bindings.map(async ({ assignment: a, device: d }) => {
-            const receipt = await m.findOneBy(FamilyReceipt, {
-              deviceId: d.id,
-            });
-            return {
-              deviceId: d.id,
-              name: d.name,
-              platform: d.platform,
-              generation: d.generation,
-              consentedAt: a.consentedAt,
-              enforcement:
-                receipt &&
-                receipt.policyRevision === policy?.revision &&
-                receipt.profileRevision === p.revision &&
-                receipt.generation === d.generation &&
-                Date.now() - receipt.receivedAt.getTime() < 90000
-                  ? receipt.status
-                  : 'unconfirmed',
-              receivedAt: receipt?.receivedAt ?? null,
-            };
-          }),
-        ),
+        devices: bindings.map(({ assignment: a, device: d }) => {
+          const receipt = receiptByDevice.get(d.id);
+          return {
+            deviceId: d.id,
+            name: d.name,
+            platform: d.platform,
+            generation: d.generation,
+            consentedAt: a.consentedAt,
+            enforcement:
+              receipt &&
+              receipt.policyRevision === policy?.revision &&
+              receipt.profileRevision === p.revision &&
+              receipt.generation === d.generation &&
+              Date.now() - receipt.receivedAt.getTime() < 90000
+                ? receipt.status
+                : 'unconfirmed',
+            receivedAt: receipt?.receivedAt ?? null,
+          };
+        }),
         requests: requests.map((r) =>
           Object.assign({}, r, {
             state:
