@@ -60,7 +60,7 @@ export function DocumentationHome({
           <br />
           <span className="text-[#7e6094]">A clearer way forward.</span>
         </h1>
-        <p className="mt-5 max-w-[650px] text-xs leading-[1.9] text-[#766a81] sm:text-sm">
+        <p className="mt-5 max-w-[650px] text-xs leading-[1.9] text-marketing-copy sm:text-sm">
           Learn how to set up your workspace, understand your reports and manage
           your choices. Start with a guide or find the topic you need.
         </p>
@@ -101,7 +101,7 @@ export function DocumentationHome({
         </p>
       </section>
       {!needle && (
-        <section className="mb-10 grid gap-5 rounded-[14px] border border-[#e8dfee] bg-[#f4eff8] p-6 sm:grid-cols-[1.1fr_1fr] sm:gap-10 sm:p-7">
+        <section className="mb-10 grid gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-6 sm:grid-cols-[1.1fr_1fr] sm:gap-10 sm:p-7">
           <div>
             <p className="mb-3 text-[8px] font-semibold uppercase tracking-[1.7px] text-[#947da1]">
               New to NetSentry?
@@ -109,7 +109,7 @@ export function DocumentationHome({
             <h2 className="font-[inherit] text-[25px] font-semibold leading-tight tracking-[-.035em]">
               Start with your workspace.
             </h2>
-            <p className="mb-5 mt-4 text-xs leading-[1.8] text-[#766a81]">
+            <p className="mb-5 mt-4 text-xs leading-[1.8] text-marketing-copy">
               Get a clear view of the account, workspace and permission choices
               that come first.
             </p>
@@ -160,7 +160,7 @@ export function DocumentationHome({
             return (
               <article
                 key={category}
-                className="rounded-xl border border-[#e8e0ed] bg-white p-6"
+                className="rounded-xl border border-marketing-nav-border bg-white p-6"
               >
                 <span className="mb-4 inline-flex rounded-[9px] bg-[#f0e9f5] p-2.5 text-[#9a7bac]">
                   <Icon size={19} strokeWidth={1.5} aria-hidden="true" />
@@ -175,12 +175,12 @@ export function DocumentationHome({
                       <Link
                         key={guide.id}
                         href={`/docs/${guide.id}`}
-                        className="group block border-t border-[#e8e0ed] py-4 last:pb-0"
+                        className="group block border-t border-marketing-nav-border py-4 last:pb-0"
                       >
                         <span className="block text-xs font-semibold leading-relaxed text-[#715c80] group-hover:underline group-hover:underline-offset-4">
                           {guide.title}
                         </span>
-                        <span className="mt-1 block text-[11px] leading-[1.8] text-[#887493]">
+                        <span className="mt-1 block text-[11px] leading-[1.8] text-marketing-caption">
                           {guide.summary}
                         </span>
                       </Link>
@@ -195,7 +195,7 @@ export function DocumentationHome({
             <h3 className="font-[inherit] text-lg font-semibold">
               No matching guides.
             </h3>
-            <p className="mb-6 mt-4 text-xs leading-[1.8] text-[#766a81]">
+            <p className="mb-6 mt-4 text-xs leading-[1.8] text-marketing-copy">
               Try “permissions”, “sharing” or “reports”. You can also clear your
               search to browse every topic.
             </p>
@@ -205,7 +205,7 @@ export function DocumentationHome({
           </div>
         )}
       </section>
-      <section className="mt-8 flex items-start gap-5 rounded-xl border border-[#e8e0ed] bg-[#faf8fc] p-6">
+      <section className="mt-8 flex items-start gap-5 rounded-xl border border-marketing-nav-border bg-[#faf8fc] p-6">
         <CircleHelp
           size={21}
           strokeWidth={1.5}
@@ -216,7 +216,7 @@ export function DocumentationHome({
           <h2 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.035em]">
             Know what is supported before you begin.
           </h2>
-          <p className="mt-3 text-[11px] leading-[1.9] text-[#766a81]">
+          <p className="mt-3 text-[11px] leading-[1.9] text-marketing-copy">
             Native build, signing and physical-device checks are still in
             progress. Features depend on platform, permissions and supported
             sources.

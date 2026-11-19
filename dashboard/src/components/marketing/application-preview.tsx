@@ -33,7 +33,7 @@ export function ApplicationPreview({
   return (
     <>
       {phone ? (
-        <div className="flex flex-col items-center gap-5 border-y border-[#e8e0ed] bg-[#faf8fc] px-6 py-7 md:gap-6 md:py-8">
+        <div className="flex flex-col items-center gap-5 border-y border-marketing-nav-border bg-[#faf8fc] px-6 py-7 md:gap-6 md:py-8">
           <div className="w-[185px] overflow-hidden rounded-[25px] border-[3px] border-[#5f5368] bg-[#5f5368] md:w-[205px] md:rounded-[27px]">
             <ProductImage {...screen} phone />
           </div>
@@ -66,7 +66,7 @@ export function ApplicationPreview({
                     type="button"
                     aria-pressed={desktop === key}
                     onClick={() => setDesktop(key)}
-                    className={`min-h-10 flex-1 whitespace-nowrap rounded-[7px] px-3 py-2 text-[10px] ${desktop === key ? "bg-white text-[#604675]" : "text-[#887493] hover:text-[#604675]"}`}
+                    className={`min-h-10 flex-1 whitespace-nowrap rounded-[7px] px-3 py-2 text-[10px] ${desktop === key ? "bg-white text-[#604675]" : "text-marketing-caption hover:text-[#604675]"}`}
                   >
                     {productScreens[key].title}
                   </button>

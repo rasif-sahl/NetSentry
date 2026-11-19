@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 const accent = "text-[#7e6094]";
 const section = "scroll-mt-28 py-[53px] md:py-20";
 const tinted = "border-y border-[#eee6f2] bg-[#f9f7fb]";
-const muted = "text-xs leading-[1.85] text-[#766a81]";
+const muted = "text-xs leading-[1.85] text-marketing-copy";
 const status =
   "inline-block rounded-full border border-[#e8dfee] bg-[#f5f0f8] px-3 py-1 text-[9px] leading-relaxed text-[#8a7299]";
 const apps = [
@@ -151,7 +151,7 @@ function Heading({
         <Chapter>{eyebrow}</Chapter>
         <Title>{title}</Title>
       </div>
-      <p className="text-xs leading-[1.8] text-[#766a81] md:text-[13px]">
+      <p className="text-xs leading-[1.8] text-marketing-copy md:text-[13px]">
         {children}
       </p>
     </div>
@@ -178,11 +178,11 @@ function Checks({ items }: { items: readonly string[] }) {
 }
 function Note({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="mt-6 border-t border-[#e8e0ed] pt-5">
+    <div className="mt-6 border-t border-marketing-nav-border pt-5">
       <p className="text-[8px] font-semibold uppercase tracking-[1.4px] text-[#a08aaf]">
         {title}
       </p>
-      <p className="mt-2 text-[11px] leading-[1.8] text-[#766a81]">
+      <p className="mt-2 text-[11px] leading-[1.8] text-marketing-copy">
         {children}
       </p>
     </div>
@@ -207,7 +207,7 @@ export default function ApplicationsPage() {
             <br />
             <span className={accent}>The right app for your day.</span>
           </h1>
-          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-[#766a81] md:text-[15px]">
+          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-marketing-copy md:text-[15px]">
             A wider view on the web. Supported insights on your phone. Developer
             tools on your computer. Get to know each NetSentry app and choose
             where to begin.
@@ -220,7 +220,7 @@ export default function ApplicationsPage() {
               Compare the apps
             </a>
           </div>
-          <p className="mt-4 text-[10px] text-[#887493]">
+          <p className="mt-4 text-[10px] text-marketing-caption">
             Product in development · Availability varies by platform
           </p>
         </section>
@@ -234,7 +234,7 @@ export default function ApplicationsPage() {
               <a
                 key={id}
                 href={`#applications-${id}`}
-                className="rounded-xl border border-[#e8e0ed] bg-white px-4 pb-4 pt-5 hover:border-[#bda4cd] hover:bg-[#fcfaff] md:px-6 md:pb-5 md:pt-6"
+                className="rounded-xl border border-marketing-nav-border bg-white px-4 pb-4 pt-5 hover:border-[#bda4cd] hover:bg-[#fcfaff] md:px-6 md:pb-5 md:pt-6"
               >
                 <span className="mb-4 inline-flex rounded-[10px] bg-[#f0e9f5] p-2.5 text-[#9a7bac]">
                   <Icon size={22} strokeWidth={1.5} aria-hidden="true" />
@@ -242,16 +242,16 @@ export default function ApplicationsPage() {
                 <h2 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.025em] md:text-[19px]">
                   {name}
                 </h2>
-                <p className="mt-3 min-h-[57px] text-[11px] leading-[1.7] text-[#766a81] md:min-h-[42px] md:text-xs">
+                <p className="mt-3 min-h-[57px] text-[11px] leading-[1.7] text-marketing-copy md:min-h-[42px] md:text-xs">
                   {description}
                 </p>
-                <p className="mt-4 min-h-10 border-t border-[#e8e0ed] pt-3 text-[9px] text-[#947da1] md:mt-5 md:text-[10px]">
+                <p className="mt-4 min-h-10 border-t border-marketing-nav-border pt-3 text-[9px] text-[#947da1] md:mt-5 md:text-[10px]">
                   {stage}
                 </p>
               </a>
             ))}
           </div>
-          <p className="mt-5 text-center text-[10px] leading-relaxed text-[#887493]">
+          <p className="mt-5 text-center text-[10px] leading-relaxed text-marketing-caption">
             Each app has a different role. Permissions and supported sources
             determine what it can do.
           </p>
@@ -295,11 +295,11 @@ export default function ApplicationsPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-7 border-t border-[#e8e0ed] pt-5 md:flex md:items-baseline md:gap-8">
+            <div className="mt-7 border-t border-marketing-nav-border pt-5 md:flex md:items-baseline md:gap-8">
               <p className="shrink-0 text-[9px] font-semibold uppercase tracking-[1.2px] text-[#947da1]">
                 Before you begin
               </p>
-              <p className="mt-2 text-[11px] leading-[1.8] text-[#766a81] md:mt-0">
+              <p className="mt-2 text-[11px] leading-[1.8] text-marketing-copy md:mt-0">
                 An account and workspace. Reports need supported, authorized
                 devices to provide data.
               </p>
@@ -314,7 +314,7 @@ export default function ApplicationsPage() {
               <br />
               <span className={accent}>With your choices built in.</span>
             </Title>
-            <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-[#766a81] md:text-sm">
+            <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
               Pair a device, review authorized reports and manage your sharing.
               The available collection and control features depend on your
               operating system.
@@ -326,7 +326,7 @@ export default function ApplicationsPage() {
                 <article
                   key={id}
                   id={`applications-${id}`}
-                  className="scroll-mt-28 overflow-hidden rounded-[14px] border border-[#e8e0ed] bg-white"
+                  className="scroll-mt-28 overflow-hidden rounded-[14px] border border-marketing-nav-border bg-white"
                 >
                   <div className="flex items-center justify-between gap-4 px-6 py-5">
                     <span className="flex items-center gap-3 text-[13px] font-semibold text-[#715c80]">
@@ -424,14 +424,14 @@ export default function ApplicationsPage() {
             Start with the role that fits your day. Having an app or an account
             does not automatically enable collection or control.
           </Heading>
-          <p className="mb-3 text-[10px] text-[#887493] lg:hidden">
+          <p className="mb-3 text-[10px] text-marketing-caption lg:hidden">
             Scroll across to compare all four applications.
           </p>
           <div
             role="region"
             aria-label="Application comparison"
             tabIndex={0}
-            className="overflow-x-auto rounded-xl border border-[#e8e0ed]"
+            className="overflow-x-auto rounded-xl border border-marketing-nav-border"
           >
             <table className="w-full min-w-[750px] table-fixed border-collapse bg-white text-left text-[11px] leading-[1.8] md:min-w-[790px]">
               <caption className="sr-only">
@@ -444,7 +444,7 @@ export default function ApplicationsPage() {
                       <th
                         key={title}
                         scope="col"
-                        className="border-r border-[#e8e0ed] bg-[#f5f0f8] px-4 py-5 text-xs font-semibold text-[#715c80] last:border-r-0 md:px-5"
+                        className="border-r border-marketing-nav-border bg-[#f5f0f8] px-4 py-5 text-xs font-semibold text-[#715c80] last:border-r-0 md:px-5"
                       >
                         {title}
                       </th>
@@ -454,17 +454,20 @@ export default function ApplicationsPage() {
               </thead>
               <tbody>
                 {comparison.map(([title, ...cells]) => (
-                  <tr key={title} className="border-t border-[#e8e0ed]">
+                  <tr
+                    key={title}
+                    className="border-t border-marketing-nav-border"
+                  >
                     <th
                       scope="row"
-                      className="border-r border-[#e8e0ed] bg-[#fcfafd] px-4 py-5 align-top font-medium text-[#715c80] md:px-5"
+                      className="border-r border-marketing-nav-border bg-[#fcfafd] px-4 py-5 align-top font-medium text-[#715c80] md:px-5"
                     >
                       {title}
                     </th>
                     {cells.map((cell, index) => (
                       <td
                         key={index}
-                        className="border-r border-[#e8e0ed] px-4 py-5 align-top text-[#766a81] last:border-r-0 md:px-5"
+                        className="border-r border-marketing-nav-border px-4 py-5 align-top text-marketing-copy last:border-r-0 md:px-5"
                       >
                         {cell}
                       </td>
@@ -488,7 +491,7 @@ export default function ApplicationsPage() {
                 <br />
                 <span className={accent}>Build your picture from there.</span>
               </Title>
-              <p className="mt-6 text-xs leading-[1.8] text-[#766a81] md:text-sm">
+              <p className="mt-6 text-xs leading-[1.8] text-marketing-copy md:text-sm">
                 You do not need every application to understand where NetSentry
                 can help.
               </p>
@@ -510,7 +513,7 @@ export default function ApplicationsPage() {
               ].map(([title, text], index) => (
                 <li
                   key={title}
-                  className="grid grid-cols-[35px_1fr] gap-x-4 gap-y-2 border-t border-[#e8e0ed] pt-5 md:block"
+                  className="grid grid-cols-[35px_1fr] gap-x-4 gap-y-2 border-t border-marketing-nav-border pt-5 md:block"
                 >
                   <span className="row-span-2 text-[27px] leading-none text-[#b095c1] md:mb-5 md:block">
                     0{index + 1}
@@ -518,13 +521,13 @@ export default function ApplicationsPage() {
                   <h3 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.025em]">
                     {title}
                   </h3>
-                  <p className="col-start-2 mt-1 text-xs leading-[1.8] text-[#766a81] md:mt-3">
+                  <p className="col-start-2 mt-1 text-xs leading-[1.8] text-marketing-copy md:mt-3">
                     {text}
                   </p>
                 </li>
               ))}
             </ol>
-            <div className="mt-9 flex items-start gap-5 rounded-xl border border-[#e8dfee] bg-[#f4eff8] p-5 md:items-center md:px-7 md:py-6">
+            <div className="mt-9 flex items-start gap-5 rounded-xl border border-[#e8dfee] bg-marketing-hover p-5 md:items-center md:px-7 md:py-6">
               <ShieldCheck
                 size={22}
                 strokeWidth={1.5}
@@ -535,7 +538,7 @@ export default function ApplicationsPage() {
                 <h3 className="font-[inherit] text-xs font-semibold leading-relaxed text-[#715c80]">
                   Pairing connects a device. Consent determines what comes next.
                 </h3>
-                <p className="mt-1 text-[11px] leading-[1.8] text-[#766a81]">
+                <p className="mt-1 text-[11px] leading-[1.8] text-marketing-copy">
                   Account access, collection permissions, sharing and
                   remote-control grants are separate choices.
                 </p>
@@ -564,7 +567,7 @@ export default function ApplicationsPage() {
             <details
               key={question}
               open={index === 0}
-              className="group mb-5 border-b border-[#e8e0ed] pb-5"
+              className="group mb-5 border-b border-marketing-nav-border pb-5"
             >
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#705781] md:text-[13px] [&::-webkit-details-marker]:hidden">
                 {question}
@@ -581,7 +584,7 @@ export default function ApplicationsPage() {
                   −
                 </span>
               </summary>
-              <p className="mt-3 max-w-[830px] text-xs leading-[1.9] text-[#766a81]">
+              <p className="mt-3 max-w-[830px] text-xs leading-[1.9] text-marketing-copy">
                 {answer}
               </p>
             </details>
@@ -594,7 +597,7 @@ export default function ApplicationsPage() {
             <br />
             <span className={accent}>Keep the bigger picture.</span>
           </Title>
-          <p className="mx-auto mt-6 max-w-[480px] text-xs leading-[1.8] text-[#766a81] md:text-sm">
+          <p className="mx-auto mt-6 max-w-[480px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
             Explore the product story or take another look at the app that fits
             your needs.
           </p>
@@ -608,19 +611,19 @@ export default function ApplicationsPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-[#e8e0ed] bg-white py-8">
+      <footer className="border-t border-marketing-nav-border bg-white py-8">
         <div className={container}>
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:gap-8">
             <Link href="/" aria-label="NetSentry home">
               <Brand />
             </Link>
-            <p className="text-[11px] leading-[1.8] text-[#887493]">
+            <p className="text-[11px] leading-[1.8] text-marketing-caption">
               Device reports, digital wellbeing and developer tools.
               <br />
               Built around supported data and explicit choices.
             </p>
           </div>
-          <div className="mt-7 flex flex-col justify-between gap-4 border-t border-[#e8e0ed] pt-5 text-[10px] text-[#887493] md:flex-row">
+          <div className="mt-7 flex flex-col justify-between gap-4 border-t border-marketing-nav-border pt-5 text-[10px] text-marketing-caption md:flex-row">
             <p>
               © <CopyrightYear /> NetSentry
             </p>

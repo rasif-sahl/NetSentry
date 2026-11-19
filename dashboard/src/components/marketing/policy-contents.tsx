@@ -28,7 +28,7 @@ export function PolicyContents({
         href={`#${prefix}-${id}`}
         aria-current={active === id ? "location" : undefined}
         onClick={() => setActive(id)}
-        className="min-h-11 rounded-r-md border-l-2 border-transparent px-3 py-2 text-xs leading-relaxed text-[#766a81] hover:border-[#af90c2] hover:bg-[#f3edf8] aria-[current=location]:border-[#af90c2] aria-[current=location]:bg-[#f3edf8] aria-[current=location]:text-[#705183]"
+        className="min-h-11 rounded-r-md border-l-2 border-transparent px-3 py-2 text-xs leading-relaxed text-marketing-copy hover:border-[#af90c2] hover:bg-[#f3edf8] aria-[current=location]:border-[#af90c2] aria-[current=location]:bg-[#f3edf8] aria-[current=location]:text-[#705183]"
       >
         {String(index + 1).padStart(2, "0")} · {title}
       </a>
@@ -47,7 +47,7 @@ export function PolicyContents({
           {links()}
         </nav>
       </div>
-      <details className="group rounded-lg border border-[#e6dced] bg-white px-4 py-3 min-[651px]:hidden">
+      <details className="group rounded-lg border border-marketing-border bg-white px-4 py-3 min-[651px]:hidden">
         <summary className="flex min-h-8 cursor-pointer list-none items-center justify-between gap-4 text-[10px] font-semibold uppercase tracking-[1.7px] text-[#9478a5] [&::-webkit-details-marker]:hidden">
           On this page
           <span

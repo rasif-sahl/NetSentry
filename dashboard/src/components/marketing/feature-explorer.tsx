@@ -77,11 +77,11 @@ export function FeatureExplorer() {
     buttons.current[next]?.focus();
   }
   return (
-    <div className="overflow-hidden rounded-[14px] border border-[#e8e0ed] bg-white">
+    <div className="overflow-hidden rounded-[14px] border border-marketing-nav-border bg-white">
       <div
         role="tablist"
         aria-label="Explore product features"
-        className="grid grid-cols-2 border-b border-[#e8e0ed] bg-[#faf8fc] md:grid-cols-4"
+        className="grid grid-cols-2 border-b border-marketing-nav-border bg-[#faf8fc] md:grid-cols-4"
       >
         {features.map(({ id, label, icon: Icon }, index) => (
           <button
@@ -96,7 +96,7 @@ export function FeatureExplorer() {
             }}
             onClick={() => setSelected(index)}
             onKeyDown={(event) => navigate(event, index)}
-            className={`flex min-h-14 items-center justify-center gap-2 border-[#e8e0ed] px-2 py-3 text-[10px] [&:nth-child(-n+2)]:border-b [&:nth-child(odd)]:border-r md:min-h-16 md:gap-3 md:border-r md:text-xs md:[&:nth-child(-n+2)]:border-b-0 md:last:border-r-0 ${selected === index ? "bg-[#f0e9f5] text-[#604675] shadow-[inset_0_-2px_#806193]" : "text-[#8a7797] hover:bg-[#f5f0f8]"}`}
+            className={`flex min-h-14 items-center justify-center gap-2 border-marketing-nav-border px-2 py-3 text-[10px] [&:nth-child(-n+2)]:border-b [&:nth-child(odd)]:border-r md:min-h-16 md:gap-3 md:border-r md:text-xs md:[&:nth-child(-n+2)]:border-b-0 md:last:border-r-0 ${selected === index ? "bg-[#f0e9f5] text-[#604675] shadow-[inset_0_-2px_#806193]" : "text-[#8a7797] hover:bg-[#f5f0f8]"}`}
           >
             <Icon size={18} strokeWidth={1.5} aria-hidden="true" />
             {label}
@@ -121,7 +121,7 @@ export function FeatureExplorer() {
               <h3 className="max-w-[440px] font-[inherit] text-2xl font-semibold leading-[1.15] tracking-[-.025em] md:text-[25px]">
                 {title}
               </h3>
-              <p className="my-4 text-xs leading-[1.8] text-[#766a81] md:text-[13px]">
+              <p className="my-4 text-xs leading-[1.8] text-marketing-copy md:text-[13px]">
                 {description}
               </p>
               <a
@@ -135,7 +135,7 @@ export function FeatureExplorer() {
               {details.map((detail, i) => (
                 <li
                   key={detail}
-                  className="border-b border-[#e8e0ed] py-3 text-xs text-[#6e597b] last:border-b-0"
+                  className="border-b border-marketing-nav-border py-3 text-xs text-[#6e597b] last:border-b-0"
                 >
                   <span className="mr-5 text-[10px] tracking-wider text-[#a48bb1]">
                     0{i + 1}

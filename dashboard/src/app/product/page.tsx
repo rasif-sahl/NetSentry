@@ -36,8 +36,8 @@ export const metadata: Metadata = {
 const accent = "text-[#7e6094]";
 const section = "scroll-mt-28 py-[53px] md:py-20";
 const tinted = "border-y border-[#eee6f2] bg-[#f9f7fb]";
-const muted = "text-xs leading-[1.8] text-[#766a81] md:text-[13px]";
-const quiet = "text-[10px] leading-[1.8] text-[#887493] md:text-[11px]";
+const muted = "text-xs leading-[1.8] text-marketing-copy md:text-[13px]";
+const quiet = "text-[10px] leading-[1.8] text-marketing-caption md:text-[11px]";
 
 function SectionHeading({
   eyebrow,
@@ -85,7 +85,7 @@ function Steps({ items }: { items: { title: string; description: string }[] }) {
       {items.map(({ title, description }, index) => (
         <li
           key={title}
-          className="grid grid-cols-[35px_1fr] gap-x-4 gap-y-2 border-t border-[#e8e0ed] pt-5 md:block"
+          className="grid grid-cols-[35px_1fr] gap-x-4 gap-y-2 border-t border-marketing-nav-border pt-5 md:block"
         >
           <span className="row-span-2 text-[27px] leading-none text-[#b095c1] md:mb-5 md:block">
             0{index + 1}
@@ -93,7 +93,7 @@ function Steps({ items }: { items: { title: string; description: string }[] }) {
           <h3 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.025em]">
             {title}
           </h3>
-          <p className="col-start-2 text-xs leading-[1.8] text-[#766a81] md:mt-3">
+          <p className="col-start-2 text-xs leading-[1.8] text-marketing-copy md:mt-3">
             {description}
           </p>
         </li>
@@ -123,7 +123,7 @@ export default function ProductPage() {
             <br />
             <span className={accent}>More context for every decision.</span>
           </h1>
-          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-[#766a81] md:text-[15px]">
+          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-marketing-copy md:text-[15px]">
             Bring device reports, digital habits and developer services into one
             workspace. Understand what the data says, where it came from and
             what you can do next.
@@ -136,7 +136,7 @@ export default function ProductPage() {
               See how it fits together
             </a>
           </div>
-          <p className="mt-4 text-[10px] text-[#887493]">
+          <p className="mt-4 text-[10px] text-marketing-caption">
             Product in development · Features depend on platform and permissions
           </p>
           <div className="mx-auto mt-8 max-w-[1050px] md:mt-11">
@@ -157,7 +157,7 @@ export default function ProductPage() {
         </section>
         <nav
           aria-label="On this page"
-          className={`${container} mt-5 flex flex-wrap justify-center gap-x-5 gap-y-3 border-y border-[#e8e0ed] py-5 text-[10px] text-[#7e6d8b] md:gap-x-8 md:text-[11px]`}
+          className={`${container} mt-5 flex flex-wrap justify-center gap-x-5 gap-y-3 border-y border-marketing-nav-border py-5 text-[10px] text-[#7e6d8b] md:gap-x-8 md:text-[11px]`}
         >
           {[
             ["Devices", "#product-devices"],
@@ -198,7 +198,7 @@ export default function ProductPage() {
                 <br />
                 <span className={accent}>Every report has a context.</span>
               </Title>
-              <p className="mt-6 text-xs leading-[1.8] text-[#766a81] md:text-sm">
+              <p className="mt-6 text-xs leading-[1.8] text-marketing-copy md:text-sm">
                 See the devices registered to your workspace, then look closer
                 at what each installation can report. A missing reading stays
                 missing. A capability tells you what is supported.
@@ -228,7 +228,7 @@ export default function ProductPage() {
                 measurement.
               </p>
             </div>
-            <div className="rounded-[14px] border border-[#e8e0ed] bg-white p-6 md:p-8">
+            <div className="rounded-[14px] border border-marketing-nav-border bg-white p-6 md:p-8">
               <CardTitle icon={Smartphone}>A device, understood</CardTitle>
               {[
                 {
@@ -247,14 +247,17 @@ export default function ProductPage() {
                   text: "Collection choices and current consent",
                 },
               ].map(({ label, title, text }) => (
-                <div key={label} className="border-b border-[#e8e0ed] py-5">
+                <div
+                  key={label}
+                  className="border-b border-marketing-nav-border py-5"
+                >
                   <p className="mb-1 text-[8px] uppercase tracking-[1.6px] text-[#a08aaf]">
                     {label}
                   </p>
                   <h3 className="font-[inherit] text-sm font-semibold">
                     {title}
                   </h3>
-                  <p className="mt-1 text-[11px] text-[#766a81]">{text}</p>
+                  <p className="mt-1 text-[11px] text-marketing-copy">{text}</p>
                 </div>
               ))}
               <p className="mt-4 text-[9px] text-[#9a87a5]">
@@ -298,7 +301,7 @@ export default function ProductPage() {
             ].map(({ icon: Icon, title, text }) => (
               <article
                 key={title}
-                className="grid grid-cols-[25px_1fr] gap-x-4 gap-y-3 border-t border-[#e8e0ed] pt-6 md:block"
+                className="grid grid-cols-[25px_1fr] gap-x-4 gap-y-3 border-t border-marketing-nav-border pt-6 md:block"
               >
                 <Icon
                   size={22}
@@ -309,13 +312,13 @@ export default function ProductPage() {
                 <h3 className="font-[inherit] text-lg font-semibold leading-tight tracking-[-.025em]">
                   {title}
                 </h3>
-                <p className="col-start-2 text-xs leading-[1.85] text-[#766a81] md:mt-4">
+                <p className="col-start-2 text-xs leading-[1.85] text-marketing-copy md:mt-4">
                   {text}
                 </p>
               </article>
             ))}
           </div>
-          <div className="mt-9 grid gap-5 rounded-xl border border-[#e8e0ed] bg-[#faf8fc] p-6 md:grid-cols-[1.15fr_1fr_1fr_1fr] md:gap-6">
+          <div className="mt-9 grid gap-5 rounded-xl border border-marketing-nav-border bg-[#faf8fc] p-6 md:grid-cols-[1.15fr_1fr_1fr_1fr] md:gap-6">
             <p className="pt-1 text-[9px] font-semibold uppercase tracking-[1.8px] text-[#947da1]">
               How to read a report
             </p>
@@ -326,12 +329,12 @@ export default function ProductPage() {
             ].map(([title, text]) => (
               <div
                 key={title}
-                className="border-t border-[#e8e0ed] pt-4 md:border-0 md:pt-0"
+                className="border-t border-marketing-nav-border pt-4 md:border-0 md:pt-0"
               >
                 <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                   {title}
                 </h3>
-                <p className="mt-2 text-[11px] leading-[1.8] text-[#766a81]">
+                <p className="mt-2 text-[11px] leading-[1.8] text-marketing-copy">
                   {text}
                 </p>
               </div>
@@ -372,14 +375,14 @@ export default function ProductPage() {
               ].map(({ icon, label, title, text, note }) => (
                 <article
                   key={label}
-                  className="rounded-xl border border-[#e8e0ed] bg-white p-6 md:p-7"
+                  className="rounded-xl border border-marketing-nav-border bg-white p-6 md:p-7"
                 >
                   <CardTitle icon={icon}>{label}</CardTitle>
                   <h3 className="mt-6 font-[inherit] text-[23px] font-semibold leading-tight tracking-[-.025em]">
                     {title}
                   </h3>
                   <p className={`${muted} mt-4`}>{text}</p>
-                  <p className="mt-6 border-t border-[#e8e0ed] pt-4 text-[10px] leading-[1.8] text-[#887493]">
+                  <p className="mt-6 border-t border-marketing-nav-border pt-4 text-[10px] leading-[1.8] text-marketing-caption">
                     {note}
                   </p>
                 </article>
@@ -447,7 +450,7 @@ export default function ProductPage() {
                 <br />
                 <span className={accent}>Apps with different roles.</span>
               </Title>
-              <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-[#766a81] md:text-sm">
+              <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
                 Use the web for the wider view, your phone for supported mobile
                 workflows and the desktop app for your computer’s services.
               </p>
@@ -473,10 +476,10 @@ export default function ProductPage() {
                 ].map(({ icon, title, text }) => (
                   <article
                     key={title}
-                    className="border-b border-[#e8e0ed] py-6 first:pt-0 last:border-0"
+                    className="border-b border-marketing-nav-border py-6 first:pt-0 last:border-0"
                   >
                     <CardTitle icon={icon}>{title}</CardTitle>
-                    <p className="ml-8 mt-3 text-xs leading-[1.8] text-[#766a81]">
+                    <p className="ml-8 mt-3 text-xs leading-[1.8] text-marketing-copy">
                       {text}
                     </p>
                   </article>
@@ -510,7 +513,7 @@ export default function ProductPage() {
               Mobile design reconstructions · Native build, signing and
               physical-device validation remain pending.
             </p>
-            <details className="group mx-auto mt-8 max-w-[800px] border-y border-[#e8e0ed] py-4">
+            <details className="group mx-auto mt-8 max-w-[800px] border-y border-marketing-nav-border py-4">
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#715c80] [&::-webkit-details-marker]:hidden">
                 What should I know about platform availability?
                 <span
@@ -545,7 +548,7 @@ export default function ProductPage() {
               <br />
               <span className={accent}>A clear path to it.</span>
             </Title>
-            <p className="mt-6 text-xs leading-[1.8] text-[#766a81] md:text-sm">
+            <p className="mt-6 text-xs leading-[1.8] text-marketing-copy md:text-sm">
               Each part has a role. Collection starts with your choices and a
               supported source.
             </p>
@@ -571,7 +574,7 @@ export default function ProductPage() {
           />
         </section>
         <section id="product-privacy" className={`${container} scroll-mt-28`}>
-          <div className="grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-[#f4eff8] p-7 md:grid-cols-2 md:gap-16 md:p-11">
+          <div className="grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-7 md:grid-cols-2 md:gap-16 md:p-11">
             <div>
               <Chapter>Your choices / At every step</Chapter>
               <Title>
@@ -616,7 +619,7 @@ export default function ProductPage() {
                     <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                       {title}
                     </h3>
-                    <p className="mt-1 text-[11px] leading-[1.8] text-[#766a81]">
+                    <p className="mt-1 text-[11px] leading-[1.8] text-marketing-copy">
                       {text}
                     </p>
                   </div>
@@ -632,7 +635,7 @@ export default function ProductPage() {
             <br />
             <span className={accent}>Make the next step yours.</span>
           </Title>
-          <p className="mx-auto mt-6 max-w-[480px] text-xs leading-[1.8] text-[#766a81] md:text-sm">
+          <p className="mx-auto mt-6 max-w-[480px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
             Explore the applications and review their availability before you
             begin.
           </p>
@@ -646,19 +649,19 @@ export default function ProductPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-[#e8e0ed] bg-white py-8">
+      <footer className="border-t border-marketing-nav-border bg-white py-8">
         <div className={container}>
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:gap-8">
             <Link href="/" aria-label="NetSentry home">
               <Brand />
             </Link>
-            <p className="text-[11px] leading-[1.8] text-[#887493]">
+            <p className="text-[11px] leading-[1.8] text-marketing-caption">
               Device reports, digital wellbeing and developer tools.
               <br />
               Built around supported data and explicit choices.
             </p>
           </div>
-          <div className="mt-7 flex flex-col justify-between gap-4 border-t border-[#e8e0ed] pt-5 text-[10px] text-[#887493] md:flex-row">
+          <div className="mt-7 flex flex-col justify-between gap-4 border-t border-marketing-nav-border pt-5 text-[10px] text-marketing-caption md:flex-row">
             <p>
               © <CopyrightYear /> NetSentry
             </p>

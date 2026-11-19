@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description:
     "Questions, ideas or team enquiries about NetSentry. Explore the contact form preview and find documentation to help you get started.",
 };
-const muted = "text-xs leading-[1.85] text-[#766a81]";
+const muted = "text-xs leading-[1.85] text-marketing-copy";
 const heading =
   "font-[inherit] text-[25px] font-semibold leading-[1.3] tracking-[-.03em]";
 const reasons = [
@@ -101,7 +101,7 @@ export default function ContactPage() {
             <br />
             <span className="text-[#7e6094]">Let’s start a conversation.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-[490px] text-sm leading-[1.9] text-[#766a81]">
+          <p className="mx-auto mt-6 max-w-[490px] text-sm leading-[1.9] text-marketing-copy">
             Whether you’re finding your way around NetSentry or exploring it for
             your team, we’d like to hear from you.
           </p>
@@ -117,7 +117,7 @@ export default function ContactPage() {
             {reasons.map(({ icon: Icon, title, text }) => (
               <div
                 key={title}
-                className="flex items-start gap-4 border-b border-[#e6dced] py-5 first-of-type:pt-0"
+                className="flex items-start gap-4 border-b border-marketing-border py-5 first-of-type:pt-0"
               >
                 <Icon
                   size={20}
@@ -133,7 +133,7 @@ export default function ContactPage() {
                 </div>
               </div>
             ))}
-            <div className="mt-7 rounded-xl border border-[#e6dced] bg-[#f3edf8] p-6">
+            <div className="mt-7 rounded-xl border border-marketing-border bg-[#f3edf8] p-6">
               <BookOpen
                 size={20}
                 strokeWidth={1.5}
@@ -159,7 +159,7 @@ export default function ContactPage() {
         <section
           id="contact-help"
           aria-labelledby="contact-help-title"
-          className="grid scroll-mt-28 gap-7 border-t border-[#e6dced] py-10 md:grid-cols-[1fr_1.6fr] md:gap-14 md:py-12"
+          className="grid scroll-mt-28 gap-7 border-t border-marketing-border py-10 md:grid-cols-[1fr_1.6fr] md:gap-14 md:py-12"
         >
           <div>
             <Chapter>Before you send</Chapter>
@@ -175,7 +175,7 @@ export default function ContactPage() {
               <details
                 key={question}
                 open={index === 0}
-                className="group border-b border-[#e6dced] py-4"
+                className="group border-b border-marketing-border py-4"
               >
                 <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-[13px] font-semibold [&::-webkit-details-marker]:hidden">
                   {question}
@@ -199,7 +199,7 @@ export default function ContactPage() {
         </section>
       </main>
       <footer
-        className={`${container} flex max-w-[1060px] flex-col justify-between gap-5 border-t border-[#e6dced] py-7 text-[11px] text-[#766a81] sm:flex-row`}
+        className={`${container} flex max-w-[1060px] flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
       >
         <p>
           © <CopyrightYear /> NetSentry

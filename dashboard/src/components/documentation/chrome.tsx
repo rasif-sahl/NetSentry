@@ -4,7 +4,7 @@ import { CopyrightYear } from "@/components/marketing/copyright-year";
 
 export function DocumentationHeader() {
   return (
-    <header className="sticky top-3 z-30 mx-auto mt-4 flex h-[68px] w-[calc(100%-24px)] max-w-[1312px] items-center justify-between gap-5 rounded-xl border border-[#e8e0ed] bg-white/95 px-4 backdrop-blur-xl sm:w-[calc(100%-48px)] sm:px-6 md:top-4">
+    <header className="sticky top-3 z-30 mx-auto mt-4 flex h-[68px] w-[calc(100%-24px)] max-w-[1312px] items-center justify-between gap-5 rounded-xl border border-marketing-nav-border bg-white/95 px-4 backdrop-blur-xl sm:w-[calc(100%-48px)] sm:px-6 md:top-4">
       <Link href="/" aria-label="NetSentry home">
         <Brand />
       </Link>
@@ -46,7 +46,7 @@ export function DocumentationHeader() {
 
 export function DocumentationFooter() {
   return (
-    <footer className="mt-10 flex flex-col justify-between gap-4 border-t border-[#e8e0ed] pb-7 pt-6 text-[9px] text-[#9a87a5] sm:flex-row">
+    <footer className="mt-10 flex flex-col justify-between gap-4 border-t border-marketing-nav-border pb-7 pt-6 text-[9px] text-[#9a87a5] sm:flex-row">
       <p>
         © <CopyrightYear /> NetSentry
       </p>

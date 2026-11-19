@@ -29,7 +29,7 @@ import {
   WindowFrame,
 } from "@/components/marketing/ui";
 
-const muted = "text-sm leading-[1.9] text-[#766a81]";
+const muted = "text-sm leading-[1.9] text-marketing-copy";
 const accent = "text-[#7e6094]";
 const section =
   "scroll-mt-28 border-y border-[#eee6f2] bg-[#f9f7fb] py-16 md:py-20";
@@ -94,7 +94,7 @@ export default function Home() {
                 Explore the apps
               </a>
             </div>
-            <p className="mt-4 text-[10px] text-[#887493]">
+            <p className="mt-4 text-[10px] text-marketing-caption">
               Product preview · In development
             </p>
             <div className="mx-auto mt-9 max-w-[1080px] md:mt-12">
@@ -113,7 +113,7 @@ export default function Home() {
               Web dashboard preview · Empty workspace example.
             </p>
             <div
-              className="mt-6 flex flex-wrap justify-center gap-y-4 border-y border-[#e8e0ed] py-5 text-[10px] text-[#7e6d8b] md:text-xs"
+              className="mt-6 flex flex-wrap justify-center gap-y-4 border-y border-marketing-nav-border py-5 text-[10px] text-[#7e6d8b] md:text-xs"
               aria-label="Explore the applications"
             >
               {[
@@ -128,7 +128,7 @@ export default function Home() {
                 <a
                   key={href}
                   href={href}
-                  className="flex items-center gap-2 px-2 hover:text-[#604675] [&+a]:border-l [&+a]:border-[#e8e0ed] md:gap-3 md:px-10"
+                  className="flex items-center gap-2 px-2 hover:text-[#604675] [&+a]:border-l [&+a]:border-marketing-nav-border md:gap-3 md:px-10"
                 >
                   <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
                   {label}
@@ -166,12 +166,12 @@ export default function Home() {
             ].map(({ icon: Icon, text }) => (
               <div
                 key={text}
-                className="flex items-center gap-4 rounded-xl border border-[#e8e0ed] bg-white px-6 py-5"
+                className="flex items-center gap-4 rounded-xl border border-marketing-nav-border bg-white px-6 py-5"
               >
                 <span className="rounded-xl bg-[#f0e9f5] p-3 text-[#9a7bac]">
                   <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
                 </span>
-                <p className="max-w-[190px] text-[13px] leading-relaxed text-[#766a81]">
+                <p className="max-w-[190px] text-[13px] leading-relaxed text-marketing-copy">
                   {text}
                 </p>
               </div>
@@ -212,7 +212,7 @@ export default function Home() {
               ].map(([title, text]) => (
                 <div
                   key={title}
-                  className="text-xs leading-relaxed text-[#766a81]"
+                  className="text-xs leading-relaxed text-marketing-copy"
                 >
                   <strong className="mb-2 flex items-start gap-2 text-[13px] font-semibold text-[#645170]">
                     <Check
@@ -247,7 +247,7 @@ export default function Home() {
               <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                 Android · Understand supported phone activity
               </h3>
-              <p className="mt-2 text-xs leading-[1.8] text-[#766a81]">
+              <p className="mt-2 text-xs leading-[1.8] text-marketing-copy">
                 Permission-based network and application usage, screen-time
                 reports and explicit collection controls.
               </p>
@@ -256,7 +256,7 @@ export default function Home() {
               <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                 iOS · Stay connected to your workspace
               </h3>
-              <p className="mt-2 text-xs leading-[1.8] text-[#766a81]">
+              <p className="mt-2 text-xs leading-[1.8] text-marketing-copy">
                 Device pairing, authorized reports and sharing workflows. Apple
                 Screen Time features require separate eligibility and
                 authorization.
@@ -268,7 +268,7 @@ export default function Home() {
             >
               Understand platform availability
             </a>
-            <p className="mt-5 text-[10px] text-[#887493]">
+            <p className="mt-5 text-[10px] text-marketing-caption">
               Native apps · Release validation in progress
             </p>
           </div>
@@ -286,7 +286,7 @@ export default function Home() {
                   <br />
                   <span className={accent}>More “now I know.”</span>
                 </Title>
-                <p className="mt-6 text-[10px] text-[#887493]">
+                <p className="mt-6 text-[10px] text-marketing-caption">
                   macOS is the initial desktop target · Signed release checks
                   pending
                 </p>
@@ -344,7 +344,7 @@ export default function Home() {
             ].map(({ title, icon: Icon, text }) => (
               <article
                 key={title}
-                className="rounded-xl border border-[#e8e0ed] bg-white p-5 md:p-6"
+                className="rounded-xl border border-marketing-nav-border bg-white p-5 md:p-6"
               >
                 <span className="mb-5 inline-flex rounded-xl bg-[#f0e9f5] p-3 text-[#9a7bac]">
                   <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
@@ -352,7 +352,7 @@ export default function Home() {
                 <h3 className="font-[inherit] text-base font-semibold tracking-tight md:text-lg">
                   {title}
                 </h3>
-                <p className="mt-4 text-xs leading-[1.8] text-[#766a81]">
+                <p className="mt-4 text-xs leading-[1.8] text-marketing-copy">
                   {text}
                 </p>
               </article>
@@ -360,7 +360,7 @@ export default function Home() {
           </div>
         </section>
         <section id="privacy" className={`${container} scroll-mt-28`}>
-          <div className="grid gap-8 rounded-2xl border border-[#e8dfee] bg-[#f4eff8] p-6 md:grid-cols-2 md:items-center md:gap-16 md:p-12">
+          <div className="grid gap-8 rounded-2xl border border-[#e8dfee] bg-marketing-hover p-6 md:grid-cols-2 md:items-center md:gap-16 md:p-12">
             <div>
               <Chapter>Understanding should come with choice.</Chapter>
               <Title>
@@ -406,7 +406,7 @@ export default function Home() {
                     <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                       {title}
                     </h3>
-                    <p className="mt-2 text-xs leading-relaxed text-[#766a81]">
+                    <p className="mt-2 text-xs leading-relaxed text-marketing-copy">
                       {text}
                     </p>
                   </div>
@@ -439,14 +439,17 @@ export default function Home() {
                 "Explore available reports, check missing data and decide whether to share, change a setting or take a confirmed action.",
               ],
             ].map(([title, text], i) => (
-              <article key={title} className="border-t border-[#e8e0ed] pt-6">
+              <article
+                key={title}
+                className="border-t border-marketing-nav-border pt-6"
+              >
                 <p className="mb-5 text-3xl font-medium text-[#b095c1]">
                   0{i + 1}
                 </p>
                 <h3 className="font-[inherit] text-base font-semibold tracking-tight">
                   {title}
                 </h3>
-                <p className="mt-3 text-xs leading-[1.8] text-[#766a81]">
+                <p className="mt-3 text-xs leading-[1.8] text-marketing-copy">
                   {text}
                 </p>
               </article>
@@ -494,7 +497,7 @@ export default function Home() {
                       −
                     </span>
                   </summary>
-                  <p className="mt-3 text-xs leading-[1.9] text-[#766a81]">
+                  <p className="mt-3 text-xs leading-[1.9] text-marketing-copy">
                     {answer}
                   </p>
                 </details>
@@ -532,13 +535,13 @@ export default function Home() {
               <Link href="/" aria-label="NetSentry home">
                 <Brand />
               </Link>
-              <p className="mt-4 text-[11px] leading-[1.9] text-[#887493]">
+              <p className="mt-4 text-[11px] leading-[1.9] text-marketing-caption">
                 A clearer picture of your devices, digital habits and
                 development workspace. Built around supported data and explicit
                 choices.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-5 text-[11px] text-[#887493] md:gap-14">
+            <div className="grid grid-cols-3 gap-5 text-[11px] text-marketing-caption md:gap-14">
               {[
                 {
                   title: "Discover",
@@ -583,7 +586,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div className="mt-8 flex flex-wrap justify-between gap-4 border-t border-[#eee6f2] pt-5 text-[10px] text-[#887493]">
+          <div className="mt-8 flex flex-wrap justify-between gap-4 border-t border-[#eee6f2] pt-5 text-[10px] text-marketing-caption">
             <p>
               © <CopyrightYear /> NetSentry
             </p>

@@ -34,7 +34,7 @@ export function ProductShowcase({
               <p className="text-[10px] font-semibold tracking-[1.8px] text-[#8c729c]">
                 THE WEB WORKSPACE
               </p>
-              <p className="mt-1 text-xs text-[#766a81] md:text-sm">
+              <p className="mt-1 text-xs text-marketing-copy md:text-sm">
                 One place to bring your devices together.
               </p>
             </div>
@@ -69,7 +69,7 @@ export function ProductShowcase({
                   <strong className="text-sm font-semibold">
                     {platform === "android" ? "Android" : "iOS"}
                   </strong>
-                  <span className="mt-1 block text-[10px] text-[#887493]">
+                  <span className="mt-1 block text-[10px] text-marketing-caption">
                     {platform === "android" ? "Kotlin / Compose" : "SwiftUI"}
                   </span>
                   <button
@@ -101,7 +101,7 @@ export function ProductShowcase({
                 <button
                   key={screen}
                   aria-pressed={desktop === screen}
-                  className={`min-h-11 rounded-lg px-3 py-2 text-xs md:px-4 ${desktop === screen ? "bg-white text-[#604675] shadow-sm" : "text-[#887493] hover:text-[#604675]"}`}
+                  className={`min-h-11 rounded-lg px-3 py-2 text-xs md:px-4 ${desktop === screen ? "bg-white text-[#604675] shadow-sm" : "text-marketing-caption hover:text-[#604675]"}`}
                   onClick={() => setDesktop(screen)}
                 >
                   {screens[screen].title}

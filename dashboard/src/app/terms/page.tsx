@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 const container =
   "mx-auto w-[calc(100%-40px)] max-w-[1060px] md:w-[calc(100%-80px)]";
-const paragraph = "text-[13px] leading-[1.95] text-[#766a81]";
+const paragraph = "text-[13px] leading-[1.95] text-marketing-copy";
 
 export default function TermsPage() {
   return (
@@ -35,11 +35,11 @@ export default function TermsPage() {
           <h1 className="font-[inherit] text-[38px] font-semibold leading-[1.2] tracking-[-.045em] md:text-5xl">
             Terms and Conditions
           </h1>
-          <p className="mx-auto mt-5 max-w-[535px] text-sm leading-[1.9] text-[#766a81]">
+          <p className="mx-auto mt-5 max-w-[535px] text-sm leading-[1.9] text-marketing-copy">
             An outline of how NetSentry is intended to be used, the
             responsibilities involved, and what to expect from the service.
           </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[11px] text-[#766a81]">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[11px] text-marketing-copy">
             <span className="rounded-full bg-[#f3edf8] px-3 py-1 text-[#806092]">
               Draft for review
             </span>
@@ -48,7 +48,7 @@ export default function TermsPage() {
         </section>
         <aside
           aria-labelledby="terms-draft-title"
-          className="mb-7 flex items-start gap-4 rounded-xl border border-[#e6dced] bg-[#f3edf8] px-5 py-5 md:mb-10 md:px-6"
+          className="mb-7 flex items-start gap-4 rounded-xl border border-marketing-border bg-[#f3edf8] px-5 py-5 md:mb-10 md:px-6"
         >
           <FileText
             size={20}
@@ -63,7 +63,7 @@ export default function TermsPage() {
             >
               These terms are being finalized.
             </h2>
-            <p className="mt-1 text-xs leading-[1.8] text-[#766a81]">
+            <p className="mt-1 text-xs leading-[1.8] text-marketing-copy">
               This preview shows the proposed structure and wording. The
               operating entity, commercial terms, liability provisions and
               applicable law must be confirmed before these terms become
@@ -77,7 +77,7 @@ export default function TermsPage() {
               prefix="terms"
               sections={termsSections.map(({ id, title }) => ({ id, title }))}
             />
-            <p className="mt-6 hidden border-t border-[#e6dced] pt-5 text-[11px] leading-[1.8] text-[#766a81] min-[651px]:block">
+            <p className="mt-6 hidden border-t border-marketing-border pt-5 text-[11px] leading-[1.8] text-marketing-copy min-[651px]:block">
               Looking for practical guidance?
               <br />
               Our documentation explains setup, permissions and product
@@ -97,7 +97,7 @@ export default function TermsPage() {
                 key={id}
                 id={`terms-${id}`}
                 aria-labelledby={`terms-${id}-title`}
-                className="scroll-mt-28 border-b border-[#e6dced] py-7 first:pt-0"
+                className="scroll-mt-28 border-b border-marketing-border py-7 first:pt-0"
               >
                 <h2
                   id={`terms-${id}-title`}
@@ -129,7 +129,7 @@ export default function TermsPage() {
                         key={i}
                         className={
                           block.type === "note"
-                            ? "border-l-[3px] border-[#b89acb] pl-4 text-xs leading-[1.9] text-[#766a81]"
+                            ? "border-l-[3px] border-[#b89acb] pl-4 text-xs leading-[1.9] text-marketing-copy"
                             : paragraph
                         }
                       >
@@ -140,11 +140,11 @@ export default function TermsPage() {
                 </div>
               </section>
             ))}
-            <div className="mt-8 rounded-xl border border-[#e6dced] bg-[#f3edf8] p-6">
+            <div className="mt-8 rounded-xl border border-marketing-border bg-[#f3edf8] p-6">
               <h2 className="font-[inherit] text-[22px] font-semibold leading-[1.4] tracking-[-.025em]">
                 Understand the product before you begin.
               </h2>
-              <p className="mt-2 text-xs leading-[1.85] text-[#766a81]">
+              <p className="mt-2 text-xs leading-[1.85] text-marketing-copy">
                 Review the permissions and responsibilities that go with
                 connecting devices and sharing information.
               </p>
@@ -162,7 +162,7 @@ export default function TermsPage() {
         </div>
       </main>
       <footer
-        className={`${container} flex flex-wrap justify-between gap-5 border-t border-[#e6dced] py-7 text-[11px] text-[#766a81]`}
+        className={`${container} flex flex-wrap justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy`}
       >
         <p>
           © <CopyrightYear /> NetSentry

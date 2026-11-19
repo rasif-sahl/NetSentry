@@ -126,7 +126,7 @@ const questions = [
     "No. Membership and billing do not grant collection permissions. Pairing, consent, sharing and supported platform permissions remain separate choices.",
   ],
 ];
-const muted = "text-xs leading-[1.85] text-[#766a81]";
+const muted = "text-xs leading-[1.85] text-marketing-copy";
 const heading =
   "font-[inherit] text-[30px] font-semibold leading-[1.3] tracking-[-.035em]";
 
@@ -148,7 +148,7 @@ export default function PricingPage() {
             <br />
             <span className="text-[#7e6094]">A plan that fits your day.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-[530px] text-[13px] leading-[1.9] text-[#766a81] md:text-sm">
+          <p className="mx-auto mt-6 max-w-[530px] text-[13px] leading-[1.9] text-marketing-copy md:text-sm">
             Start with your own digital habits. Make room for your family or
             your team when you need to.
           </p>
@@ -164,7 +164,7 @@ export default function PricingPage() {
           {editions.map((edition) => (
             <article
               key={edition.name}
-              className={`flex flex-col gap-5 rounded-xl border px-6 py-7 ${edition.highlighted ? "border-[#cbb4dc] bg-[#f3edf8]" : "border-[#e6dced] bg-white"}`}
+              className={`flex flex-col gap-5 rounded-xl border px-6 py-7 ${edition.highlighted ? "border-[#cbb4dc] bg-[#f3edf8]" : "border-marketing-border bg-white"}`}
             >
               <div>
                 <p className="mb-2 text-[9px] font-semibold uppercase tracking-[1.6px] text-[#947da1]">
@@ -177,11 +177,11 @@ export default function PricingPage() {
                   {edition.description}
                 </p>
               </div>
-              <div className="border-y border-[#e6dced] py-5">
+              <div className="border-y border-marketing-border py-5">
                 <p className="text-[19px] font-semibold tracking-[-.025em]">
                   {edition.price}
                 </p>
-                <p className="mt-1 text-[11px] text-[#766a81]">
+                <p className="mt-1 text-[11px] text-marketing-copy">
                   {edition.priceNote}
                 </p>
               </div>
@@ -209,7 +209,7 @@ export default function PricingPage() {
             </article>
           ))}
         </section>
-        <p className="mx-auto mt-5 max-w-[700px] text-center text-[11px] leading-[1.8] text-[#766a81]">
+        <p className="mx-auto mt-5 max-w-[700px] text-center text-[11px] leading-[1.8] text-marketing-copy">
           Proposed editions. Prices, limits and launch availability are still
           being finalized.
           <br />
@@ -233,7 +233,7 @@ export default function PricingPage() {
             role="region"
             aria-label="Edition comparison"
             tabIndex={0}
-            className="relative mt-8 overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#80658f]"
+            className="relative mt-8 overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
           >
             <table
               className="w-full min-w-[660px] border-collapse text-left text-xs"
@@ -255,7 +255,7 @@ export default function PricingPage() {
                     <th
                       key={label}
                       scope="col"
-                      className="border-b border-[#e6dced] px-3 py-4 font-semibold first:w-[32%] first:pl-0"
+                      className="border-b border-marketing-border px-3 py-4 font-semibold first:w-[32%] first:pl-0"
                     >
                       {label}
                     </th>
@@ -267,14 +267,14 @@ export default function PricingPage() {
                   <tr key={label}>
                     <th
                       scope="row"
-                      className="border-b border-[#e6dced] py-4 pr-3 font-medium"
+                      className="border-b border-marketing-border py-4 pr-3 font-medium"
                     >
                       {label}
                     </th>
                     {values.map((value, index) => (
                       <td
                         key={index}
-                        className="border-b border-[#e6dced] px-3 py-4 text-[#766a81]"
+                        className="border-b border-marketing-border px-3 py-4 text-marketing-copy"
                       >
                         {value === "—" ? (
                           <>
@@ -294,7 +294,7 @@ export default function PricingPage() {
         </section>
         <section
           aria-label="Principles across editions"
-          className="mt-9 grid gap-7 border-b border-[#e6dced] py-9 md:grid-cols-3 md:gap-9"
+          className="mt-9 grid gap-7 border-b border-marketing-border py-9 md:grid-cols-3 md:gap-9"
         >
           {principles.map(([title, text]) => (
             <div key={title}>
@@ -324,7 +324,7 @@ export default function PricingPage() {
               <details
                 key={question}
                 open={index === 0}
-                className="group border-b border-[#e6dced] py-4"
+                className="group border-b border-marketing-border py-4"
               >
                 <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-[13px] font-semibold [&::-webkit-details-marker]:hidden">
                   {question}
@@ -346,7 +346,7 @@ export default function PricingPage() {
             ))}
           </div>
         </section>
-        <section className="mb-11 mt-16 rounded-xl border border-[#e6dced] bg-[#f3edf8] px-6 py-10 text-center md:mt-[70px] md:px-10">
+        <section className="mb-11 mt-16 rounded-xl border border-marketing-border bg-[#f3edf8] px-6 py-10 text-center md:mt-[70px] md:px-10">
           <Chapter>Start with understanding</Chapter>
           <h2 className="font-[inherit] text-[26px] font-semibold tracking-[-.035em]">
             Find your starting point.
@@ -365,7 +365,7 @@ export default function PricingPage() {
         </section>
       </main>
       <footer
-        className={`${container} flex flex-col justify-between gap-5 border-t border-[#e6dced] py-7 text-[11px] text-[#766a81] sm:flex-row`}
+        className={`${container} flex flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
       >
         <p>
           © <CopyrightYear /> NetSentry

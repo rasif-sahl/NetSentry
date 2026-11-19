@@ -24,13 +24,13 @@ function Block({ block }: { block: GuideBlock }) {
   switch (block.type) {
     case "paragraph":
       return (
-        <p className="mt-4 text-xs leading-[1.95] text-[#766a81] sm:text-[13px]">
+        <p className="mt-4 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]">
           {block.text}
         </p>
       );
     case "list":
       return (
-        <ul className="my-5 list-disc space-y-2 pl-5 text-xs leading-[1.95] text-[#766a81] sm:text-[13px]">
+        <ul className="my-5 list-disc space-y-2 pl-5 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]">
           {block.items.map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -38,11 +38,11 @@ function Block({ block }: { block: GuideBlock }) {
       );
     case "note":
       return (
-        <aside className="mt-6 rounded-lg border border-[#e8dfee] border-l-[3px] border-l-[#a789ba] bg-[#f4eff8] px-5 py-4">
+        <aside className="mt-6 rounded-lg border border-[#e8dfee] border-l-[3px] border-l-[#a789ba] bg-marketing-hover px-5 py-4">
           <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
             {block.title}
           </h3>
-          <p className="mt-2 text-xs leading-[1.9] text-[#766a81]">
+          <p className="mt-2 text-xs leading-[1.9] text-marketing-copy">
             {block.text}
           </p>
         </aside>
@@ -67,7 +67,7 @@ function Block({ block }: { block: GuideBlock }) {
       );
     case "next":
       return (
-        <div className="mt-6 rounded-[10px] border border-[#e8e0ed] bg-[#faf8fc] px-6 py-5">
+        <div className="mt-6 rounded-[10px] border border-marketing-nav-border bg-[#faf8fc] px-6 py-5">
           <p className="mb-2 text-[8px] font-semibold uppercase tracking-wider text-[#a08aaf]">
             Continue with
           </p>
@@ -104,7 +104,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
           role="search"
           action="/docs"
           method="get"
-          className="flex w-full items-center gap-2 rounded-lg border border-[#e8e0ed] bg-white px-3 sm:w-[220px]"
+          className="flex w-full items-center gap-2 rounded-lg border border-marketing-nav-border bg-white px-3 sm:w-[220px]"
         >
           <Search
             size={15}
@@ -117,7 +117,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
             name="q"
             aria-label="Search documentation"
             placeholder="Search documentation"
-            className="h-10 min-w-0 w-full bg-transparent text-[11px] text-[#766a81] placeholder:text-[#a18dad] sm:text-[10px]"
+            className="h-10 min-w-0 w-full bg-transparent text-[11px] text-marketing-copy placeholder:text-[#a18dad] sm:text-[10px]"
           />
         </form>
       </div>
@@ -132,7 +132,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
           <h1 className="font-[inherit] text-[35px] font-semibold leading-[1.2] tracking-[-.035em] sm:text-[42px]">
             {guide.title}
           </h1>
-          <p className="mt-5 text-xs leading-[1.9] text-[#766a81] sm:text-sm">
+          <p className="mt-5 text-xs leading-[1.9] text-marketing-copy sm:text-sm">
             {guide.summary}
           </p>
           <div className="mt-8">
@@ -151,7 +151,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
               </section>
             ))}
           </div>
-          <div className="mt-9 border-t border-[#e8e0ed] pt-6">
+          <div className="mt-9 border-t border-marketing-nav-border pt-6">
             <p className="mb-5 text-[11px] text-[#9a87a5]">
               You have reached the end of this guide.
             </p>
@@ -162,7 +162,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
         </article>
         <aside
           aria-label="On this page"
-          className="row-start-1 self-start rounded-[10px] border border-[#e8e0ed] px-5 py-4 min-[1201px]:sticky min-[1201px]:top-[119px] min-[1201px]:col-start-2 min-[1201px]:rounded-none min-[1201px]:border-0 min-[1201px]:border-l min-[1201px]:p-0 min-[1201px]:pl-5"
+          className="row-start-1 self-start rounded-[10px] border border-marketing-nav-border px-5 py-4 min-[1201px]:sticky min-[1201px]:top-[119px] min-[1201px]:col-start-2 min-[1201px]:rounded-none min-[1201px]:border-0 min-[1201px]:border-l min-[1201px]:p-0 min-[1201px]:pl-5"
         >
           <p className="text-[8px] font-semibold uppercase tracking-wider text-[#947da1]">
             On this page
@@ -175,7 +175,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
               <a
                 key={section.id}
                 href={`#${sectionId(section.id)}`}
-                className="text-[10px] leading-[1.8] text-[#887493] hover:text-[#604675]"
+                className="text-[10px] leading-[1.8] text-marketing-caption hover:text-[#604675]"
               >
                 {section.title}
               </a>
@@ -183,7 +183,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
           </nav>
           <Link
             href="/docs/availability"
-            className="mt-6 hidden border-t border-[#e8e0ed] pt-4 text-[9px] text-[#a08aaf] min-[1201px]:block"
+            className="mt-6 hidden border-t border-marketing-nav-border pt-4 text-[9px] text-[#a08aaf] min-[1201px]:block"
           >
             Platform availability
           </Link>

@@ -35,8 +35,8 @@ export const metadata: Metadata = {
 const section = "scroll-mt-28 py-[53px] md:py-20";
 const tinted = "border-y border-[#eee6f2] bg-[#f9f7fb]";
 const accent = "text-[#7e6094]";
-const muted = "text-xs leading-[1.85] text-[#766a81]";
-const quiet = "text-[10px] leading-[1.8] text-[#887493] md:text-[11px]";
+const muted = "text-xs leading-[1.85] text-marketing-copy";
+const quiet = "text-[10px] leading-[1.8] text-marketing-caption md:text-[11px]";
 const solutions = [
   {
     id: "personal",
@@ -91,7 +91,7 @@ function Heading({
         <Chapter>{eyebrow}</Chapter>
         <Title>{title}</Title>
       </div>
-      <p className="text-xs leading-[1.8] text-[#766a81] md:text-[13px]">
+      <p className="text-xs leading-[1.8] text-marketing-copy md:text-[13px]">
         {children}
       </p>
     </div>
@@ -126,12 +126,12 @@ function StartingPoint({
   app: "web" | "phones" | "desktop";
 }) {
   return (
-    <div className="mt-6 border-t border-[#e8e0ed] pt-5">
+    <div className="mt-6 border-t border-marketing-nav-border pt-5">
       <p className="text-[8px] font-semibold uppercase tracking-[1.4px] text-[#a08aaf]">
         A good starting point
       </p>
       <p className="mt-3 text-xs font-semibold text-[#715c80]">{label}</p>
-      <p className="mt-2 text-[11px] leading-[1.85] text-[#766a81]">
+      <p className="mt-2 text-[11px] leading-[1.85] text-marketing-copy">
         {children}
       </p>
       <Link
@@ -181,7 +181,7 @@ export default function SolutionsPage() {
             <br />
             <span className={accent}>A clearer picture for each.</span>
           </h1>
-          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-[#766a81] md:text-[15px]">
+          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-marketing-copy md:text-[15px]">
             Your own digital habits. Your family’s shared routines. Your team’s
             devices. Your development workspace. Find the part of NetSentry that
             fits what you want to understand.
@@ -194,7 +194,7 @@ export default function SolutionsPage() {
               Explore the product
             </Link>
           </div>
-          <p className="mt-4 text-[10px] text-[#887493]">
+          <p className="mt-4 text-[10px] text-marketing-caption">
             Product in development · Features depend on platform, permissions
             and consent
           </p>
@@ -209,7 +209,7 @@ export default function SolutionsPage() {
               <a
                 key={id}
                 href={`#solutions-${id}`}
-                className="rounded-xl border border-[#e8e0ed] bg-white px-4 pb-4 pt-5 hover:border-[#bda4cd] hover:bg-[#fcfaff] md:px-6 md:pb-5 md:pt-6"
+                className="rounded-xl border border-marketing-nav-border bg-white px-4 pb-4 pt-5 hover:border-[#bda4cd] hover:bg-[#fcfaff] md:px-6 md:pb-5 md:pt-6"
               >
                 <span className="mb-4 inline-flex rounded-[10px] bg-[#f0e9f5] p-2.5 text-[#9a7bac]">
                   <Icon size={22} strokeWidth={1.5} aria-hidden="true" />
@@ -217,10 +217,10 @@ export default function SolutionsPage() {
                 <h2 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.025em] md:text-[19px]">
                   {label}
                 </h2>
-                <p className="mt-3 min-h-20 text-[11px] leading-[1.8] text-[#766a81] md:min-h-[65px] md:text-xs">
+                <p className="mt-3 min-h-20 text-[11px] leading-[1.8] text-marketing-copy md:min-h-[65px] md:text-xs">
                   {question}
                 </p>
-                <span className="mt-4 block border-t border-[#e8e0ed] pt-3 text-[10px] text-[#8c729c]">
+                <span className="mt-4 block border-t border-marketing-nav-border pt-3 text-[10px] text-[#8c729c]">
                   Explore this solution
                 </span>
               </a>
@@ -322,7 +322,7 @@ export default function SolutionsPage() {
                 mobile.
               </StartingPoint>
             </div>
-            <div className="rounded-[14px] border border-[#e8e0ed] bg-white p-6 md:p-8">
+            <div className="rounded-[14px] border border-marketing-nav-border bg-white p-6 md:p-8">
               <CardTitle icon={UsersRound}>
                 A family workflow, explained
               </CardTitle>
@@ -343,7 +343,7 @@ export default function SolutionsPage() {
                 ].map(([title, text], index) => (
                   <li
                     key={title}
-                    className="flex gap-5 border-b border-[#e8e0ed] py-6"
+                    className="flex gap-5 border-b border-marketing-nav-border py-6"
                   >
                     <span className="text-[22px] leading-tight text-[#b095c1]">
                       0{index + 1}
@@ -381,7 +381,7 @@ export default function SolutionsPage() {
               assigned device.
             </Heading>
             <div className="grid items-center gap-8 md:grid-cols-[1.2fr_1fr] md:gap-16">
-              <div className="order-2 rounded-[14px] border border-[#e8e0ed] bg-white p-6 md:order-1 md:p-8">
+              <div className="order-2 rounded-[14px] border border-marketing-nav-border bg-white p-6 md:order-1 md:p-8">
                 <CardTitle icon={Building2}>
                   A workspace with clear boundaries
                 </CardTitle>
@@ -392,7 +392,7 @@ export default function SolutionsPage() {
                   <h3 className="mt-2 font-[inherit] text-[22px] font-semibold leading-tight tracking-[-.025em]">
                     Your organization
                   </h3>
-                  <p className="mt-3 text-[11px] text-[#766a81]">
+                  <p className="mt-3 text-[11px] text-marketing-copy">
                     Locations, departments and assigned devices
                   </p>
                 </div>
@@ -411,7 +411,7 @@ export default function SolutionsPage() {
                   ].map(({ icon: Icon, title, text }) => (
                     <div
                       key={title}
-                      className="rounded-[10px] border border-[#e8e0ed] p-4"
+                      className="rounded-[10px] border border-marketing-nav-border p-4"
                     >
                       <Icon
                         size={19}
@@ -422,13 +422,13 @@ export default function SolutionsPage() {
                       <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                         {title}
                       </h3>
-                      <p className="mt-2 text-[11px] leading-[1.8] text-[#766a81]">
+                      <p className="mt-2 text-[11px] leading-[1.8] text-marketing-copy">
                         {text}
                       </p>
                     </div>
                   ))}
                 </div>
-                <p className="mt-6 flex items-center gap-3 border-t border-[#e8e0ed] pt-5 text-[10px] leading-[1.8] text-[#8a7299]">
+                <p className="mt-6 flex items-center gap-3 border-t border-marketing-nav-border pt-5 text-[10px] leading-[1.8] text-[#8a7299]">
                   <LockKeyhole
                     size={16}
                     strokeWidth={1.5}
@@ -506,7 +506,7 @@ export default function SolutionsPage() {
             ].map(([title, text], index) => (
               <li
                 key={title}
-                className="grid grid-cols-[35px_1fr] gap-x-4 gap-y-2 border-t border-[#e8e0ed] pt-5 md:block"
+                className="grid grid-cols-[35px_1fr] gap-x-4 gap-y-2 border-t border-marketing-nav-border pt-5 md:block"
               >
                 <span className="row-span-2 text-[27px] leading-none text-[#b095c1] md:mb-5 md:block">
                   0{index + 1}
@@ -537,7 +537,7 @@ export default function SolutionsPage() {
                 <br />
                 <span className={accent}>Choose a useful next step.</span>
               </Title>
-              <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-[#766a81] md:text-sm">
+              <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
                 You can begin with one use case. Add supported devices and
                 sharing only when they make sense for you.
               </p>
@@ -547,7 +547,7 @@ export default function SolutionsPage() {
                 <a
                   key={id}
                   href={`#solutions-${id}`}
-                  className="rounded-xl border border-[#e8e0ed] bg-white px-4 py-5 hover:border-[#bda4cd] hover:bg-[#fcfaff] md:px-6 md:py-6"
+                  className="rounded-xl border border-marketing-nav-border bg-white px-4 py-5 hover:border-[#bda4cd] hover:bg-[#fcfaff] md:px-6 md:py-6"
                 >
                   <Icon
                     size={22}
@@ -558,10 +558,10 @@ export default function SolutionsPage() {
                   <h3 className="font-[inherit] text-base font-semibold leading-tight tracking-[-.025em] md:text-lg">
                     {title}
                   </h3>
-                  <p className="mt-4 min-h-[82px] text-[11px] leading-[1.8] text-[#766a81] md:min-h-[68px] md:text-xs">
+                  <p className="mt-4 min-h-[82px] text-[11px] leading-[1.8] text-marketing-copy md:min-h-[68px] md:text-xs">
                     {text}
                   </p>
-                  <span className="mt-5 block border-t border-[#e8e0ed] pt-4 text-[10px] leading-relaxed text-[#8c729c]">
+                  <span className="mt-5 block border-t border-marketing-nav-border pt-4 text-[10px] leading-relaxed text-[#8c729c]">
                     {app}
                   </span>
                 </a>
@@ -570,7 +570,7 @@ export default function SolutionsPage() {
           </div>
         </section>
         <section id="solutions-choices" className={`${container} ${section}`}>
-          <div className="grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-[#f4eff8] p-7 md:grid-cols-2 md:gap-16 md:p-11">
+          <div className="grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-7 md:grid-cols-2 md:gap-16 md:p-11">
             <div>
               <Chapter>A shared foundation / Your choices</Chapter>
               <Title>
@@ -615,7 +615,7 @@ export default function SolutionsPage() {
                     <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                       {title}
                     </h3>
-                    <p className="mt-1 text-[11px] leading-[1.8] text-[#766a81]">
+                    <p className="mt-1 text-[11px] leading-[1.8] text-marketing-copy">
                       {text}
                     </p>
                   </div>
@@ -654,7 +654,7 @@ export default function SolutionsPage() {
           ].map(([question, answer]) => (
             <details
               key={question}
-              className="group mb-5 border-b border-[#e8e0ed] pb-5"
+              className="group mb-5 border-b border-marketing-nav-border pb-5"
             >
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#705781] md:text-[13px] [&::-webkit-details-marker]:hidden">
                 {question}
@@ -671,7 +671,7 @@ export default function SolutionsPage() {
                   −
                 </span>
               </summary>
-              <p className="mt-3 max-w-[870px] text-xs leading-[1.9] text-[#766a81]">
+              <p className="mt-3 max-w-[870px] text-xs leading-[1.9] text-marketing-copy">
                 {answer}
               </p>
             </details>
@@ -684,7 +684,7 @@ export default function SolutionsPage() {
             <br />
             <span className={accent}>Make the next step yours.</span>
           </Title>
-          <p className="mx-auto mt-6 max-w-[500px] text-xs leading-[1.8] text-[#766a81] md:text-sm">
+          <p className="mx-auto mt-6 max-w-[500px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
             Explore the applications and their availability, or take a closer
             look at how NetSentry fits together.
           </p>
@@ -698,19 +698,19 @@ export default function SolutionsPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-[#e8e0ed] bg-white py-8">
+      <footer className="border-t border-marketing-nav-border bg-white py-8">
         <div className={container}>
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:gap-8">
             <Link href="/" aria-label="NetSentry home">
               <Brand />
             </Link>
-            <p className="text-[11px] leading-[1.8] text-[#887493]">
+            <p className="text-[11px] leading-[1.8] text-marketing-caption">
               Device reports, digital wellbeing and developer tools.
               <br />
               Built around supported data and explicit choices.
             </p>
           </div>
-          <div className="mt-7 flex flex-col justify-between gap-4 border-t border-[#e8e0ed] pt-5 text-[10px] text-[#887493] md:flex-row">
+          <div className="mt-7 flex flex-col justify-between gap-4 border-t border-marketing-nav-border pt-5 text-[10px] text-marketing-caption md:flex-row">
             <p>
               © <CopyrightYear /> NetSentry
             </p>

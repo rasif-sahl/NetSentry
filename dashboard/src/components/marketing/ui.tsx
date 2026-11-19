@@ -5,11 +5,11 @@ import type { ReactNode } from "react";
 export const container =
   "mx-auto w-[calc(100%-40px)] max-w-[1120px] md:w-[calc(100%-80px)]";
 const buttonBase =
-  "inline-flex min-h-11 items-center justify-center rounded-lg border px-5 py-3 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#80658f]";
+  "inline-flex min-h-11 items-center justify-center rounded-lg border px-5 py-3 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary";
 export const button = `${buttonBase} border-[#e5ddeb] bg-white text-[#604675] hover:bg-[#f2edf6]`;
 export const primaryButton = `${buttonBase} border-[#7e6094] bg-[#7e6094] text-white hover:bg-[#604675]`;
 export const caption =
-  "mt-5 text-center text-[10px] leading-relaxed text-[#887493]";
+  "mt-5 text-center text-[10px] leading-relaxed text-marketing-caption";
 
 export function Brand() {
   return (
