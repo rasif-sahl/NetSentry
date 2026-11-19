@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { proxy } from "@/lib/server/proxy";
+import { proxy } from "@/shared/server/proxy";
 async function handle(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },

@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Search } from "lucide-react";
-import { findGuide, guides, type GuideBlock } from "@/lib/documentation/guides";
-import { DocumentationFooter } from "@/components/documentation/chrome";
-import { button, ProductImage, WindowFrame } from "@/components/marketing/ui";
+import {
+  findGuide,
+  guides,
+  type GuideBlock,
+} from "@/features/documentation/guides";
+import { DocumentationFooter } from "@/features/documentation/chrome";
+import { button, ProductImage, WindowFrame } from "@/features/marketing/ui";
 
 export function generateStaticParams() {
   return guides.map((guide) => ({ slug: guide.id }));

@@ -1,5 +1,5 @@
-import { DocumentationHeader } from "@/components/documentation/chrome";
-import { DocumentationSidebar } from "@/components/documentation/sidebar";
+import { DocumentationHeader } from "@/features/documentation/chrome";
+import { DocumentationSidebar } from "@/features/documentation/sidebar";
 
 export default function DocumentationLayout({
   children,

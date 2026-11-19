@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { guides } from "../src/lib/documentation/guides";
+import { guides } from "../src/features/documentation/guides";
 
 test("documentation is reachable from public navigation without account API calls", async ({
   page,
