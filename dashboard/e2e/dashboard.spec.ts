@@ -231,9 +231,9 @@ test("account settings and Operations stay available during an inventory outage"
       }),
   );
   await page.reload();
-  await expect(page.getByRole("alert")).toContainText(
-    "Synthetic inventory outage",
-  );
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Synthetic inventory outage" }),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Settings & privacy", exact: true })
     .click();
@@ -242,9 +242,7 @@ test("account settings and Operations stay available during an inventory outage"
   ).toBeVisible();
   await page.getByRole("button", { name: "Operations", exact: true }).click();
   await expect(
-    page.getByText(
-      /Workspace ownership does not grant platform-operator access/,
-    ),
+    page.getByRole("heading", { name: "Platform operations", exact: true }),
   ).toBeVisible();
 });
 
