@@ -9,9 +9,9 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
 import { DeveloperService, developerDisclosure } from './developer.service';
 import {
   DeveloperPolicyDto,
@@ -19,7 +19,7 @@ import {
   RemoteCommandDto,
   CommandLeaseDto,
   CommandResultDto,
-} from './dto/developer.dto';
+} from './other/dto/developer.dto';
 @Controller({ path: 'workspaces/:workspaceId', version: '1' })
 @UseGuards(AuthGuard)
 export class WorkspaceDeveloperController {

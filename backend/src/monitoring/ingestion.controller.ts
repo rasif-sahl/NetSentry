@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { DeviceGuard, type DeviceRequest } from '../devices/device.guard';
+import { DeviceGuard, type DeviceRequest } from '../devices/other/device.guard';
 import { IngestionService } from './ingestion.service';
 
 @Controller({ path: 'devices', version: '1' })

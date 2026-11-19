@@ -9,13 +9,16 @@ import {
   OperatorGrant,
   OperatorAudit,
   CompatibilityRecord,
-} from './operations.entities';
-import { FeatureSetting, Subscription } from '../billing/billing.entities';
-import { User, AccountStatus } from '../users/user.entity';
-import { Session } from '../auth/session.entity';
-import { Workspace } from '../workspaces/workspace.entity';
-import { PasswordHasher } from '../auth/password-hasher';
-import { CompatibilityDto, FlagDto } from './dto/operations.dto';
+} from './entity/operations.entities';
+import {
+  FeatureSetting,
+  Subscription,
+} from '../billing/entity/billing.entities';
+import { User, AccountStatus } from '../users/entity/user.entity';
+import { Session } from '../auth/entity/session.entity';
+import { Workspace } from '../workspaces/entity/workspace.entity';
+import { PasswordHasher } from '../auth/other/password-hasher';
+import { CompatibilityDto, FlagDto } from './other/dto/operations.dto';
 @Injectable()
 export class OperationsService {
   constructor(

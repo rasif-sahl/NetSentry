@@ -6,7 +6,9 @@ const require = createRequire(import.meta.url);
 const { validateApiPayload } =
   await import('../../contracts/scripts/validation.mjs');
 const { PrivacyService } = require('../dist/account/privacy.service.js');
-const { maintainNetworks } = require('../dist/networks/network-maintenance.js');
+const {
+  maintainNetworks,
+} = require('../dist/networks/other/network-maintenance.js');
 export async function checkNetworks({
   request,
   source,

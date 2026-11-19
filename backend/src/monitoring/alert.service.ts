@@ -1,27 +1,27 @@
-import { User, AccountStatus } from '../users/user.entity';
+import { User, AccountStatus } from '../users/entity/user.entity';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
 import { DataSource, EntityManager, In } from 'typeorm';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import {
   WorkspacePermission,
   roleAllows,
 } from '../workspaces/workspace-access.service';
-import { Workspace } from '../workspaces/workspace.entity';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
+import { Workspace } from '../workspaces/entity/workspace.entity';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
 import {
   AlertOccurrence,
   AlertRule,
   NotificationDelivery,
   NotificationPreference,
-} from './alert.entities';
-import { AlertRuleDto, NotificationPreferenceDto } from './dto/alert.dto';
-import { DailyUsage, MonitoringRun, UsageNetwork } from './entities';
-import { decimal, micro } from './values';
-import { defaultAdapters, type NotificationAdapter } from './delivery';
+} from './entity/alert.entities';
+import { AlertRuleDto, NotificationPreferenceDto } from './other/dto/alert.dto';
+import { DailyUsage, MonitoringRun, UsageNetwork } from './entity/entities';
+import { decimal, micro } from './other/values';
+import { defaultAdapters, type NotificationAdapter } from './other/delivery';
 
 export async function ruleAccess(manager: EntityManager, rule: AlertRule) {
   const { member, workspace } = await workspacePolicy(

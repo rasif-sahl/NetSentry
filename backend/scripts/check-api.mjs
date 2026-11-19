@@ -26,8 +26,8 @@ Object.assign(process.env, {
   JWT_REFRESH_TOKEN_SECRET:
     'isolated-api-test-refresh-secret-not-for-production',
 });
-const { deliverOne } = require('../dist/mail/delivery.js');
-const { decryptMail } = require('../dist/mail/mail-crypto.js');
+const { deliverOne } = require('../dist/mail/other/delivery.js');
+const { decryptMail } = require('../dist/mail/other/mail-crypto.js');
 const { DataSource } = require('typeorm');
 const { databaseOptions } = require('../dist/database/options.js');
 const { NestFactory } = require('@nestjs/core');

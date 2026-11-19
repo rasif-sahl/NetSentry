@@ -1,4 +1,4 @@
-import { assertCapacity } from '../billing/policy';
+import { assertCapacity } from '../billing/other/policy';
 import {
   BadRequestException,
   ConflictException,
@@ -8,15 +8,15 @@ import {
 import { DataSource, EntityManager, In, MoreThanOrEqual } from 'typeorm';
 import { randomUUID, X509Certificate } from 'node:crypto';
 import { AgentService } from '../agents/agent.service';
-import { Agent } from '../agents/agent.entities';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { Agent } from '../agents/entity/agent.entities';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import { WorkspacePermission as P } from '../workspaces/workspace-access.service';
-import { Membership } from '../workspaces/membership.entity';
-import { User, AccountStatus } from '../users/user.entity';
+import { Membership } from '../workspaces/entity/membership.entity';
+import { User, AccountStatus } from '../users/entity/user.entity';
 import { roleAllows } from '../workspaces/workspace-access.service';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { UsageNetwork } from '../monitoring/entities';
-import { fingerprint } from '../monitoring/values';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { UsageNetwork } from '../monitoring/entity/entities';
+import { fingerprint } from '../monitoring/other/values';
 import {
   NetworkPresence,
   NetworkProfile,
@@ -27,7 +27,7 @@ import {
   NetworkSample,
   NetworkEvent,
   NetworkCompatibility,
-} from './network.entities';
+} from './entity/network.entities';
 import {
   contains,
   prefix,
@@ -35,7 +35,7 @@ import {
   encryptRouter,
   decryptRouter,
   adapterProfiles,
-} from './network-values';
+} from './other/network-values';
 import {
   NetworkSiteDto,
   NetworkGrantDto,
@@ -45,11 +45,11 @@ import {
   EndpointUpdateDto,
   NetworkEventDto,
   CompatibilityDto,
-} from './dto/network.dto';
-import { eraseNetworkAgent } from './network-lifecycle';
-import { recordNetworkEvent } from './network-events';
-import { recordNeighborObservations } from './network-inventory';
-import { recordRouterSample } from './network-router-samples';
+} from './other/dto/network.dto';
+import { eraseNetworkAgent } from './other/network-lifecycle';
+import { recordNetworkEvent } from './other/network-events';
+import { recordNeighborObservations } from './other/network-inventory';
+import { recordRouterSample } from './other/network-router-samples';
 function publicRouter(router: NetworkRouter | null) {
   if (!router) return null;
   return {

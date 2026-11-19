@@ -7,15 +7,15 @@ import {
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
 import { OperationsService } from './operations.service';
 import {
   AccountStatusDto,
   FlagDto,
   CompatibilityDto,
-} from './dto/operations.dto';
+} from './other/dto/operations.dto';
 @Controller({ path: 'operations', version: '1' })
 @UseGuards(AuthGuard)
 export class OperationsController {

@@ -1,8 +1,8 @@
-import { assertCapacity } from '../billing/policy';
-import { BusinessAssignment } from '../business/business.entities';
-import { businessAudit } from '../business/business.lifecycle';
-import { FamilyAssignment } from '../family/family.entities';
-import { eraseMonitoring } from '../monitoring/privacy';
+import { assertCapacity } from '../billing/other/policy';
+import { BusinessAssignment } from '../business/entity/business.entities';
+import { businessAudit } from '../business/other/business.lifecycle';
+import { FamilyAssignment } from '../family/entity/family.entities';
+import { eraseMonitoring } from '../monitoring/other/privacy';
 import {
   BadRequestException,
   ConflictException,
@@ -11,25 +11,25 @@ import {
 } from '@nestjs/common';
 import { DataSource, EntityManager, IsNull } from 'typeorm';
 import { randomBytes } from 'node:crypto';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { Workspace } from '../workspaces/workspace.entity';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { Workspace } from '../workspaces/entity/workspace.entity';
 import {
   WorkspacePermission,
   roleAllows,
 } from '../workspaces/workspace-access.service';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import { hashToken } from '../auth/account-actions.service';
-import { DeviceEnrolment } from './enrolment.entity';
-import { DeviceEvent } from './device-event.entity';
+import { DeviceEnrolment } from './entity/enrolment.entity';
+import { DeviceEvent } from './entity/device-event.entity';
 import {
   ConsentDto,
   DeviceHealthDto,
   EnrolmentRequestDto,
   RedeemEnrolmentDto,
-} from './dto/device.dto';
-import { disclosureHash, disclosures } from './disclosures';
-import { publicDevice } from './public-device';
-import { validateCapabilityReport } from './capability-validation';
+} from './other/dto/device.dto';
+import { disclosureHash, disclosures } from './other/disclosures';
+import { publicDevice } from './other/public-device';
+import { validateCapabilityReport } from './other/capability-validation';
 
 @Injectable()
 export class DeviceService {

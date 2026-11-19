@@ -3,14 +3,14 @@ import { AccountActionsService } from './account-actions.service';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../users/user.entity';
-import { Membership } from '../workspaces/membership.entity';
-import { Workspace } from '../workspaces/workspace.entity';
+import { User } from '../users/entity/user.entity';
+import { Membership } from '../workspaces/entity/membership.entity';
+import { Workspace } from '../workspaces/entity/workspace.entity';
 import { AuthController } from './auth.controller';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './other/auth.guard';
 import { AuthService } from './auth.service';
-import { PasswordHasher } from './password-hasher';
-import { Session } from './session.entity';
+import { PasswordHasher } from './other/password-hasher';
+import { Session } from './entity/session.entity';
 
 @Module({
   imports: [

@@ -1,38 +1,48 @@
-import { eraseBusinessUser } from '../business/business.lifecycle';
-import { eraseFamilyUser, exportFamilyUser } from '../family/family.lifecycle';
-import { eraseNetworkAgent } from '../networks/network-lifecycle';
+import { eraseBusinessUser } from '../business/other/business.lifecycle';
+import {
+  eraseFamilyUser,
+  exportFamilyUser,
+} from '../family/other/family.lifecycle';
+import { eraseNetworkAgent } from '../networks/other/network-lifecycle';
 import {
   NetworkCollector,
   NetworkEndpoint,
   NetworkRouter,
-} from '../networks/network.entities';
+} from '../networks/entity/network.entities';
 import {
   ApplicationCatalog,
   ApplicationWindow,
   ApplicationDay,
-} from '../monitoring/application.entities';
-import { AgentDeveloper, DeveloperCommand } from '../agents/developer.entities';
-import { Agent, AgentEvent } from '../agents/agent.entities';
+} from '../monitoring/entity/application.entities';
+import {
+  AgentDeveloper,
+  DeveloperCommand,
+} from '../agents/entity/developer.entities';
+import { Agent, AgentEvent } from '../agents/entity/agent.entities';
 import { publicAgent } from '../agents/agent.service';
-import { NotificationPreference } from '../monitoring/alert.entities';
-import { eraseMonitoring } from '../monitoring/privacy';
-import { Measurement, DailyUsage, CollectionGap } from '../monitoring/entities';
+import { NotificationPreference } from '../monitoring/entity/alert.entities';
+import { eraseMonitoring } from '../monitoring/other/privacy';
+import {
+  Measurement,
+  DailyUsage,
+  CollectionGap,
+} from '../monitoring/entity/entities';
 import {
   ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { DataSource, EntityManager, In, Not } from 'typeorm';
-import { User, AccountStatus } from '../users/user.entity';
-import { PasswordHasher } from '../auth/password-hasher';
+import { User, AccountStatus } from '../users/entity/user.entity';
+import { PasswordHasher } from '../auth/other/password-hasher';
 import { AuthService } from '../auth/auth.service';
-import { Session } from '../auth/session.entity';
-import { Workspace } from '../workspaces/workspace.entity';
-import { Membership } from '../workspaces/membership.entity';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { DeviceEvent } from '../devices/device-event.entity';
-import { publicDevice } from '../devices/public-device';
-import { PrivacyEvent } from './privacy-event.entity';
+import { Session } from '../auth/entity/session.entity';
+import { Workspace } from '../workspaces/entity/workspace.entity';
+import { Membership } from '../workspaces/entity/membership.entity';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { DeviceEvent } from '../devices/entity/device-event.entity';
+import { publicDevice } from '../devices/other/public-device';
+import { PrivacyEvent } from './entity/privacy-event.entity';
 
 @Injectable()
 export class PrivacyService {

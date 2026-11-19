@@ -8,12 +8,15 @@ const {
   maintenanceBatch,
   maintenanceHealth,
   maintenanceLock,
-} = require('../dist/deployment/maintenance.js');
-const { checkSchema, checkHistory } = require('../dist/deployment/schema.js');
+} = require('../dist/deployment/other/maintenance.js');
+const {
+  checkSchema,
+  checkHistory,
+} = require('../dist/deployment/other/schema.js');
 const {
   DeploymentWorkerState,
-} = require('../dist/deployment/worker-state.entity.js');
-const { cleanupAccountMail } = require('../dist/mail/cleanup.js');
+} = require('../dist/deployment/entity/worker-state.entity.js');
+const { cleanupAccountMail } = require('../dist/mail/other/cleanup.js');
 const url = process.env.TEST_DATABASE_URL;
 assert.ok(
   url && new URL(url).pathname.endsWith('_test'),

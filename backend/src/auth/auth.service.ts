@@ -8,13 +8,19 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'node:crypto';
 import { DataSource, EntityManager, IsNull, Not, Repository } from 'typeorm';
-import { User, AccountStatus } from '../users/user.entity';
-import { Membership, WorkspaceRole } from '../workspaces/membership.entity';
-import { Workspace, WorkspaceType } from '../workspaces/workspace.entity';
-import { PasswordHasher } from './password-hasher';
-import { Session } from './session.entity';
+import { User, AccountStatus } from '../users/entity/user.entity';
+import {
+  Membership,
+  WorkspaceRole,
+} from '../workspaces/entity/membership.entity';
+import {
+  Workspace,
+  WorkspaceType,
+} from '../workspaces/entity/workspace.entity';
+import { PasswordHasher } from './other/password-hasher';
+import { Session } from './entity/session.entity';
 import { AccountActionsService, hashToken } from './account-actions.service';
-import { PreferencesDto } from './dto/account.dto';
+import { PreferencesDto } from './other/dto/account.dto';
 
 type SessionMetadata = { userAgent?: string; ipAddress?: string };
 

@@ -10,9 +10,9 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
 import { CollaborationService } from '../workspaces/collaboration.service';
 import { BusinessService } from './business.service';
 import {
@@ -31,7 +31,7 @@ import {
   BusinessScopeQuery,
   ConfirmOffboardDto,
   ConfirmUnenrolDto,
-} from './dto/business.dto';
+} from './other/dto/business.dto';
 @Controller({ path: 'workspaces/:workspaceId/business', version: '1' })
 @UseGuards(AuthGuard)
 export class BusinessController {

@@ -1,7 +1,7 @@
-import { DeploymentWorkerState } from '../deployment/worker-state.entity';
-import { operationEntities } from '../operations/operations.entities';
-import { billingEntities } from '../billing/billing.entities';
-import { businessEntities } from '../business/business.entities';
+import { DeploymentWorkerState } from '../deployment/entity/worker-state.entity';
+import { operationEntities } from '../operations/entity/operations.entities';
+import { billingEntities } from '../billing/entity/billing.entities';
+import { businessEntities } from '../business/entity/business.entities';
 import {
   FamilyProfile,
   FamilyAssignment,
@@ -9,7 +9,7 @@ import {
   FamilyRequest,
   FamilyReceipt,
   FamilyEvent,
-} from '../family/family.entities';
+} from '../family/entity/family.entities';
 import {
   NetworkPresence,
   NetworkProfile,
@@ -20,24 +20,28 @@ import {
   NetworkSample,
   NetworkEvent,
   NetworkCompatibility,
-} from '../networks/network.entities';
+} from '../networks/entity/network.entities';
 import {
   ApplicationCatalog,
   ApplicationWindow,
   ApplicationDay,
-} from '../monitoring/application.entities';
+} from '../monitoring/entity/application.entities';
 import {
   AgentDeveloper,
   DeveloperCommand,
   DeveloperAudit,
-} from '../agents/developer.entities';
-import { Agent, AgentEnrolment, AgentEvent } from '../agents/agent.entities';
+} from '../agents/entity/developer.entities';
+import {
+  Agent,
+  AgentEnrolment,
+  AgentEvent,
+} from '../agents/entity/agent.entities';
 import {
   AlertRule,
   AlertOccurrence,
   NotificationDelivery,
   NotificationPreference,
-} from '../monitoring/alert.entities';
+} from '../monitoring/entity/alert.entities';
 import {
   RetentionPolicy,
   Measurement,
@@ -48,20 +52,20 @@ import {
   MonitoringRun,
   UsageNetwork,
   DeviceUsageNetwork,
-} from '../monitoring/entities';
+} from '../monitoring/entity/entities';
 import type { DataSourceOptions } from 'typeorm';
 import { validateDatabaseEnvironment } from '../config/environment';
-import { Session } from '../auth/session.entity';
-import { User } from '../users/user.entity';
-import { Membership } from '../workspaces/membership.entity';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { Workspace } from '../workspaces/workspace.entity';
-import { PrivacyEvent } from '../account/privacy-event.entity';
-import { DeviceEnrolment } from '../devices/enrolment.entity';
-import { DeviceEvent } from '../devices/device-event.entity';
-import { WorkspaceInvitation } from '../workspaces/invitation.entity';
-import { AccountAction } from '../auth/account-action.entity';
-import { MailOutbox } from '../mail/mail-outbox.entity';
+import { Session } from '../auth/entity/session.entity';
+import { User } from '../users/entity/user.entity';
+import { Membership } from '../workspaces/entity/membership.entity';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { Workspace } from '../workspaces/entity/workspace.entity';
+import { PrivacyEvent } from '../account/entity/privacy-event.entity';
+import { DeviceEnrolment } from '../devices/entity/enrolment.entity';
+import { DeviceEvent } from '../devices/entity/device-event.entity';
+import { WorkspaceInvitation } from '../workspaces/entity/invitation.entity';
+import { AccountAction } from '../auth/entity/account-action.entity';
+import { MailOutbox } from '../mail/entity/mail-outbox.entity';
 import { join } from 'node:path';
 
 export function databaseOptions(

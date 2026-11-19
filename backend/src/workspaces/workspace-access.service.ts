@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Membership, WorkspaceRole } from './membership.entity';
+import { Membership, WorkspaceRole } from './entity/membership.entity';
 
 export enum WorkspacePermission {
   READ = 'workspace:read',

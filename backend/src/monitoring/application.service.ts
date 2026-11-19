@@ -1,5 +1,5 @@
-import { assertFeature } from '../billing/policy';
-import { applicationInsights } from './application-insights';
+import { assertFeature } from '../billing/other/policy';
+import { applicationInsights } from './other/application-insights';
 import {
   BadRequestException,
   ConflictException,
@@ -13,24 +13,24 @@ import {
   validateApplicationBatch,
   type AppBatch,
   type Segment,
-} from './application-validation';
+} from './other/application-validation';
 import {
   ApplicationCatalog,
   ApplicationDay,
   ApplicationWindow,
   type AppMetadata,
-} from './application.entities';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { DeviceEvent } from '../devices/device-event.entity';
-import { Workspace } from '../workspaces/workspace.entity';
+} from './entity/application.entities';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { DeviceEvent } from '../devices/entity/device-event.entity';
+import { Workspace } from '../workspaces/entity/workspace.entity';
 import { reportDevices, csvCell } from './report.service';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import { WorkspacePermission } from '../workspaces/workspace-access.service';
-import { fingerprint } from './values';
-import { dailyParts } from './aggregate';
-import { AlertRule } from './alert.entities';
-import type { ApplicationQuery } from './dto/application.dto';
-import type { EventInput } from './validation';
+import { fingerprint } from './other/values';
+import { dailyParts } from './other/aggregate';
+import { AlertRule } from './entity/alert.entities';
+import type { ApplicationQuery } from './other/dto/application.dto';
+import type { EventInput } from './other/validation';
 
 export const builtinCategories = [
   'game',

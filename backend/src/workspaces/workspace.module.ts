@@ -3,10 +3,10 @@ import { CollaborationService } from './collaboration.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
-import { Membership } from './membership.entity';
-import { RegisteredDevice } from './registered-device.entity';
+import { Membership } from './entity/membership.entity';
+import { RegisteredDevice } from './entity/registered-device.entity';
 import { WorkspaceController } from './workspace.controller';
-import { Workspace } from './workspace.entity';
+import { Workspace } from './entity/workspace.entity';
 import { WorkspaceAccessService } from './workspace-access.service';
 import { WorkspaceService } from './workspace.service';
 

@@ -1,4 +1,4 @@
-import { recordFailure } from './diagnostics';
+import { recordFailure } from './other/diagnostics';
 import {
   BadRequestException,
   ConflictException,
@@ -6,12 +6,12 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { DataSource, type EntityManager } from 'typeorm';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import { WorkspacePermission } from '../workspaces/workspace-access.service';
-import { DeviceEvent } from '../devices/device-event.entity';
-import { disclosures } from '../devices/disclosures';
-import { aggregate } from './aggregate';
+import { DeviceEvent } from '../devices/entity/device-event.entity';
+import { disclosures } from '../devices/other/disclosures';
+import { aggregate } from './other/aggregate';
 import {
   CollectionGap,
   DeviceUsageNetwork,
@@ -20,9 +20,9 @@ import {
   MonitoringRun,
   RetentionPolicy,
   SyncBatch,
-} from './entities';
-import { metrics, type Metric, fingerprint } from './values';
-import { validateBatch } from './validation';
+} from './entity/entities';
+import { metrics, type Metric, fingerprint } from './other/values';
+import { validateBatch } from './other/validation';
 
 @Injectable()
 export class IngestionService {

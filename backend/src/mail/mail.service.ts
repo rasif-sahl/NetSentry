@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { EntityManager } from 'typeorm';
 import { randomUUID } from 'node:crypto';
-import { MailOutbox } from './mail-outbox.entity';
-import { encryptMail } from './mail-crypto';
+import { MailOutbox } from './entity/mail-outbox.entity';
+import { encryptMail } from './other/mail-crypto';
 
 export type AccountMail = {
   to: string;

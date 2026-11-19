@@ -12,10 +12,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { NetworkService } from './network.service';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
-import { networkDisclosure, adapterProfiles } from './network-values';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
+import { networkDisclosure, adapterProfiles } from './other/network-values';
 import {
   NetworkSiteDto,
   NetworkGrantDto,
@@ -25,7 +25,7 @@ import {
   EndpointUpdateDto,
   NetworkEventDto,
   CompatibilityDto,
-} from './dto/network.dto';
+} from './other/dto/network.dto';
 @Controller({ path: 'networks', version: '1' })
 export class NetworkDisclosureController {
   @Get('disclosure') disclosure() {

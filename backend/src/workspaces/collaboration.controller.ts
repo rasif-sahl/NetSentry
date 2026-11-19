@@ -10,16 +10,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
 import { CollaborationService } from './collaboration.service';
 import {
   AcceptInvitationDto,
   ChangeRoleDto,
   InvitationDto,
   TransferOwnershipDto,
-} from './dto/collaboration.dto';
+} from './other/dto/collaboration.dto';
 
 @Controller({ path: 'workspaces', version: '1' })
 @UseGuards(AuthGuard)

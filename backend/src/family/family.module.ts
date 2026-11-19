@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { FamilyService } from './family.service';
-import { DeviceGuard } from '../devices/device.guard';
+import { DeviceGuard } from '../devices/other/device.guard';
 import {
   FamilyController,
   FamilyDeviceController,

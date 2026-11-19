@@ -11,17 +11,17 @@ import {
 } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
 import { BillingService } from './billing.service';
 import {
   PlanRequestDto,
   BillingRevisionDto,
   SandboxConfirmDto,
   BillingEventDto,
-} from './dto/billing.dto';
-import { verifyBillingSignature, payloadHash } from './signature';
+} from './other/dto/billing.dto';
+import { verifyBillingSignature, payloadHash } from './other/signature';
 @Controller({ path: 'workspaces/:workspaceId/billing', version: '1' })
 @UseGuards(AuthGuard)
 export class BillingController {

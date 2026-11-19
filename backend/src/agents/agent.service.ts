@@ -1,7 +1,7 @@
-import { assertCapacity, assertFeature } from '../billing/policy';
-import { eraseNetworkAgent } from '../networks/network-lifecycle';
-import { AgentDeveloper, DeveloperCommand } from './developer.entities';
-import { Workspace } from '../workspaces/workspace.entity';
+import { assertCapacity, assertFeature } from '../billing/other/policy';
+import { eraseNetworkAgent } from '../networks/other/network-lifecycle';
+import { AgentDeveloper, DeveloperCommand } from './entity/developer.entities';
+import { Workspace } from '../workspaces/entity/workspace.entity';
 import {
   BadRequestException,
   ConflictException,
@@ -11,26 +11,26 @@ import {
 } from '@nestjs/common';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { DataSource, EntityManager, IsNull } from 'typeorm';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import {
   WorkspacePermission,
   roleAllows,
 } from '../workspaces/workspace-access.service';
 import { hashToken } from '../auth/account-actions.service';
-import { fingerprint } from '../monitoring/values';
+import { fingerprint } from '../monitoring/other/values';
 import {
   Agent,
   AgentEnrolment,
   AgentEvent,
   type Modules,
-} from './agent.entities';
+} from './entity/agent.entities';
 import {
   AgentEnrolmentDto,
   AgentHeartbeatDto,
   AgentRedeemDto,
   AgentSettingsDto,
   AgentSyncDto,
-} from './dto/agent.dto';
+} from './other/dto/agent.dto';
 export const agentDisclosure =
   'Pair this software installation with your workspace. The core reports connection times, software version, architecture, module settings and bounded diagnostic codes. Network Monitoring and Developer Tools are independently authorized. Pairing enables no discovery, traffic collection or service-stop action in this phase. Background operation requires a separate local choice. Diagnostic events expire after seven days; old enrolment codes expire after ten minutes. Revoke or erase the agent to invalidate offline data.';
 export function publicAgent(agent: Agent) {

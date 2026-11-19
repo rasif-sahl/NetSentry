@@ -1,5 +1,5 @@
-import { Workspace } from '../workspaces/workspace.entity';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { Workspace } from '../workspaces/entity/workspace.entity';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import { WorkspacePermission as P } from '../workspaces/workspace-access.service';
 import {
   Injectable,
@@ -16,8 +16,8 @@ import {
   FamilyRequest,
   FamilyReceipt,
   FamilyEvent,
-} from './family.entities';
-import { familyScope, familyAuthor } from './family.access';
+} from './entity/family.entities';
+import { familyScope, familyAuthor } from './other/family.access';
 import {
   familyDisclosure,
   enforcementAdapters,
@@ -25,7 +25,7 @@ import {
   evaluateFamily,
   wallTime,
   type FamilyRules,
-} from './family.rules';
+} from './other/family.rules';
 import {
   ProfileDto,
   FamilyAssignmentDto,
@@ -33,15 +33,15 @@ import {
   FamilyRequestDto,
   FamilyFeedbackDto,
   FamilyReceiptDto,
-} from './dto/family.dto';
-import { Membership } from '../workspaces/membership.entity';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { User, AccountStatus } from '../users/user.entity';
-import { UsageNetwork } from '../monitoring/entities';
+} from './other/dto/family.dto';
+import { Membership } from '../workspaces/entity/membership.entity';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { User, AccountStatus } from '../users/entity/user.entity';
+import { UsageNetwork } from '../monitoring/entity/entities';
 import {
   ApplicationDay,
   ApplicationCatalog,
-} from '../monitoring/application.entities';
+} from '../monitoring/entity/application.entities';
 import { classification } from '../monitoring/application.service';
 @Injectable()
 export class FamilyService {

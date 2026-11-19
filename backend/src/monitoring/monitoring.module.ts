@@ -12,7 +12,7 @@ import { ReportController } from './report.controller';
 import { ReportService } from './report.service';
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
-import { DeviceGuard } from '../devices/device.guard';
+import { DeviceGuard } from '../devices/other/device.guard';
 import { IngestionService } from './ingestion.service';
 import { IngestionController } from './ingestion.controller';
 

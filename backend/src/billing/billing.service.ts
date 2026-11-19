@@ -5,25 +5,25 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
-import { Workspace } from '../workspaces/workspace.entity';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { Workspace } from '../workspaces/entity/workspace.entity';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import { WorkspacePermission as P } from '../workspaces/workspace-access.service';
 import {
   Subscription,
   BillingRequest,
   BillingEvent,
   Payment,
-} from './billing.entities';
+} from './entity/billing.entities';
 import {
   catalog,
   Plan,
   sandboxAmounts,
   sandboxPeriodEnd,
   subscriptionState,
-} from './catalog';
-import { billingMode, entitlements } from './policy';
-import { PlanRequestDto, BillingEventDto } from './dto/billing.dto';
-import { payloadHash } from './signature';
+} from './other/catalog';
+import { billingMode, entitlements } from './other/policy';
+import { PlanRequestDto, BillingEventDto } from './other/dto/billing.dto';
+import { payloadHash } from './other/signature';
 @Injectable()
 export class BillingService {
   constructor(private readonly source: DataSource) {}

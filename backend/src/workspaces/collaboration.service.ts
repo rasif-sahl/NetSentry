@@ -1,11 +1,11 @@
-import { assertCapacity } from '../billing/policy';
+import { assertCapacity } from '../billing/other/policy';
 import {
   offboardBusinessMember,
   transferBusinessAssets,
   businessAudit,
-} from '../business/business.lifecycle';
-import { Agent, AgentEnrolment } from '../agents/agent.entities';
-import { AlertRule } from '../monitoring/alert.entities';
+} from '../business/other/business.lifecycle';
+import { Agent, AgentEnrolment } from '../agents/entity/agent.entities';
+import { AlertRule } from '../monitoring/entity/alert.entities';
 import {
   BadRequestException,
   ConflictException,
@@ -15,16 +15,16 @@ import {
 import { DataSource, IsNull } from 'typeorm';
 import { randomBytes } from 'node:crypto';
 import { hashToken } from '../auth/account-actions.service';
-import { RegisteredDevice } from './registered-device.entity';
-import { DeviceEnrolment } from '../devices/enrolment.entity';
-import { DeviceEvent } from '../devices/device-event.entity';
-import { User, AccountStatus } from '../users/user.entity';
-import { Membership, WorkspaceRole } from './membership.entity';
-import { Workspace, WorkspaceType } from './workspace.entity';
-import { WorkspaceInvitation } from './invitation.entity';
-import { workspacePolicy } from './workspace-policy';
+import { RegisteredDevice } from './entity/registered-device.entity';
+import { DeviceEnrolment } from '../devices/entity/enrolment.entity';
+import { DeviceEvent } from '../devices/entity/device-event.entity';
+import { User, AccountStatus } from '../users/entity/user.entity';
+import { Membership, WorkspaceRole } from './entity/membership.entity';
+import { Workspace, WorkspaceType } from './entity/workspace.entity';
+import { WorkspaceInvitation } from './entity/invitation.entity';
+import { workspacePolicy } from './other/workspace-policy';
 import { WorkspacePermission, roleAllows } from './workspace-access.service';
-import { InvitationDto } from './dto/collaboration.dto';
+import { InvitationDto } from './other/dto/collaboration.dto';
 
 @Injectable()
 export class CollaborationService {

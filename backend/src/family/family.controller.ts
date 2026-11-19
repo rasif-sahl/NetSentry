@@ -10,10 +10,10 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { RequestUser } from '../auth/request-user';
-import { DeviceGuard, type DeviceRequest } from '../devices/device.guard';
+import { AuthGuard } from '../auth/other/auth.guard';
+import { CurrentUser } from '../auth/other/current-user.decorator';
+import type { RequestUser } from '../auth/other/request-user';
+import { DeviceGuard, type DeviceRequest } from '../devices/other/device.guard';
 import { FamilyService } from './family.service';
 import {
   ProfileDto,
@@ -24,7 +24,7 @@ import {
   FamilyFeedbackDto,
   FamilyDeviceDto,
   FamilyReceiptDto,
-} from './dto/family.dto';
+} from './other/dto/family.dto';
 @Controller({ path: 'workspaces/:workspaceId/family', version: '1' })
 @UseGuards(AuthGuard)
 export class FamilyController {

@@ -1,4 +1,4 @@
-import { assertFeature } from '../billing/policy';
+import { assertFeature } from '../billing/other/policy';
 import {
   BadRequestException,
   ConflictException,
@@ -6,16 +6,16 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { DataSource, EntityManager, IsNull } from 'typeorm';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import {
   WorkspacePermission as P,
   roleAllows,
 } from '../workspaces/workspace-access.service';
-import { WorkspaceRole } from '../workspaces/membership.entity';
-import { Membership } from '../workspaces/membership.entity';
-import { User, AccountStatus } from '../users/user.entity';
-import { RegisteredDevice } from '../workspaces/registered-device.entity';
-import { UsageNetwork } from '../monitoring/entities';
+import { WorkspaceRole } from '../workspaces/entity/membership.entity';
+import { Membership } from '../workspaces/entity/membership.entity';
+import { User, AccountStatus } from '../users/entity/user.entity';
+import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
+import { UsageNetwork } from '../monitoring/entity/entities';
 import {
   BusinessEndpointDepartment as EndpointDepartment,
   BusinessLocation as Location,
@@ -26,7 +26,7 @@ import {
   BusinessNetworkLocation as NetworkLocation,
   BusinessPolicy as Policy,
   BusinessAlertAssignment as AlertAssignment,
-} from './business.entities';
+} from './entity/business.entities';
 import {
   NameDto,
   DepartmentDto,
@@ -37,8 +37,11 @@ import {
   ComplianceDto,
   BusinessAlertDto,
   BusinessReportQuery,
-} from './dto/business.dto';
-import { businessAudit, revokeBusinessDevice } from './business.lifecycle';
+} from './other/dto/business.dto';
+import {
+  businessAudit,
+  revokeBusinessDevice,
+} from './other/business.lifecycle';
 
 export const businessDisclosure = {
   version: 'business-sharing-v1',

@@ -8,25 +8,25 @@ import {
 import { DataSource, EntityManager, In } from 'typeorm';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { AgentService } from './agent.service';
-import { Agent } from './agent.entities';
+import { Agent } from './entity/agent.entities';
 import {
   AgentDeveloper,
   DeveloperCommand,
   DeveloperAudit,
-} from './developer.entities';
+} from './entity/developer.entities';
 import {
   DeveloperPolicyDto,
   DeveloperSnapshotDto,
   RemoteCommandDto,
   CommandResultDto,
-} from './dto/developer.dto';
-import { workspacePolicy } from '../workspaces/workspace-policy';
+} from './other/dto/developer.dto';
+import { workspacePolicy } from '../workspaces/other/workspace-policy';
 import {
   WorkspacePermission,
   roleAllows,
 } from '../workspaces/workspace-access.service';
 import { hashToken } from '../auth/account-actions.service';
-import { fingerprint } from '../monitoring/values';
+import { fingerprint } from '../monitoring/other/values';
 export const developerDisclosure =
   'Share up to 32 owned TCP service summaries (project labels, runtime, PID/start time and ports) with workspace viewers. Explicit named controllers must also hold the workspace service-control role. The computer separately opts into sharing and remote shutdown. No paths, command arguments, shell commands or traffic are uploaded. Commands expire quickly and cancellation is available only before execution starts. Audit/command records expire after seven days. Capability reports never grant control.';
 function publicCommand(command: DeveloperCommand) {

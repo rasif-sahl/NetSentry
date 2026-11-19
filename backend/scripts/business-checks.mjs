@@ -6,15 +6,17 @@ const require = createRequire(import.meta.url);
 const {
   CollaborationService,
 } = require('../dist/workspaces/collaboration.service.js');
-const { NetworkEndpoint } = require('../dist/networks/network.entities.js');
-const { Agent } = require('../dist/agents/agent.entities.js');
+const {
+  NetworkEndpoint,
+} = require('../dist/networks/entity/network.entities.js');
+const { Agent } = require('../dist/agents/entity/agent.entities.js');
 const {
   AgentDeveloper,
   DeveloperCommand,
-} = require('../dist/agents/developer.entities.js');
+} = require('../dist/agents/entity/developer.entities.js');
 const {
   maintainBusiness,
-} = require('../dist/business/business-maintenance.js');
+} = require('../dist/business/other/business-maintenance.js');
 const { PrivacyService } = require('../dist/account/privacy.service.js');
 export async function checkBusiness({ request, source, alice, app }) {
   const token = alice.accessToken,
