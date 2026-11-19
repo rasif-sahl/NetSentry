@@ -291,7 +291,6 @@ function WorkspaceShell({
       trigger?.focus();
     };
   }, [menu]);
-  const future = ["Policies", "Network Security", "Insights"];
   function choose(label: Section) {
     if (section !== label) {
       const url = new URL(window.location.href);
@@ -423,11 +422,11 @@ function WorkspaceShell({
                   : "NETSENTRY"}
               </p>
               <h1>{section}</h1>
-              <p>
-                {section === "Overview"
-                  ? "Your devices and the information they report, in one place."
-                  : "Manage your workspace with verified permissions and available data."}
-              </p>
+              {section === "Overview" && (
+                <p>
+                  Your devices and the information they report, in one place.
+                </p>
+              )}
             </div>
             <button
               className="button"
@@ -553,9 +552,10 @@ function WorkspaceShell({
                   </Card>
                   <Card title="Monitoring availability">
                     <p>
-                      Usage appears when an authorized, supported collector
-                      uploads observations. Network discovery, threat detection
-                      and desktop service control arrive in later phases.
+                      Usage appears when a supported collector has permission to
+                      upload. Networks shows observations from approved
+                      collectors. Developer Tools supports service control on
+                      paired computers with an explicit grant and local consent.
                     </p>
                     <div className="button-row">
                       <button
@@ -593,38 +593,26 @@ function WorkspaceShell({
             )
           )}
           {section === "More modules" && (
-            <>
-              <Notice>
-                These modules are planned. No monitoring, blocking, billing or
-                remote service control is active here.
-              </Notice>
+            <div className="page-stack">
               <div className="module-grid">
-                {future.map((label) => (
-                  <Card key={label} title={label}>
+                {[
+                  ["Policies", "Rules and supported device enforcement."],
+                  [
+                    "Network Security",
+                    "Advanced analysis beyond the inventory and health events in Networks.",
+                  ],
+                  [
+                    "Insights",
+                    "Digital wellbeing summaries based on authorized observations.",
+                  ],
+                ].map(([title, description]) => (
+                  <Card key={title} title={title}>
                     <span className="badge">Planned</span>
-                    <p>
-                      {
-                        {
-                          Family:
-                            "Profiles and supported digital wellbeing controls.",
-                          Policies: "Rules and supported device enforcement.",
-                          Organizations:
-                            "Business structure and organization management.",
-                          Locations:
-                            "Site-level organization and network views.",
-                          Audit: "Full workspace action history.",
-                          Subscription: "Editions, entitlements and billing.",
-                          "Network Security":
-                            "Advanced security analysis beyond the inventory and health events available in Networks.",
-                          Insights:
-                            "Digital wellbeing summaries based on authorized observations.",
-                        }[label]
-                      }
-                    </p>
+                    <p>{description}</p>
                   </Card>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </main>
       </div>

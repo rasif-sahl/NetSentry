@@ -121,8 +121,9 @@ export function BusinessPanel(context: PageContext) {
   if (context.workspace.type !== "BUSINESS")
     return (
       <Empty title="Choose a Business organization">
-        Create a Business workspace from the workspace selector. Each
-        organization has separate membership, assignments and data.
+        Create a Business workspace in Team, then choose it from the workspace
+        selector. Each organization has separate membership, assignments and
+        data.
       </Empty>
     );
   return <Organization key={context.workspace.id} {...context} />;
