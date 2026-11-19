@@ -198,6 +198,4 @@ export function ActionButton({
 export function formatTime(value: string | null | undefined) {
   return value ? new Date(value).toLocaleString() : "Not reported";
 }
-export const text = (form: FormData, key: string) =>
-  String(form.get(key) ?? "").trim();
-export const number = (form: FormData, key: string) => Number(form.get(key));
+export { text, number } from "../form-values";
