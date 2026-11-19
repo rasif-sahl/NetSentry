@@ -129,10 +129,22 @@ try {
   await request('GET', '/health', 200, 'Health');
   const alice = await request('POST', '/auth/register', 201, 'AuthSession', {
     email: 'alice@example.invalid',
-    displayName: 'Alice fixture',
+    displayName: ' Alice fixture ',
     password: 'fixture-password-1234',
   });
+  assert.equal(alice.user.displayName, 'Alice fixture');
   await verify('alice@example.invalid');
+  await request(
+    'POST',
+    '/workspaces',
+    400,
+    'ApiError',
+    {
+      name: '  ',
+      type: 'BUSINESS',
+    },
+    alice.accessToken,
+  );
   await request('GET', '/auth/me', 200, 'User', null, alice.accessToken);
   const [workspace] = await request(
     'GET',
