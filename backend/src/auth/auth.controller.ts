@@ -20,10 +20,10 @@ import {
   ResetPasswordDto,
   PreferencesDto,
   UpdateProfileDto,
-} from './other/dto/account.dto';
+} from './dto/account.dto';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './other/current-user.decorator';
-import { LoginDto, RefreshDto, RegisterDto } from './other/dto/auth.dto';
+import { LoginDto, RefreshDto, RegisterDto } from './dto/auth.dto';
 import type { RequestUser } from './other/request-user';
 
 @Controller({ path: 'auth', version: '1' })

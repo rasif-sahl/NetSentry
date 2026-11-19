@@ -10,10 +10,7 @@ import {
 import { AuthGuard } from '../auth/other/auth.guard';
 import { CurrentUser } from '../auth/other/current-user.decorator';
 import type { RequestUser } from '../auth/other/request-user';
-import {
-  CreateWorkspaceDto,
-  RegisterDeviceDto,
-} from './other/dto/workspace.dto';
+import { CreateWorkspaceDto, RegisterDeviceDto } from './dto/workspace.dto';
 import { WorkspaceService } from './workspace.service';
 
 @Controller({ path: 'workspaces', version: '1' })

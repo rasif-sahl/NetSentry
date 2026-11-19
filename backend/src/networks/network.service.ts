@@ -45,7 +45,7 @@ import {
   EndpointUpdateDto,
   NetworkEventDto,
   CompatibilityDto,
-} from './other/dto/network.dto';
+} from './dto/network.dto';
 import { eraseNetworkAgent } from './other/network-lifecycle';
 import { recordNetworkEvent } from './other/network-events';
 import { recordNeighborObservations } from './other/network-inventory';

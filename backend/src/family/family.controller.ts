@@ -24,7 +24,7 @@ import {
   FamilyFeedbackDto,
   FamilyDeviceDto,
   FamilyReceiptDto,
-} from './other/dto/family.dto';
+} from './dto/family.dto';
 @Controller({ path: 'workspaces/:workspaceId/family', version: '1' })
 @UseGuards(AuthGuard)
 export class FamilyController {

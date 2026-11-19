@@ -25,7 +25,7 @@ import {
   EndpointUpdateDto,
   NetworkEventDto,
   CompatibilityDto,
-} from './other/dto/network.dto';
+} from './dto/network.dto';
 @Controller({ path: 'networks', version: '1' })
 export class NetworkDisclosureController {
   @Get('disclosure') disclosure() {

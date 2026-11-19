@@ -31,7 +31,7 @@ import {
   BusinessScopeQuery,
   ConfirmOffboardDto,
   ConfirmUnenrolDto,
-} from './other/dto/business.dto';
+} from './dto/business.dto';
 @Controller({ path: 'workspaces/:workspaceId/business', version: '1' })
 @UseGuards(AuthGuard)
 export class BusinessController {

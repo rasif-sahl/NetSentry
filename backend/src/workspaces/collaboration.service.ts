@@ -24,7 +24,7 @@ import { Workspace, WorkspaceType } from './entity/workspace.entity';
 import { WorkspaceInvitation } from './entity/invitation.entity';
 import { workspacePolicy } from './other/workspace-policy';
 import { WorkspacePermission, roleAllows } from './workspace-access.service';
-import { InvitationDto } from './other/dto/collaboration.dto';
+import { InvitationDto } from './dto/collaboration.dto';
 
 @Injectable()
 export class CollaborationService {

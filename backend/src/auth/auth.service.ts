@@ -20,7 +20,7 @@ import {
 import { PasswordHasher } from './other/password-hasher';
 import { Session } from './entity/session.entity';
 import { AccountActionsService, hashToken } from './account-actions.service';
-import { PreferencesDto } from './other/dto/account.dto';
+import { PreferencesDto } from './dto/account.dto';
 
 type SessionMetadata = { userAgent?: string; ipAddress?: string };
 

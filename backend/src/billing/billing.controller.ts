@@ -20,7 +20,7 @@ import {
   BillingRevisionDto,
   SandboxConfirmDto,
   BillingEventDto,
-} from './other/dto/billing.dto';
+} from './dto/billing.dto';
 import { verifyBillingSignature, payloadHash } from './other/signature';
 @Controller({ path: 'workspaces/:workspaceId/billing', version: '1' })
 @UseGuards(AuthGuard)

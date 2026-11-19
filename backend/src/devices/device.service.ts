@@ -26,7 +26,7 @@ import {
   DeviceHealthDto,
   EnrolmentRequestDto,
   RedeemEnrolmentDto,
-} from './other/dto/device.dto';
+} from './dto/device.dto';
 import { disclosureHash, disclosures } from './other/disclosures';
 import { publicDevice } from './other/public-device';
 import { validateCapabilityReport } from './other/capability-validation';

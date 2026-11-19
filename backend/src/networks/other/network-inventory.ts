@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import type { EntityManager } from 'typeorm';
-import type { NetworkSnapshotDto } from './dto/network.dto';
+import type { NetworkSnapshotDto } from '../dto/network.dto';
 import {
   NetworkEndpoint,
   NetworkPresence,

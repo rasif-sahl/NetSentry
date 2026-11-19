@@ -19,7 +19,7 @@ import {
   ChangeRoleDto,
   InvitationDto,
   TransferOwnershipDto,
-} from './other/dto/collaboration.dto';
+} from './dto/collaboration.dto';
 
 @Controller({ path: 'workspaces', version: '1' })
 @UseGuards(AuthGuard)

@@ -30,7 +30,7 @@ import {
   AgentRedeemDto,
   AgentSettingsDto,
   AgentSyncDto,
-} from './other/dto/agent.dto';
+} from './dto/agent.dto';
 export const agentDisclosure =
   'Pair this software installation with your workspace. The core reports connection times, software version, architecture, module settings and bounded diagnostic codes. Network Monitoring and Developer Tools are independently authorized. Pairing enables no discovery, traffic collection or service-stop action in this phase. Background operation requires a separate local choice. Diagnostic events expire after seven days; old enrolment codes expire after ten minutes. Revoke or erase the agent to invalidate offline data.';
 export function publicAgent(agent: Agent) {

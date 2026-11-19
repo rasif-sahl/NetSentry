@@ -37,7 +37,7 @@ import {
   ComplianceDto,
   BusinessAlertDto,
   BusinessReportQuery,
-} from './other/dto/business.dto';
+} from './dto/business.dto';
 import {
   businessAudit,
   revokeBusinessDevice,

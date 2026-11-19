@@ -1,6 +1,6 @@
 ## Backend source layout
 
-Organize features by domain under `src/`. Keep `*.module.ts`, `*.controller.ts`, and `*.service.ts` at the feature root. Put TypeORM models in `entity/` and supporting files such as guards, helpers, worker entry points, and tests in `other/`. Place request DTOs in `other/dto/`.
+Organize features by domain under `src/`. Keep `*.module.ts`, `*.controller.ts`, and `*.service.ts` at the feature root. Put request DTOs in `dto/` and TypeORM models in `entity/`. Keep guards, helpers, and worker entry points in `other/`, with feature tests in `other/test/`.
 
 Keep shared HTTP and configuration files in `src/common/` and `src/config/`. Database migrations and their historical entity snapshots live in `src/database/`. Integration checks live in `scripts/`.
 

@@ -3,8 +3,8 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '../auth/other/auth.guard';
 import { CurrentUser } from '../auth/other/current-user.decorator';
 import type { RequestUser } from '../auth/other/request-user';
-import { ConfirmPasswordDto } from '../auth/other/dto/account.dto';
-import { DeleteAccountDto } from './other/dto/privacy.dto';
+import { ConfirmPasswordDto } from '../auth/dto/account.dto';
+import { DeleteAccountDto } from './dto/privacy.dto';
 import { PrivacyService } from './privacy.service';
 @Controller({ path: 'privacy', version: '1' })
 @UseGuards(AuthGuard)

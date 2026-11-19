@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import type { EntityManager } from 'typeorm';
-import type { NetworkSnapshotDto } from './dto/network.dto';
+import type { NetworkSnapshotDto } from '../dto/network.dto';
 import { NetworkRouter, NetworkSample } from '../entity/network.entities';
 import { recordNetworkEvent } from './network-events';
 import { counter } from './network-values';

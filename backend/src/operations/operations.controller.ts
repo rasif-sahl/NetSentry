@@ -15,7 +15,7 @@ import {
   AccountStatusDto,
   FlagDto,
   CompatibilityDto,
-} from './other/dto/operations.dto';
+} from './dto/operations.dto';
 @Controller({ path: 'operations', version: '1' })
 @UseGuards(AuthGuard)
 export class OperationsController {

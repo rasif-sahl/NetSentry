@@ -29,7 +29,7 @@ import { WorkspacePermission } from '../workspaces/workspace-access.service';
 import { fingerprint } from './other/values';
 import { dailyParts } from './other/aggregate';
 import { AlertRule } from './entity/alert.entities';
-import type { ApplicationQuery } from './other/dto/application.dto';
+import type { ApplicationQuery } from './dto/application.dto';
 import type { EventInput } from './other/validation';
 
 export const builtinCategories = [

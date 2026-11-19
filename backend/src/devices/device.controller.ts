@@ -22,7 +22,7 @@ import {
   EnrolmentRequestDto,
   RedeemEnrolmentDto,
   RenameDeviceDto,
-} from './other/dto/device.dto';
+} from './dto/device.dto';
 import { disclosureHash, disclosures } from './other/disclosures';
 
 @Controller({ path: 'privacy', version: '1' })

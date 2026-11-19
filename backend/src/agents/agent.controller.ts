@@ -21,7 +21,7 @@ import {
   AgentRedeemDto,
   AgentSettingsDto,
   AgentSyncDto,
-} from './other/dto/agent.dto';
+} from './dto/agent.dto';
 function bearer(value: string | undefined) {
   const [scheme, token, extra] = (value ?? '').split(' ');
   return scheme === 'Bearer' && !extra ? (token ?? '') : '';

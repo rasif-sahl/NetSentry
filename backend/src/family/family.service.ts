@@ -33,7 +33,7 @@ import {
   FamilyRequestDto,
   FamilyFeedbackDto,
   FamilyReceiptDto,
-} from './other/dto/family.dto';
+} from './dto/family.dto';
 import { Membership } from '../workspaces/entity/membership.entity';
 import { RegisteredDevice } from '../workspaces/entity/registered-device.entity';
 import { User, AccountStatus } from '../users/entity/user.entity';

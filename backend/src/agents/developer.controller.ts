@@ -19,7 +19,7 @@ import {
   RemoteCommandDto,
   CommandLeaseDto,
   CommandResultDto,
-} from './other/dto/developer.dto';
+} from './dto/developer.dto';
 @Controller({ path: 'workspaces/:workspaceId', version: '1' })
 @UseGuards(AuthGuard)
 export class WorkspaceDeveloperController {

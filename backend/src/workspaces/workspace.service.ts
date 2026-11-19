@@ -7,10 +7,7 @@ import {
 } from './workspace-access.service';
 import { publicDevice } from '../devices/other/public-device';
 import { User, AccountStatus } from '../users/entity/user.entity';
-import {
-  CreateWorkspaceDto,
-  RegisterDeviceDto,
-} from './other/dto/workspace.dto';
+import { CreateWorkspaceDto, RegisterDeviceDto } from './dto/workspace.dto';
 import { Membership, WorkspaceRole } from './entity/membership.entity';
 import { RegisteredDevice } from './entity/registered-device.entity';
 import { Workspace, WorkspaceType } from './entity/workspace.entity';

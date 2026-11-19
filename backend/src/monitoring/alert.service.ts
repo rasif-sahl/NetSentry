@@ -18,7 +18,7 @@ import {
   NotificationDelivery,
   NotificationPreference,
 } from './entity/alert.entities';
-import { AlertRuleDto, NotificationPreferenceDto } from './other/dto/alert.dto';
+import { AlertRuleDto, NotificationPreferenceDto } from './dto/alert.dto';
 import { DailyUsage, MonitoringRun, UsageNetwork } from './entity/entities';
 import { decimal, micro } from './other/values';
 import { defaultAdapters, type NotificationAdapter } from './other/delivery';
