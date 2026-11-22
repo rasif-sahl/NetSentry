@@ -161,9 +161,15 @@ export function AlertsPanel(context: PageContext) {
           }}
         />
         {editing && (
-          <button className="text-button" onClick={() => setEditing(undefined)}>
-            Cancel editing
-          </button>
+          <div className="button-row align-end">
+            <button
+              type="button"
+              className="button accent"
+              onClick={() => setEditing(undefined)}
+            >
+              Cancel editing
+            </button>
+          </div>
         )}
       </Card>
       <Card title="Your alert rules">

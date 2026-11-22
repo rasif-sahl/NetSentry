@@ -6,6 +6,7 @@ import {
   ActionButton,
   Card,
   Field,
+  PasswordField,
   Notice,
   ErrorNotice,
   Loading,
@@ -328,14 +329,12 @@ export function OperationsPanel() {
 }
 function Password() {
   return (
-    <Field label="Confirm operator password">
-      <input
-        name="password"
-        type="password"
-        autoComplete="current-password"
-        required
-        maxLength={128}
-      />
-    </Field>
+    <PasswordField
+      label="Confirm operator password"
+      name="password"
+      autoComplete="current-password"
+      required
+      maxLength={128}
+    />
   );
 }

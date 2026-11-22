@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { CopyrightYear } from "./copyright-year";
 import {
   Building2,
@@ -15,12 +15,12 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
-import { MarketingNavigation } from "./navigation";
+import styles from "./home-page.module.css";
+import motion from "./public-motion.module.css";
 import { ProductShowcase } from "./product-showcase";
 import {
   Brand,
   button,
-  caption,
   Chapter,
   container,
   primaryButton,
@@ -29,7 +29,8 @@ import {
   WindowFrame,
 } from "./ui";
 
-const muted = "text-sm leading-[1.9] text-marketing-copy";
+const muted = "text-base leading-7 text-[#55495e]";
+const caption = "mt-5 text-center text-xs leading-relaxed text-[#65566f]";
 const accent = "text-[#7e6094]";
 const section =
   "scroll-mt-28 border-y border-[#eee6f2] bg-[#f9f7fb] py-16 md:py-20";
@@ -54,50 +55,49 @@ const faqs = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation />
-      <main id="main">
+    <div
+      className={`${styles.home} min-h-screen bg-[#fdfcfe] text-[#2c2437] selection:bg-[#e7dcef]`}
+    >
+      <main id="main" tabIndex={-1}>
         <section
           className="pb-5 pt-12 text-center md:pt-16"
           aria-labelledby="hero-title"
         >
           <div className={container}>
-            <p className="text-[9px] font-bold uppercase leading-relaxed tracking-[1.7px] text-[#8d779b] md:text-[10px]">
-              A connected view. A more intentional digital life.
-            </p>
-            <h1
-              id="hero-title"
-              className="my-6 font-[inherit] text-[39px] font-semibold leading-[1.08] tracking-[-0.045em] md:text-[66px]"
-            >
-              Your devices tell a story.
-              <br />
-              <span className={accent}>Bring it into focus.</span>
-            </h1>
-            <p
-              className={`${muted} mx-auto max-w-[615px] text-[13px] md:text-[15px]`}
-            >
-              Your phone, your computer, your network. Meet NetSentry: a
-              workspace for device reports, digital wellbeing and developer
-              tools. Understand what’s happening. Choose what happens next.
-            </p>
-            <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <a href="#story" className={primaryButton}>
-                See the bigger picture
-              </a>
-              <a href="#apps" className={button}>
-                Explore the apps
-              </a>
+            <div className={motion.intro}>
+              <p className="text-xs font-semibold uppercase leading-relaxed tracking-wider text-[#65566f]">
+                A connected view. A more intentional digital life.
+              </p>
+              <h1
+                id="hero-title"
+                className="my-6 text-balance text-[clamp(2.25rem,5.2vw,4.125rem)] font-bold leading-[1.09] tracking-tight"
+              >
+                Your devices tell a story.
+                <br />
+                <span className={accent}>Bring it into focus.</span>
+              </h1>
+              <p
+                className={`${muted} mx-auto max-w-[615px] text-pretty md:text-lg`}
+              >
+                Your phone, your computer, your network. Meet NetSentry: a
+                workspace for device reports, digital wellbeing and developer
+                tools. Understand what’s happening. Choose what happens next.
+              </p>
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
+                <a href="#story" className={primaryButton}>
+                  See the bigger picture
+                </a>
+                <a href="#apps" className={button}>
+                  Explore the apps
+                </a>
+              </div>
+              <p className="mt-4 text-xs text-[#65566f]">
+                Product preview · In development
+              </p>
             </div>
-            <p className="mt-4 text-[10px] text-marketing-caption">
-              Product preview · In development
-            </p>
-            <div className="mx-auto mt-9 max-w-[1080px] md:mt-12">
+            <div
+              className={`${motion.preview} mx-auto mt-9 max-w-[1080px] md:mt-12`}
+            >
               <WindowFrame title="NetSentry · Web workspace">
                 <div className="aspect-[1.55] overflow-hidden md:aspect-[1.9]">
                   <ProductImage
@@ -113,7 +113,7 @@ export default function Home() {
               Web dashboard preview · Empty workspace example.
             </p>
             <div
-              className="mt-6 flex flex-wrap justify-center gap-y-4 border-y border-marketing-nav-border py-5 text-[10px] text-[#7e6d8b] md:text-xs"
+              className={`${motion.reading} mt-6 flex flex-wrap justify-center gap-y-4 border-y border-marketing-nav-border py-5 text-sm text-[#65566f]`}
               aria-label="Explore the applications"
             >
               {[
@@ -128,7 +128,7 @@ export default function Home() {
                 <a
                   key={href}
                   href={href}
-                  className="flex items-center gap-2 px-2 hover:text-[#604675] [&+a]:border-l [&+a]:border-marketing-nav-border md:gap-3 md:px-10"
+                  className="flex items-center gap-2 px-2 transition-colors hover:text-[#604675] [&+a]:border-l [&+a]:border-marketing-nav-border md:gap-3 md:px-10"
                 >
                   <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
                   {label}
@@ -141,18 +141,22 @@ export default function Home() {
           id="story"
           className={`${container} scroll-mt-28 py-16 text-center md:py-24`}
         >
-          <Chapter>The story starts with a question</Chapter>
-          <Title>
-            More devices.
-            <br />
-            <span className={accent}>More things to make sense of.</span>
-          </Title>
-          <p className={`${muted} mx-auto mt-6 max-w-[680px]`}>
-            A busy phone. A shared workspace. A development server you forgot
-            about. Small questions add up when the answers live in different
-            places.
-          </p>
-          <div className="mt-9 grid gap-4 text-left md:grid-cols-3">
+          <div className={motion.reveal}>
+            <Chapter>The story starts with a question</Chapter>
+            <Title>
+              More devices.
+              <br />
+              <span className={accent}>More things to make sense of.</span>
+            </Title>
+            <p className={`${muted} mx-auto mt-6 max-w-[680px]`}>
+              A busy phone. A shared workspace. A development server you forgot
+              about. Small questions add up when the answers live in different
+              places.
+            </p>
+          </div>
+          <div
+            className={`${motion.stagger} mt-9 grid gap-4 text-left md:grid-cols-3`}
+          >
             {[
               { icon: Clock3, text: "“Where is my screen time going?”" },
               {
@@ -171,7 +175,7 @@ export default function Home() {
                 <span className="rounded-xl bg-[#f0e9f5] p-3 text-[#9a7bac]">
                   <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
                 </span>
-                <p className="max-w-[190px] text-[13px] leading-relaxed text-marketing-copy">
+                <p className="max-w-[190px] text-sm leading-relaxed text-[#55495e]">
                   {text}
                 </p>
               </div>
@@ -180,7 +184,9 @@ export default function Home() {
         </section>
         <section id="dashboard" className={section}>
           <div className={container}>
-            <div className="mb-9 grid gap-6 md:grid-cols-[1fr_340px] md:items-end md:gap-12">
+            <div
+              className={`${motion.reveal} mb-9 grid gap-6 md:grid-cols-[1fr_340px] md:items-end md:gap-12`}
+            >
               <div>
                 <Chapter>01 / Step back. See the bigger picture.</Chapter>
                 <Title>
@@ -194,8 +200,12 @@ export default function Home() {
                 usage and follow the alerts that matter to your workspace.
               </p>
             </div>
-            <ProductShowcase kind="dashboard" />
-            <div className="mt-10 grid gap-6 md:grid-cols-3 md:gap-8">
+            <div className={motion.previewReveal}>
+              <ProductShowcase kind="dashboard" />
+            </div>
+            <div
+              className={`${motion.stagger} mt-10 grid gap-6 md:grid-cols-3 md:gap-8`}
+            >
               {[
                 [
                   "Know which device reported it",
@@ -212,9 +222,9 @@ export default function Home() {
               ].map(([title, text]) => (
                 <div
                   key={title}
-                  className="text-xs leading-relaxed text-marketing-copy"
+                  className="text-sm leading-relaxed text-[#55495e]"
                 >
-                  <strong className="mb-2 flex items-start gap-2 text-[13px] font-semibold text-[#645170]">
+                  <strong className="mb-2 flex items-start gap-2 text-sm font-semibold text-[#584465]">
                     <Check
                       className="mt-0.5 shrink-0 text-[#9a7bac]"
                       size={15}
@@ -232,7 +242,7 @@ export default function Home() {
           id="apps"
           className={`${container} grid scroll-mt-28 items-center gap-10 py-16 md:py-24 lg:grid-cols-[.85fr_1.15fr] lg:gap-14`}
         >
-          <div>
+          <div className={motion.reveal}>
             <Chapter>02 / Keep your everyday devices in the story.</Chapter>
             <Title>
               Your phone has a part
@@ -244,19 +254,19 @@ export default function Home() {
               can access and manage your sharing choices wherever you are.
             </p>
             <div className="my-6 border-l-2 border-[#dcc9e7] pl-4">
-              <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
+              <h3 className="text-sm font-semibold text-[#584465]">
                 Android · Understand supported phone activity
               </h3>
-              <p className="mt-2 text-xs leading-[1.8] text-marketing-copy">
+              <p className="mt-2 text-sm leading-relaxed text-[#55495e]">
                 Permission-based network and application usage, screen-time
                 reports and explicit collection controls.
               </p>
             </div>
             <div className="my-6 border-l-2 border-[#dcc9e7] pl-4">
-              <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
+              <h3 className="text-sm font-semibold text-[#584465]">
                 iOS · Stay connected to your workspace
               </h3>
-              <p className="mt-2 text-xs leading-[1.8] text-marketing-copy">
+              <p className="mt-2 text-sm leading-relaxed text-[#55495e]">
                 Device pairing, authorized reports and sharing workflows. Apple
                 Screen Time features require separate eligibility and
                 authorization.
@@ -268,17 +278,19 @@ export default function Home() {
             >
               Understand platform availability
             </a>
-            <p className="mt-5 text-[10px] text-marketing-caption">
+            <p className="mt-5 text-xs text-[#65566f]">
               Native apps · Release validation in progress
             </p>
           </div>
-          <div>
+          <div className={motion.previewReveal}>
             <ProductShowcase kind="mobile" />
           </div>
         </section>
         <section id="desktop" className={section}>
           <div className={container}>
-            <div className="mb-10 grid gap-6 md:grid-cols-2 md:gap-14">
+            <div
+              className={`${motion.reveal} mb-10 grid gap-6 md:grid-cols-2 md:gap-14`}
+            >
               <div>
                 <Chapter>03 / Follow through on your computer.</Chapter>
                 <Title>
@@ -286,7 +298,7 @@ export default function Home() {
                   <br />
                   <span className={accent}>More “now I know.”</span>
                 </Title>
-                <p className="mt-6 text-[10px] text-marketing-caption">
+                <p className="mt-6 text-xs text-[#65566f]">
                   macOS is the initial desktop target · Signed release checks
                   pending
                 </p>
@@ -304,22 +316,29 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <ProductShowcase kind="desktop" />
+            <div className={motion.previewReveal}>
+              <ProductShowcase kind="desktop" />
+            </div>
           </div>
         </section>
         <section
           id="features"
           className={`${container} scroll-mt-28 py-16 text-center md:py-24`}
         >
-          <Chapter>One product. Different everyday stories.</Chapter>
-          <Title>
-            Built around <span className={accent}>your part of the story.</span>
-          </Title>
-          <p className={`${muted} mx-auto mt-6 max-w-[550px]`}>
-            Personal insight, shared responsibility or a clearer development
-            workspace. Start with the tools relevant to you.
-          </p>
-          <div className="mt-9 grid grid-cols-2 gap-3 text-left md:grid-cols-4 md:gap-4">
+          <div className={motion.reveal}>
+            <Chapter>One product. Different everyday stories.</Chapter>
+            <Title>
+              Built around{" "}
+              <span className={accent}>your part of the story.</span>
+            </Title>
+            <p className={`${muted} mx-auto mt-6 max-w-[550px]`}>
+              Personal insight, shared responsibility or a clearer development
+              workspace. Start with the tools relevant to you.
+            </p>
+          </div>
+          <div
+            className={`${motion.stagger} mt-9 grid grid-cols-2 gap-3 text-left md:grid-cols-4 md:gap-4`}
+          >
             {[
               {
                 title: "For yourself",
@@ -349,10 +368,10 @@ export default function Home() {
                 <span className="mb-5 inline-flex rounded-xl bg-[#f0e9f5] p-3 text-[#9a7bac]">
                   <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
                 </span>
-                <h3 className="font-[inherit] text-base font-semibold tracking-tight md:text-lg">
+                <h3 className="text-base font-semibold tracking-tight md:text-lg">
                   {title}
                 </h3>
-                <p className="mt-4 text-xs leading-[1.8] text-marketing-copy">
+                <p className="mt-4 text-sm leading-relaxed text-[#55495e]">
                   {text}
                 </p>
               </article>
@@ -360,7 +379,9 @@ export default function Home() {
           </div>
         </section>
         <section id="privacy" className={`${container} scroll-mt-28`}>
-          <div className="grid gap-8 rounded-2xl border border-[#e8dfee] bg-marketing-hover p-6 md:grid-cols-2 md:items-center md:gap-16 md:p-12">
+          <div
+            className={`${motion.reveal} grid gap-8 rounded-2xl border border-[#e8dfee] bg-marketing-hover p-6 md:grid-cols-2 md:items-center md:gap-16 md:p-12`}
+          >
             <div>
               <Chapter>Understanding should come with choice.</Chapter>
               <Title>
@@ -403,10 +424,10 @@ export default function Home() {
                     aria-hidden="true"
                   />
                   <div>
-                    <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
+                    <h3 className="text-sm font-semibold text-[#584465]">
                       {title}
                     </h3>
-                    <p className="mt-2 text-xs leading-relaxed text-marketing-copy">
+                    <p className="mt-2 text-sm leading-relaxed text-[#55495e]">
                       {text}
                     </p>
                   </div>
@@ -419,12 +440,16 @@ export default function Home() {
           id="how-it-works"
           className={`${container} scroll-mt-28 py-16 text-center md:py-24`}
         >
-          <Chapter>When you’re ready, begin with one device.</Chapter>
-          <Title>
-            A simple path to{" "}
-            <span className={accent}>your first clear picture.</span>
-          </Title>
-          <div className="mt-10 grid gap-7 text-left md:grid-cols-3 md:gap-8">
+          <div className={motion.reveal}>
+            <Chapter>When you’re ready, begin with one device.</Chapter>
+            <Title>
+              A simple path to{" "}
+              <span className={accent}>your first clear picture.</span>
+            </Title>
+          </div>
+          <div
+            className={`${motion.stagger} mt-10 grid gap-7 text-left md:grid-cols-3 md:gap-8`}
+          >
             {[
               [
                 "Create your workspace",
@@ -446,10 +471,10 @@ export default function Home() {
                 <p className="mb-5 text-3xl font-medium text-[#b095c1]">
                   0{i + 1}
                 </p>
-                <h3 className="font-[inherit] text-base font-semibold tracking-tight">
+                <h3 className="text-base font-semibold tracking-tight">
                   {title}
                 </h3>
-                <p className="mt-3 text-xs leading-[1.8] text-marketing-copy">
+                <p className="mt-3 text-sm leading-relaxed text-[#55495e]">
                   {text}
                 </p>
               </article>
@@ -463,7 +488,7 @@ export default function Home() {
           <div
             className={`${container} grid gap-9 md:grid-cols-[.8fr_1.2fr] md:gap-20`}
           >
-            <div>
+            <div className={motion.reveal}>
               <Chapter>A few things worth knowing.</Chapter>
               <Title>
                 Clear expectations.
@@ -475,14 +500,14 @@ export default function Home() {
                 limitation than disguise it as a measurement.
               </p>
             </div>
-            <div id="faq" className="scroll-mt-28">
+            <div id="faq" className={`${motion.stagger} scroll-mt-28`}>
               {faqs.map(([question, answer], i) => (
                 <details
                   key={question}
                   open={i === 0}
                   className="group mb-4 border-b border-[#e4d9eb] pb-4"
                 >
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-[13px] font-medium text-[#705781] [&::-webkit-details-marker]:hidden">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-base font-semibold text-[#584465] [&::-webkit-details-marker]:hidden">
                     {question}
                     <span
                       aria-hidden="true"
@@ -497,7 +522,7 @@ export default function Home() {
                       −
                     </span>
                   </summary>
-                  <p className="mt-3 text-xs leading-[1.9] text-marketing-copy">
+                  <p className="mt-3 text-sm leading-relaxed text-[#55495e]">
                     {answer}
                   </p>
                 </details>
@@ -506,7 +531,7 @@ export default function Home() {
           </div>
         </section>
         <section className="py-16 text-center md:py-24">
-          <div className={container}>
+          <div className={`${motion.reveal} ${container}`}>
             <Chapter>Your devices. Your workspace. Your choices.</Chapter>
             <Title>
               Bring your digital world
@@ -528,20 +553,22 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-[#e9e0ed] bg-white py-9">
+      <footer
+        className={`${motion.reading} border-t border-[#e9e0ed] bg-white py-9`}
+      >
         <div className={container}>
           <div className="flex flex-col justify-between gap-8 md:flex-row md:gap-12">
             <div className="max-w-[300px]">
               <Link href="/" aria-label="NetSentry home">
                 <Brand />
               </Link>
-              <p className="mt-4 text-[11px] leading-[1.9] text-marketing-caption">
+              <p className="mt-4 text-sm leading-relaxed text-[#65566f]">
                 A clearer picture of your devices, digital habits and
                 development workspace. Built around supported data and explicit
                 choices.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-5 text-[11px] text-marketing-caption md:gap-14">
+            <div className="grid grid-cols-2 gap-5 text-sm text-[#65566f] sm:grid-cols-3 md:gap-14">
               {[
                 {
                   title: "Discover",
@@ -574,7 +601,7 @@ export default function Home() {
                 },
               ].map(({ title, links }) => (
                 <div key={title} className="flex flex-col items-start gap-3">
-                  <strong className="mb-1 text-[10px] uppercase tracking-wider text-[#695276]">
+                  <strong className="mb-1 text-xs uppercase tracking-wide text-[#584465]">
                     {title}
                   </strong>
                   {links.map(([label, href]) => (
@@ -586,7 +613,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div className="mt-8 flex flex-wrap justify-between gap-4 border-t border-[#eee6f2] pt-5 text-[10px] text-marketing-caption">
+          <div className="mt-8 flex flex-wrap justify-between gap-4 border-t border-[#eee6f2] pt-5 text-xs text-[#65566f]">
             <p>
               © <CopyrightYear /> NetSentry
             </p>

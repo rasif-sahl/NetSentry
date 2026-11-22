@@ -35,11 +35,28 @@ test("public homepage explains each app without contacting account APIs", async 
   const primary = page.getByRole("link", { name: "See the bigger picture" });
   await expect(primary).toHaveCSS("background-color", "rgb(126, 96, 148)");
   await expect(primary).toHaveCSS("color", "rgb(255, 255, 255)");
-  await page.getByRole("link", { name: "Sign in", exact: true }).click();
-  await expect(page).toHaveURL(/\/app$/);
+  const session = Promise.withResolvers<void>();
+  await page.route("**/api/backend/auth/me", async (route) => {
+    await session.promise;
+    await route.continue();
+  });
+  const preloader = page.getByRole("status").filter({
+    hasText: "Loading your workspace…",
+  });
+  try {
+    await page.getByRole("link", { name: "Sign in", exact: true }).click();
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(preloader).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "NetSentry", exact: true }),
+    ).toBeVisible();
+  } finally {
+    session.resolve();
+  }
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
+  await expect(preloader).toHaveCount(0);
 });
 
 test("desktop previews switch, enlarge and restore keyboard focus", async ({
@@ -89,10 +106,13 @@ test("narrow layout keeps screens straight and navigation accessible", async ({
     page.getByRole("button", { name: "Close navigation" }),
   ).toHaveAttribute("aria-expanded", "true");
   await page
-    .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "How it works" })
-    .click();
+    .getByRole("link", { name: "Product", exact: true })
+    .first()
+    .focus();
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeFocused();
   await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await page.getByRole("link", { name: "How it works", exact: true }).click();
   await expect(page).toHaveURL(/#how-it-works$/);
   await page
     .locator("summary")
@@ -126,4 +146,266 @@ test("existing workspace bookmarks retain their section", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
+});
+
+test("public pages share the same navigation and skip link", async ({
+  page,
+}) => {
+  const links = [
+    "Home",
+    "Product",
+    "Applications",
+    "Solutions",
+    "Documentation",
+    "Pricing",
+    "Contact",
+  ];
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  for (const [route, active] of [
+    ["/", "Home"],
+    ["/product", "Product"],
+    ["/applications", "Applications"],
+    ["/solutions", "Solutions"],
+    ["/docs", "Documentation"],
+    ["/docs/workspace", "Documentation"],
+    ["/pricing", "Pricing"],
+    ["/contact", "Contact"],
+    ["/privacy", null],
+    ["/terms", null],
+  ] as const) {
+    await page.goto(route);
+    await expect(nav).toHaveCount(1);
+    await expect(nav.getByRole("link")).toHaveText(links);
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "Sign in" }),
+    ).toHaveAttribute("href", "/app");
+    if (active) {
+      await expect(nav.locator("[aria-current]")).toHaveText(active);
+    } else {
+      await expect(nav.locator("[aria-current]")).toHaveCount(0);
+    }
+    const skip = page.getByRole("link", { name: "Skip to content" });
+    await skip.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("main")).toBeFocused();
+  }
+
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/docs/workspace");
+  const banner = page.getByRole("banner");
+  expect(
+    await banner.evaluate((header) => header.scrollWidth <= header.clientWidth),
+  ).toBe(true);
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(nav.getByRole("link")).toHaveText(links);
+  await nav.getByRole("link", { name: "Pricing" }).click();
+  await expect(page).toHaveURL("/pricing");
+  await expect(
+    page.getByRole("button", { name: "Open navigation" }),
+  ).toHaveAttribute("aria-expanded", "false");
+});
+
+test("homepage text stays readable and motion follows the system preference", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  const heading = page.getByRole("heading", { level: 1 });
+  const intro = heading.locator("..");
+  const description = page.getByText(
+    /^Your phone, your computer, your network\./,
+  );
+  await expect(heading).toHaveCSS("font-family", /system-ui/);
+  await expect(description).toHaveCSS("font-size", "16px");
+  await expect(description).toHaveCSS("color", "rgb(85, 73, 94)");
+  await expect(intro).not.toHaveCSS("animation-name", "none");
+  const sections = page.locator("main > section");
+  await expect(sections).toHaveCount(10);
+  const privacy = page.locator("#privacy > div");
+  await expect(privacy).not.toHaveAttribute("data-motion-entered", "");
+  await expect(privacy).toHaveCSS("animation-name", "none");
+
+  for (const section of await sections.all()) {
+    await section.evaluate((element) => {
+      element.scrollIntoView({ block: "start" });
+    });
+    await expect
+      .poll(() =>
+        section.evaluate(
+          (element) =>
+            element.hasAttribute("data-motion-entered") ||
+            !!element.querySelector("[data-motion-entered]"),
+        ),
+      )
+      .toBe(true);
+  }
+
+  await expect(privacy).not.toHaveAttribute("data-motion-entered", "");
+  await privacy.scrollIntoViewIfNeeded();
+  await expect(privacy).toHaveAttribute("data-motion-entered", "");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(intro).toHaveCSS("animation-name", "none");
+  await expect(privacy).toHaveCSS("animation-name", "none");
+});
+
+test("public pages beyond the homepage share scroll motion and respect reduced motion", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const routes = [
+    [
+      "/product",
+      [
+        "#product-reports article",
+        "#product-features > div:last-child",
+        "#product-main + footer",
+      ],
+    ],
+    [
+      "/solutions",
+      [
+        "#solutions-paths a",
+        "#solutions-developers > div:nth-child(2)",
+        "#solutions-availability details",
+      ],
+    ],
+    [
+      "/pricing",
+      [
+        "#pricing-plans article",
+        "#pricing-compare [role=region]",
+        "#pricing-questions details",
+      ],
+    ],
+    [
+      "/applications",
+      [
+        "#applications-choose a",
+        "#applications-compare [role=region]",
+        "#applications-availability details",
+      ],
+    ],
+    ["/contact", ["#contact-form", "#contact-help details"]],
+    [
+      "/docs",
+      [
+        'section[aria-label="Documentation guides"] article',
+        "#documentation-main footer",
+      ],
+    ],
+    [
+      "/docs/workspace",
+      [
+        "#docs-article-workspace section h2",
+        "#docs-article-workspace section p",
+      ],
+    ],
+    [
+      "/privacy",
+      [
+        "#privacy-main article section h2",
+        "#privacy-main article section > div",
+      ],
+    ],
+    [
+      "/terms",
+      ["#terms-main article section h2", "#terms-main article section > div"],
+    ],
+  ] as const;
+
+  for (const [route, selectors] of routes) {
+    await test.step(route, async () => {
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      await page.goto(route);
+      const heading = page.getByRole("heading", { level: 1 });
+      const scrollItems = selectors.map((selector) =>
+        page.locator(selector).first(),
+      );
+      const hasIntro = () =>
+        heading.evaluate((element) => {
+          for (
+            let current: Element | null = element;
+            current && current.tagName !== "MAIN";
+            current = current.parentElement
+          ) {
+            const style = getComputedStyle(current);
+            if (
+              style.animationName !== "none" &&
+              style.getPropertyValue("animation-timeline") === "auto"
+            )
+              return true;
+          }
+          return false;
+        });
+
+      await expect.poll(hasIntro).toBe(true);
+      for (const item of scrollItems) {
+        await item.scrollIntoViewIfNeeded();
+        await expect(item).toHaveAttribute("data-motion-entered", "");
+        await expect(item).not.toHaveCSS("animation-name", "none");
+      }
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await expect.poll(hasIntro).toBe(false);
+      for (const item of scrollItems)
+        await expect(item).toHaveCSS("animation-name", "none");
+      await expect(heading).toBeVisible();
+    });
+  }
+});
+
+test("scroll replays below-the-fold animation in both directions and after navigation", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/pricing");
+  const comparison = page.getByRole("region", { name: "Edition comparison" });
+  await expect(page.locator("[data-public-motion]")).toBeAttached();
+  await expect(comparison).not.toHaveAttribute("data-motion-entered", "");
+  await expect(comparison).toHaveCSS("animation-name", "none");
+
+  const activeAnimations = () =>
+    comparison.evaluate((element) => element.getAnimations().length);
+
+  await comparison.scrollIntoViewIfNeeded();
+  await expect(comparison).toHaveAttribute("data-motion-entered", "");
+  await expect.poll(activeAnimations).toBeGreaterThan(0);
+  await expect.poll(activeAnimations).toBe(0);
+
+  await page.evaluate(() => window.scrollBy(0, 1));
+  await expect(comparison).toBeInViewport();
+  await expect(comparison).toHaveAttribute("data-motion-entered", "");
+  expect(await activeAnimations()).toBe(0);
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(comparison).not.toBeInViewport();
+  await expect(comparison).not.toHaveAttribute("data-motion-entered", "");
+  await comparison.scrollIntoViewIfNeeded();
+  await expect(comparison).toHaveAttribute("data-motion-entered", "");
+  await expect.poll(activeAnimations).toBeGreaterThan(0);
+  await expect.poll(activeAnimations).toBe(0);
+
+  await comparison.evaluate((element) => {
+    window.scrollBy(0, element.getBoundingClientRect().bottom + 40);
+  });
+  await expect(comparison).not.toBeInViewport();
+  await expect(comparison).not.toHaveAttribute("data-motion-entered", "");
+  await comparison.scrollIntoViewIfNeeded();
+  await expect(comparison).toHaveAttribute("data-motion-entered", "");
+  await expect.poll(activeAnimations).toBeGreaterThan(0);
+
+  await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: "Product" })
+    .click();
+  await expect(page).toHaveURL("/product");
+  const report = page.locator("#product-reports article").first();
+  await expect(report).not.toHaveAttribute("data-motion-entered", "");
+  await report.scrollIntoViewIfNeeded();
+  await expect(report).toHaveAttribute("data-motion-entered", "");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(report).toHaveCSS("animation-name", "none");
 });

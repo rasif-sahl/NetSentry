@@ -1,48 +1,47 @@
-import Link from "next/link";
+import motion from "@/features/marketing/public-motion.module.css";
+import Link from "@/features/marketing/public-link";
 import { FileText } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import { PolicyContents } from "./policy-contents";
 import { button, Chapter } from "@/features/marketing/ui";
 import { termsSections } from "./terms";
 
 const container =
   "mx-auto w-[calc(100%-40px)] max-w-[1060px] md:w-[calc(100%-80px)]";
-const paragraph = "text-[13px] leading-[1.95] text-marketing-copy";
+const paragraph = "text-base leading-relaxed text-marketing-copy";
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#30283c] selection:bg-[#e7dcef]">
-      <a
-        href="#terms-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation page="terms" />
-      <main id="terms-main" className={container}>
+      <main id="terms-main" tabIndex={-1} className={container}>
         <section
           id="terms-top"
-          className="scroll-mt-28 pb-8 pt-12 text-center md:pb-10 md:pt-16"
+          className={`${motion.intro} scroll-mt-28 pb-8 pt-12 text-center md:pb-10 md:pt-16`}
         >
           <Chapter>Clear expectations. Thoughtful use.</Chapter>
           <h1 className="font-[inherit] text-[38px] font-semibold leading-[1.2] tracking-[-.045em] md:text-5xl">
             Terms and Conditions
           </h1>
-          <p className="mx-auto mt-5 max-w-[535px] text-sm leading-[1.9] text-marketing-copy">
+          <p className="mx-auto mt-5 max-w-[535px] text-base leading-relaxed text-marketing-copy">
             An outline of how NetSentry is intended to be used, the
             responsibilities involved, and what to expect from the service.
           </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[11px] text-marketing-copy">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-marketing-copy">
             <span className="rounded-full bg-[#f3edf8] px-3 py-1 text-[#806092]">
               Draft for review
             </span>
             <span>Effective date to be confirmed</span>
           </div>
+          <a
+            href="#terms-overview"
+            className="mt-6 inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-semibold text-[#604675] underline underline-offset-4 hover:bg-marketing-hover"
+          >
+            Read the terms
+          </a>
         </section>
         <aside
           aria-labelledby="terms-draft-title"
-          className="mb-7 flex items-start gap-4 rounded-xl border border-marketing-border bg-[#f3edf8] px-5 py-5 md:mb-10 md:px-6"
+          className={`${motion.reading} mb-7 flex items-start gap-4 rounded-xl border border-marketing-border bg-[#f3edf8] px-5 py-5 md:mb-10 md:px-6`}
         >
           <FileText
             size={20}
@@ -57,7 +56,7 @@ export default function TermsPage() {
             >
               These terms are being finalized.
             </h2>
-            <p className="mt-1 text-xs leading-[1.8] text-marketing-copy">
+            <p className="mt-1 text-sm leading-relaxed text-marketing-copy">
               This preview shows the proposed structure and wording. The
               operating entity, commercial terms, liability provisions and
               applicable law must be confirmed before these terms become
@@ -71,7 +70,7 @@ export default function TermsPage() {
               prefix="terms"
               sections={termsSections.map(({ id, title }) => ({ id, title }))}
             />
-            <p className="mt-6 hidden border-t border-marketing-border pt-5 text-[11px] leading-[1.8] text-marketing-copy min-[651px]:block">
+            <p className="mt-6 hidden border-t border-marketing-border pt-5 text-sm leading-relaxed text-marketing-copy min-[651px]:block">
               Looking for practical guidance?
               <br />
               Our documentation explains setup, permissions and product
@@ -95,7 +94,7 @@ export default function TermsPage() {
               >
                 <h2
                   id={`terms-${id}-title`}
-                  className="mb-4 font-[inherit] text-[22px] font-semibold leading-[1.4] tracking-[-.025em] md:text-[23px]"
+                  className={`${motion.reading} mb-4 font-[inherit] text-[22px] font-semibold leading-[1.4] tracking-[-.025em] md:text-[23px]`}
                 >
                   <span
                     aria-hidden="true"
@@ -105,7 +104,7 @@ export default function TermsPage() {
                   </span>
                   {title}
                 </h2>
-                <div className="space-y-3">
+                <div className={`${motion.reading} space-y-3`}>
                   {blocks.map((block, i) =>
                     block.type === "list" ? (
                       <ul
@@ -123,7 +122,7 @@ export default function TermsPage() {
                         key={i}
                         className={
                           block.type === "note"
-                            ? "border-l-[3px] border-[#b89acb] pl-4 text-xs leading-[1.9] text-marketing-copy"
+                            ? "border-l-[3px] border-[#b89acb] pl-4 text-sm leading-relaxed text-marketing-copy"
                             : paragraph
                         }
                       >
@@ -138,7 +137,7 @@ export default function TermsPage() {
               <h2 className="font-[inherit] text-[22px] font-semibold leading-[1.4] tracking-[-.025em]">
                 Understand the product before you begin.
               </h2>
-              <p className="mt-2 text-xs leading-[1.85] text-marketing-copy">
+              <p className="mt-2 text-sm leading-relaxed text-marketing-copy">
                 Review the permissions and responsibilities that go with
                 connecting devices and sharing information.
               </p>
@@ -156,7 +155,7 @@ export default function TermsPage() {
         </div>
       </main>
       <footer
-        className={`${container} flex flex-wrap justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy`}
+        className={`${motion.reading} ${container} flex flex-wrap justify-between gap-5 border-t border-marketing-border py-7 text-sm text-marketing-copy`}
       >
         <p>
           © <CopyrightYear /> NetSentry

@@ -1,7 +1,7 @@
-import Link from "next/link";
+import motion from "@/features/marketing/public-motion.module.css";
+import Link from "@/features/marketing/public-link";
 import { Check } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import {
   button,
   Chapter,
@@ -119,29 +119,24 @@ const questions = [
     "No. Membership and billing do not grant collection permissions. Pairing, consent, sharing and supported platform permissions remain separate choices.",
   ],
 ];
-const muted = "text-xs leading-[1.85] text-marketing-copy";
+const muted = "text-base leading-relaxed text-marketing-copy";
 const heading =
   "font-[inherit] text-[30px] font-semibold leading-[1.3] tracking-[-.035em]";
 
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#pricing-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation page="pricing" />
-      <main id="pricing-main" className={container}>
-        <section className="pb-10 pt-14 text-center md:pb-12 md:pt-20">
+      <main id="pricing-main" tabIndex={-1} className={container}>
+        <section
+          className={`${motion.intro} pb-10 pt-14 text-center md:pb-12 md:pt-20`}
+        >
           <Chapter>NetSentry pricing</Chapter>
           <h1 className="font-[inherit] text-[38px] font-semibold leading-[1.16] tracking-[-.045em] md:text-[49px]">
             A little more clarity.
             <br />
             <span className="text-[#7e6094]">A plan that fits your day.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-[530px] text-[13px] leading-[1.9] text-marketing-copy md:text-sm">
+          <p className="mx-auto mt-6 max-w-[530px] text-base leading-relaxed text-marketing-copy">
             Start with your own digital habits. Make room for your family or
             your team when you need to.
           </p>
@@ -152,7 +147,7 @@ export default function PricingPage() {
         <section
           id="pricing-plans"
           aria-label="Proposed editions"
-          className="grid scroll-mt-28 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          className={`${motion.stagger} grid scroll-mt-28 gap-4 sm:grid-cols-2 lg:grid-cols-4`}
         >
           {editions.map((edition) => (
             <article
@@ -174,7 +169,7 @@ export default function PricingPage() {
                 <p className="text-[19px] font-semibold tracking-[-.025em]">
                   {edition.price}
                 </p>
-                <p className="mt-1 text-[11px] text-marketing-copy">
+                <p className="mt-1 text-sm text-marketing-copy">
                   {edition.priceNote}
                 </p>
               </div>
@@ -202,7 +197,7 @@ export default function PricingPage() {
             </article>
           ))}
         </section>
-        <p className="mx-auto mt-5 max-w-[700px] text-center text-[11px] leading-[1.8] text-marketing-copy">
+        <p className="mx-auto mt-5 max-w-[700px] text-center text-sm leading-relaxed text-marketing-copy">
           Proposed editions. Prices, limits and launch availability are still
           being finalized.
           <br />
@@ -214,22 +209,24 @@ export default function PricingPage() {
           className="scroll-mt-28 pt-14 md:pt-20"
           aria-labelledby="pricing-comparison-title"
         >
-          <Chapter>A closer look</Chapter>
-          <h2 id="pricing-comparison-title" className={heading}>
-            Choose the kind of clarity you need.
-          </h2>
-          <p id="pricing-comparison-note" className={`${muted} mt-3`}>
-            A simple overview of the proposed editions. Final inclusions will be
-            confirmed before launch.
-          </p>
+          <div className={motion.reveal}>
+            <Chapter>A closer look</Chapter>
+            <h2 id="pricing-comparison-title" className={heading}>
+              Choose the kind of clarity you need.
+            </h2>
+            <p id="pricing-comparison-note" className={`${muted} mt-3`}>
+              A simple overview of the proposed editions. Final inclusions will
+              be confirmed before launch.
+            </p>
+          </div>
           <div
             role="region"
             aria-label="Edition comparison"
             tabIndex={0}
-            className="relative mt-8 overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+            className={`${motion.reading} relative mt-8 overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary`}
           >
             <table
-              className="w-full min-w-[660px] border-collapse text-left text-xs"
+              className="w-full min-w-[720px] border-collapse text-left text-sm"
               aria-describedby="pricing-comparison-note"
             >
               <caption className="sr-only">
@@ -287,7 +284,7 @@ export default function PricingPage() {
         </section>
         <section
           aria-label="Principles across editions"
-          className="mt-9 grid gap-7 border-b border-marketing-border py-9 md:grid-cols-3 md:gap-9"
+          className={`${motion.stagger} mt-9 grid gap-7 border-b border-marketing-border py-9 md:grid-cols-3 md:gap-9`}
         >
           {principles.map(([title, text]) => (
             <div key={title}>
@@ -303,7 +300,7 @@ export default function PricingPage() {
           className="grid scroll-mt-28 gap-6 pt-14 md:grid-cols-[1fr_1.6fr] md:gap-20 md:pt-20"
           aria-labelledby="pricing-questions-title"
         >
-          <div>
+          <div className={motion.reveal}>
             <Chapter>A few helpful answers</Chapter>
             <h2 id="pricing-questions-title" className={heading}>
               Before you choose.
@@ -312,14 +309,14 @@ export default function PricingPage() {
               The details that matter, without the small print.
             </p>
           </div>
-          <div>
+          <div className={motion.stagger}>
             {questions.map(([question, answer], index) => (
               <details
                 key={question}
                 open={index === 0}
                 className="group border-b border-marketing-border py-4"
               >
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-[13px] font-semibold [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-base font-semibold [&::-webkit-details-marker]:hidden">
                   {question}
                   <span
                     aria-hidden="true"
@@ -339,7 +336,9 @@ export default function PricingPage() {
             ))}
           </div>
         </section>
-        <section className="mb-11 mt-16 rounded-xl border border-marketing-border bg-[#f3edf8] px-6 py-10 text-center md:mt-[70px] md:px-10">
+        <section
+          className={`${motion.reveal} mb-11 mt-16 rounded-xl border border-marketing-border bg-[#f3edf8] px-6 py-10 text-center md:mt-[70px] md:px-10`}
+        >
           <Chapter>Start with understanding</Chapter>
           <h2 className="font-[inherit] text-[26px] font-semibold tracking-[-.035em]">
             Find your starting point.
@@ -358,7 +357,7 @@ export default function PricingPage() {
         </section>
       </main>
       <footer
-        className={`${container} flex flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
+        className={`${motion.reading} ${container} flex flex-col justify-between gap-5 border-t border-marketing-border py-7 text-sm text-marketing-copy sm:flex-row`}
       >
         <p>
           © <CopyrightYear /> NetSentry

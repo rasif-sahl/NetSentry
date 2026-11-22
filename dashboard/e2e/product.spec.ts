@@ -13,7 +13,7 @@ test("homepage opens the product overview with useful sections and no account re
   await page.goto("/");
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "The product", exact: true })
+    .getByRole("link", { name: "Product", exact: true })
     .click();
   await expect(page).toHaveURL(/\/product$/);
   await expect(page).toHaveTitle("NetSentry — Product overview");
@@ -123,9 +123,12 @@ test("product layout keeps upright previews and usable navigation across screen 
   await menu.click();
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Privacy & choice", exact: true })
+    .getByRole("link", { name: "Product", exact: true })
     .click();
   await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await page
+    .getByRole("link", { name: "Privacy & choice", exact: true })
+    .click();
   await expect(page).toHaveURL(/#product-privacy$/);
   await menu.click();
   await page.keyboard.press("Escape");
@@ -172,4 +175,44 @@ test("product layout keeps upright previews and usable navigation across screen 
   await expect(
     page.getByRole("button", { name: "Open navigation", exact: true }),
   ).toHaveAttribute("aria-expanded", "false");
+});
+
+test("public section descriptions and feature tabs stay readable across screen widths", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/product");
+
+  const description = page.getByText(
+    /^Different questions need different tools\./,
+  );
+  const familyTab = page.getByRole("tab", { name: "Family & teams" });
+  await expect(description).toHaveCSS("font-size", "15px");
+  await expect(description).toHaveCSS("color", "rgb(85, 73, 94)");
+  await expect(familyTab).toHaveCSS("font-size", "14px");
+  await expect(familyTab).toHaveCSS("color", "rgb(79, 59, 89)");
+  await familyTab.click();
+  await expect(familyTab).toHaveAttribute("aria-selected", "true");
+  await expect(familyTab).toHaveCSS("color", "rgb(66, 38, 81)");
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(description).toHaveCSS("font-size", "16px");
+  await expect(familyTab).toHaveCSS("font-size", "16px");
+
+  for (const [route, selector, fontSize] of [
+    ["/solutions", "#solutions-personal p.text-marketing-copy", "16px"],
+    ["/applications", "#applications-web p.text-marketing-copy", "16px"],
+    ["/pricing", "#pricing-comparison-note", "16px"],
+    ["/docs/workspace", "#docs-article-workspace section p", "16px"],
+    ["/privacy", "#privacy-main article section p", "16px"],
+    ["/terms", "#terms-main article section p", "16px"],
+  ] as const) {
+    await test.step(route, async () => {
+      await page.goto(route);
+      const text = page.locator(selector).first();
+      await expect(text).toHaveCSS("font-size", fontSize);
+      await expect(text).toHaveCSS("color", "rgb(85, 73, 94)");
+    });
+  }
 });

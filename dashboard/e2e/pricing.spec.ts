@@ -63,7 +63,7 @@ test("Pricing is linked from the public pages and explains proposed editions wit
   }
   await page.goto("/docs");
   await page
-    .getByRole("navigation", { name: "Website navigation" })
+    .getByRole("navigation", { name: "Main navigation" })
     .getByRole("link", { name: "Pricing", exact: true })
     .click();
   await expect(page).toHaveURL("/pricing");

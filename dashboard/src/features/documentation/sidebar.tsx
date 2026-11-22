@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { usePathname } from "next/navigation";
 import { useId, useRef, useState } from "react";
 import { BookOpen, Minus, Plus } from "lucide-react";
@@ -65,7 +65,7 @@ export function DocumentationSidebar() {
                   aria-current={
                     pathname === `/docs/${guide.id}` ? "page" : undefined
                   }
-                  className="block rounded-lg px-3 py-2 text-[11px] leading-relaxed text-marketing-copy hover:bg-[#f5f0f8] hover:text-[#604675] aria-[current=page]:bg-[#f0e9f5] aria-[current=page]:font-semibold aria-[current=page]:text-[#604675]"
+                  className="block rounded-lg px-3 py-2 text-sm leading-relaxed text-marketing-copy hover:bg-[#f5f0f8] hover:text-[#604675] aria-[current=page]:bg-[#f0e9f5] aria-[current=page]:font-semibold aria-[current=page]:text-[#604675]"
                 >
                   {guide.title}
                 </Link>

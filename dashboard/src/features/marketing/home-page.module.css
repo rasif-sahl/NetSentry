@@ -1,0 +1,7 @@
+.home {
+  font-family: system-ui, sans-serif;
+}
+
+.home :is(h1, h2, h3, h4) {
+  font-family: inherit;
+}

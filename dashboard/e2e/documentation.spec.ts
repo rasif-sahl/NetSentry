@@ -41,7 +41,7 @@ test("documentation is reachable from public navigation without account API call
     }),
   ).toHaveAttribute("aria-current", "page");
   await page
-    .getByRole("navigation", { name: "Website navigation" })
+    .getByRole("navigation", { name: "Main navigation" })
     .getByRole("link", { name: "Solutions", exact: true })
     .click();
   await expect(page).toHaveURL("/solutions");

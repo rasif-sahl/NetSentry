@@ -3,7 +3,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
 import {
-  Activity,
+  ArrowRight,
   Bell,
   ChevronRight,
   Gauge,
@@ -11,6 +11,7 @@ import {
   Laptop,
   Menu,
   Network,
+  RefreshCw,
   Settings,
   ShieldCheck,
   Smartphone,
@@ -34,9 +35,10 @@ import {
   Empty,
   ErrorNotice,
   Loading,
-  Notice,
   formatTime,
 } from "@/shared/ui/common";
+import { PageLoading } from "@/shared/ui/loading";
+import { EmailVerificationStripe } from "./email-verification-stripe";
 const BillingPanel = dynamic(
   () =>
     import("@/features/billing/billing-panel").then(
@@ -198,15 +200,7 @@ export function DashboardShell() {
         }
       />
     );
-  if (!session.user)
-    return (
-      <main className="boot">
-        <Link className="brand" href="/">
-          ◈ NetSentry
-        </Link>
-        <Loading />
-      </main>
-    );
+  if (!session.user) return <PageLoading />;
   return (
     <WorkspaceShell
       key={session.user.id}
@@ -460,47 +454,49 @@ function WorkspaceShell({
             <Bell size={20} />
           </button>
         </header>
-        <main id="dashboard-content" tabIndex={-1} className="page-content">
+        {!user.emailVerifiedAt && (
+          <EmailVerificationStripe
+            onChecked={(currentUser) => {
+              updateUser(currentUser);
+              if (currentUser.emailVerifiedAt)
+                contentRef.current?.focus({ preventScroll: true });
+            }}
+          />
+        )}
+        <main
+          ref={contentRef}
+          id="dashboard-content"
+          tabIndex={-1}
+          className="page-content"
+        >
           <div className="page-heading">
-            <div>
-              <p className="eyebrow">
-                {workspace
-                  ? `${workspace.type} / ${permission.data?.role ?? workspace.role}`
-                  : "NETSENTRY"}
-              </p>
-              <h1>{section}</h1>
-              {section === "Overview" && (
-                <p>
-                  Your devices and the information they report, in one place.
-                </p>
-              )}
-            </div>
+            <p className="eyebrow">
+              {workspace
+                ? `${workspace.type} / ${permission.data?.role ?? workspace.role}`
+                : "NETSENTRY"}
+            </p>
+            <h1>{section}</h1>
             <button
+              type="button"
               className="button"
+              aria-label="Refresh workspace"
               onClick={() => {
                 window.dispatchEvent(new Event("netsentry:refresh"));
               }}
             >
-              Refresh workspace
+              <span className="refresh-label">Refresh workspace</span>
+              <RefreshCw
+                className="refresh-icon"
+                size={18}
+                aria-hidden="true"
+              />
             </button>
+            {section === "Overview" && (
+              <p className="page-description">
+                Your devices and the information they report, in one place.
+              </p>
+            )}
           </div>
-          {!user.emailVerifiedAt && (
-            <Notice>
-              Verify your email to manage workspace access and monitoring.{" "}
-              <ActionButton
-                action={async () => {
-                  await api("/auth/verification/request", "POST", {});
-                }}
-              >
-                Request verification email
-              </ActionButton>{" "}
-              <ActionButton
-                action={async () => updateUser(await api<User>("/auth/me"))}
-              >
-                I have verified my email
-              </ActionButton>
-            </Notice>
-          )}
           <ErrorNotice error={selectionError} />
           {section === "Operations" && (
             <div className="page-stack">
@@ -535,7 +531,7 @@ function WorkspaceShell({
             <div key={context.workspace.id} className="page-stack">
               {section === "Overview" && (
                 <>
-                  <div className="metric-grid">
+                  <div className="metric-grid overview-metrics">
                     <Card>
                       <span className="metric-label">Registered devices</span>
                       <strong className="metric-value">
@@ -590,12 +586,16 @@ function WorkspaceShell({
                         ))}
                       </ul>
                     )}
-                    <button
-                      className="text-button"
-                      onClick={() => choose("Devices")}
-                    >
-                      View device details →
-                    </button>
+                    <div className="button-row align-end">
+                      <button
+                        type="button"
+                        className="button accent"
+                        onClick={() => choose("Devices")}
+                      >
+                        View device details
+                        <ArrowRight size={16} aria-hidden="true" />
+                      </button>
+                    </div>
                   </Card>
                   <Card title="Monitoring availability">
                     <p>
@@ -604,18 +604,22 @@ function WorkspaceShell({
                       collectors. Developer Tools supports service control on
                       paired computers with an explicit grant and local consent.
                     </p>
-                    <div className="button-row">
+                    <div className="button-row align-end">
                       <button
-                        className="button"
+                        type="button"
+                        className="button accent"
                         onClick={() => choose("Usage & reports")}
                       >
-                        <Activity size={16} /> Explore reports
+                        Explore reports
+                        <ArrowRight size={16} aria-hidden="true" />
                       </button>
                       <button
-                        className="button"
+                        type="button"
+                        className="button accent"
                         onClick={() => choose("Alerts")}
                       >
                         Manage alerts
+                        <ArrowRight size={16} aria-hidden="true" />
                       </button>
                     </div>
                   </Card>

@@ -1,5 +1,6 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import type { ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import {
   ChartNoAxesColumnIncreasing,
   Check,
@@ -13,7 +14,6 @@ import {
 } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
 import { FeatureExplorer } from "./feature-explorer";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import {
   Brand,
   button,
@@ -29,7 +29,7 @@ import {
 const accent = "text-[#7e6094]";
 const section = "scroll-mt-28 py-[53px] md:py-20";
 const tinted = "border-y border-[#eee6f2] bg-[#f9f7fb]";
-const muted = "text-xs leading-[1.8] text-marketing-copy md:text-[13px]";
+const muted = "text-base leading-relaxed text-marketing-copy";
 const quiet = "text-[10px] leading-[1.8] text-marketing-caption md:text-[11px]";
 
 function SectionHeading({
@@ -42,12 +42,16 @@ function SectionHeading({
   children: ReactNode;
 }) {
   return (
-    <div className="mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16">
+    <div
+      className={`${motion.reveal} mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16`}
+    >
       <div>
         <Chapter>{eyebrow}</Chapter>
         <Title>{title}</Title>
       </div>
-      <p className={`${muted} max-w-[390px]`}>{children}</p>
+      <p className="max-w-[390px] text-[15px] leading-relaxed text-marketing-copy md:text-base">
+        {children}
+      </p>
     </div>
   );
 }
@@ -74,7 +78,9 @@ function CardTitle({
 
 function Steps({ items }: { items: { title: string; description: string }[] }) {
   return (
-    <ol className="mt-10 grid gap-6 md:grid-cols-3 md:gap-8">
+    <ol
+      className={`${motion.stagger} mt-10 grid gap-6 md:grid-cols-3 md:gap-8`}
+    >
       {items.map(({ title, description }, index) => (
         <li
           key={title}
@@ -86,7 +92,7 @@ function Steps({ items }: { items: { title: string; description: string }[] }) {
           <h3 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.025em]">
             {title}
           </h3>
-          <p className="col-start-2 text-xs leading-[1.8] text-marketing-copy md:mt-3">
+          <p className="col-start-2 text-sm leading-relaxed text-marketing-copy md:mt-3">
             {description}
           </p>
         </li>
@@ -98,41 +104,39 @@ function Steps({ items }: { items: { title: string; description: string }[] }) {
 export default function ProductPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#product-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation page="product" />
-      <main id="product-main">
+      <main id="product-main" tabIndex={-1}>
         <section
           id="product-top"
           className={`${container} scroll-mt-28 pb-5 pt-12 text-center md:pt-16`}
         >
-          <Chapter>The product / A closer look at NetSentry</Chapter>
-          <h1 className="mb-6 font-[inherit] text-[38px] font-semibold leading-[1.15] tracking-[-.045em] md:text-[clamp(38px,4.4vw,64px)]">
-            A clearer view of your devices.
-            <br />
-            <span className={accent}>More context for every decision.</span>
-          </h1>
-          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-marketing-copy md:text-[15px]">
-            Bring device reports, digital habits and developer services into one
-            workspace. Understand what the data says, where it came from and
-            what you can do next.
-          </p>
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <a className={primaryButton} href="#product-features">
-              Explore the features
-            </a>
-            <a className={button} href="#product-how-it-fits">
-              See how it fits together
-            </a>
+          <div className={motion.intro}>
+            <Chapter>The product / A closer look at NetSentry</Chapter>
+            <h1 className="mb-6 font-[inherit] text-[38px] font-semibold leading-[1.15] tracking-[-.045em] md:text-[clamp(38px,4.4vw,64px)]">
+              A clearer view of your devices.
+              <br />
+              <span className={accent}>More context for every decision.</span>
+            </h1>
+            <p className="mx-auto max-w-[650px] text-base leading-relaxed text-marketing-copy">
+              Bring device reports, digital habits and developer services into
+              one workspace. Understand what the data says, where it came from
+              and what you can do next.
+            </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <a className={primaryButton} href="#product-features">
+                Explore the features
+              </a>
+              <a className={button} href="#product-how-it-fits">
+                See how it fits together
+              </a>
+            </div>
+            <p className="mt-4 text-[10px] text-marketing-caption">
+              Product in development · Features depend on platform and
+              permissions
+            </p>
           </div>
-          <p className="mt-4 text-[10px] text-marketing-caption">
-            Product in development · Features depend on platform and permissions
-          </p>
-          <div className="mx-auto mt-8 max-w-[1050px] md:mt-11">
+          <div
+            className={`${motion.preview} mx-auto mt-8 max-w-[1050px] md:mt-11`}
+          >
             <WindowFrame title="NetSentry · Your workspace">
               <div className="aspect-[1.55] overflow-hidden md:aspect-[2.15]">
                 <ProductImage
@@ -150,7 +154,7 @@ export default function ProductPage() {
         </section>
         <nav
           aria-label="On this page"
-          className={`${container} mt-5 flex flex-wrap justify-center gap-x-5 gap-y-3 border-y border-marketing-nav-border py-5 text-[10px] text-[#7e6d8b] md:gap-x-8 md:text-[11px]`}
+          className={`${motion.reading} ${container} mt-5 flex flex-wrap justify-center gap-x-5 gap-y-3 border-y border-marketing-nav-border py-5 text-[10px] text-[#7e6d8b] md:gap-x-8 md:text-[11px]`}
         >
           {[
             ["Devices", "#product-devices"],
@@ -178,20 +182,22 @@ export default function ProductPage() {
             Different questions need different tools. Explore the parts of
             NetSentry that make those questions easier to answer.
           </SectionHeading>
-          <FeatureExplorer />
+          <div className={motion.reveal}>
+            <FeatureExplorer />
+          </div>
         </section>
         <section id="product-devices" className={`${section} ${tinted}`}>
           <div
             className={`${container} grid items-center gap-8 md:grid-cols-[1.1fr_.9fr] md:gap-20`}
           >
-            <div>
+            <div className={motion.reveal}>
               <Chapter>01 / Know your devices</Chapter>
               <Title>
                 Every device has a source.
                 <br />
                 <span className={accent}>Every report has a context.</span>
               </Title>
-              <p className="mt-6 text-xs leading-[1.8] text-marketing-copy md:text-sm">
+              <p className="mt-6 text-sm leading-relaxed text-marketing-copy">
                 See the devices registered to your workspace, then look closer
                 at what each installation can report. A missing reading stays
                 missing. A capability tells you what is supported.
@@ -221,7 +227,9 @@ export default function ProductPage() {
                 measurement.
               </p>
             </div>
-            <div className="rounded-[14px] border border-marketing-nav-border bg-white p-6 md:p-8">
+            <div
+              className={`${motion.previewReveal} rounded-[14px] border border-marketing-nav-border bg-white p-6 md:p-8`}
+            >
               <CardTitle icon={Smartphone}>A device, understood</CardTitle>
               {[
                 {
@@ -250,7 +258,7 @@ export default function ProductPage() {
                   <h3 className="font-[inherit] text-sm font-semibold">
                     {title}
                   </h3>
-                  <p className="mt-1 text-[11px] text-marketing-copy">{text}</p>
+                  <p className="mt-1 text-sm text-marketing-copy">{text}</p>
                 </div>
               ))}
               <p className="mt-4 text-[9px] text-[#9a87a5]">
@@ -274,7 +282,9 @@ export default function ProductPage() {
             Understand how complete the picture is before deciding what it
             means.
           </SectionHeading>
-          <div className="grid gap-7 md:grid-cols-3 md:gap-8">
+          <div
+            className={`${motion.stagger} grid gap-7 md:grid-cols-3 md:gap-8`}
+          >
             {[
               {
                 icon: ChartNoAxesColumnIncreasing,
@@ -305,13 +315,15 @@ export default function ProductPage() {
                 <h3 className="font-[inherit] text-lg font-semibold leading-tight tracking-[-.025em]">
                   {title}
                 </h3>
-                <p className="col-start-2 text-xs leading-[1.85] text-marketing-copy md:mt-4">
+                <p className="col-start-2 text-sm leading-relaxed text-marketing-copy md:mt-4">
                   {text}
                 </p>
               </article>
             ))}
           </div>
-          <div className="mt-9 grid gap-5 rounded-xl border border-marketing-nav-border bg-[#faf8fc] p-6 md:grid-cols-[1.15fr_1fr_1fr_1fr] md:gap-6">
+          <div
+            className={`${motion.reveal} mt-9 grid gap-5 rounded-xl border border-marketing-nav-border bg-[#faf8fc] p-6 md:grid-cols-[1.15fr_1fr_1fr_1fr] md:gap-6`}
+          >
             <p className="pt-1 text-[9px] font-semibold uppercase tracking-[1.8px] text-[#947da1]">
               How to read a report
             </p>
@@ -327,7 +339,7 @@ export default function ProductPage() {
                 <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                   {title}
                 </h3>
-                <p className="mt-2 text-[11px] leading-[1.8] text-marketing-copy">
+                <p className="mt-2 text-sm leading-relaxed text-marketing-copy">
                   {text}
                 </p>
               </div>
@@ -349,7 +361,9 @@ export default function ProductPage() {
               Bring people into the picture with explicit sharing choices. Being
               in the same workspace does not give everyone the same access.
             </SectionHeading>
-            <div className="grid gap-5 md:grid-cols-2 md:gap-6">
+            <div
+              className={`${motion.stagger} grid gap-5 md:grid-cols-2 md:gap-6`}
+            >
               {[
                 {
                   icon: UsersRound,
@@ -397,15 +411,17 @@ export default function ProductPage() {
             Connect the desktop app to the local agent. Inspect supported
             services by project, runtime, process or listening port.
           </SectionHeading>
-          <WindowFrame title="NetSentry Desktop · Service inventory">
-            <div className="aspect-[1.75] overflow-hidden">
-              <ProductImage
-                src="/product/services.png"
-                alt="Desktop service inventory with a rounded sidebar, search and empty services list"
-                full
-              />
-            </div>
-          </WindowFrame>
+          <div className={motion.previewReveal}>
+            <WindowFrame title="NetSentry Desktop · Service inventory">
+              <div className="aspect-[1.75] overflow-hidden">
+                <ProductImage
+                  src="/product/services.png"
+                  alt="Desktop service inventory with a rounded sidebar, search and empty services list"
+                  full
+                />
+              </div>
+            </WindowFrame>
+          </div>
           <p className={caption}>
             Desktop renderer preview · Empty service inventory. Native release
             checks remain pending.
@@ -429,21 +445,23 @@ export default function ProductPage() {
               },
             ]}
           />
-          <p className={`${quiet} mt-6 text-center`}>
+          <p className={`${motion.reading} ${quiet} mt-6 text-center`}>
             Remote requests also require pairing, explicit local consent and
             current controller grants.
           </p>
         </section>
         <section id="product-applications" className={`${section} ${tinted}`}>
           <div className={container}>
-            <div className="mx-auto max-w-[700px] text-center">
+            <div
+              className={`${motion.reveal} mx-auto max-w-[700px] text-center`}
+            >
               <Chapter>The right view, where you need it</Chapter>
               <Title>
                 One workspace.
                 <br />
                 <span className={accent}>Apps with different roles.</span>
               </Title>
-              <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
+              <p className="mx-auto mt-6 max-w-[580px] text-base leading-relaxed text-marketing-copy">
                 Use the web for the wider view, your phone for supported mobile
                 workflows and the desktop app for your computer’s services.
               </p>
@@ -469,16 +487,18 @@ export default function ProductPage() {
                 ].map(({ icon, title, text }) => (
                   <article
                     key={title}
-                    className="border-b border-marketing-nav-border py-6 first:pt-0 last:border-0"
+                    className={`${motion.reading} border-b border-marketing-nav-border py-6 first:pt-0 last:border-0`}
                   >
                     <CardTitle icon={icon}>{title}</CardTitle>
-                    <p className="ml-8 mt-3 text-xs leading-[1.8] text-marketing-copy">
+                    <p className="ml-8 mt-3 text-sm leading-relaxed text-marketing-copy">
                       {text}
                     </p>
                   </article>
                 ))}
               </div>
-              <div className="mx-auto grid w-full max-w-[350px] grid-cols-2 gap-5 md:max-w-[430px] md:gap-6">
+              <div
+                className={`${motion.stagger} mx-auto grid w-full max-w-[350px] grid-cols-2 gap-5 md:max-w-[430px] md:gap-6`}
+              >
                 {[
                   {
                     name: "Android",
@@ -506,8 +526,10 @@ export default function ProductPage() {
               Mobile design reconstructions · Native build, signing and
               physical-device validation remain pending.
             </p>
-            <details className="group mx-auto mt-8 max-w-[800px] border-y border-marketing-nav-border py-4">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#715c80] [&::-webkit-details-marker]:hidden">
+            <details
+              className={`${motion.reading} group mx-auto mt-8 max-w-[800px] border-y border-marketing-nav-border py-4`}
+            >
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-base text-marketing-label [&::-webkit-details-marker]:hidden">
                 What should I know about platform availability?
                 <span
                   aria-hidden="true"
@@ -534,14 +556,14 @@ export default function ProductPage() {
           </div>
         </section>
         <section id="product-how-it-fits" className={`${container} ${section}`}>
-          <div className="mx-auto max-w-[700px] text-center">
+          <div className={`${motion.reveal} mx-auto max-w-[700px] text-center`}>
             <Chapter>From your device to your workspace</Chapter>
             <Title>
               A connected picture.
               <br />
               <span className={accent}>A clear path to it.</span>
             </Title>
-            <p className="mt-6 text-xs leading-[1.8] text-marketing-copy md:text-sm">
+            <p className="mt-6 text-sm leading-relaxed text-marketing-copy">
               Each part has a role. Collection starts with your choices and a
               supported source.
             </p>
@@ -567,7 +589,9 @@ export default function ProductPage() {
           />
         </section>
         <section id="product-privacy" className={`${container} scroll-mt-28`}>
-          <div className="grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-7 md:grid-cols-2 md:gap-16 md:p-11">
+          <div
+            className={`${motion.reveal} grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-7 md:grid-cols-2 md:gap-16 md:p-11`}
+          >
             <div>
               <Chapter>Your choices / At every step</Chapter>
               <Title>
@@ -612,7 +636,7 @@ export default function ProductPage() {
                     <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                       {title}
                     </h3>
-                    <p className="mt-1 text-[11px] leading-[1.8] text-marketing-copy">
+                    <p className="mt-1 text-sm leading-relaxed text-marketing-copy">
                       {text}
                     </p>
                   </div>
@@ -621,14 +645,16 @@ export default function ProductPage() {
             </div>
           </div>
         </section>
-        <section className={`${container} ${section} text-center`}>
+        <section
+          className={`${motion.reveal} ${container} ${section} text-center`}
+        >
           <Chapter>Start with the part that matters to you</Chapter>
           <Title>
             Get to know your devices.
             <br />
             <span className={accent}>Make the next step yours.</span>
           </Title>
-          <p className="mx-auto mt-6 max-w-[480px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
+          <p className="mx-auto mt-6 max-w-[480px] text-sm leading-relaxed text-marketing-copy">
             Explore the applications and review their availability before you
             begin.
           </p>
@@ -642,7 +668,9 @@ export default function ProductPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-marketing-nav-border bg-white py-8">
+      <footer
+        className={`${motion.reading} border-t border-marketing-nav-border bg-white py-8`}
+      >
         <div className={container}>
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:gap-8">
             <Link href="/" aria-label="NetSentry home">

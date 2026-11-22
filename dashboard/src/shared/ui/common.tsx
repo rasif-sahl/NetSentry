@@ -7,8 +7,11 @@ import {
   type ReactElement,
   type ReactNode,
   type FormEvent,
+  type ComponentPropsWithoutRef,
 } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { ApiError } from "@/shared/api";
+export { Loading } from "./loading";
 export function Card({
   children,
   title,
@@ -75,13 +78,6 @@ export function Empty({
     </div>
   );
 }
-export function Loading() {
-  return (
-    <p className="loading" role="status">
-      Loading your workspace…
-    </p>
-  );
-}
 export function Field({
   label,
   children,
@@ -109,6 +105,49 @@ export function Field({
     </div>
   );
 }
+
+type PasswordInputProps = Omit<ComponentPropsWithoutRef<"input">, "type"> & {
+  label: string;
+};
+
+function PasswordInput({ label, id, ...props }: PasswordInputProps) {
+  const [visible, setVisible] = useState(false);
+  const Icon = visible ? EyeOff : Eye;
+
+  return (
+    <div className="password-input">
+      <input
+        autoCapitalize="none"
+        spellCheck={false}
+        {...props}
+        id={id}
+        type={visible ? "text" : "password"}
+      />
+      <button
+        type="button"
+        aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`}
+        aria-controls={id}
+        disabled={props.disabled}
+        onClick={() => setVisible((current) => !current)}
+      >
+        <Icon size={18} aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
+export function PasswordField({
+  label,
+  hint,
+  ...props
+}: PasswordInputProps & { hint?: string }) {
+  return (
+    <Field label={label} hint={hint}>
+      <PasswordInput {...props} label={label} />
+    </Field>
+  );
+}
+
 export function ActionForm({
   children,
   action,

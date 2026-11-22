@@ -3,7 +3,13 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { api, beginSession } from "@/shared/api";
 import type { User } from "@/shared/types";
-import { ActionForm, Field, Notice, text } from "@/shared/ui/common";
+import {
+  ActionForm,
+  Field,
+  Notice,
+  PasswordField,
+  text,
+} from "@/shared/ui/common";
 export type AuthMode = "login" | "register" | "forgot" | "verify" | "reset";
 export function AuthPanel({
   onSignedIn,
@@ -147,33 +153,27 @@ export function AuthPanel({
             </Field>
           )}
           {["login", "register", "reset"].includes(mode) && (
-            <Field
+            <PasswordField
               label="Password"
               hint={mode !== "login" ? "Use 12–128 characters." : undefined}
-            >
-              <input
-                name="password"
-                type="password"
-                autoComplete={
-                  mode === "login" ? "current-password" : "new-password"
-                }
-                minLength={mode === "login" ? 1 : 12}
-                maxLength={128}
-                required
-              />
-            </Field>
+              name="password"
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
+              minLength={mode === "login" ? 1 : 12}
+              maxLength={128}
+              required
+            />
           )}
           {mode === "reset" && (
-            <Field label="Confirm new password">
-              <input
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                minLength={12}
-                maxLength={128}
-                required
-              />
-            </Field>
+            <PasswordField
+              label="Confirm new password"
+              name="confirmPassword"
+              autoComplete="new-password"
+              minLength={12}
+              maxLength={128}
+              required
+            />
           )}
         </ActionForm>
         <nav className="auth-links" aria-label="Account options">

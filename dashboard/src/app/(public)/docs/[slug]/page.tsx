@@ -1,5 +1,6 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { notFound } from "next/navigation";
 import { Search } from "lucide-react";
 import {
@@ -28,13 +29,17 @@ function Block({ block }: { block: GuideBlock }) {
   switch (block.type) {
     case "paragraph":
       return (
-        <p className="mt-4 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]">
+        <p
+          className={`${motion.reading} mt-4 text-base leading-relaxed text-marketing-copy`}
+        >
           {block.text}
         </p>
       );
     case "list":
       return (
-        <ul className="my-5 list-disc space-y-2 pl-5 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]">
+        <ul
+          className={`${motion.reading} my-5 list-disc space-y-2 pl-5 text-base leading-relaxed text-marketing-copy`}
+        >
           {block.items.map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -42,18 +47,20 @@ function Block({ block }: { block: GuideBlock }) {
       );
     case "note":
       return (
-        <aside className="mt-6 rounded-lg border border-[#e8dfee] border-l-[3px] border-l-[#a789ba] bg-marketing-hover px-5 py-4">
+        <aside
+          className={`${motion.reading} mt-6 rounded-lg border border-[#e8dfee] border-l-[3px] border-l-[#a789ba] bg-marketing-hover px-5 py-4`}
+        >
           <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
             {block.title}
           </h3>
-          <p className="mt-2 text-xs leading-[1.9] text-marketing-copy">
+          <p className="mt-2 text-base leading-relaxed text-marketing-copy">
             {block.text}
           </p>
         </aside>
       );
     case "workspace-image":
       return (
-        <figure className="mt-6">
+        <figure className={`${motion.previewReveal} mt-6`}>
           <WindowFrame title="NetSentry · Web workspace">
             <div className="aspect-[1.8] overflow-hidden">
               <ProductImage
@@ -71,7 +78,9 @@ function Block({ block }: { block: GuideBlock }) {
       );
     case "next":
       return (
-        <div className="mt-6 rounded-[10px] border border-marketing-nav-border bg-[#faf8fc] px-6 py-5">
+        <div
+          className={`${motion.reading} mt-6 rounded-[10px] border border-marketing-nav-border bg-[#faf8fc] px-6 py-5`}
+        >
           <p className="mb-2 text-[8px] font-semibold uppercase tracking-wider text-[#a08aaf]">
             Continue with
           </p>
@@ -121,7 +130,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
             name="q"
             aria-label="Search documentation"
             placeholder="Search documentation"
-            className="h-10 min-w-0 w-full bg-transparent text-[11px] text-marketing-copy placeholder:text-[#a18dad] sm:text-[10px]"
+            className="h-10 min-w-0 w-full bg-transparent text-base text-marketing-copy placeholder:text-[#a18dad]"
           />
         </form>
       </div>
@@ -133,10 +142,12 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
           <p className="mb-4 text-[9px] font-semibold uppercase tracking-[1.7px] text-[#947da1]">
             {guide.category}
           </p>
-          <h1 className="font-[inherit] text-[35px] font-semibold leading-[1.2] tracking-[-.035em] sm:text-[42px]">
+          <h1
+            className={`${motion.intro} font-[inherit] text-[35px] font-semibold leading-[1.2] tracking-[-.035em] sm:text-[42px]`}
+          >
             {guide.title}
           </h1>
-          <p className="mt-5 text-xs leading-[1.9] text-marketing-copy sm:text-sm">
+          <p className="mt-5 text-base leading-relaxed text-marketing-copy">
             {guide.summary}
           </p>
           <div className="mt-8">
@@ -146,7 +157,9 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
                 id={sectionId(section.id)}
                 className="mt-8 scroll-mt-28 first:mt-0"
               >
-                <h2 className="font-[inherit] text-2xl font-semibold leading-tight tracking-[-.035em] sm:text-[25px]">
+                <h2
+                  className={`${motion.reading} font-[inherit] text-2xl font-semibold leading-tight tracking-[-.035em] sm:text-[25px]`}
+                >
                   {section.title}
                 </h2>
                 {section.blocks.map((block, index) => (
@@ -155,7 +168,9 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
               </section>
             ))}
           </div>
-          <div className="mt-9 border-t border-marketing-nav-border pt-6">
+          <div
+            className={`${motion.reading} mt-9 border-t border-marketing-nav-border pt-6`}
+          >
             <p className="mb-5 text-[11px] text-[#9a87a5]">
               You have reached the end of this guide.
             </p>

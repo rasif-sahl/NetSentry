@@ -1,11 +1,11 @@
-import Link from "next/link";
+import motion from "@/features/marketing/public-motion.module.css";
+import Link from "@/features/marketing/public-link";
 import { BookOpen, Building2, Lightbulb, MessageCircle } from "lucide-react";
 import { ContactForm } from "./contact-form";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import { Chapter, container } from "@/features/marketing/ui";
 
-const muted = "text-xs leading-[1.85] text-marketing-copy";
+const muted = "text-base leading-relaxed text-marketing-copy";
 const heading =
   "font-[inherit] text-[25px] font-semibold leading-[1.3] tracking-[-.03em]";
 const reasons = [
@@ -80,32 +80,37 @@ const questions = [
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#contact-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
+      <main
+        id="contact-main"
+        tabIndex={-1}
+        className={`${container} max-w-[1060px]`}
       >
-        Skip to content
-      </a>
-      <MarketingNavigation page="contact" />
-      <main id="contact-main" className={`${container} max-w-[1060px]`}>
-        <section className="pb-10 pt-12 text-center md:pb-12 md:pt-16">
+        <section
+          className={`${motion.intro} pb-10 pt-12 text-center md:pb-12 md:pt-16`}
+        >
           <Chapter>Contact NetSentry</Chapter>
           <h1 className="font-[inherit] text-[37px] font-semibold leading-[1.16] tracking-[-.045em] md:text-5xl">
             A question. An idea.
             <br />
             <span className="text-[#7e6094]">Let’s start a conversation.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-[490px] text-sm leading-[1.9] text-marketing-copy">
+          <p className="mx-auto mt-6 max-w-[490px] text-base leading-relaxed text-marketing-copy">
             Whether you’re finding your way around NetSentry or exploring it for
             your team, we’d like to hear from you.
           </p>
+          <a
+            href="#contact-form"
+            className="mt-6 inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-semibold text-[#604675] underline underline-offset-4 hover:bg-marketing-hover"
+          >
+            Get in touch
+          </a>
         </section>
         <section
           aria-label="Contact and help"
           className="grid items-start gap-8 pb-10 min-[651px]:grid-cols-[minmax(0,1.35fr)_minmax(0,.8fr)] md:gap-10 md:pb-16 lg:gap-[50px]"
         >
           <ContactForm />
-          <aside className="pt-2">
+          <aside className={`${motion.reading} pt-2`}>
             <Chapter>A good place to begin</Chapter>
             <h2 className={`${heading} mb-6`}>Point us in your direction.</h2>
             {reasons.map(({ icon: Icon, title, text }) => (
@@ -127,7 +132,9 @@ export default function ContactPage() {
                 </div>
               </div>
             ))}
-            <div className="mt-7 rounded-xl border border-marketing-border bg-[#f3edf8] p-6">
+            <div
+              className={`${motion.reading} mt-7 rounded-xl border border-marketing-border bg-[#f3edf8] p-6`}
+            >
               <BookOpen
                 size={20}
                 strokeWidth={1.5}
@@ -155,7 +162,7 @@ export default function ContactPage() {
           aria-labelledby="contact-help-title"
           className="grid scroll-mt-28 gap-7 border-t border-marketing-border py-10 md:grid-cols-[1fr_1.6fr] md:gap-14 md:py-12"
         >
-          <div>
+          <div className={motion.reading}>
             <Chapter>Before you send</Chapter>
             <h2 id="contact-help-title" className={heading}>
               A few useful details.
@@ -164,14 +171,14 @@ export default function ContactPage() {
               The right context makes a good conversation easier.
             </p>
           </div>
-          <div>
+          <div className={motion.stagger}>
             {questions.map(({ question, answer }, index) => (
               <details
                 key={question}
                 open={index === 0}
                 className="group border-b border-marketing-border py-4"
               >
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-[13px] font-semibold [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-base font-semibold [&::-webkit-details-marker]:hidden">
                   {question}
                   <span
                     aria-hidden="true"
@@ -193,7 +200,7 @@ export default function ContactPage() {
         </section>
       </main>
       <footer
-        className={`${container} flex max-w-[1060px] flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
+        className={`${motion.reading} ${container} flex max-w-[1060px] flex-col justify-between gap-5 border-t border-marketing-border py-7 text-sm text-marketing-copy sm:flex-row`}
       >
         <p>
           © <CopyrightYear /> NetSentry

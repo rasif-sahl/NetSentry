@@ -30,6 +30,9 @@ test("sign in, restore an HTTP-only session and sign out", async ({
   context,
 }) => {
   await login(page);
+  await expect(
+    page.getByRole("region", { name: "Email verification" }),
+  ).toHaveCount(0);
   const cookies = await context.cookies();
   expect(cookies.filter((c) => c.name.startsWith("netsentry_"))).toHaveLength(
     2,
@@ -93,7 +96,17 @@ test("device inventory uses reported health and capability states", async ({
   page,
 }) => {
   await login(page);
-  await page.getByRole("button", { name: "Devices", exact: true }).click();
+  const details = page.getByRole("button", {
+    name: "View device details",
+    exact: true,
+  });
+  await expect(details).toBeVisible();
+  await expect(page.locator(".button-row").filter({ has: details })).toHaveCSS(
+    "justify-content",
+    "flex-end",
+  );
+  await details.press("Enter");
+  await expect(page).toHaveURL(/\/app\?view=Devices$/);
   await expect(
     page.getByRole("heading", { name: "Device inventory" }),
   ).toBeVisible();
@@ -133,7 +146,7 @@ test("reports show real measured/estimated values, export and isolate workspace 
 }) => {
   const data = await login(page);
   await page
-    .getByRole("button", { name: "Usage & reports", exact: true })
+    .getByRole("button", { name: "Explore reports", exact: true })
     .click();
   await expect(
     page.getByText("10,485,760 bytes", { exact: true }).first(),
@@ -267,7 +280,9 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
   page,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Alerts", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Manage alerts", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "In-app notifications", exact: true }),
   ).toBeVisible();
@@ -297,6 +312,13 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     .filter({ hasText: "20,000,000 bytes" });
   await expect(created).toBeVisible();
   await expect(created).toContainText("estimated");
+  await created.getByRole("button", { name: "Edit rule", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Cancel editing", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Create an alert rule", exact: true }),
+  ).toBeVisible();
   await created.getByRole("button", { name: "Edit rule", exact: true }).click();
   await expect(page.getByLabel("Threshold data quality")).toHaveValue(
     "estimated",
@@ -369,6 +391,8 @@ test("team invitations bind a recipient and management changes take effect", asy
     .getByRole("button", { name: "Create invitation", exact: true })
     .click();
   const token = await page.getByTestId("invitation-token").innerText();
+  await page.getByRole("button", { name: "Hide token", exact: true }).click();
+  await expect(page.getByTestId("invitation-token")).toHaveCount(0);
   const recipient = await browser.newContext();
   const guest = await recipient.newPage();
   await guest.goto("/app");
@@ -505,7 +529,9 @@ test("profile, appearance, retention, sessions and personal export use the backe
     `/api/backend/workspaces/${data.workspaceId}/monitoring/retention`,
   );
   expect((await policy.json()).rawDays).toBe(20);
-  await page.getByLabel("Current password for export").fill(data.password);
+  await page
+    .getByLabel("Current password for export", { exact: true })
+    .fill(data.password);
   const downloading = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Download personal data", exact: true })
@@ -533,7 +559,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
     .getByText("Review permanent account deletion", { exact: true })
     .click();
   await page
-    .getByLabel("Current password for account deletion")
+    .getByLabel("Current password for account deletion", { exact: true })
     .fill(data.password);
   await page.getByLabel("Type DELETE to confirm").fill("DELETE");
   await page
@@ -548,16 +574,39 @@ test("profile, appearance, retention, sessions and personal export use the backe
 });
 test("email verification and password recovery consume email-fragment codes", async ({
   page,
+  context,
 }) => {
   const data = await fixtures();
-  await page.goto("/verify-email#token=" + data.tokens.unverified);
-  await expect(page.getByLabel("Verification code")).toHaveValue(
+  await page.goto("/app");
+  await page.getByLabel("Email address").fill(data.accounts.unverified.email);
+  await page.getByLabel("Password", { exact: true }).fill(data.password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  const stripe = page.getByRole("region", { name: "Email verification" });
+  await expect(stripe).toBeVisible();
+  await stripe.getByRole("button", { name: "I’ve verified my email" }).click();
+  await expect(stripe.getByRole("status")).toHaveText(
+    "Email verification is still pending.",
+  );
+
+  const verifyPage = await context.newPage();
+  await verifyPage.goto("/verify-email#token=" + data.tokens.unverified);
+  await expect(verifyPage.getByLabel("Verification code")).toHaveValue(
     data.tokens.unverified,
   );
-  expect(page.url()).not.toContain(data.tokens.unverified);
-  await page.getByRole("button", { name: "Verify email", exact: true }).click();
+  expect(verifyPage.url()).not.toContain(data.tokens.unverified);
+  await verifyPage
+    .getByRole("button", { name: "Verify email", exact: true })
+    .click();
   await expect(
-    page.getByText(/Email verified. You can now sign in/),
+    verifyPage.getByText(/Email verified. You can now sign in/),
+  ).toBeVisible();
+  await verifyPage.close();
+  await stripe.getByRole("button", { name: "I’ve verified my email" }).click();
+  await expect(stripe).toHaveCount(0);
+  await expect(page.getByRole("main")).toBeFocused();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
   await page.goto("/reset-password#token=" + data.tokens.recovery);
   await expect(page.getByLabel("Reset code")).toHaveValue(data.tokens.recovery);
@@ -565,9 +614,18 @@ test("email verification and password recovery consume email-fragment codes", as
   await page
     .getByLabel("Password", { exact: true })
     .fill("new-fixture-recovery-password-123");
+  const confirmPassword = page.getByLabel("Confirm new password", {
+    exact: true,
+  });
+  await confirmPassword.fill("new-fixture-recovery-password-123");
   await page
-    .getByLabel("Confirm new password")
-    .fill("new-fixture-recovery-password-123");
+    .getByRole("button", { name: "Show confirm new password", exact: true })
+    .click();
+  await expect(confirmPassword).toHaveAttribute("type", "text");
+  await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
+    "type",
+    "password",
+  );
   await page
     .getByRole("button", { name: "Reset password", exact: true })
     .click();
@@ -596,16 +654,130 @@ test("registration and password-confirmed account deletion clear the browser ses
   await page
     .getByLabel("Email address")
     .fill("disposable@dashboard.example.invalid");
-  await page
-    .getByLabel("Password", { exact: true })
-    .fill("disposable-fixture-password-123");
+  const password = page.getByLabel("Password", { exact: true });
+  const showPassword = page.getByRole("button", {
+    name: "Show password",
+    exact: true,
+  });
+  const hidePassword = page.getByRole("button", {
+    name: "Hide password",
+    exact: true,
+  });
+  await expect(password).toHaveAttribute("type", "password");
+  await password.fill("disposable-fixture-password-123");
+  await password.press("Tab");
+  await expect(showPassword).toBeFocused();
+  await showPassword.press("Space");
+  await expect(password).toHaveAttribute("type", "text");
+  await hidePassword.press("Enter");
+  await expect(password).toHaveAttribute("type", "password");
+  await expect(password).toHaveValue("disposable-fixture-password-123");
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText(/Verify your email to manage/)).toBeVisible();
+  const stripe = page.getByRole("region", { name: "Email verification" });
+  const sendEmail = stripe.getByRole("button", {
+    name: "Send verification email",
+  });
+  await expect(stripe).toContainText(
+    "Verify your email to manage workspace access and monitoring.",
+  );
+  await expect(
+    page.locator("header.topbar + .verification-stripe + main"),
+  ).toBeVisible();
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const desktopButton = await sendEmail.boundingBox();
+  const desktopStripe = await stripe.boundingBox();
+  expect(desktopButton!.y).toBeLessThan(desktopStripe!.y + 12);
+
+  const viewport = page.viewportSize()!;
+  const sendMobileEmail = stripe.getByRole("button", {
+    name: "Send email",
+    exact: true,
+  });
+  const checkMobileEmail = stripe.getByRole("button", {
+    name: "Check status",
+    exact: true,
+  });
+  const metrics = page.locator(".overview-metrics > .card");
+  await expect(metrics).toHaveCount(3);
+  const refreshButton = page.getByRole("button", { name: "Refresh workspace" });
+  const refreshLabel = refreshButton.getByText("Refresh workspace");
+  const refreshIcon = refreshButton.locator("svg");
+  await expect(refreshLabel).toBeVisible();
+  await expect(refreshIcon).toBeHidden();
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 760 });
+    await expect(refreshLabel).toBeHidden();
+    await expect(refreshIcon).toBeVisible();
+    const title = await page
+      .getByRole("heading", { name: "Overview", exact: true })
+      .boundingBox();
+    const refresh = await refreshButton.boundingBox();
+    expect(refresh!.width).toBe(44);
+    expect(refresh!.height).toBeGreaterThanOrEqual(44);
+    const description = await page
+      .getByText("Your devices and the information they report, in one place.")
+      .boundingBox();
+    expect(title!.x + title!.width).toBeLessThan(refresh!.x);
+    expect(
+      Math.abs(
+        title!.y + title!.height / 2 - (refresh!.y + refresh!.height / 2),
+      ),
+    ).toBeLessThan(1);
+    expect(description!.y).toBeGreaterThan(refresh!.y + refresh!.height);
+    await expect(stripe.getByText(/to manage workspace access/)).toBeHidden();
+    expect((await stripe.boundingBox())!.height).toBeLessThanOrEqual(60);
+    const copy = await stripe
+      .getByText("Verify your email", { exact: true })
+      .boundingBox();
+    const send = await sendMobileEmail.boundingBox();
+    const check = await checkMobileEmail.boundingBox();
+    expect(copy!.height).toBeLessThan(22);
+    expect(copy!.x + copy!.width).toBeLessThan(send!.x);
+    expect(
+      Math.abs(copy!.y + copy!.height / 2 - (send!.y + send!.height / 2)),
+    ).toBeLessThan(2);
+    expect(send!.y).toBe(check!.y);
+    expect(Math.abs(send!.width - check!.width)).toBeLessThan(1);
+    expect(send!.height).toBe(check!.height);
+    expect(send!.height).toBeGreaterThanOrEqual(44);
+    expect(send!.x + send!.width).toBeLessThan(check!.x);
+    const [registered, consent, refreshed] = await Promise.all(
+      (await metrics.all()).map((card) => card.boundingBox()),
+    );
+    expect(consent!.y).toBe(registered!.y);
+    expect(consent!.x).toBeGreaterThan(registered!.x);
+    expect(Math.abs(consent!.width - registered!.width)).toBeLessThan(1);
+    expect(refreshed!.y).toBeGreaterThan(registered!.y);
+    expect(refreshed!.x).toBe(registered!.x);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(width);
+  }
+  await Promise.all([
+    page.waitForRequest(
+      (request) =>
+        new URL(request.url()).pathname === "/api/backend/workspaces",
+    ),
+    refreshButton.click(),
+  ]);
+  await sendMobileEmail.click();
+  await expect(stripe.getByRole("status")).toHaveText(
+    "Verification email requested. Check your inbox.",
+  );
+  const feedback = await stripe.getByRole("status").boundingBox();
+  const send = await sendMobileEmail.boundingBox();
+  expect(feedback!.y).toBeGreaterThanOrEqual(send!.y + send!.height);
+  await checkMobileEmail.click();
+  await expect(stripe.getByRole("status")).toHaveText(
+    "Email verification is still pending.",
+  );
+  await page.setViewportSize(viewport);
   await page
     .getByRole("button", { name: "Settings & privacy", exact: true })
     .click();
@@ -613,7 +785,7 @@ test("registration and password-confirmed account deletion clear the browser ses
     .getByText("Review permanent account deletion", { exact: true })
     .click();
   await page
-    .getByLabel("Current password for account deletion")
+    .getByLabel("Current password for account deletion", { exact: true })
     .fill("disposable-fixture-password-123");
   await page.getByLabel("Type DELETE to confirm").fill("DELETE");
   await page
@@ -707,6 +879,74 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
   await expect(
     page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
+});
+
+test("dashboard sections share compact card spacing and action buttons on mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  const data = await login(page);
+  const overviewAction = page.getByRole("button", {
+    name: "View device details",
+  });
+  const actionBackground = await overviewAction.evaluate(
+    (button) => getComputedStyle(button).backgroundColor,
+  );
+  const sections = [
+    ["Devices", "Device inventory", "View Fixture iOS"],
+    ["Usage & reports", "Usage over time", "Download CSV"],
+    ["Alerts", "In-app notifications", "Edit rule"],
+    ["Networks", "Network labels"],
+    ["Developer Tools", "Paired developer computers", "Refresh computers"],
+    ["Family", "Your family profiles"],
+    ["Subscription", "Subscription and editions", "Start sandbox trial"],
+    ["Operations", "Platform operations", "Export redacted diagnostics"],
+    ["Team", "Workspace members"],
+    ["Settings & privacy", "Your profile"],
+    ["More modules", "Network Security"],
+    ["Business", "Business organization"],
+  ];
+
+  for (const [section, heading, action] of sections) {
+    await test.step(section, async () => {
+      if (section === "Business") {
+        await page
+          .getByLabel("Active workspace")
+          .selectOption(data.business.workspaceId);
+        await expect(page.locator("#dashboard-content .eyebrow")).toContainText(
+          "BUSINESS",
+        );
+      }
+      await page
+        .getByRole("button", { name: "Open navigation", exact: true })
+        .click();
+      await page.getByRole("button", { name: section, exact: true }).click();
+      await page.mouse.move(2, 2);
+      await expect(
+        page.getByRole("heading", { name: heading, exact: true }),
+      ).toBeVisible();
+      const main = page.getByRole("main");
+      await expect(main.locator(".card > h2").first()).toHaveCSS(
+        "margin-bottom",
+        "12px",
+      );
+      for (const width of [320, 390]) {
+        await page.setViewportSize({ width, height: 760 });
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth),
+        ).toBe(width);
+        if (action) {
+          const button = main
+            .getByRole("button", { name: action, exact: true })
+            .first();
+          await expect(button).toHaveCSS("background-color", actionBackground);
+          expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(
+            44,
+          );
+        }
+      }
+    });
+  }
 });
 
 test("signing out or changing accounts clears other tabs instead of mixing user data", async ({

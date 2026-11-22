@@ -1,4 +1,10 @@
 .workspace-app {
+  --button-accent-border: color-mix(in srgb, var(--primary) 55%, var(--border));
+  --button-accent-hover: color-mix(
+    in srgb,
+    var(--primary) 17%,
+    var(--surface-lavender)
+  );
   --text-secondary: #62596e;
   --muted: #70667a;
 }
@@ -126,11 +132,33 @@
 .workspace-app .button.primary:hover {
   background: var(--primary-hover);
 }
+.workspace-app .button.accent {
+  padding-inline: 1rem;
+  background: var(--surface-lavender);
+  border-color: var(--button-accent-border);
+  color: var(--primary-hover);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+.workspace-app .button.accent:hover {
+  background: var(--button-accent-hover);
+  border-color: var(--primary);
+}
+.workspace-app .button.accent:focus-visible {
+  outline-color: var(--primary);
+}
+.workspace-app .button.accent svg {
+  flex-shrink: 0;
+  transition: transform 150ms ease;
+}
+.workspace-app .button.accent:hover svg {
+  transform: translateX(2px);
+}
 .workspace-app .button.danger {
   color: var(--danger);
   border-color: var(--danger);
 }
-.workspace-app .text-button,
 .workspace-app .auth-links button {
   color: var(--primary-hover);
   font-size: 0.82rem;
@@ -189,6 +217,31 @@
 .workspace-app .field small {
   font-weight: 400;
 }
+.workspace-app .password-input {
+  position: relative;
+}
+.workspace-app .password-input input:not([type="checkbox"]) {
+  padding-inline-end: 3rem;
+}
+.workspace-app .password-input input::-ms-reveal {
+  display: none;
+}
+.workspace-app .password-input button {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: grid;
+  width: 44px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--primary-hover);
+}
+.workspace-app .password-input button:hover {
+  background: var(--surface-lavender);
+}
+.workspace-app .password-input button:focus-visible {
+  outline-offset: -3px;
+}
 .workspace-app .check {
   display: flex;
   align-items: flex-start;
@@ -209,6 +262,9 @@
 }
 .workspace-app .button-row {
   margin-top: 1rem;
+}
+.workspace-app .button-row.align-end {
+  justify-content: flex-end;
 }
 .workspace-app .action {
   display: inline-grid;
@@ -240,15 +296,6 @@
 .workspace-app .empty p {
   margin: 0.5rem auto 0;
   max-width: 550px;
-}
-.workspace-app .loading {
-  padding: 1.5rem;
-  color: var(--primary);
-}
-.workspace-app .boot {
-  display: grid;
-  min-height: 100dvh;
-  place-content: center;
 }
 .workspace-app .auth-layout {
   min-height: 100dvh;
@@ -404,6 +451,53 @@
   font-size: 0.75rem;
   color: var(--text-secondary);
 }
+.workspace-app .verification-stripe {
+  background: var(--surface-lavender);
+  border-bottom: 1px solid var(--border);
+}
+.workspace-app .verification-stripe-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  max-width: 1500px;
+  margin-inline: auto;
+  padding: 0.375rem 2.2rem;
+}
+.workspace-app .verification-stripe-message {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--primary-hover);
+  font-size: 0.83rem;
+}
+.workspace-app .verification-stripe-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.workspace-app .verification-stripe-message strong {
+  color: var(--text);
+}
+.workspace-app .verification-mobile-copy {
+  display: none;
+}
+.workspace-app .verification-stripe-feedback {
+  flex-basis: 100%;
+  color: var(--primary-hover);
+  font-size: 0.83rem;
+}
+.workspace-app .verification-stripe-feedback:empty {
+  position: absolute;
+}
+.workspace-app .verification-stripe-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem 0.75rem;
+  margin-inline-start: auto;
+}
 .workspace-app .page-content {
   max-width: 1500px;
   margin: auto;
@@ -411,14 +505,31 @@
   outline: 0;
 }
 .workspace-app .page-heading {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "eyebrow refresh"
+    "title refresh"
+    "description refresh";
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  column-gap: 1rem;
   margin-bottom: 1.8rem;
 }
+.workspace-app .page-heading .eyebrow {
+  grid-area: eyebrow;
+}
 .workspace-app .page-heading h1 {
+  grid-area: title;
   margin: 0.3rem 0 0.5rem;
+}
+.workspace-app .page-heading > .button {
+  grid-area: refresh;
+}
+.workspace-app .page-heading .refresh-icon {
+  display: none;
+}
+.workspace-app .page-heading .page-description {
+  grid-area: description;
 }
 .workspace-app .page-stack {
   display: grid;
@@ -605,6 +716,9 @@
   .workspace-app .page-content {
     padding: 1.3rem;
   }
+  .workspace-app .verification-stripe-content {
+    padding-inline: 1.3rem;
+  }
   .workspace-app .topbar {
     padding-inline: 1rem;
   }
@@ -634,12 +748,157 @@
   .workspace-app .two-columns {
     grid-template-columns: 1fr;
   }
-  .workspace-app .page-heading {
-    align-items: flex-start;
-    flex-direction: column;
+  .workspace-app .metric-grid.overview-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  .workspace-app .overview-metrics .card {
+    padding: 0.85rem;
+  }
+  .workspace-app .overview-metrics .metric-value {
+    font-size: 1.9rem;
+    margin-block: 0.45rem 0.25rem;
+  }
+  .workspace-app .overview-metrics .metric-time {
+    font-size: 0.875rem;
+    margin-block: 0.6rem 0.4rem;
+    overflow-wrap: anywhere;
   }
   .workspace-app .page-content {
+    --content-gap: 0.75rem;
     padding: 1rem;
+  }
+  .workspace-app .page-heading {
+    grid-template-areas:
+      "eyebrow eyebrow"
+      "title refresh";
+    gap: 0.375rem var(--content-gap);
+    margin-bottom: 1.25rem;
+  }
+  .workspace-app .page-heading .page-description {
+    grid-area: 3 / 1 / auto / -1;
+  }
+  .workspace-app .page-heading h1 {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .workspace-app .page-content .page-heading > .button {
+    width: 44px;
+    padding: 0;
+  }
+  .workspace-app .page-heading .refresh-label {
+    display: none;
+  }
+  .workspace-app .page-heading .refresh-icon {
+    display: block;
+  }
+  .workspace-app
+    .page-content
+    :is(.row, .section-heading, .item-list > li)
+    > :is(.button, .action) {
+    margin-inline-start: auto;
+  }
+  .workspace-app
+    .page-content
+    :is(.page-stack, .stack, .module-grid, .two-columns, .form-fields) {
+    gap: var(--content-gap);
+  }
+  .workspace-app .page-content .stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-app .page-content .row {
+    display: grid;
+    gap: 0.5rem;
+    padding-block: var(--content-gap);
+    border-bottom: 1px solid var(--border);
+    overflow-wrap: anywhere;
+  }
+  .workspace-app .page-content .card > h2 {
+    margin-bottom: var(--content-gap);
+  }
+  .workspace-app .page-content .item-list > li {
+    gap: 0.5rem;
+    padding-block: var(--content-gap);
+  }
+  .workspace-app .page-content .button-row {
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: var(--content-gap);
+  }
+  .workspace-app .page-content .form-fields > .button {
+    justify-self: end;
+  }
+  .workspace-app .page-content .card > .button {
+    display: flex;
+    width: fit-content;
+    margin-inline-start: auto;
+  }
+  .workspace-app .page-content .button {
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  .workspace-app .page-content .button:where(:not(.primary, .danger)) {
+    padding-inline: 1rem;
+    background: var(--surface-lavender);
+    color: var(--primary-hover);
+    border-color: var(--button-accent-border);
+  }
+  .workspace-app .page-content .button:where(:not(.primary, .danger)):hover {
+    background: var(--button-accent-hover);
+    border-color: var(--primary);
+  }
+  .workspace-app
+    .page-content
+    .button:where(:not(.primary, .danger)):focus-visible {
+    outline-color: var(--primary);
+  }
+  .workspace-app .verification-stripe-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.375rem;
+    padding: 0.375rem 0.5rem;
+  }
+  .workspace-app .verification-stripe-message {
+    gap: 0.25rem;
+  }
+  .workspace-app .verification-stripe-message p {
+    font-size: 0.75rem;
+    line-height: 1.25;
+  }
+  .workspace-app .verification-stripe-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--primary) 16%, var(--surface-lavender));
+  }
+  .workspace-app .verification-stripe-icon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  .workspace-app .verification-desktop-copy {
+    display: none;
+  }
+  .workspace-app .verification-mobile-copy {
+    display: inline;
+  }
+  .workspace-app .verification-stripe-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 0.375rem;
+    margin-inline-start: 0;
+  }
+  .workspace-app .verification-stripe-actions .button {
+    padding-inline: 0.25rem;
+    text-align: center;
+    font-size: 0.75rem;
+    line-height: 1.25;
+  }
+  .workspace-app .verification-stripe-feedback {
+    grid-column: 1 / -1;
   }
   .workspace-app .card {
     padding: 1.1rem;

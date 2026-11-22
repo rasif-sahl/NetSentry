@@ -1,0 +1,64 @@
+@keyframes rise-in {
+  from {
+    opacity: var(--entry-opacity, 0.86);
+    translate: 0 var(--entry-offset, 22px);
+    scale: var(--entry-scale, 1);
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .intro {
+    --entry-duration: 440ms;
+  }
+
+  .preview {
+    --entry-duration: 560ms;
+    --entry-delay: 100ms;
+  }
+
+  .reading {
+    --entry-offset: 0px;
+    --entry-opacity: 0.93;
+  }
+
+  .previewReveal {
+    --entry-scale: 0.985;
+  }
+
+  .stagger > * {
+    --entry-offset: 14px;
+  }
+
+  @media (min-width: 768px) {
+    .stagger > :nth-child(2) {
+      --entry-delay: 65ms;
+    }
+
+    .stagger > :nth-child(3) {
+      --entry-delay: 130ms;
+    }
+
+    .stagger > :nth-child(4) {
+      --entry-delay: 195ms;
+    }
+  }
+
+  [data-public-motion]
+    :is(
+      .intro,
+      .preview,
+      .reveal,
+      .previewReveal,
+      .reading,
+      .stagger > *
+    )[data-motion-entered] {
+    animation: rise-in var(--entry-duration, 480ms) var(--entry-delay, 0ms)
+      ease-out backwards;
+  }
+}

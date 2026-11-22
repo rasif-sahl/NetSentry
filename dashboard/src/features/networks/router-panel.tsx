@@ -6,6 +6,7 @@ import {
   Card,
   Empty,
   Field,
+  PasswordField,
   formatTime,
   text,
 } from "@/shared/ui/common";
@@ -150,15 +151,13 @@ export function RouterPanel({
                 autoComplete="off"
               />
             </Field>
-            <Field label="Router password">
-              <input
-                name="password"
-                type="password"
-                required
-                maxLength={256}
-                autoComplete="new-password"
-              />
-            </Field>
+            <PasswordField
+              label="Router password"
+              name="password"
+              required
+              maxLength={256}
+              autoComplete="new-password"
+            />
             <Field label="Optional trusted PEM CA certificate">
               <textarea name="caCertificate" maxLength={8192} />
             </Field>

@@ -1,5 +1,6 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import type { ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import {
   Check,
   LayoutGrid,
@@ -9,7 +10,6 @@ import {
 } from "lucide-react";
 import { ApplicationPreview } from "./application-preview";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import {
   Brand,
   button,
@@ -23,7 +23,7 @@ import {
 const accent = "text-[#7e6094]";
 const section = "scroll-mt-28 py-[53px] md:py-20";
 const tinted = "border-y border-[#eee6f2] bg-[#f9f7fb]";
-const muted = "text-xs leading-[1.85] text-marketing-copy";
+const muted = "text-base leading-relaxed text-marketing-copy";
 const status =
   "inline-block rounded-full border border-[#e8dfee] bg-[#f5f0f8] px-3 py-1 text-[9px] leading-relaxed text-[#8a7299]";
 const apps = [
@@ -139,12 +139,14 @@ function Heading({
   children: ReactNode;
 }) {
   return (
-    <div className="mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16">
+    <div
+      className={`${motion.reveal} mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16`}
+    >
       <div>
         <Chapter>{eyebrow}</Chapter>
         <Title>{title}</Title>
       </div>
-      <p className="text-xs leading-[1.8] text-marketing-copy md:text-[13px]">
+      <p className="max-w-[390px] text-[15px] leading-relaxed text-marketing-copy md:text-base">
         {children}
       </p>
     </div>
@@ -175,7 +177,7 @@ function Note({ title, children }: { title: string; children: ReactNode }) {
       <p className="text-[8px] font-semibold uppercase tracking-[1.4px] text-[#a08aaf]">
         {title}
       </p>
-      <p className="mt-2 text-[11px] leading-[1.8] text-marketing-copy">
+      <p className="mt-2 text-sm leading-relaxed text-marketing-copy">
         {children}
       </p>
     </div>
@@ -185,22 +187,17 @@ function Note({ title, children }: { title: string; children: ReactNode }) {
 export default function ApplicationsPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#applications-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation page="applications" />
-      <main id="applications-main">
-        <section className={`${container} pb-8 pt-12 text-center md:pt-16`}>
+      <main id="applications-main" tabIndex={-1}>
+        <section
+          className={`${motion.intro} ${container} pb-8 pt-12 text-center md:pt-16`}
+        >
           <Chapter>NetSentry applications / Find your starting point</Chapter>
           <h1 className="mb-6 font-[inherit] text-[38px] font-semibold leading-[1.15] tracking-[-.045em] md:text-[clamp(38px,4.4vw,64px)]">
             One workspace.
             <br />
             <span className={accent}>The right app for your day.</span>
           </h1>
-          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-marketing-copy md:text-[15px]">
+          <p className="mx-auto max-w-[650px] text-base leading-relaxed text-marketing-copy">
             A wider view on the web. Supported insights on your phone. Developer
             tools on your computer. Get to know each NetSentry app and choose
             where to begin.
@@ -212,6 +209,9 @@ export default function ApplicationsPage() {
             <a href="#applications-compare" className={button}>
               Compare the apps
             </a>
+            <a href="#applications-setup" className={button}>
+              Getting started
+            </a>
           </div>
           <p className="mt-4 text-[10px] text-marketing-caption">
             Product in development · Availability varies by platform
@@ -222,7 +222,9 @@ export default function ApplicationsPage() {
           aria-label="Choose an application"
           className={`${container} scroll-mt-28 pb-12 md:pb-16`}
         >
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          <div
+            className={`${motion.stagger} grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4`}
+          >
             {apps.map(({ id, name, icon: Icon, description, stage }) => (
               <a
                 key={id}
@@ -235,7 +237,7 @@ export default function ApplicationsPage() {
                 <h2 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.025em] md:text-[19px]">
                   {name}
                 </h2>
-                <p className="mt-3 min-h-[57px] text-[11px] leading-[1.7] text-marketing-copy md:min-h-[42px] md:text-xs">
+                <p className="mt-3 min-h-[57px] text-sm leading-relaxed text-marketing-copy md:min-h-[42px]">
                   {description}
                 </p>
                 <p className="mt-4 min-h-10 border-t border-marketing-nav-border pt-3 text-[9px] text-[#947da1] md:mt-5 md:text-[10px]">
@@ -264,8 +266,12 @@ export default function ApplicationsPage() {
               Start in your browser. Review reported devices, explore available
               usage and manage the people and settings in your workspace.
             </Heading>
-            <ApplicationPreview app="dashboard" />
-            <div className="mt-8 grid gap-5 md:grid-cols-3 md:gap-8">
+            <div className={motion.previewReveal}>
+              <ApplicationPreview app="dashboard" />
+            </div>
+            <div
+              className={`${motion.stagger} mt-8 grid gap-5 md:grid-cols-3 md:gap-8`}
+            >
               {[
                 [
                   "Your devices and reports",
@@ -288,11 +294,13 @@ export default function ApplicationsPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-7 border-t border-marketing-nav-border pt-5 md:flex md:items-baseline md:gap-8">
+            <div
+              className={`${motion.reading} mt-7 border-t border-marketing-nav-border pt-5 md:flex md:items-baseline md:gap-8`}
+            >
               <p className="shrink-0 text-[9px] font-semibold uppercase tracking-[1.2px] text-[#947da1]">
                 Before you begin
               </p>
-              <p className="mt-2 text-[11px] leading-[1.8] text-marketing-copy md:mt-0">
+              <p className="mt-2 text-sm leading-relaxed text-marketing-copy md:mt-0">
                 An account and workspace. Reports need supported, authorized
                 devices to provide data.
               </p>
@@ -300,20 +308,22 @@ export default function ApplicationsPage() {
           </div>
         </section>
         <section id="applications-phones" className={`${container} ${section}`}>
-          <div className="mx-auto max-w-[700px] text-center">
+          <div className={`${motion.reveal} mx-auto max-w-[700px] text-center`}>
             <Chapter>02 / Android &amp; iOS</Chapter>
             <Title>
               For your phone.
               <br />
               <span className={accent}>With your choices built in.</span>
             </Title>
-            <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
+            <p className="mx-auto mt-6 max-w-[580px] text-base leading-relaxed text-marketing-copy">
               Pair a device, review authorized reports and manage your sharing.
               The available collection and control features depend on your
               operating system.
             </p>
           </div>
-          <div className="mt-8 grid items-stretch gap-6 md:mt-10 md:grid-cols-2">
+          <div
+            className={`${motion.stagger} mt-8 grid items-stretch gap-6 md:mt-10 md:grid-cols-2`}
+          >
             {mobileApps.map(
               ({ id, name, title, description, features, note }) => (
                 <article
@@ -370,10 +380,10 @@ export default function ApplicationsPage() {
               before it runs.
             </Heading>
             <div className="grid items-center gap-8 lg:grid-cols-[1.45fr_.9fr] lg:gap-11">
-              <div className="min-w-0">
+              <div className={`${motion.previewReveal} min-w-0`}>
                 <ApplicationPreview app="desktop" />
               </div>
-              <div>
+              <div className={motion.reveal}>
                 <span className={status}>macOS is the initial target</span>
                 <h3 className="mt-5 font-[inherit] text-[25px] font-semibold leading-[1.15] tracking-[-.025em]">
                   Know what is running.
@@ -424,9 +434,9 @@ export default function ApplicationsPage() {
             role="region"
             aria-label="Application comparison"
             tabIndex={0}
-            className="overflow-x-auto rounded-xl border border-marketing-nav-border"
+            className={`${motion.reading} overflow-x-auto rounded-xl border border-marketing-nav-border`}
           >
-            <table className="w-full min-w-[750px] table-fixed border-collapse bg-white text-left text-[11px] leading-[1.8] md:min-w-[790px]">
+            <table className="w-full min-w-[800px] table-fixed border-collapse bg-white text-left text-sm leading-relaxed md:min-w-[840px]">
               <caption className="sr-only">
                 NetSentry application roles and setup requirements
               </caption>
@@ -484,12 +494,14 @@ export default function ApplicationsPage() {
                 <br />
                 <span className={accent}>Build your picture from there.</span>
               </Title>
-              <p className="mt-6 text-xs leading-[1.8] text-marketing-copy md:text-sm">
+              <p className="mt-6 text-sm leading-relaxed text-marketing-copy">
                 You do not need every application to understand where NetSentry
                 can help.
               </p>
             </div>
-            <ol className="mt-10 grid gap-6 md:grid-cols-3 md:gap-8">
+            <ol
+              className={`${motion.stagger} mt-10 grid gap-6 md:grid-cols-3 md:gap-8`}
+            >
               {[
                 [
                   "Choose your starting point",
@@ -514,13 +526,15 @@ export default function ApplicationsPage() {
                   <h3 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.025em]">
                     {title}
                   </h3>
-                  <p className="col-start-2 mt-1 text-xs leading-[1.8] text-marketing-copy md:mt-3">
+                  <p className="col-start-2 mt-1 text-sm leading-relaxed text-marketing-copy md:mt-3">
                     {text}
                   </p>
                 </li>
               ))}
             </ol>
-            <div className="mt-9 flex items-start gap-5 rounded-xl border border-[#e8dfee] bg-marketing-hover p-5 md:items-center md:px-7 md:py-6">
+            <div
+              className={`${motion.reading} mt-9 flex items-start gap-5 rounded-xl border border-[#e8dfee] bg-marketing-hover p-5 md:items-center md:px-7 md:py-6`}
+            >
               <ShieldCheck
                 size={22}
                 strokeWidth={1.5}
@@ -531,7 +545,7 @@ export default function ApplicationsPage() {
                 <h3 className="font-[inherit] text-xs font-semibold leading-relaxed text-[#715c80]">
                   Pairing connects a device. Consent determines what comes next.
                 </h3>
-                <p className="mt-1 text-[11px] leading-[1.8] text-marketing-copy">
+                <p className="mt-1 text-sm leading-relaxed text-marketing-copy">
                   Account access, collection permissions, sharing and
                   remote-control grants are separate choices.
                 </p>
@@ -560,9 +574,9 @@ export default function ApplicationsPage() {
             <details
               key={question}
               open={index === 0}
-              className="group mb-5 border-b border-marketing-nav-border pb-5"
+              className={`${motion.reading} group mb-5 border-b border-marketing-nav-border pb-5`}
             >
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#705781] md:text-[13px] [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-base text-marketing-label [&::-webkit-details-marker]:hidden">
                 {question}
                 <span
                   aria-hidden="true"
@@ -577,20 +591,22 @@ export default function ApplicationsPage() {
                   −
                 </span>
               </summary>
-              <p className="mt-3 max-w-[830px] text-xs leading-[1.9] text-marketing-copy">
+              <p className="mt-3 max-w-[830px] text-sm leading-relaxed text-marketing-copy">
                 {answer}
               </p>
             </details>
           ))}
         </section>
-        <section className={`${container} pb-[53px] text-center md:pb-20`}>
+        <section
+          className={`${motion.reveal} ${container} pb-[53px] text-center md:pb-20`}
+        >
           <Chapter>Your devices. Your workspace. Your choices.</Chapter>
           <Title>
             Find your starting point.
             <br />
             <span className={accent}>Keep the bigger picture.</span>
           </Title>
-          <p className="mx-auto mt-6 max-w-[480px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
+          <p className="mx-auto mt-6 max-w-[480px] text-sm leading-relaxed text-marketing-copy">
             Explore the product story or take another look at the app that fits
             your needs.
           </p>
@@ -604,7 +620,9 @@ export default function ApplicationsPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-marketing-nav-border bg-white py-8">
+      <footer
+        className={`${motion.reading} border-t border-marketing-nav-border bg-white py-8`}
+      >
         <div className={container}>
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:gap-8">
             <Link href="/" aria-label="NetSentry home">

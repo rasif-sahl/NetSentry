@@ -1,5 +1,6 @@
 "use client";
 
+import motion from "@/features/marketing/public-motion.module.css";
 import { useState, useSyncExternalStore } from "react";
 import { primaryButton } from "@/features/marketing/ui";
 
@@ -7,9 +8,9 @@ const subscribe = () => () => {};
 const clientReady = () => true;
 const serverReady = () => false;
 const field =
-  "w-full min-w-0 rounded-lg border border-marketing-border bg-white px-3 py-3 text-base text-[#30283c] placeholder:text-[#a090ab] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary md:text-sm";
+  "w-full min-w-0 rounded-lg border border-marketing-border bg-white px-3 py-3 text-base text-[#30283c] placeholder:text-marketing-caption focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary";
 const label =
-  "flex min-w-0 flex-col gap-2 text-xs font-semibold text-marketing-label";
+  "flex min-w-0 flex-col gap-2 text-sm font-semibold text-marketing-label";
 
 export function ContactForm() {
   const ready = useSyncExternalStore(subscribe, clientReady, serverReady);
@@ -19,7 +20,7 @@ export function ContactForm() {
       id="contact-form"
       aria-labelledby="contact-form-title"
       aria-describedby="contact-delivery-note"
-      className="scroll-mt-28 rounded-xl border border-marketing-border bg-white p-5 sm:p-8"
+      className={`${motion.reading} scroll-mt-28 rounded-xl border border-marketing-border bg-white p-5 sm:p-8`}
       onSubmit={(event) => {
         event.preventDefault();
         setStatus(
@@ -34,7 +35,7 @@ export function ContactForm() {
       >
         What’s on your mind?
       </h2>
-      <p className="mt-2 text-xs leading-[1.85] text-marketing-copy">
+      <p className="mt-2 text-sm leading-relaxed text-marketing-copy">
         Tell us a little about what you need.
       </p>
       {/* The pre-launch form has no delivery action. Keep it inert before hydration. */}
@@ -103,14 +104,14 @@ export function ContactForm() {
                 className={`${field} min-h-[142px] resize-y font-normal`}
               />
             </label>
-            <p className="mt-2 text-xs leading-[1.85] text-marketing-copy">
+            <p className="mt-2 text-sm leading-relaxed text-marketing-copy">
               Please leave out passwords and private device data.
             </p>
           </div>
         </div>
         <label
           htmlFor="contact-reply"
-          className="my-6 flex min-h-11 items-start gap-3 text-[11px] leading-[1.8] text-marketing-copy"
+          className="my-6 flex min-h-11 items-start gap-3 text-sm leading-relaxed text-marketing-copy"
         >
           <input
             id="contact-reply"
