@@ -15,7 +15,8 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
-import motion from "./home-page.module.css";
+import styles from "./home-page.module.css";
+import motion from "./public-motion.module.css";
 import { ProductShowcase } from "./product-showcase";
 import {
   Brand,
@@ -55,7 +56,7 @@ const faqs = [
 export default function Home() {
   return (
     <div
-      className={`${motion.home} min-h-screen bg-[#fdfcfe] text-[#2c2437] selection:bg-[#e7dcef]`}
+      className={`${styles.home} min-h-screen bg-[#fdfcfe] text-[#2c2437] selection:bg-[#e7dcef]`}
     >
       <main id="main" tabIndex={-1}>
         <section

@@ -1,3 +1,4 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
@@ -126,7 +127,9 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
       <main id="pricing-main" tabIndex={-1} className={container}>
-        <section className="pb-10 pt-14 text-center md:pb-12 md:pt-20">
+        <section
+          className={`${motion.intro} pb-10 pt-14 text-center md:pb-12 md:pt-20`}
+        >
           <Chapter>NetSentry pricing</Chapter>
           <h1 className="font-[inherit] text-[38px] font-semibold leading-[1.16] tracking-[-.045em] md:text-[49px]">
             A little more clarity.
@@ -144,7 +147,7 @@ export default function PricingPage() {
         <section
           id="pricing-plans"
           aria-label="Proposed editions"
-          className="grid scroll-mt-28 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          className={`${motion.stagger} grid scroll-mt-28 gap-4 sm:grid-cols-2 lg:grid-cols-4`}
         >
           {editions.map((edition) => (
             <article
@@ -206,14 +209,16 @@ export default function PricingPage() {
           className="scroll-mt-28 pt-14 md:pt-20"
           aria-labelledby="pricing-comparison-title"
         >
-          <Chapter>A closer look</Chapter>
-          <h2 id="pricing-comparison-title" className={heading}>
-            Choose the kind of clarity you need.
-          </h2>
-          <p id="pricing-comparison-note" className={`${muted} mt-3`}>
-            A simple overview of the proposed editions. Final inclusions will be
-            confirmed before launch.
-          </p>
+          <div className={motion.reveal}>
+            <Chapter>A closer look</Chapter>
+            <h2 id="pricing-comparison-title" className={heading}>
+              Choose the kind of clarity you need.
+            </h2>
+            <p id="pricing-comparison-note" className={`${muted} mt-3`}>
+              A simple overview of the proposed editions. Final inclusions will
+              be confirmed before launch.
+            </p>
+          </div>
           <div
             role="region"
             aria-label="Edition comparison"
@@ -279,7 +284,7 @@ export default function PricingPage() {
         </section>
         <section
           aria-label="Principles across editions"
-          className="mt-9 grid gap-7 border-b border-marketing-border py-9 md:grid-cols-3 md:gap-9"
+          className={`${motion.stagger} mt-9 grid gap-7 border-b border-marketing-border py-9 md:grid-cols-3 md:gap-9`}
         >
           {principles.map(([title, text]) => (
             <div key={title}>
@@ -295,7 +300,7 @@ export default function PricingPage() {
           className="grid scroll-mt-28 gap-6 pt-14 md:grid-cols-[1fr_1.6fr] md:gap-20 md:pt-20"
           aria-labelledby="pricing-questions-title"
         >
-          <div>
+          <div className={motion.reveal}>
             <Chapter>A few helpful answers</Chapter>
             <h2 id="pricing-questions-title" className={heading}>
               Before you choose.
@@ -304,7 +309,7 @@ export default function PricingPage() {
               The details that matter, without the small print.
             </p>
           </div>
-          <div>
+          <div className={motion.stagger}>
             {questions.map(([question, answer], index) => (
               <details
                 key={question}
@@ -331,7 +336,9 @@ export default function PricingPage() {
             ))}
           </div>
         </section>
-        <section className="mb-11 mt-16 rounded-xl border border-marketing-border bg-[#f3edf8] px-6 py-10 text-center md:mt-[70px] md:px-10">
+        <section
+          className={`${motion.reveal} mb-11 mt-16 rounded-xl border border-marketing-border bg-[#f3edf8] px-6 py-10 text-center md:mt-[70px] md:px-10`}
+        >
           <Chapter>Start with understanding</Chapter>
           <h2 className="font-[inherit] text-[26px] font-semibold tracking-[-.035em]">
             Find your starting point.

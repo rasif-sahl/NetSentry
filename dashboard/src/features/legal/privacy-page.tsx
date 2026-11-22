@@ -1,3 +1,4 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
@@ -15,7 +16,7 @@ export default function PrivacyPolicyPage() {
       <main id="privacy-main" tabIndex={-1} className={container}>
         <section
           id="privacy-top"
-          className="scroll-mt-28 pb-8 pt-12 text-center md:pb-10 md:pt-16"
+          className={`${motion.intro} scroll-mt-28 pb-8 pt-12 text-center md:pb-10 md:pt-16`}
         >
           <Chapter>Your information. Your choices.</Chapter>
           <h1 className="font-[inherit] text-[38px] font-semibold leading-[1.2] tracking-[-.045em] md:text-5xl">
@@ -40,7 +41,7 @@ export default function PrivacyPolicyPage() {
         </section>
         <aside
           aria-labelledby="privacy-draft-title"
-          className="mb-7 flex items-start gap-4 rounded-xl border border-marketing-border bg-[#f3edf8] px-5 py-5 md:mb-10 md:px-6"
+          className={`${motion.reading} mb-7 flex items-start gap-4 rounded-xl border border-marketing-border bg-[#f3edf8] px-5 py-5 md:mb-10 md:px-6`}
         >
           <FileText
             size={20}
@@ -91,7 +92,7 @@ export default function PrivacyPolicyPage() {
               >
                 <h2
                   id={`privacy-${id}-title`}
-                  className="mb-4 font-[inherit] text-[22px] font-semibold leading-[1.4] tracking-[-.025em] md:text-[23px]"
+                  className={`${motion.reading} mb-4 font-[inherit] text-[22px] font-semibold leading-[1.4] tracking-[-.025em] md:text-[23px]`}
                 >
                   <span
                     aria-hidden="true"

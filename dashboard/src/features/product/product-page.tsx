@@ -1,3 +1,4 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
@@ -41,7 +42,9 @@ function SectionHeading({
   children: ReactNode;
 }) {
   return (
-    <div className="mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16">
+    <div
+      className={`${motion.reveal} mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16`}
+    >
       <div>
         <Chapter>{eyebrow}</Chapter>
         <Title>{title}</Title>
@@ -73,7 +76,9 @@ function CardTitle({
 
 function Steps({ items }: { items: { title: string; description: string }[] }) {
   return (
-    <ol className="mt-10 grid gap-6 md:grid-cols-3 md:gap-8">
+    <ol
+      className={`${motion.stagger} mt-10 grid gap-6 md:grid-cols-3 md:gap-8`}
+    >
       {items.map(({ title, description }, index) => (
         <li
           key={title}
@@ -102,29 +107,34 @@ export default function ProductPage() {
           id="product-top"
           className={`${container} scroll-mt-28 pb-5 pt-12 text-center md:pt-16`}
         >
-          <Chapter>The product / A closer look at NetSentry</Chapter>
-          <h1 className="mb-6 font-[inherit] text-[38px] font-semibold leading-[1.15] tracking-[-.045em] md:text-[clamp(38px,4.4vw,64px)]">
-            A clearer view of your devices.
-            <br />
-            <span className={accent}>More context for every decision.</span>
-          </h1>
-          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-marketing-copy md:text-[15px]">
-            Bring device reports, digital habits and developer services into one
-            workspace. Understand what the data says, where it came from and
-            what you can do next.
-          </p>
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <a className={primaryButton} href="#product-features">
-              Explore the features
-            </a>
-            <a className={button} href="#product-how-it-fits">
-              See how it fits together
-            </a>
+          <div className={motion.intro}>
+            <Chapter>The product / A closer look at NetSentry</Chapter>
+            <h1 className="mb-6 font-[inherit] text-[38px] font-semibold leading-[1.15] tracking-[-.045em] md:text-[clamp(38px,4.4vw,64px)]">
+              A clearer view of your devices.
+              <br />
+              <span className={accent}>More context for every decision.</span>
+            </h1>
+            <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-marketing-copy md:text-[15px]">
+              Bring device reports, digital habits and developer services into
+              one workspace. Understand what the data says, where it came from
+              and what you can do next.
+            </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <a className={primaryButton} href="#product-features">
+                Explore the features
+              </a>
+              <a className={button} href="#product-how-it-fits">
+                See how it fits together
+              </a>
+            </div>
+            <p className="mt-4 text-[10px] text-marketing-caption">
+              Product in development · Features depend on platform and
+              permissions
+            </p>
           </div>
-          <p className="mt-4 text-[10px] text-marketing-caption">
-            Product in development · Features depend on platform and permissions
-          </p>
-          <div className="mx-auto mt-8 max-w-[1050px] md:mt-11">
+          <div
+            className={`${motion.preview} mx-auto mt-8 max-w-[1050px] md:mt-11`}
+          >
             <WindowFrame title="NetSentry · Your workspace">
               <div className="aspect-[1.55] overflow-hidden md:aspect-[2.15]">
                 <ProductImage
@@ -174,7 +184,7 @@ export default function ProductPage() {
         </section>
         <section id="product-devices" className={`${section} ${tinted}`}>
           <div
-            className={`${container} grid items-center gap-8 md:grid-cols-[1.1fr_.9fr] md:gap-20`}
+            className={`${motion.reveal} ${container} grid items-center gap-8 md:grid-cols-[1.1fr_.9fr] md:gap-20`}
           >
             <div>
               <Chapter>01 / Know your devices</Chapter>
@@ -266,7 +276,9 @@ export default function ProductPage() {
             Understand how complete the picture is before deciding what it
             means.
           </SectionHeading>
-          <div className="grid gap-7 md:grid-cols-3 md:gap-8">
+          <div
+            className={`${motion.stagger} grid gap-7 md:grid-cols-3 md:gap-8`}
+          >
             {[
               {
                 icon: ChartNoAxesColumnIncreasing,
@@ -341,7 +353,9 @@ export default function ProductPage() {
               Bring people into the picture with explicit sharing choices. Being
               in the same workspace does not give everyone the same access.
             </SectionHeading>
-            <div className="grid gap-5 md:grid-cols-2 md:gap-6">
+            <div
+              className={`${motion.stagger} grid gap-5 md:grid-cols-2 md:gap-6`}
+            >
               {[
                 {
                   icon: UsersRound,
@@ -389,15 +403,17 @@ export default function ProductPage() {
             Connect the desktop app to the local agent. Inspect supported
             services by project, runtime, process or listening port.
           </SectionHeading>
-          <WindowFrame title="NetSentry Desktop · Service inventory">
-            <div className="aspect-[1.75] overflow-hidden">
-              <ProductImage
-                src="/product/services.png"
-                alt="Desktop service inventory with a rounded sidebar, search and empty services list"
-                full
-              />
-            </div>
-          </WindowFrame>
+          <div className={motion.previewReveal}>
+            <WindowFrame title="NetSentry Desktop · Service inventory">
+              <div className="aspect-[1.75] overflow-hidden">
+                <ProductImage
+                  src="/product/services.png"
+                  alt="Desktop service inventory with a rounded sidebar, search and empty services list"
+                  full
+                />
+              </div>
+            </WindowFrame>
+          </div>
           <p className={caption}>
             Desktop renderer preview · Empty service inventory. Native release
             checks remain pending.
@@ -428,7 +444,9 @@ export default function ProductPage() {
         </section>
         <section id="product-applications" className={`${section} ${tinted}`}>
           <div className={container}>
-            <div className="mx-auto max-w-[700px] text-center">
+            <div
+              className={`${motion.reveal} mx-auto max-w-[700px] text-center`}
+            >
               <Chapter>The right view, where you need it</Chapter>
               <Title>
                 One workspace.
@@ -470,7 +488,9 @@ export default function ProductPage() {
                   </article>
                 ))}
               </div>
-              <div className="mx-auto grid w-full max-w-[350px] grid-cols-2 gap-5 md:max-w-[430px] md:gap-6">
+              <div
+                className={`${motion.stagger} mx-auto grid w-full max-w-[350px] grid-cols-2 gap-5 md:max-w-[430px] md:gap-6`}
+              >
                 {[
                   {
                     name: "Android",
@@ -526,7 +546,7 @@ export default function ProductPage() {
           </div>
         </section>
         <section id="product-how-it-fits" className={`${container} ${section}`}>
-          <div className="mx-auto max-w-[700px] text-center">
+          <div className={`${motion.reveal} mx-auto max-w-[700px] text-center`}>
             <Chapter>From your device to your workspace</Chapter>
             <Title>
               A connected picture.
@@ -559,7 +579,9 @@ export default function ProductPage() {
           />
         </section>
         <section id="product-privacy" className={`${container} scroll-mt-28`}>
-          <div className="grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-7 md:grid-cols-2 md:gap-16 md:p-11">
+          <div
+            className={`${motion.reveal} grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-7 md:grid-cols-2 md:gap-16 md:p-11`}
+          >
             <div>
               <Chapter>Your choices / At every step</Chapter>
               <Title>
@@ -613,7 +635,9 @@ export default function ProductPage() {
             </div>
           </div>
         </section>
-        <section className={`${container} ${section} text-center`}>
+        <section
+          className={`${motion.reveal} ${container} ${section} text-center`}
+        >
           <Chapter>Start with the part that matters to you</Chapter>
           <Title>
             Get to know your devices.

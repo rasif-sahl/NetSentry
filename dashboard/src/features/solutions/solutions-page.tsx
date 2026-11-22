@@ -1,3 +1,4 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
@@ -79,7 +80,9 @@ function Heading({
   children: ReactNode;
 }) {
   return (
-    <div className="mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16">
+    <div
+      className={`${motion.reveal} mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16`}
+    >
       <div>
         <Chapter>{eyebrow}</Chapter>
         <Title>{title}</Title>
@@ -160,7 +163,9 @@ export default function SolutionsPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
       <main id="solutions-main" tabIndex={-1}>
-        <section className={`${container} pb-8 pt-12 text-center md:pt-16`}>
+        <section
+          className={`${motion.intro} ${container} pb-8 pt-12 text-center md:pt-16`}
+        >
           <Chapter>NetSentry solutions / Start with your everyday</Chapter>
           <h1 className="mb-6 font-[inherit] text-[38px] font-semibold leading-[1.15] tracking-[-.045em] md:text-[clamp(38px,4.4vw,64px)]">
             Different days. Different needs.
@@ -190,7 +195,9 @@ export default function SolutionsPage() {
           aria-label="Choose your solution"
           className={`${container} scroll-mt-28 pb-12 md:pb-16`}
         >
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          <div
+            className={`${motion.stagger} grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4`}
+          >
             {solutions.map(({ id, icon: Icon, label, question }) => (
               <a
                 key={id}
@@ -230,7 +237,7 @@ export default function SolutionsPage() {
               meaning.
             </Heading>
             <div className="grid items-center gap-8 lg:grid-cols-[1.45fr_.85fr] lg:gap-11">
-              <div className="min-w-0">
+              <div className={`${motion.previewReveal} min-w-0`}>
                 <WindowFrame title="NetSentry · Personal workspace">
                   <div className="aspect-[1.5] overflow-hidden md:aspect-[1.9] lg:aspect-[1.45]">
                     <ProductImage
@@ -275,7 +282,9 @@ export default function SolutionsPage() {
           </div>
         </section>
         <section id="solutions-family" className={`${container} ${section}`}>
-          <div className="grid items-center gap-8 md:grid-cols-[1.1fr_.9fr] md:gap-16">
+          <div
+            className={`${motion.reveal} grid items-center gap-8 md:grid-cols-[1.1fr_.9fr] md:gap-16`}
+          >
             <div>
               <Chapter>02 / For your family</Chapter>
               <Title>
@@ -366,7 +375,9 @@ export default function SolutionsPage() {
               roles. Employee sharing begins with explicit acceptance for the
               assigned device.
             </Heading>
-            <div className="grid items-center gap-8 md:grid-cols-[1.2fr_1fr] md:gap-16">
+            <div
+              className={`${motion.reveal} grid items-center gap-8 md:grid-cols-[1.2fr_1fr] md:gap-16`}
+            >
               <div className="order-2 rounded-[14px] border border-marketing-nav-border bg-white p-6 md:order-1 md:p-8">
                 <CardTitle icon={Building2}>
                   A workspace with clear boundaries
@@ -475,7 +486,9 @@ export default function SolutionsPage() {
             listening port. Know the exact target before choosing an action.
           </Heading>
           <SolutionPreview />
-          <ol className="mt-10 grid gap-6 md:grid-cols-3 md:gap-8">
+          <ol
+            className={`${motion.stagger} mt-10 grid gap-6 md:grid-cols-3 md:gap-8`}
+          >
             {[
               [
                 "Find the service",
@@ -528,7 +541,9 @@ export default function SolutionsPage() {
                 sharing only when they make sense for you.
               </p>
             </div>
-            <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+            <div
+              className={`${motion.stagger} mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4`}
+            >
               {solutions.map(({ id, icon: Icon, title, text, app }) => (
                 <a
                   key={id}
@@ -556,7 +571,9 @@ export default function SolutionsPage() {
           </div>
         </section>
         <section id="solutions-choices" className={`${container} ${section}`}>
-          <div className="grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-7 md:grid-cols-2 md:gap-16 md:p-11">
+          <div
+            className={`${motion.reveal} grid items-center gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-7 md:grid-cols-2 md:gap-16 md:p-11`}
+          >
             <div>
               <Chapter>A shared foundation / Your choices</Chapter>
               <Title>
@@ -663,7 +680,9 @@ export default function SolutionsPage() {
             </details>
           ))}
         </section>
-        <section className={`${container} ${section} text-center`}>
+        <section
+          className={`${motion.reveal} ${container} ${section} text-center`}
+        >
           <Chapter>Your everyday. A clearer picture.</Chapter>
           <Title>
             Find your starting point.

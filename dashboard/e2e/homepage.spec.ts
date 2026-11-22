@@ -242,3 +242,52 @@ test("homepage text stays readable and motion follows the system preference", as
   await expect.poll(sectionAnimations).toEqual(Array(10).fill(false));
   await expect(privacy.getByRole("heading", { level: 2 })).toBeInViewport();
 });
+
+test("public pages beyond the homepage share scroll motion and respect reduced motion", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const routes = [
+    ["/product", "#product-reports article"],
+    ["/solutions", "#solutions-paths a"],
+    ["/pricing", "#pricing-plans article"],
+    ["/applications", "#applications-choose a"],
+    ["/contact", "#contact-help details"],
+    ["/docs", 'section[aria-label="Documentation guides"] article'],
+    ["/docs/workspace", "#docs-article-workspace section h2"],
+    ["/privacy", "#privacy-main article section h2"],
+    ["/terms", "#terms-main article section h2"],
+  ] as const;
+
+  for (const [route, selector] of routes) {
+    await test.step(route, async () => {
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      await page.goto(route);
+      const heading = page.getByRole("heading", { level: 1 });
+      const scrollItem = page.locator(selector).first();
+      const hasIntro = () =>
+        heading.evaluate((element) => {
+          for (
+            let current: Element | null = element;
+            current && current.tagName !== "MAIN";
+            current = current.parentElement
+          ) {
+            const style = getComputedStyle(current);
+            if (
+              style.animationName !== "none" &&
+              style.getPropertyValue("animation-timeline") === "auto"
+            )
+              return true;
+          }
+          return false;
+        });
+
+      await expect.poll(hasIntro).toBe(true);
+      await expect(scrollItem).toHaveCSS("animation-timeline", /^view\(/);
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await expect.poll(hasIntro).toBe(false);
+      await expect(scrollItem).toHaveCSS("animation-name", "none");
+      await expect(heading).toBeVisible();
+    });
+  }
+});

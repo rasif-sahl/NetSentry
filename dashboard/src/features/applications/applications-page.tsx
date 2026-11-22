@@ -1,3 +1,4 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
@@ -138,7 +139,9 @@ function Heading({
   children: ReactNode;
 }) {
   return (
-    <div className="mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16">
+    <div
+      className={`${motion.reveal} mb-7 grid gap-5 md:mb-9 md:grid-cols-[1.2fr_.8fr] md:items-end md:gap-16`}
+    >
       <div>
         <Chapter>{eyebrow}</Chapter>
         <Title>{title}</Title>
@@ -185,7 +188,9 @@ export default function ApplicationsPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
       <main id="applications-main" tabIndex={-1}>
-        <section className={`${container} pb-8 pt-12 text-center md:pt-16`}>
+        <section
+          className={`${motion.intro} ${container} pb-8 pt-12 text-center md:pt-16`}
+        >
           <Chapter>NetSentry applications / Find your starting point</Chapter>
           <h1 className="mb-6 font-[inherit] text-[38px] font-semibold leading-[1.15] tracking-[-.045em] md:text-[clamp(38px,4.4vw,64px)]">
             One workspace.
@@ -217,7 +222,9 @@ export default function ApplicationsPage() {
           aria-label="Choose an application"
           className={`${container} scroll-mt-28 pb-12 md:pb-16`}
         >
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          <div
+            className={`${motion.stagger} grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4`}
+          >
             {apps.map(({ id, name, icon: Icon, description, stage }) => (
               <a
                 key={id}
@@ -308,7 +315,9 @@ export default function ApplicationsPage() {
               operating system.
             </p>
           </div>
-          <div className="mt-8 grid items-stretch gap-6 md:mt-10 md:grid-cols-2">
+          <div
+            className={`${motion.stagger} mt-8 grid items-stretch gap-6 md:mt-10 md:grid-cols-2`}
+          >
             {mobileApps.map(
               ({ id, name, title, description, features, note }) => (
                 <article
@@ -484,7 +493,9 @@ export default function ApplicationsPage() {
                 can help.
               </p>
             </div>
-            <ol className="mt-10 grid gap-6 md:grid-cols-3 md:gap-8">
+            <ol
+              className={`${motion.stagger} mt-10 grid gap-6 md:grid-cols-3 md:gap-8`}
+            >
               {[
                 [
                   "Choose your starting point",
@@ -578,7 +589,9 @@ export default function ApplicationsPage() {
             </details>
           ))}
         </section>
-        <section className={`${container} pb-[53px] text-center md:pb-20`}>
+        <section
+          className={`${motion.reveal} ${container} pb-[53px] text-center md:pb-20`}
+        >
           <Chapter>Your devices. Your workspace. Your choices.</Chapter>
           <Title>
             Find your starting point.

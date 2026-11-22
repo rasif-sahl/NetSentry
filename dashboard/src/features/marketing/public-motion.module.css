@@ -1,0 +1,66 @@
+@keyframes rise-in {
+  from {
+    opacity: var(--entry-opacity, 0.86);
+    translate: 0 var(--entry-offset, 18px);
+    scale: var(--entry-scale, 1);
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .intro {
+    animation: rise-in 440ms ease-out both;
+  }
+
+  .preview {
+    animation: rise-in 560ms 100ms ease-out both;
+  }
+
+  @supports (animation-timeline: view()) {
+    .reveal,
+    .previewReveal,
+    .reading,
+    .stagger > * {
+      animation: rise-in linear both;
+      animation-timeline: view();
+      animation-range: entry var(--entry-start, 0%) entry var(--entry-end, 65%);
+    }
+
+    .reading {
+      --entry-offset: 6px;
+      --entry-opacity: 0.95;
+      --entry-end: 45%;
+    }
+
+    .previewReveal {
+      --entry-scale: 0.985;
+      --entry-offset: 22px;
+    }
+
+    .stagger > * {
+      --entry-offset: 14px;
+    }
+
+    @media (min-width: 768px) {
+      .stagger > :nth-child(2) {
+        --entry-start: 8%;
+        --entry-end: 73%;
+      }
+
+      .stagger > :nth-child(3) {
+        --entry-start: 16%;
+        --entry-end: 81%;
+      }
+
+      .stagger > :nth-child(4) {
+        --entry-start: 24%;
+        --entry-end: 89%;
+      }
+    }
+  }
+}

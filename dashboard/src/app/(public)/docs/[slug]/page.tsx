@@ -1,3 +1,4 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -133,7 +134,9 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
           <p className="mb-4 text-[9px] font-semibold uppercase tracking-[1.7px] text-[#947da1]">
             {guide.category}
           </p>
-          <h1 className="font-[inherit] text-[35px] font-semibold leading-[1.2] tracking-[-.035em] sm:text-[42px]">
+          <h1
+            className={`${motion.intro} font-[inherit] text-[35px] font-semibold leading-[1.2] tracking-[-.035em] sm:text-[42px]`}
+          >
             {guide.title}
           </h1>
           <p className="mt-5 text-xs leading-[1.9] text-marketing-copy sm:text-sm">
@@ -146,7 +149,9 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
                 id={sectionId(section.id)}
                 className="mt-8 scroll-mt-28 first:mt-0"
               >
-                <h2 className="font-[inherit] text-2xl font-semibold leading-tight tracking-[-.035em] sm:text-[25px]">
+                <h2
+                  className={`${motion.reading} font-[inherit] text-2xl font-semibold leading-tight tracking-[-.035em] sm:text-[25px]`}
+                >
                   {section.title}
                 </h2>
                 {section.blocks.map((block, index) => (

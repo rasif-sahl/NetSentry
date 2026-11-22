@@ -1,3 +1,4 @@
+import motion from "@/features/marketing/public-motion.module.css";
 import Link from "next/link";
 import { BookOpen, Building2, Lightbulb, MessageCircle } from "lucide-react";
 import { ContactForm } from "./contact-form";
@@ -84,7 +85,9 @@ export default function ContactPage() {
         tabIndex={-1}
         className={`${container} max-w-[1060px]`}
       >
-        <section className="pb-10 pt-12 text-center md:pb-12 md:pt-16">
+        <section
+          className={`${motion.intro} pb-10 pt-12 text-center md:pb-12 md:pt-16`}
+        >
           <Chapter>Contact NetSentry</Chapter>
           <h1 className="font-[inherit] text-[37px] font-semibold leading-[1.16] tracking-[-.045em] md:text-5xl">
             A question. An idea.
@@ -107,7 +110,7 @@ export default function ContactPage() {
           className="grid items-start gap-8 pb-10 min-[651px]:grid-cols-[minmax(0,1.35fr)_minmax(0,.8fr)] md:gap-10 md:pb-16 lg:gap-[50px]"
         >
           <ContactForm />
-          <aside className="pt-2">
+          <aside className={`${motion.reading} pt-2`}>
             <Chapter>A good place to begin</Chapter>
             <h2 className={`${heading} mb-6`}>Point us in your direction.</h2>
             {reasons.map(({ icon: Icon, title, text }) => (
@@ -157,7 +160,7 @@ export default function ContactPage() {
           aria-labelledby="contact-help-title"
           className="grid scroll-mt-28 gap-7 border-t border-marketing-border py-10 md:grid-cols-[1fr_1.6fr] md:gap-14 md:py-12"
         >
-          <div>
+          <div className={motion.reading}>
             <Chapter>Before you send</Chapter>
             <h2 id="contact-help-title" className={heading}>
               A few useful details.
@@ -166,7 +169,7 @@ export default function ContactPage() {
               The right context makes a good conversation easier.
             </p>
           </div>
-          <div>
+          <div className={motion.stagger}>
             {questions.map(({ question, answer }, index) => (
               <details
                 key={question}

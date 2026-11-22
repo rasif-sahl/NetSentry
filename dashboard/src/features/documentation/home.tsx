@@ -1,5 +1,6 @@
 "use client";
 
+import motion from "@/features/marketing/public-motion.module.css";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useId, useRef, useState } from "react";
@@ -55,7 +56,9 @@ export function DocumentationHome({
         <p className="mb-4 text-[9px] font-semibold uppercase tracking-[1.7px] text-[#947da1]">
           NetSentry documentation
         </p>
-        <h1 className="font-[inherit] text-[36px] font-semibold leading-[1.2] tracking-[-.035em] sm:text-[45px]">
+        <h1
+          className={`${motion.intro} font-[inherit] text-[36px] font-semibold leading-[1.2] tracking-[-.035em] sm:text-[45px]`}
+        >
           A little guidance.
           <br />
           <span className="text-[#7e6094]">A clearer way forward.</span>
@@ -101,7 +104,9 @@ export function DocumentationHome({
         </p>
       </section>
       {!needle && (
-        <section className="mb-10 grid gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-6 sm:grid-cols-[1.1fr_1fr] sm:gap-10 sm:p-7">
+        <section
+          className={`${motion.reading} mb-10 grid gap-5 rounded-[14px] border border-[#e8dfee] bg-marketing-hover p-6 sm:grid-cols-[1.1fr_1fr] sm:gap-10 sm:p-7`}
+        >
           <div>
             <p className="mb-3 text-[8px] font-semibold uppercase tracking-[1.7px] text-[#947da1]">
               New to NetSentry?
@@ -154,7 +159,7 @@ export function DocumentationHome({
             {categories.length} {categories.length === 1 ? "topic" : "topics"}
           </p>
         </div>
-        <div className="grid gap-[18px] sm:grid-cols-2">
+        <div className={`${motion.stagger} grid gap-[18px] sm:grid-cols-2`}>
           {categories.map((category) => {
             const Icon = icons[guideCategories.indexOf(category)];
             return (
@@ -205,7 +210,9 @@ export function DocumentationHome({
           </div>
         )}
       </section>
-      <section className="mt-8 flex items-start gap-5 rounded-xl border border-marketing-nav-border bg-[#faf8fc] p-6">
+      <section
+        className={`${motion.reading} mt-8 flex items-start gap-5 rounded-xl border border-marketing-nav-border bg-[#faf8fc] p-6`}
+      >
         <CircleHelp
           size={21}
           strokeWidth={1.5}
