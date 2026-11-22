@@ -525,6 +525,9 @@
 .workspace-app .page-heading > .button {
   grid-area: refresh;
 }
+.workspace-app .page-heading .refresh-icon {
+  display: none;
+}
 .workspace-app .page-heading .page-description {
   grid-area: description;
 }
@@ -780,7 +783,14 @@
     overflow-wrap: anywhere;
   }
   .workspace-app .page-content .page-heading > .button {
-    padding-inline: 0.65rem;
+    width: 44px;
+    padding: 0;
+  }
+  .workspace-app .page-heading .refresh-label {
+    display: none;
+  }
+  .workspace-app .page-heading .refresh-icon {
+    display: block;
   }
   .workspace-app
     .page-content

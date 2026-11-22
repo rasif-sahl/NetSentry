@@ -11,6 +11,7 @@ import {
   Laptop,
   Menu,
   Network,
+  RefreshCw,
   Settings,
   ShieldCheck,
   Smartphone,
@@ -478,11 +479,17 @@ function WorkspaceShell({
             <button
               type="button"
               className="button"
+              aria-label="Refresh workspace"
               onClick={() => {
                 window.dispatchEvent(new Event("netsentry:refresh"));
               }}
             >
-              Refresh workspace
+              <span className="refresh-label">Refresh workspace</span>
+              <RefreshCw
+                className="refresh-icon"
+                size={18}
+                aria-hidden="true"
+              />
             </button>
             {section === "Overview" && (
               <p className="page-description">

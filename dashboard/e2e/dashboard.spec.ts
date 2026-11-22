@@ -705,14 +705,21 @@ test("registration and password-confirmed account deletion clear the browser ses
   });
   const metrics = page.locator(".overview-metrics > .card");
   await expect(metrics).toHaveCount(3);
+  const refreshButton = page.getByRole("button", { name: "Refresh workspace" });
+  const refreshLabel = refreshButton.getByText("Refresh workspace");
+  const refreshIcon = refreshButton.locator("svg");
+  await expect(refreshLabel).toBeVisible();
+  await expect(refreshIcon).toBeHidden();
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 760 });
+    await expect(refreshLabel).toBeHidden();
+    await expect(refreshIcon).toBeVisible();
     const title = await page
       .getByRole("heading", { name: "Overview", exact: true })
       .boundingBox();
-    const refresh = await page
-      .getByRole("button", { name: "Refresh workspace" })
-      .boundingBox();
+    const refresh = await refreshButton.boundingBox();
+    expect(refresh!.width).toBe(44);
+    expect(refresh!.height).toBeGreaterThanOrEqual(44);
     const description = await page
       .getByText("Your devices and the information they report, in one place.")
       .boundingBox();
@@ -752,6 +759,13 @@ test("registration and password-confirmed account deletion clear the browser ses
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBe(width);
   }
+  await Promise.all([
+    page.waitForRequest(
+      (request) =>
+        new URL(request.url()).pathname === "/api/backend/workspaces",
+    ),
+    refreshButton.click(),
+  ]);
   await sendMobileEmail.click();
   await expect(stripe.getByRole("status")).toHaveText(
     "Verification email requested. Check your inbox.",
