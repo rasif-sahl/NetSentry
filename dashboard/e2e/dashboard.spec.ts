@@ -708,6 +708,7 @@ test("registration and password-confirmed account deletion clear the browser ses
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 760 });
     await expect(stripe.getByText(/to manage workspace access/)).toBeHidden();
+    expect((await stripe.boundingBox())!.height).toBeLessThanOrEqual(90);
     const copy = await stripe
       .getByText("Verify your email", { exact: true })
       .boundingBox();
