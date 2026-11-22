@@ -63,7 +63,7 @@ export function DocumentationHome({
           <br />
           <span className="text-[#7e6094]">A clearer way forward.</span>
         </h1>
-        <p className="mt-5 max-w-[650px] text-xs leading-[1.9] text-marketing-copy sm:text-sm">
+        <p className="mt-5 max-w-[650px] text-base leading-relaxed text-marketing-copy">
           Learn how to set up your workspace, understand your reports and manage
           your choices. Start with a guide or find the topic you need.
         </p>
@@ -114,7 +114,7 @@ export function DocumentationHome({
             <h2 className="font-[inherit] text-[25px] font-semibold leading-tight tracking-[-.035em]">
               Start with your workspace.
             </h2>
-            <p className="mb-5 mt-4 text-xs leading-[1.8] text-marketing-copy">
+            <p className="mb-5 mt-4 text-sm leading-relaxed text-marketing-copy">
               Get a clear view of the account, workspace and permission choices
               that come first.
             </p>
@@ -202,7 +202,7 @@ export function DocumentationHome({
             <h3 className="font-[inherit] text-lg font-semibold">
               No matching guides.
             </h3>
-            <p className="mb-6 mt-4 text-xs leading-[1.8] text-marketing-copy">
+            <p className="mb-6 mt-4 text-sm leading-relaxed text-marketing-copy">
               Try “permissions”, “sharing” or “reports”. You can also clear your
               search to browse every topic.
             </p>
@@ -225,7 +225,7 @@ export function DocumentationHome({
           <h2 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.035em]">
             Know what is supported before you begin.
           </h2>
-          <p className="mt-3 text-[11px] leading-[1.9] text-marketing-copy">
+          <p className="mt-3 text-sm leading-relaxed text-marketing-copy">
             Native build, signing and physical-device checks are still in
             progress. Features depend on platform, permissions and supported
             sources.

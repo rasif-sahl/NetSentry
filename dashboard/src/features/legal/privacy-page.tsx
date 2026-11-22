@@ -8,7 +8,7 @@ import { policySections } from "./policy";
 
 const container =
   "mx-auto w-[calc(100%-40px)] max-w-[1060px] md:w-[calc(100%-80px)]";
-const paragraph = "text-[13px] leading-[1.95] text-marketing-copy";
+const paragraph = "text-base leading-relaxed text-marketing-copy";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -22,11 +22,11 @@ export default function PrivacyPolicyPage() {
           <h1 className="font-[inherit] text-[38px] font-semibold leading-[1.2] tracking-[-.045em] md:text-5xl">
             Privacy Policy
           </h1>
-          <p className="mx-auto mt-5 max-w-[535px] text-sm leading-[1.9] text-marketing-copy">
+          <p className="mx-auto mt-5 max-w-[535px] text-base leading-relaxed text-marketing-copy">
             A clear view of the information NetSentry uses, why it is needed,
             and the choices available to you.
           </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[11px] text-marketing-copy">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-marketing-copy">
             <span className="rounded-full bg-[#f3edf8] px-3 py-1 text-[#806092]">
               Draft for review
             </span>
@@ -56,7 +56,7 @@ export default function PrivacyPolicyPage() {
             >
               Policy content is being finalized.
             </h2>
-            <p className="mt-1 text-xs leading-[1.8] text-marketing-copy">
+            <p className="mt-1 text-sm leading-relaxed text-marketing-copy">
               This preview shows the proposed structure and wording. The
               operating entity, service providers, retention periods and
               applicable regional terms must be confirmed before publication as
@@ -69,7 +69,7 @@ export default function PrivacyPolicyPage() {
             <PolicyContents
               sections={policySections.map(({ id, title }) => ({ id, title }))}
             />
-            <p className="mt-6 hidden border-t border-marketing-border pt-5 text-[11px] leading-[1.8] text-marketing-copy min-[651px]:block">
+            <p className="mt-6 hidden border-t border-marketing-border pt-5 text-sm leading-relaxed text-marketing-copy min-[651px]:block">
               Looking for practical guidance?
               <br />
               Privacy controls are explained in the{" "}
@@ -113,7 +113,7 @@ export default function PrivacyPolicyPage() {
                           <li key={item.text} className="pl-1">
                             {item.lead && (
                               <>
-                                <strong className="font-semibold text-[#695476]">
+                                <strong className="font-semibold text-marketing-label">
                                   {item.lead}
                                 </strong>{" "}
                               </>
@@ -127,7 +127,7 @@ export default function PrivacyPolicyPage() {
                         key={i}
                         className={
                           block.type === "note"
-                            ? "border-l-[3px] border-[#b89acb] pl-4 text-xs leading-[1.9] text-marketing-copy"
+                            ? "border-l-[3px] border-[#b89acb] pl-4 text-sm leading-relaxed text-marketing-copy"
                             : paragraph
                         }
                       >
@@ -142,7 +142,7 @@ export default function PrivacyPolicyPage() {
               <h2 className="font-[inherit] text-[22px] font-semibold leading-[1.4] tracking-[-.025em]">
                 Make your choices with context.
               </h2>
-              <p className="mt-2 text-xs leading-[1.85] text-marketing-copy">
+              <p className="mt-2 text-sm leading-relaxed text-marketing-copy">
                 Understand how permissions, sharing and account controls work in
                 NetSentry.
               </p>
@@ -160,7 +160,7 @@ export default function PrivacyPolicyPage() {
         </div>
       </main>
       <footer
-        className={`${motion.reading} ${container} flex flex-wrap justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy`}
+        className={`${motion.reading} ${container} flex flex-wrap justify-between gap-5 border-t border-marketing-border py-7 text-sm text-marketing-copy`}
       >
         <p>
           © <CopyrightYear /> NetSentry

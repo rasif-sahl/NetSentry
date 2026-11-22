@@ -96,9 +96,14 @@ export function FeatureExplorer() {
             }}
             onClick={() => setSelected(index)}
             onKeyDown={(event) => navigate(event, index)}
-            className={`flex min-h-14 items-center justify-center gap-2 border-marketing-nav-border px-2 py-3 text-[10px] [&:nth-child(-n+2)]:border-b [&:nth-child(odd)]:border-r md:min-h-16 md:gap-3 md:border-r md:text-xs md:[&:nth-child(-n+2)]:border-b-0 md:last:border-r-0 ${selected === index ? "bg-[#f0e9f5] text-[#604675] shadow-[inset_0_-2px_#806193]" : "text-[#8a7797] hover:bg-[#f5f0f8]"}`}
+            className={`flex min-h-14 items-center justify-center gap-2 border-marketing-nav-border px-3 py-3 text-balance text-sm font-semibold leading-snug [&:nth-child(-n+2)]:border-b [&:nth-child(odd)]:border-r md:min-h-16 md:gap-3 md:border-r lg:text-base md:[&:nth-child(-n+2)]:border-b-0 md:last:border-r-0 ${selected === index ? "bg-[#eadcf3] text-[#422651] shadow-[inset_0_-3px_#725082]" : "text-marketing-label hover:bg-[#f0e8f5]"}`}
           >
-            <Icon size={18} strokeWidth={1.5} aria-hidden="true" />
+            <Icon
+              size={18}
+              strokeWidth={1.7}
+              className="shrink-0"
+              aria-hidden="true"
+            />
             {label}
           </button>
         ))}
@@ -115,17 +120,17 @@ export function FeatureExplorer() {
         >
           <div className="grid gap-5 md:grid-cols-[1.2fr_.8fr] md:gap-16">
             <div>
-              <p className="mb-4 text-[10px] font-semibold uppercase tracking-[1.8px] text-[#947da1]">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-marketing-caption">
                 0{index + 1} / {label}
               </p>
               <h3 className="max-w-[440px] font-[inherit] text-2xl font-semibold leading-[1.15] tracking-[-.025em] md:text-[25px]">
                 {title}
               </h3>
-              <p className="my-4 text-xs leading-[1.8] text-marketing-copy md:text-[13px]">
+              <p className="my-4 text-base leading-relaxed text-marketing-copy">
                 {description}
               </p>
               <a
-                className="inline-block border-b border-[#d3bedf] pb-1 text-xs text-[#806193]"
+                className="inline-block border-b border-[#d3bedf] pb-1 text-sm font-semibold text-marketing-label"
                 href={`#product-${id}`}
               >
                 Explore this feature
@@ -135,9 +140,9 @@ export function FeatureExplorer() {
               {details.map((detail, i) => (
                 <li
                   key={detail}
-                  className="border-b border-marketing-nav-border py-3 text-xs text-[#6e597b] last:border-b-0"
+                  className="border-b border-marketing-nav-border py-3 text-sm text-marketing-label last:border-b-0"
                 >
-                  <span className="mr-5 text-[10px] tracking-wider text-[#a48bb1]">
+                  <span className="mr-5 text-xs tracking-wide text-marketing-caption">
                     0{i + 1}
                   </span>
                   {detail}

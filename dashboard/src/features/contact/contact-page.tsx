@@ -5,7 +5,7 @@ import { ContactForm } from "./contact-form";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
 import { Chapter, container } from "@/features/marketing/ui";
 
-const muted = "text-xs leading-[1.85] text-marketing-copy";
+const muted = "text-base leading-relaxed text-marketing-copy";
 const heading =
   "font-[inherit] text-[25px] font-semibold leading-[1.3] tracking-[-.03em]";
 const reasons = [
@@ -94,7 +94,7 @@ export default function ContactPage() {
             <br />
             <span className="text-[#7e6094]">Let’s start a conversation.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-[490px] text-sm leading-[1.9] text-marketing-copy">
+          <p className="mx-auto mt-6 max-w-[490px] text-base leading-relaxed text-marketing-copy">
             Whether you’re finding your way around NetSentry or exploring it for
             your team, we’d like to hear from you.
           </p>
@@ -178,7 +178,7 @@ export default function ContactPage() {
                 open={index === 0}
                 className="group border-b border-marketing-border py-4"
               >
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-[13px] font-semibold [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-base font-semibold [&::-webkit-details-marker]:hidden">
                   {question}
                   <span
                     aria-hidden="true"
@@ -200,7 +200,7 @@ export default function ContactPage() {
         </section>
       </main>
       <footer
-        className={`${motion.reading} ${container} flex max-w-[1060px] flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
+        className={`${motion.reading} ${container} flex max-w-[1060px] flex-col justify-between gap-5 border-t border-marketing-border py-7 text-sm text-marketing-copy sm:flex-row`}
       >
         <p>
           © <CopyrightYear /> NetSentry

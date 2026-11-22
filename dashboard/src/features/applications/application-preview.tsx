@@ -15,7 +15,7 @@ import {
 } from "@/features/marketing/ui";
 
 const enlargeButton =
-  "min-h-11 shrink-0 rounded-lg border border-[#dfd3e7] px-3 py-2 text-[10px] font-semibold text-[#705380] hover:bg-[#f2edf6]";
+  "min-h-11 shrink-0 rounded-lg border border-[#dfd3e7] px-3 py-2 text-sm font-semibold text-marketing-label hover:bg-[#f2edf6]";
 
 export function ApplicationPreview({
   app,
@@ -74,7 +74,7 @@ export function ApplicationPreview({
                     type="button"
                     aria-pressed={desktop === key}
                     onClick={() => setDesktop(key)}
-                    className={`min-h-10 flex-1 whitespace-nowrap rounded-[7px] px-3 py-2 text-[10px] ${desktop === key ? "bg-white text-[#604675]" : "text-marketing-caption hover:text-[#604675]"}`}
+                    className={`min-h-11 flex-1 rounded-[7px] px-3 py-2 text-sm font-semibold leading-snug ${desktop === key ? "bg-white text-[#422651]" : "text-marketing-label hover:bg-white/60"}`}
                   >
                     {productScreens[key].title}
                   </button>

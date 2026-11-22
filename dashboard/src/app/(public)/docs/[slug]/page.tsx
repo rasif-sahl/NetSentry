@@ -30,7 +30,7 @@ function Block({ block }: { block: GuideBlock }) {
     case "paragraph":
       return (
         <p
-          className={`${motion.reading} mt-4 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]`}
+          className={`${motion.reading} mt-4 text-base leading-relaxed text-marketing-copy`}
         >
           {block.text}
         </p>
@@ -38,7 +38,7 @@ function Block({ block }: { block: GuideBlock }) {
     case "list":
       return (
         <ul
-          className={`${motion.reading} my-5 list-disc space-y-2 pl-5 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]`}
+          className={`${motion.reading} my-5 list-disc space-y-2 pl-5 text-base leading-relaxed text-marketing-copy`}
         >
           {block.items.map((item) => (
             <li key={item}>{item}</li>
@@ -53,7 +53,7 @@ function Block({ block }: { block: GuideBlock }) {
           <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
             {block.title}
           </h3>
-          <p className="mt-2 text-xs leading-[1.9] text-marketing-copy">
+          <p className="mt-2 text-base leading-relaxed text-marketing-copy">
             {block.text}
           </p>
         </aside>
@@ -130,7 +130,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
             name="q"
             aria-label="Search documentation"
             placeholder="Search documentation"
-            className="h-10 min-w-0 w-full bg-transparent text-[11px] text-marketing-copy placeholder:text-[#a18dad] sm:text-[10px]"
+            className="h-10 min-w-0 w-full bg-transparent text-base text-marketing-copy placeholder:text-[#a18dad]"
           />
         </form>
       </div>
@@ -147,7 +147,7 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
           >
             {guide.title}
           </h1>
-          <p className="mt-5 text-xs leading-[1.9] text-marketing-copy sm:text-sm">
+          <p className="mt-5 text-base leading-relaxed text-marketing-copy">
             {guide.summary}
           </p>
           <div className="mt-8">

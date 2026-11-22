@@ -28,7 +28,7 @@ export function PolicyContents({
         href={`#${prefix}-${id}`}
         aria-current={active === id ? "location" : undefined}
         onClick={() => setActive(id)}
-        className="min-h-11 rounded-r-md border-l-2 border-transparent px-3 py-2 text-xs leading-relaxed text-marketing-copy hover:border-[#af90c2] hover:bg-[#f3edf8] aria-[current=location]:border-[#af90c2] aria-[current=location]:bg-[#f3edf8] aria-[current=location]:text-[#705183]"
+        className="min-h-11 rounded-r-md border-l-2 border-transparent px-3 py-2 text-sm leading-relaxed text-marketing-copy hover:border-[#af90c2] hover:bg-[#f3edf8] aria-[current=location]:border-[#af90c2] aria-[current=location]:bg-[#f3edf8] aria-[current=location]:text-[#705183]"
       >
         {String(index + 1).padStart(2, "0")} · {title}
       </a>

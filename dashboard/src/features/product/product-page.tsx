@@ -29,7 +29,7 @@ import {
 const accent = "text-[#7e6094]";
 const section = "scroll-mt-28 py-[53px] md:py-20";
 const tinted = "border-y border-[#eee6f2] bg-[#f9f7fb]";
-const muted = "text-xs leading-[1.8] text-marketing-copy md:text-[13px]";
+const muted = "text-base leading-relaxed text-marketing-copy";
 const quiet = "text-[10px] leading-[1.8] text-marketing-caption md:text-[11px]";
 
 function SectionHeading({
@@ -49,7 +49,9 @@ function SectionHeading({
         <Chapter>{eyebrow}</Chapter>
         <Title>{title}</Title>
       </div>
-      <p className={`${muted} max-w-[390px]`}>{children}</p>
+      <p className="max-w-[390px] text-[15px] leading-relaxed text-marketing-copy md:text-base">
+        {children}
+      </p>
     </div>
   );
 }
@@ -90,7 +92,7 @@ function Steps({ items }: { items: { title: string; description: string }[] }) {
           <h3 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.025em]">
             {title}
           </h3>
-          <p className="col-start-2 text-xs leading-[1.8] text-marketing-copy md:mt-3">
+          <p className="col-start-2 text-sm leading-relaxed text-marketing-copy md:mt-3">
             {description}
           </p>
         </li>
@@ -114,7 +116,7 @@ export default function ProductPage() {
               <br />
               <span className={accent}>More context for every decision.</span>
             </h1>
-            <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-marketing-copy md:text-[15px]">
+            <p className="mx-auto max-w-[650px] text-base leading-relaxed text-marketing-copy">
               Bring device reports, digital habits and developer services into
               one workspace. Understand what the data says, where it came from
               and what you can do next.
@@ -195,7 +197,7 @@ export default function ProductPage() {
                 <br />
                 <span className={accent}>Every report has a context.</span>
               </Title>
-              <p className="mt-6 text-xs leading-[1.8] text-marketing-copy md:text-sm">
+              <p className="mt-6 text-sm leading-relaxed text-marketing-copy">
                 See the devices registered to your workspace, then look closer
                 at what each installation can report. A missing reading stays
                 missing. A capability tells you what is supported.
@@ -256,7 +258,7 @@ export default function ProductPage() {
                   <h3 className="font-[inherit] text-sm font-semibold">
                     {title}
                   </h3>
-                  <p className="mt-1 text-[11px] text-marketing-copy">{text}</p>
+                  <p className="mt-1 text-sm text-marketing-copy">{text}</p>
                 </div>
               ))}
               <p className="mt-4 text-[9px] text-[#9a87a5]">
@@ -313,7 +315,7 @@ export default function ProductPage() {
                 <h3 className="font-[inherit] text-lg font-semibold leading-tight tracking-[-.025em]">
                   {title}
                 </h3>
-                <p className="col-start-2 text-xs leading-[1.85] text-marketing-copy md:mt-4">
+                <p className="col-start-2 text-sm leading-relaxed text-marketing-copy md:mt-4">
                   {text}
                 </p>
               </article>
@@ -337,7 +339,7 @@ export default function ProductPage() {
                 <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                   {title}
                 </h3>
-                <p className="mt-2 text-[11px] leading-[1.8] text-marketing-copy">
+                <p className="mt-2 text-sm leading-relaxed text-marketing-copy">
                   {text}
                 </p>
               </div>
@@ -459,7 +461,7 @@ export default function ProductPage() {
                 <br />
                 <span className={accent}>Apps with different roles.</span>
               </Title>
-              <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
+              <p className="mx-auto mt-6 max-w-[580px] text-base leading-relaxed text-marketing-copy">
                 Use the web for the wider view, your phone for supported mobile
                 workflows and the desktop app for your computer’s services.
               </p>
@@ -488,7 +490,7 @@ export default function ProductPage() {
                     className={`${motion.reading} border-b border-marketing-nav-border py-6 first:pt-0 last:border-0`}
                   >
                     <CardTitle icon={icon}>{title}</CardTitle>
-                    <p className="ml-8 mt-3 text-xs leading-[1.8] text-marketing-copy">
+                    <p className="ml-8 mt-3 text-sm leading-relaxed text-marketing-copy">
                       {text}
                     </p>
                   </article>
@@ -527,7 +529,7 @@ export default function ProductPage() {
             <details
               className={`${motion.reading} group mx-auto mt-8 max-w-[800px] border-y border-marketing-nav-border py-4`}
             >
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#715c80] [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-base text-marketing-label [&::-webkit-details-marker]:hidden">
                 What should I know about platform availability?
                 <span
                   aria-hidden="true"
@@ -561,7 +563,7 @@ export default function ProductPage() {
               <br />
               <span className={accent}>A clear path to it.</span>
             </Title>
-            <p className="mt-6 text-xs leading-[1.8] text-marketing-copy md:text-sm">
+            <p className="mt-6 text-sm leading-relaxed text-marketing-copy">
               Each part has a role. Collection starts with your choices and a
               supported source.
             </p>
@@ -634,7 +636,7 @@ export default function ProductPage() {
                     <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                       {title}
                     </h3>
-                    <p className="mt-1 text-[11px] leading-[1.8] text-marketing-copy">
+                    <p className="mt-1 text-sm leading-relaxed text-marketing-copy">
                       {text}
                     </p>
                   </div>
@@ -652,7 +654,7 @@ export default function ProductPage() {
             <br />
             <span className={accent}>Make the next step yours.</span>
           </Title>
-          <p className="mx-auto mt-6 max-w-[480px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
+          <p className="mx-auto mt-6 max-w-[480px] text-sm leading-relaxed text-marketing-copy">
             Explore the applications and review their availability before you
             begin.
           </p>

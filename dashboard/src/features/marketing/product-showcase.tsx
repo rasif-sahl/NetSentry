@@ -103,7 +103,7 @@ export function ProductShowcase({
                 <button
                   key={screen}
                   aria-pressed={desktop === screen}
-                  className={`min-h-11 rounded-lg px-3 py-2 text-xs md:px-4 ${desktop === screen ? "bg-white text-[#604675] shadow-sm" : "text-[#65566f] hover:text-[#604675]"}`}
+                  className={`min-h-11 rounded-lg px-3 py-2 text-sm font-semibold leading-snug md:px-4 ${desktop === screen ? "bg-white text-[#422651] shadow-sm" : "text-marketing-label hover:bg-white/60"}`}
                   onClick={() => setDesktop(screen)}
                 >
                   {screens[screen].title}

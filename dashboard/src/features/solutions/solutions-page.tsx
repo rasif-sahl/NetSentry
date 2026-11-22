@@ -29,7 +29,7 @@ import {
 const section = "scroll-mt-28 py-[53px] md:py-20";
 const tinted = "border-y border-[#eee6f2] bg-[#f9f7fb]";
 const accent = "text-[#7e6094]";
-const muted = "text-xs leading-[1.85] text-marketing-copy";
+const muted = "text-base leading-relaxed text-marketing-copy";
 const quiet = "text-[10px] leading-[1.8] text-marketing-caption md:text-[11px]";
 const solutions = [
   {
@@ -87,7 +87,7 @@ function Heading({
         <Chapter>{eyebrow}</Chapter>
         <Title>{title}</Title>
       </div>
-      <p className="text-xs leading-[1.8] text-marketing-copy md:text-[13px]">
+      <p className="max-w-[390px] text-[15px] leading-relaxed text-marketing-copy md:text-base">
         {children}
       </p>
     </div>
@@ -127,7 +127,7 @@ function StartingPoint({
         A good starting point
       </p>
       <p className="mt-3 text-xs font-semibold text-[#715c80]">{label}</p>
-      <p className="mt-2 text-[11px] leading-[1.85] text-marketing-copy">
+      <p className="mt-2 text-sm leading-relaxed text-marketing-copy">
         {children}
       </p>
       <Link
@@ -172,7 +172,7 @@ export default function SolutionsPage() {
             <br />
             <span className={accent}>A clearer picture for each.</span>
           </h1>
-          <p className="mx-auto max-w-[650px] text-[13px] leading-[1.9] text-marketing-copy md:text-[15px]">
+          <p className="mx-auto max-w-[650px] text-base leading-relaxed text-marketing-copy">
             Your own digital habits. Your family’s shared routines. Your team’s
             devices. Your development workspace. Find the part of NetSentry that
             fits what you want to understand.
@@ -210,7 +210,7 @@ export default function SolutionsPage() {
                 <h2 className="font-[inherit] text-[17px] font-semibold leading-tight tracking-[-.025em] md:text-[19px]">
                   {label}
                 </h2>
-                <p className="mt-3 min-h-20 text-[11px] leading-[1.8] text-marketing-copy md:min-h-[65px] md:text-xs">
+                <p className="mt-3 min-h-20 text-sm leading-relaxed text-marketing-copy md:min-h-[65px]">
                   {question}
                 </p>
                 <span className="mt-4 block border-t border-marketing-nav-border pt-3 text-[10px] text-[#8c729c]">
@@ -393,7 +393,7 @@ export default function SolutionsPage() {
                   <h3 className="mt-2 font-[inherit] text-[22px] font-semibold leading-tight tracking-[-.025em]">
                     Your organization
                   </h3>
-                  <p className="mt-3 text-[11px] text-marketing-copy">
+                  <p className="mt-3 text-sm text-marketing-copy">
                     Locations, departments and assigned devices
                   </p>
                 </div>
@@ -423,7 +423,7 @@ export default function SolutionsPage() {
                       <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                         {title}
                       </h3>
-                      <p className="mt-2 text-[11px] leading-[1.8] text-marketing-copy">
+                      <p className="mt-2 text-sm leading-relaxed text-marketing-copy">
                         {text}
                       </p>
                     </div>
@@ -546,7 +546,7 @@ export default function SolutionsPage() {
                 <br />
                 <span className={accent}>Choose a useful next step.</span>
               </Title>
-              <p className="mx-auto mt-6 max-w-[580px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
+              <p className="mx-auto mt-6 max-w-[580px] text-base leading-relaxed text-marketing-copy">
                 You can begin with one use case. Add supported devices and
                 sharing only when they make sense for you.
               </p>
@@ -569,7 +569,7 @@ export default function SolutionsPage() {
                   <h3 className="font-[inherit] text-base font-semibold leading-tight tracking-[-.025em] md:text-lg">
                     {title}
                   </h3>
-                  <p className="mt-4 min-h-[82px] text-[11px] leading-[1.8] text-marketing-copy md:min-h-[68px] md:text-xs">
+                  <p className="mt-4 min-h-[82px] text-sm leading-relaxed text-marketing-copy md:min-h-[68px]">
                     {text}
                   </p>
                   <span className="mt-5 block border-t border-marketing-nav-border pt-4 text-[10px] leading-relaxed text-[#8c729c]">
@@ -628,7 +628,7 @@ export default function SolutionsPage() {
                     <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
                       {title}
                     </h3>
-                    <p className="mt-1 text-[11px] leading-[1.8] text-marketing-copy">
+                    <p className="mt-1 text-sm leading-relaxed text-marketing-copy">
                       {text}
                     </p>
                   </div>
@@ -669,7 +669,7 @@ export default function SolutionsPage() {
               key={question}
               className={`${motion.reading} group mb-5 border-b border-marketing-nav-border pb-5`}
             >
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#705781] md:text-[13px] [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-base text-marketing-label [&::-webkit-details-marker]:hidden">
                 {question}
                 <span
                   aria-hidden="true"
@@ -684,7 +684,7 @@ export default function SolutionsPage() {
                   −
                 </span>
               </summary>
-              <p className="mt-3 max-w-[870px] text-xs leading-[1.9] text-marketing-copy">
+              <p className="mt-3 max-w-[870px] text-sm leading-relaxed text-marketing-copy">
                 {answer}
               </p>
             </details>
@@ -699,7 +699,7 @@ export default function SolutionsPage() {
             <br />
             <span className={accent}>Make the next step yours.</span>
           </Title>
-          <p className="mx-auto mt-6 max-w-[500px] text-xs leading-[1.8] text-marketing-copy md:text-sm">
+          <p className="mx-auto mt-6 max-w-[500px] text-sm leading-relaxed text-marketing-copy">
             Explore the applications and their availability, or take a closer
             look at how NetSentry fits together.
           </p>

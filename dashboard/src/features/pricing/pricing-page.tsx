@@ -119,7 +119,7 @@ const questions = [
     "No. Membership and billing do not grant collection permissions. Pairing, consent, sharing and supported platform permissions remain separate choices.",
   ],
 ];
-const muted = "text-xs leading-[1.85] text-marketing-copy";
+const muted = "text-base leading-relaxed text-marketing-copy";
 const heading =
   "font-[inherit] text-[30px] font-semibold leading-[1.3] tracking-[-.035em]";
 
@@ -136,7 +136,7 @@ export default function PricingPage() {
             <br />
             <span className="text-[#7e6094]">A plan that fits your day.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-[530px] text-[13px] leading-[1.9] text-marketing-copy md:text-sm">
+          <p className="mx-auto mt-6 max-w-[530px] text-base leading-relaxed text-marketing-copy">
             Start with your own digital habits. Make room for your family or
             your team when you need to.
           </p>
@@ -169,7 +169,7 @@ export default function PricingPage() {
                 <p className="text-[19px] font-semibold tracking-[-.025em]">
                   {edition.price}
                 </p>
-                <p className="mt-1 text-[11px] text-marketing-copy">
+                <p className="mt-1 text-sm text-marketing-copy">
                   {edition.priceNote}
                 </p>
               </div>
@@ -197,7 +197,7 @@ export default function PricingPage() {
             </article>
           ))}
         </section>
-        <p className="mx-auto mt-5 max-w-[700px] text-center text-[11px] leading-[1.8] text-marketing-copy">
+        <p className="mx-auto mt-5 max-w-[700px] text-center text-sm leading-relaxed text-marketing-copy">
           Proposed editions. Prices, limits and launch availability are still
           being finalized.
           <br />
@@ -226,7 +226,7 @@ export default function PricingPage() {
             className={`${motion.reading} relative mt-8 overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary`}
           >
             <table
-              className="w-full min-w-[660px] border-collapse text-left text-xs"
+              className="w-full min-w-[720px] border-collapse text-left text-sm"
               aria-describedby="pricing-comparison-note"
             >
               <caption className="sr-only">
@@ -316,7 +316,7 @@ export default function PricingPage() {
                 open={index === 0}
                 className="group border-b border-marketing-border py-4"
               >
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-[13px] font-semibold [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-base font-semibold [&::-webkit-details-marker]:hidden">
                   {question}
                   <span
                     aria-hidden="true"
@@ -357,7 +357,7 @@ export default function PricingPage() {
         </section>
       </main>
       <footer
-        className={`${motion.reading} ${container} flex flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
+        className={`${motion.reading} ${container} flex flex-col justify-between gap-5 border-t border-marketing-border py-7 text-sm text-marketing-copy sm:flex-row`}
       >
         <p>
           © <CopyrightYear /> NetSentry
