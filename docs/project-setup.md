@@ -14,46 +14,86 @@ npm --prefix dashboard ci --ignore-scripts
 npm --prefix contracts ci --ignore-scripts
 ```
 
-### Set up PostgreSQL and the environment
+### Set up PostgreSQL
 
-1. Start a local PostgreSQL server on port 5432. As a local database administrator, create a dedicated login role and a database owned by that role. Run the following once on a fresh instance, using your administrator connection settings if needed.
+Start a local PostgreSQL server on port 5432. As a local database administrator, create a dedicated login role and a database owned by that role. Run the following once on a fresh instance, using your administrator connection settings if needed.
 
-   ```sh
-   createuser --login --pwprompt netsentry
-   createdb --owner=netsentry netsentry
-   ```
+```sh
+createuser --login --pwprompt netsentry
+createdb --owner=netsentry netsentry
+```
 
-   The first migration enables the `uuid-ossp` extension. The migration role needs permission to create it, or a database administrator can install it in advance in the `netsentry` database.
+The first migration enables the `uuid-ossp` extension. The migration role needs permission to create it, or a database administrator can install it in advance in the `netsentry` database.
 
-2. On a fresh checkout, create the local configuration files from the templates. If you already have these files, edit them in place.
+### Local configuration by platform
 
-   ```sh
-   install -m 600 backend/.env.example backend/.env
-   install -m 600 dashboard/.env.example dashboard/.env.local
-   ```
+#### Backend API
 
-3. Edit `backend/.env`. Use the password you set for the database login, URL-encoding special characters in the connection string. Generate a fresh value for each JWT secret and a separate mail encryption key. Paste the values into the private file.
+On a fresh checkout, copy [the backend template](../backend/.env.example) to `backend/.env`. If you have that file already, edit it in place.
 
-   ```sh
-   openssl rand -base64 48
-   openssl rand -base64 48
-   openssl rand -base64 32
-   ```
+```sh
+install -m 600 backend/.env.example backend/.env
+```
 
-| File | Variable | Local configuration |
-| --- | --- | --- |
-| `backend/.env` | `DATABASE_URL` | PostgreSQL connection URL, for example `postgresql://netsentry:PASSWORD@localhost:5432/netsentry`. |
-| `backend/.env` | `DATABASE_SSL`, `DATABASE_SSL_CA` | Use `false` for an isolated local server without TLS. For TLS, use `true` and supply the PEM CA if needed. |
-| `backend/.env` | `NODE_ENV`, `DB_SYNCHRONIZE` | Use `development` and `false`. Apply migrations explicitly. |
-| `backend/.env` | `PORT`, `API_PREFIX` | Keep `3000` and `api` for the commands below. |
-| `backend/.env` | `CORS_ORIGINS`, `PUBLIC_APP_URL` | Use the exact browser origin `http://localhost:3001` for both. |
-| `backend/.env` | `JWT_ACCESS_TOKEN_SECRET`, `JWT_REFRESH_TOKEN_SECRET` | Set two distinct random secrets, each at least 32 characters. |
-| `backend/.env` | `ACCOUNT_MAIL_ENCRYPTION_KEY` | Set an independent base64-encoded 32-byte key. The API needs it even with SMTP disabled. |
-| `backend/.env` | `ROUTER_CREDENTIAL_ENCRYPTION_KEY` | Required for local router configuration. Generate it independently with `openssl rand -base64 32`. |
-| `backend/.env` | `MAIL_ENABLED`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Leave mail disabled for ordinary development. To exercise verification and password recovery, configure a test SMTP inbox, set `MAIL_ENABLED=true`, and run `npm --prefix backend run mail:deliver` to deliver queued account mail. The default SMTP port is `587`. |
-| `backend/.env` | `BILLING_MODE`, `BILLING_ENFORCEMENT`, `BILLING_EVENT_SECRET` | Keep `disabled` and `false` for ordinary development. Set a separate secret of at least 32 characters only if using the optional local billing sandbox. |
-| `dashboard/.env.local` | `NETSENTRY_API_URL` | Server-only API base `http://127.0.0.1:3000/api/v1`. |
-| `dashboard/.env.local` | `DASHBOARD_ORIGIN` | Exact browser origin `http://localhost:3001`. Use that hostname in your browser. |
+Use the password you set for the database login, URL-encoding special characters in the connection string. Generate a fresh value for each JWT secret and a separate mail encryption key. Paste the values into the private file.
+
+```sh
+openssl rand -base64 48
+openssl rand -base64 48
+openssl rand -base64 32
+```
+
+| Variable | Local configuration |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection URL, for example `postgresql://netsentry:PASSWORD@localhost:5432/netsentry`. |
+| `DATABASE_SSL`, `DATABASE_SSL_CA` | Use `false` for an isolated local server without TLS. For TLS, use `true` and supply the PEM CA if needed. |
+| `NODE_ENV`, `DB_SYNCHRONIZE` | Use `development` and `false`. Apply migrations explicitly. |
+| `PORT`, `API_PREFIX` | Keep `3000` and `api` for the commands below. |
+| `CORS_ORIGINS`, `PUBLIC_APP_URL` | Use the exact browser origin `http://localhost:3001` for both. |
+| `JWT_ACCESS_TOKEN_SECRET`, `JWT_REFRESH_TOKEN_SECRET` | Set two distinct random secrets, each at least 32 characters. |
+| `JWT_ACCESS_TOKEN_TTL`, `JWT_REFRESH_TOKEN_TTL_DAYS` | Optional. Defaults to `15m` and `30` days. |
+| `ACCOUNT_MAIL_ENCRYPTION_KEY` | Set an independent base64-encoded 32-byte key. The API needs it even with SMTP disabled. |
+| `ROUTER_CREDENTIAL_ENCRYPTION_KEY` | Required for local router configuration. Generate it independently with `openssl rand -base64 32`. |
+| `MAIL_ENABLED`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Leave mail disabled for ordinary development. To exercise verification and password recovery, configure a test SMTP inbox, set `MAIL_ENABLED=true`, and run `npm --prefix backend run mail:deliver` to deliver queued account mail. The default SMTP port is `587`. |
+| `BILLING_MODE`, `BILLING_ENFORCEMENT`, `BILLING_EVENT_SECRET` | Keep `disabled` and `false` for ordinary development. Set a separate secret of at least 32 characters only if using the optional local billing sandbox. |
+
+#### Web dashboard
+
+On a fresh checkout, copy [the dashboard template](../dashboard/.env.example) to `dashboard/.env.local`. Edit the existing file if you already have one. Keep these settings server-side.
+
+```sh
+install -m 600 dashboard/.env.example dashboard/.env.local
+```
+
+| Variable | Local configuration |
+| --- | --- |
+| `NETSENTRY_API_URL` | Server-only API base `http://127.0.0.1:3000/api/v1`. |
+| `DASHBOARD_ORIGIN` | Exact browser origin `http://localhost:3001`. Use that hostname in your browser. |
+
+#### Electron desktop
+
+Pass the following variables in the shell that launches unpackaged Electron. The renderer can run by itself without either variable.
+
+| Variable | Local configuration |
+| --- | --- |
+| `NETSENTRY_AGENT_BINARY` | Absolute path to your locally built `netsentry-agent` executable. |
+| `NETSENTRY_AGENT_STATE_DIR` | Optional absolute path to the same private state directory used for the development agent. |
+
+#### Go agent
+
+The Go agent reads runtime configuration from its private state directory. Set the API base with `init --api` and select the state directory with `--state-dir` when you need isolation. For local HTTP tests, use `--development-store` with the loopback API. See the [agent configuration instructions](../agent/README.md#development-only-credential-files).
+
+#### Android
+
+Enter a trusted HTTPS API address ending in `/api/v1` in the sign-in screen. The Android app stores runtime settings locally and does not load a project `.env` file. The portable JVM checks use separate [test tool variables](../android/README.md#development-checks-without-mobile-tooling).
+
+#### iOS
+
+Enter a trusted HTTPS API address ending in `/api/v1` in the setup screen. The iOS app stores runtime settings locally and does not load a project `.env` file. `NETSENTRY_BUNDLE_PREFIX` and the optional Screen Time `NETSENTRY_APP_GROUP` are Xcode build settings. See the [iOS setup and signing handoff](../ios/README.md#targets-and-later-physical-device-handoff).
+
+#### Flutter reference
+
+The preserved Flutter reference accepts `API_BASE_URL` as a Dart build define. See the [Flutter reference README](../mobile/README.md) for its example.
 
 ### Migrate, start and verify
 
@@ -117,29 +157,51 @@ Record the published digests and the source commit. Pin the backend, dashboard a
 
 Copy the templates for [deployment.env](../infra/production/deployment.env.example), [backend.env](../infra/production/backend.env.example) and [dashboard.env](../infra/production/dashboard.env.example) to private files outside the checkout, for example under `/etc/netsentry`. Use mode `0600` and replace the placeholders. Supply application credentials in separate files inside `SERVER_SECRET_DIR`. The backend and maintenance containers read them from `/run/secrets`.
 
-| File | Variable | Required | Value or purpose |
-| --- | --- | --- | --- |
-| `deployment.env` | `COMPOSE_PROJECT_NAME` | Yes | Stable project name, for example `netsentry-production`. |
-| `deployment.env` | `BACKEND_IMAGE`, `DASHBOARD_IMAGE`, `INGRESS_IMAGE` | Yes | Reviewed image references in `repository@sha256:digest` form. |
-| `deployment.env` | `SERVER_ENV_FILE`, `DASHBOARD_ENV_FILE` | Yes | Absolute host paths to the private backend and dashboard environment files. |
-| `deployment.env` | `SERVER_SECRET_DIR` | Yes | Absolute host path to the private directory mounted at `/run/secrets`. |
-| `deployment.env` | `TLS_CERT_DIR` | Yes | Absolute host path to the directory containing `fullchain.pem` and `privkey.pem`. |
-| `deployment.env` | `INGRESS_CONFIG_FILE` | Yes | Absolute host path where `render-ingress` writes the nginx configuration. |
-| `deployment.env` | `PUBLIC_HOST` | Yes | Public DNS hostname, for example `netsentry.example.com`. Use only the hostname. |
-| `deployment.env` | `HTTPS_BIND_ADDRESS` | Yes | Use `127.0.0.1` behind a front proxy or load balancer on the host. Use `0.0.0.0` for direct IPv4 ingress with a configured host firewall. HTTPS uses port 443. |
-| `backend.env` | `PORT`, `API_PREFIX` | Yes | Keep `3000` and `api`. The ingress routes `/api/v1/` to the API. |
-| `backend.env` | `DATABASE_URL_FILE` | Yes | For example `/run/secrets/database-url`. File contains the PostgreSQL connection URL without SSL query overrides. |
-| `backend.env` | `DATABASE_SSL_CA_FILE` | If needed | For example `/run/secrets/database-ca`. File contains the database CA in PEM format if the default trust store cannot validate it. Remove the template entry if unused. |
-| `backend.env` | `JWT_ACCESS_TOKEN_SECRET_FILE`, `JWT_REFRESH_TOKEN_SECRET_FILE` | Yes | Paths to separate files under `/run/secrets`, each holding a unique secret of at least 32 characters. |
-| `backend.env` | `ACCOUNT_MAIL_ENCRYPTION_KEY_FILE`, `ROUTER_CREDENTIAL_ENCRYPTION_KEY_FILE` | Yes | Paths to separate files under `/run/secrets`, each holding an independently generated base64-encoded 32-byte key. Back these keys up separately from the database. |
-| `backend.env` | `CORS_ORIGINS`, `PUBLIC_APP_URL` | Yes | Both must equal `https://PUBLIC_HOST` with your real hostname and no trailing slash. |
-| `backend.env` | `API_RATE_LIMIT` | Optional | Defaults to `120`. Dashboard requests share the proxy address for rate limiting. Check behavior under intended load. |
-| `backend.env` | `JWT_ACCESS_TOKEN_TTL`, `JWT_REFRESH_TOKEN_TTL_DAYS` | Optional | Defaults are `15m` and `30` days. |
-| `backend.env` | `BILLING_MODE`, `BILLING_ENFORCEMENT` | Mode required | Use `disabled` and keep enforcement `false` for the supplied baseline. |
-| `dashboard.env` | `NETSENTRY_API_URL` | Yes | Set exactly `http://backend:3000/api/v1` for server-to-server traffic inside Compose. |
-| `dashboard.env` | `DASHBOARD_ORIGIN` | Yes | Set to the same exact `https://PUBLIC_HOST` used in the backend configuration. |
+#### Compose and HTTPS ingress
 
-Compose supplies `NODE_ENV=production`, `DATABASE_SSL=true` and `DB_SYNCHRONIZE=false` for the backend. Keep secret values out of the deployment environment files and Git. Use regular, non-symlink secret files readable by container UID/GID `10001:10001`, for example UID-10001-owned mode `0400` or root-owned, group-10001 mode `0440`. Make the mounted directories traversable by that runtime group, for example root:10001 mode `0750`. Supply certificate files directly in the TLS directory, with private key access limited to its owner and runtime group. Arrange certificate renewal and an ingress restart. The backend and dashboard HTTP ports stay on host loopback.
+Configure these settings in `deployment.env`.
+
+| Variable | Required | Value or purpose |
+| --- | --- | --- |
+| `COMPOSE_PROJECT_NAME` | Yes | Stable project name, for example `netsentry-production`. |
+| `BACKEND_IMAGE`, `DASHBOARD_IMAGE`, `INGRESS_IMAGE` | Yes | Reviewed image references in `repository@sha256:digest` form. |
+| `SERVER_ENV_FILE`, `DASHBOARD_ENV_FILE` | Yes | Absolute host paths to the private backend and dashboard environment files. |
+| `SERVER_SECRET_DIR` | Yes | Absolute host path to the private directory mounted at `/run/secrets`. |
+| `TLS_CERT_DIR` | Yes | Absolute host path to the directory containing `fullchain.pem` and `privkey.pem`. |
+| `INGRESS_CONFIG_FILE` | Yes | Absolute host path where `render-ingress` writes the nginx configuration. |
+| `PUBLIC_HOST` | Yes | Public DNS hostname, for example `netsentry.example.com`. Use only the hostname. |
+| `HTTPS_BIND_ADDRESS` | Yes | Use `127.0.0.1` behind a front proxy or load balancer on the host. Use `0.0.0.0` for direct IPv4 ingress with a configured host firewall. HTTPS uses port 443. |
+
+#### Backend API and maintenance worker
+
+Configure these settings in `backend.env`.
+
+| Variable | Required | Value or purpose |
+| --- | --- | --- |
+| `PORT`, `API_PREFIX` | Yes | Keep `3000` and `api`. The ingress routes `/api/v1/` to the API. |
+| `DATABASE_URL_FILE` | Yes | For example `/run/secrets/database-url`. File contains the PostgreSQL connection URL without SSL query overrides. |
+| `DATABASE_SSL_CA_FILE` | If needed | For example `/run/secrets/database-ca`. File contains the database CA in PEM format if the default trust store cannot validate it. Remove the template entry if unused. |
+| `JWT_ACCESS_TOKEN_SECRET_FILE`, `JWT_REFRESH_TOKEN_SECRET_FILE` | Yes | Paths to separate files under `/run/secrets`, each holding a unique secret of at least 32 characters. |
+| `ACCOUNT_MAIL_ENCRYPTION_KEY_FILE`, `ROUTER_CREDENTIAL_ENCRYPTION_KEY_FILE` | Yes | Paths to separate files under `/run/secrets`, each holding an independently generated base64-encoded 32-byte key. Back these keys up separately from the database. |
+| `CORS_ORIGINS`, `PUBLIC_APP_URL` | Yes | Both must equal `https://PUBLIC_HOST` with your real hostname and no trailing slash. |
+| `API_RATE_LIMIT` | Optional | Defaults to `120`. Dashboard requests share the proxy address for rate limiting. Check behavior under intended load. |
+| `JWT_ACCESS_TOKEN_TTL`, `JWT_REFRESH_TOKEN_TTL_DAYS` | Optional | Defaults are `15m` and `30` days. |
+| `BILLING_MODE`, `BILLING_ENFORCEMENT` | Mode required | Use `disabled` and keep enforcement `false` for the supplied baseline. |
+
+Compose supplies `NODE_ENV=production`, `DATABASE_SSL=true` and `DB_SYNCHRONIZE=false` for the backend.
+
+#### Web dashboard
+
+Configure these settings in `dashboard.env`.
+
+| Variable | Required | Value or purpose |
+| --- | --- | --- |
+| `NETSENTRY_API_URL` | Yes | Set exactly `http://backend:3000/api/v1` for server-to-server traffic inside Compose. |
+| `DASHBOARD_ORIGIN` | Yes | Set to the same exact `https://PUBLIC_HOST` used in the backend configuration. |
+
+#### Secret and certificate file permissions
+
+Keep secret values out of the deployment environment files and Git. Use regular, non-symlink secret files readable by container UID/GID `10001:10001`, for example UID-10001-owned mode `0400` or root-owned, group-10001 mode `0440`. Make the mounted directories traversable by that runtime group, for example root:10001 mode `0750`. Supply certificate files directly in the TLS directory, with private key access limited to its owner and runtime group. Arrange certificate renewal and an ingress restart. The backend and dashboard HTTP ports stay on host loopback.
 
 ### Migrate, start and verify the deployment
 
@@ -171,4 +233,11 @@ For scheduled encrypted database backups, provision a dedicated identity and pri
 | `backup.env` | `BACKUP_KEEP_COUNT`, `BACKUP_MAX_AGE_HOURS` | Optional | Defaults are seven snapshots and a 36-hour health threshold. Keep at least two snapshots. |
 | Private restore environment | `RESTORE_DATABASE_URL_FILE` | For recovery | File containing the URL of a separate, empty restore target. |
 
-Desktop/agent packaging and Android/iOS signing are separate release workflows. Point clients to `https://PUBLIC_HOST/api/v1` after the deployment is reachable. For signed artifacts and pending physical validation, use the [desktop packaging guide](../desktop/packaging/README.md) and the [release acceptance guide](release/README.md).
+#### Client release configuration
+
+| Platform | Configuration |
+| --- | --- |
+| Electron desktop | Packaged builds use the bundled agent and default agent state path. The macOS packaging shell uses `NETSENTRY_PACKAGE_AGENT`, `NETSENTRY_ELECTRON_DIST`, `NETSENTRY_RELEASE_POLICY`, `DESKTOP_ARCH`, `CSC_NAME` and `APPLE_KEYCHAIN_PROFILE` for a signed release. `DESKTOP_UPDATE_PRIVATE_KEY_FILE` is used separately when signing update metadata. See the [desktop packaging guide](../desktop/packaging/README.md). |
+| Go agent | Set the deployed `https://PUBLIC_HOST/api/v1` with `init --api`. Production credentials use macOS Keychain. See the [agent README](../agent/README.md#run-explicitly). |
+| Android | Enter `https://PUBLIC_HOST/api/v1` at sign-in. Configure the release keystore and credentials through the prepared build host. See the [Android release handoff](release/android-device-testing.md). |
+| iOS | Enter `https://PUBLIC_HOST/api/v1` at setup. Configure signing, provisioning and optional Screen Time build settings in Xcode. See the [iOS release handoff](release/ios-device-testing.md). |
