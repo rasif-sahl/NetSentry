@@ -96,7 +96,13 @@ test("device inventory uses reported health and capability states", async ({
   page,
 }) => {
   await login(page);
-  await page.getByRole("button", { name: "Devices", exact: true }).click();
+  const details = page.getByRole("button", {
+    name: "View device details",
+    exact: true,
+  });
+  await expect(details).toBeVisible();
+  await details.press("Enter");
+  await expect(page).toHaveURL(/\/app\?view=Devices$/);
   await expect(
     page.getByRole("heading", { name: "Device inventory" }),
   ).toBeVisible();

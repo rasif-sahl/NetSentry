@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
 import {
   Activity,
+  ArrowRight,
   Bell,
   ChevronRight,
   Gauge,
@@ -580,12 +581,16 @@ function WorkspaceShell({
                         ))}
                       </ul>
                     )}
-                    <button
-                      className="text-button"
-                      onClick={() => choose("Devices")}
-                    >
-                      View device details →
-                    </button>
+                    <div className="button-row">
+                      <button
+                        type="button"
+                        className="button device-details-button"
+                        onClick={() => choose("Devices")}
+                      >
+                        View device details
+                        <ArrowRight size={16} aria-hidden="true" />
+                      </button>
+                    </div>
                   </Card>
                   <Card title="Monitoring availability">
                     <p>

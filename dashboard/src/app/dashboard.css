@@ -126,6 +126,29 @@
 .workspace-app .button.primary:hover {
   background: var(--primary-hover);
 }
+.workspace-app .button.device-details-button {
+  padding-inline: 1rem;
+  background: var(--surface-lavender);
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+  color: var(--primary-hover);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+.workspace-app .button.device-details-button:hover {
+  background: color-mix(in srgb, var(--primary) 17%, var(--surface-lavender));
+  border-color: var(--primary);
+}
+.workspace-app .button.device-details-button:focus-visible {
+  outline-color: var(--primary);
+}
+.workspace-app .device-details-button svg {
+  flex-shrink: 0;
+  transition: transform 150ms ease;
+}
+.workspace-app .device-details-button:hover svg {
+  transform: translateX(2px);
+}
 .workspace-app .button.danger {
   color: var(--danger);
   border-color: var(--danger);
