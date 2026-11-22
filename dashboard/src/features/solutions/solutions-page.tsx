@@ -283,9 +283,9 @@ export default function SolutionsPage() {
         </section>
         <section id="solutions-family" className={`${container} ${section}`}>
           <div
-            className={`${motion.reveal} grid items-center gap-8 md:grid-cols-[1.1fr_.9fr] md:gap-16`}
+            className={`grid items-center gap-8 md:grid-cols-[1.1fr_.9fr] md:gap-16`}
           >
-            <div>
+            <div className={motion.reveal}>
               <Chapter>02 / For your family</Chapter>
               <Title>
                 Share the understanding.
@@ -317,7 +317,9 @@ export default function SolutionsPage() {
                 mobile.
               </StartingPoint>
             </div>
-            <div className="rounded-[14px] border border-marketing-nav-border bg-white p-6 md:p-8">
+            <div
+              className={`${motion.previewReveal} rounded-[14px] border border-marketing-nav-border bg-white p-6 md:p-8`}
+            >
               <CardTitle icon={UsersRound}>
                 A family workflow, explained
               </CardTitle>
@@ -376,9 +378,11 @@ export default function SolutionsPage() {
               assigned device.
             </Heading>
             <div
-              className={`${motion.reveal} grid items-center gap-8 md:grid-cols-[1.2fr_1fr] md:gap-16`}
+              className={`grid items-center gap-8 md:grid-cols-[1.2fr_1fr] md:gap-16`}
             >
-              <div className="order-2 rounded-[14px] border border-marketing-nav-border bg-white p-6 md:order-1 md:p-8">
+              <div
+                className={`${motion.previewReveal} order-2 rounded-[14px] border border-marketing-nav-border bg-white p-6 md:order-1 md:p-8`}
+              >
                 <CardTitle icon={Building2}>
                   A workspace with clear boundaries
                 </CardTitle>
@@ -439,7 +443,7 @@ export default function SolutionsPage() {
                   data shown
                 </p>
               </div>
-              <div className="order-1 md:order-2">
+              <div className={`${motion.reveal} order-1 md:order-2`}>
                 <Chapter>A moment in your workday</Chapter>
                 <h3 className="font-[inherit] text-2xl font-semibold leading-[1.25] tracking-[-.025em] md:text-[25px]">
                   “I need a clear view
@@ -485,7 +489,9 @@ export default function SolutionsPage() {
             Review supported local services by project, runtime, process or
             listening port. Know the exact target before choosing an action.
           </Heading>
-          <SolutionPreview />
+          <div className={motion.previewReveal}>
+            <SolutionPreview />
+          </div>
           <ol
             className={`${motion.stagger} mt-10 grid gap-6 md:grid-cols-3 md:gap-8`}
           >
@@ -517,7 +523,9 @@ export default function SolutionsPage() {
               </li>
             ))}
           </ol>
-          <div className="mt-8 grid items-end gap-5 md:grid-cols-[1fr_250px] md:gap-16">
+          <div
+            className={`${motion.reading} mt-8 grid items-end gap-5 md:grid-cols-[1fr_250px] md:gap-16`}
+          >
             <StartingPoint label="Desktop app + local agent" app="desktop">
               macOS is the initial target. Mobile remote requests also require
               pairing, explicit local consent and controller grants.
@@ -529,7 +537,9 @@ export default function SolutionsPage() {
         </section>
         <section id="solutions-choose" className={`${section} ${tinted}`}>
           <div className={container}>
-            <div className="mx-auto max-w-[700px] text-center">
+            <div
+              className={`${motion.reveal} mx-auto max-w-[700px] text-center`}
+            >
               <Chapter>Find the path that fits</Chapter>
               <Title>
                 Start with a question.
@@ -657,7 +667,7 @@ export default function SolutionsPage() {
           ].map(([question, answer]) => (
             <details
               key={question}
-              className="group mb-5 border-b border-marketing-nav-border pb-5"
+              className={`${motion.reading} group mb-5 border-b border-marketing-nav-border pb-5`}
             >
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#705781] md:text-[13px] [&::-webkit-details-marker]:hidden">
                 {question}
@@ -703,7 +713,9 @@ export default function SolutionsPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-marketing-nav-border bg-white py-8">
+      <footer
+        className={`${motion.reading} border-t border-marketing-nav-border bg-white py-8`}
+      >
         <div className={container}>
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:gap-8">
             <Link href="/" aria-label="NetSentry home">

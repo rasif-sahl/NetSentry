@@ -223,7 +223,7 @@ export default function PricingPage() {
             role="region"
             aria-label="Edition comparison"
             tabIndex={0}
-            className="relative mt-8 overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+            className={`${motion.reading} relative mt-8 overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary`}
           >
             <table
               className="w-full min-w-[660px] border-collapse text-left text-xs"
@@ -357,7 +357,7 @@ export default function PricingPage() {
         </section>
       </main>
       <footer
-        className={`${container} flex flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
+        className={`${motion.reading} ${container} flex flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
       >
         <p>
           © <CopyrightYear /> NetSentry

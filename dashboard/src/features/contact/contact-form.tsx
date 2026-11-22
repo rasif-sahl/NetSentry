@@ -1,5 +1,6 @@
 "use client";
 
+import motion from "@/features/marketing/public-motion.module.css";
 import { useState, useSyncExternalStore } from "react";
 import { primaryButton } from "@/features/marketing/ui";
 
@@ -19,7 +20,7 @@ export function ContactForm() {
       id="contact-form"
       aria-labelledby="contact-form-title"
       aria-describedby="contact-delivery-note"
-      className="scroll-mt-28 rounded-xl border border-marketing-border bg-white p-5 sm:p-8"
+      className={`${motion.reading} scroll-mt-28 rounded-xl border border-marketing-border bg-white p-5 sm:p-8`}
       onSubmit={(event) => {
         event.preventDefault();
         setStatus(

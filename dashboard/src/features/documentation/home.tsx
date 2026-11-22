@@ -140,7 +140,9 @@ export function DocumentationHome({
         </section>
       )}
       <section aria-label="Documentation guides">
-        <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div
+          className={`${motion.reading} mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end`}
+        >
           <div>
             <p className="mb-3 text-[8px] font-semibold uppercase tracking-[1.7px] text-[#947da1]">
               Find your next answer

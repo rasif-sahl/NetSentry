@@ -248,23 +248,74 @@ test("public pages beyond the homepage share scroll motion and respect reduced m
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const routes = [
-    ["/product", "#product-reports article"],
-    ["/solutions", "#solutions-paths a"],
-    ["/pricing", "#pricing-plans article"],
-    ["/applications", "#applications-choose a"],
-    ["/contact", "#contact-help details"],
-    ["/docs", 'section[aria-label="Documentation guides"] article'],
-    ["/docs/workspace", "#docs-article-workspace section h2"],
-    ["/privacy", "#privacy-main article section h2"],
-    ["/terms", "#terms-main article section h2"],
+    [
+      "/product",
+      [
+        "#product-reports article",
+        "#product-features > div:last-child",
+        "#product-main + footer",
+      ],
+    ],
+    [
+      "/solutions",
+      [
+        "#solutions-paths a",
+        "#solutions-developers > div:nth-child(2)",
+        "#solutions-availability details",
+      ],
+    ],
+    [
+      "/pricing",
+      [
+        "#pricing-plans article",
+        "#pricing-compare [role=region]",
+        "#pricing-questions details",
+      ],
+    ],
+    [
+      "/applications",
+      [
+        "#applications-choose a",
+        "#applications-compare [role=region]",
+        "#applications-availability details",
+      ],
+    ],
+    ["/contact", ["#contact-form", "#contact-help details"]],
+    [
+      "/docs",
+      [
+        'section[aria-label="Documentation guides"] article',
+        "#documentation-main footer",
+      ],
+    ],
+    [
+      "/docs/workspace",
+      [
+        "#docs-article-workspace section h2",
+        "#docs-article-workspace section p",
+      ],
+    ],
+    [
+      "/privacy",
+      [
+        "#privacy-main article section h2",
+        "#privacy-main article section > div",
+      ],
+    ],
+    [
+      "/terms",
+      ["#terms-main article section h2", "#terms-main article section > div"],
+    ],
   ] as const;
 
-  for (const [route, selector] of routes) {
+  for (const [route, selectors] of routes) {
     await test.step(route, async () => {
       await page.emulateMedia({ reducedMotion: "no-preference" });
       await page.goto(route);
       const heading = page.getByRole("heading", { level: 1 });
-      const scrollItem = page.locator(selector).first();
+      const scrollItems = selectors.map((selector) =>
+        page.locator(selector).first(),
+      );
       const hasIntro = () =>
         heading.evaluate((element) => {
           for (
@@ -283,11 +334,48 @@ test("public pages beyond the homepage share scroll motion and respect reduced m
         });
 
       await expect.poll(hasIntro).toBe(true);
-      await expect(scrollItem).toHaveCSS("animation-timeline", /^view\(/);
+      for (const item of scrollItems)
+        await expect(item).toHaveCSS("animation-timeline", /^view\(/);
       await page.emulateMedia({ reducedMotion: "reduce" });
       await expect.poll(hasIntro).toBe(false);
-      await expect(scrollItem).toHaveCSS("animation-name", "none");
+      for (const item of scrollItems)
+        await expect(item).toHaveCSS("animation-name", "none");
       await expect(heading).toBeVisible();
     });
   }
+});
+
+test("below-the-fold motion works without native scroll timelines", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.addInitScript(() => {
+    const supports = CSS.supports.bind(CSS);
+    CSS.supports = (property: string, value?: string) =>
+      property === "animation-timeline"
+        ? false
+        : value === undefined
+          ? supports(property)
+          : supports(property, value);
+  });
+
+  await page.goto("/pricing");
+  const comparison = page.getByRole("region", { name: "Edition comparison" });
+  await expect(page.locator("[data-motion-fallback]")).toBeAttached();
+  await expect(comparison).not.toHaveAttribute("data-motion-entered", "");
+  await comparison.scrollIntoViewIfNeeded();
+  await expect(comparison).toHaveAttribute("data-motion-entered", "");
+  await expect(comparison).toHaveCSS("animation-timeline", "auto");
+  await expect(comparison).not.toHaveCSS("animation-name", "none");
+
+  await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: "Product" })
+    .click();
+  await expect(page).toHaveURL("/product");
+  const report = page.locator("#product-reports article").first();
+  await report.scrollIntoViewIfNeeded();
+  await expect(report).toHaveAttribute("data-motion-entered", "");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(report).toHaveCSS("animation-name", "none");
 });

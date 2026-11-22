@@ -113,7 +113,7 @@ export default function Home() {
               Web dashboard preview · Empty workspace example.
             </p>
             <div
-              className="mt-6 flex flex-wrap justify-center gap-y-4 border-y border-marketing-nav-border py-5 text-sm text-[#65566f]"
+              className={`${motion.reading} mt-6 flex flex-wrap justify-center gap-y-4 border-y border-marketing-nav-border py-5 text-sm text-[#65566f]`}
               aria-label="Explore the applications"
             >
               {[
@@ -553,7 +553,9 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-[#e9e0ed] bg-white py-9">
+      <footer
+        className={`${motion.reading} border-t border-[#e9e0ed] bg-white py-9`}
+      >
         <div className={container}>
           <div className="flex flex-col justify-between gap-8 md:flex-row md:gap-12">
             <div className="max-w-[300px]">

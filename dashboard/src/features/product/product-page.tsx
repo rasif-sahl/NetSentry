@@ -152,7 +152,7 @@ export default function ProductPage() {
         </section>
         <nav
           aria-label="On this page"
-          className={`${container} mt-5 flex flex-wrap justify-center gap-x-5 gap-y-3 border-y border-marketing-nav-border py-5 text-[10px] text-[#7e6d8b] md:gap-x-8 md:text-[11px]`}
+          className={`${motion.reading} ${container} mt-5 flex flex-wrap justify-center gap-x-5 gap-y-3 border-y border-marketing-nav-border py-5 text-[10px] text-[#7e6d8b] md:gap-x-8 md:text-[11px]`}
         >
           {[
             ["Devices", "#product-devices"],
@@ -180,13 +180,15 @@ export default function ProductPage() {
             Different questions need different tools. Explore the parts of
             NetSentry that make those questions easier to answer.
           </SectionHeading>
-          <FeatureExplorer />
+          <div className={motion.reveal}>
+            <FeatureExplorer />
+          </div>
         </section>
         <section id="product-devices" className={`${section} ${tinted}`}>
           <div
-            className={`${motion.reveal} ${container} grid items-center gap-8 md:grid-cols-[1.1fr_.9fr] md:gap-20`}
+            className={`${container} grid items-center gap-8 md:grid-cols-[1.1fr_.9fr] md:gap-20`}
           >
-            <div>
+            <div className={motion.reveal}>
               <Chapter>01 / Know your devices</Chapter>
               <Title>
                 Every device has a source.
@@ -223,7 +225,9 @@ export default function ProductPage() {
                 measurement.
               </p>
             </div>
-            <div className="rounded-[14px] border border-marketing-nav-border bg-white p-6 md:p-8">
+            <div
+              className={`${motion.previewReveal} rounded-[14px] border border-marketing-nav-border bg-white p-6 md:p-8`}
+            >
               <CardTitle icon={Smartphone}>A device, understood</CardTitle>
               {[
                 {
@@ -315,7 +319,9 @@ export default function ProductPage() {
               </article>
             ))}
           </div>
-          <div className="mt-9 grid gap-5 rounded-xl border border-marketing-nav-border bg-[#faf8fc] p-6 md:grid-cols-[1.15fr_1fr_1fr_1fr] md:gap-6">
+          <div
+            className={`${motion.reveal} mt-9 grid gap-5 rounded-xl border border-marketing-nav-border bg-[#faf8fc] p-6 md:grid-cols-[1.15fr_1fr_1fr_1fr] md:gap-6`}
+          >
             <p className="pt-1 text-[9px] font-semibold uppercase tracking-[1.8px] text-[#947da1]">
               How to read a report
             </p>
@@ -437,7 +443,7 @@ export default function ProductPage() {
               },
             ]}
           />
-          <p className={`${quiet} mt-6 text-center`}>
+          <p className={`${motion.reading} ${quiet} mt-6 text-center`}>
             Remote requests also require pairing, explicit local consent and
             current controller grants.
           </p>
@@ -479,7 +485,7 @@ export default function ProductPage() {
                 ].map(({ icon, title, text }) => (
                   <article
                     key={title}
-                    className="border-b border-marketing-nav-border py-6 first:pt-0 last:border-0"
+                    className={`${motion.reading} border-b border-marketing-nav-border py-6 first:pt-0 last:border-0`}
                   >
                     <CardTitle icon={icon}>{title}</CardTitle>
                     <p className="ml-8 mt-3 text-xs leading-[1.8] text-marketing-copy">
@@ -518,7 +524,9 @@ export default function ProductPage() {
               Mobile design reconstructions · Native build, signing and
               physical-device validation remain pending.
             </p>
-            <details className="group mx-auto mt-8 max-w-[800px] border-y border-marketing-nav-border py-4">
+            <details
+              className={`${motion.reading} group mx-auto mt-8 max-w-[800px] border-y border-marketing-nav-border py-4`}
+            >
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#715c80] [&::-webkit-details-marker]:hidden">
                 What should I know about platform availability?
                 <span
@@ -658,7 +666,9 @@ export default function ProductPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-marketing-nav-border bg-white py-8">
+      <footer
+        className={`${motion.reading} border-t border-marketing-nav-border bg-white py-8`}
+      >
         <div className={container}>
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:gap-8">
             <Link href="/" aria-label="NetSentry home">

@@ -132,7 +132,9 @@ export default function ContactPage() {
                 </div>
               </div>
             ))}
-            <div className="mt-7 rounded-xl border border-marketing-border bg-[#f3edf8] p-6">
+            <div
+              className={`${motion.reading} mt-7 rounded-xl border border-marketing-border bg-[#f3edf8] p-6`}
+            >
               <BookOpen
                 size={20}
                 strokeWidth={1.5}
@@ -198,7 +200,7 @@ export default function ContactPage() {
         </section>
       </main>
       <footer
-        className={`${container} flex max-w-[1060px] flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
+        className={`${motion.reading} ${container} flex max-w-[1060px] flex-col justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy sm:flex-row`}
       >
         <p>
           © <CopyrightYear /> NetSentry

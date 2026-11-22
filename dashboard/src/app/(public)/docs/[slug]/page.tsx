@@ -29,13 +29,17 @@ function Block({ block }: { block: GuideBlock }) {
   switch (block.type) {
     case "paragraph":
       return (
-        <p className="mt-4 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]">
+        <p
+          className={`${motion.reading} mt-4 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]`}
+        >
           {block.text}
         </p>
       );
     case "list":
       return (
-        <ul className="my-5 list-disc space-y-2 pl-5 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]">
+        <ul
+          className={`${motion.reading} my-5 list-disc space-y-2 pl-5 text-xs leading-[1.95] text-marketing-copy sm:text-[13px]`}
+        >
           {block.items.map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -43,7 +47,9 @@ function Block({ block }: { block: GuideBlock }) {
       );
     case "note":
       return (
-        <aside className="mt-6 rounded-lg border border-[#e8dfee] border-l-[3px] border-l-[#a789ba] bg-marketing-hover px-5 py-4">
+        <aside
+          className={`${motion.reading} mt-6 rounded-lg border border-[#e8dfee] border-l-[3px] border-l-[#a789ba] bg-marketing-hover px-5 py-4`}
+        >
           <h3 className="font-[inherit] text-xs font-semibold text-[#715c80]">
             {block.title}
           </h3>
@@ -54,7 +60,7 @@ function Block({ block }: { block: GuideBlock }) {
       );
     case "workspace-image":
       return (
-        <figure className="mt-6">
+        <figure className={`${motion.previewReveal} mt-6`}>
           <WindowFrame title="NetSentry · Web workspace">
             <div className="aspect-[1.8] overflow-hidden">
               <ProductImage
@@ -72,7 +78,9 @@ function Block({ block }: { block: GuideBlock }) {
       );
     case "next":
       return (
-        <div className="mt-6 rounded-[10px] border border-marketing-nav-border bg-[#faf8fc] px-6 py-5">
+        <div
+          className={`${motion.reading} mt-6 rounded-[10px] border border-marketing-nav-border bg-[#faf8fc] px-6 py-5`}
+        >
           <p className="mb-2 text-[8px] font-semibold uppercase tracking-wider text-[#a08aaf]">
             Continue with
           </p>
@@ -160,7 +168,9 @@ export default async function GuidePage({ params }: PageProps<"/docs/[slug]">) {
               </section>
             ))}
           </div>
-          <div className="mt-9 border-t border-marketing-nav-border pt-6">
+          <div
+            className={`${motion.reading} mt-9 border-t border-marketing-nav-border pt-6`}
+          >
             <p className="mb-5 text-[11px] text-[#9a87a5]">
               You have reached the end of this guide.
             </p>

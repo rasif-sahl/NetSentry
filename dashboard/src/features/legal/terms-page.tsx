@@ -104,7 +104,7 @@ export default function TermsPage() {
                   </span>
                   {title}
                 </h2>
-                <div className="space-y-3">
+                <div className={`${motion.reading} space-y-3`}>
                   {blocks.map((block, i) =>
                     block.type === "list" ? (
                       <ul
@@ -155,7 +155,7 @@ export default function TermsPage() {
         </div>
       </main>
       <footer
-        className={`${container} flex flex-wrap justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy`}
+        className={`${motion.reading} ${container} flex flex-wrap justify-between gap-5 border-t border-marketing-border py-7 text-[11px] text-marketing-copy`}
       >
         <p>
           © <CopyrightYear /> NetSentry

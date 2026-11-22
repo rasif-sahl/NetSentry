@@ -266,8 +266,12 @@ export default function ApplicationsPage() {
               Start in your browser. Review reported devices, explore available
               usage and manage the people and settings in your workspace.
             </Heading>
-            <ApplicationPreview app="dashboard" />
-            <div className="mt-8 grid gap-5 md:grid-cols-3 md:gap-8">
+            <div className={motion.previewReveal}>
+              <ApplicationPreview app="dashboard" />
+            </div>
+            <div
+              className={`${motion.stagger} mt-8 grid gap-5 md:grid-cols-3 md:gap-8`}
+            >
               {[
                 [
                   "Your devices and reports",
@@ -290,7 +294,9 @@ export default function ApplicationsPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-7 border-t border-marketing-nav-border pt-5 md:flex md:items-baseline md:gap-8">
+            <div
+              className={`${motion.reading} mt-7 border-t border-marketing-nav-border pt-5 md:flex md:items-baseline md:gap-8`}
+            >
               <p className="shrink-0 text-[9px] font-semibold uppercase tracking-[1.2px] text-[#947da1]">
                 Before you begin
               </p>
@@ -302,7 +308,7 @@ export default function ApplicationsPage() {
           </div>
         </section>
         <section id="applications-phones" className={`${container} ${section}`}>
-          <div className="mx-auto max-w-[700px] text-center">
+          <div className={`${motion.reveal} mx-auto max-w-[700px] text-center`}>
             <Chapter>02 / Android &amp; iOS</Chapter>
             <Title>
               For your phone.
@@ -374,10 +380,10 @@ export default function ApplicationsPage() {
               before it runs.
             </Heading>
             <div className="grid items-center gap-8 lg:grid-cols-[1.45fr_.9fr] lg:gap-11">
-              <div className="min-w-0">
+              <div className={`${motion.previewReveal} min-w-0`}>
                 <ApplicationPreview app="desktop" />
               </div>
-              <div>
+              <div className={motion.reveal}>
                 <span className={status}>macOS is the initial target</span>
                 <h3 className="mt-5 font-[inherit] text-[25px] font-semibold leading-[1.15] tracking-[-.025em]">
                   Know what is running.
@@ -428,7 +434,7 @@ export default function ApplicationsPage() {
             role="region"
             aria-label="Application comparison"
             tabIndex={0}
-            className="overflow-x-auto rounded-xl border border-marketing-nav-border"
+            className={`${motion.reading} overflow-x-auto rounded-xl border border-marketing-nav-border`}
           >
             <table className="w-full min-w-[750px] table-fixed border-collapse bg-white text-left text-[11px] leading-[1.8] md:min-w-[790px]">
               <caption className="sr-only">
@@ -526,7 +532,9 @@ export default function ApplicationsPage() {
                 </li>
               ))}
             </ol>
-            <div className="mt-9 flex items-start gap-5 rounded-xl border border-[#e8dfee] bg-marketing-hover p-5 md:items-center md:px-7 md:py-6">
+            <div
+              className={`${motion.reading} mt-9 flex items-start gap-5 rounded-xl border border-[#e8dfee] bg-marketing-hover p-5 md:items-center md:px-7 md:py-6`}
+            >
               <ShieldCheck
                 size={22}
                 strokeWidth={1.5}
@@ -566,7 +574,7 @@ export default function ApplicationsPage() {
             <details
               key={question}
               open={index === 0}
-              className="group mb-5 border-b border-marketing-nav-border pb-5"
+              className={`${motion.reading} group mb-5 border-b border-marketing-nav-border pb-5`}
             >
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-5 text-xs text-[#705781] md:text-[13px] [&::-webkit-details-marker]:hidden">
                 {question}
@@ -612,7 +620,9 @@ export default function ApplicationsPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-marketing-nav-border bg-white py-8">
+      <footer
+        className={`${motion.reading} border-t border-marketing-nav-border bg-white py-8`}
+      >
         <div className={container}>
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:gap-8">
             <Link href="/" aria-label="NetSentry home">
