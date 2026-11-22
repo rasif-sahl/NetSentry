@@ -38,7 +38,7 @@ export function EmailVerificationStripe({
             Send verification email
           </ActionButton>
           <ActionButton
-            className="text-button"
+            className="button accent"
             action={async () => {
               setMessage("");
               const user = await api<User>("/auth/me");

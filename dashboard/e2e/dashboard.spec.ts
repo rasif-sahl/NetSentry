@@ -101,6 +101,10 @@ test("device inventory uses reported health and capability states", async ({
     exact: true,
   });
   await expect(details).toBeVisible();
+  await expect(page.locator(".button-row").filter({ has: details })).toHaveCSS(
+    "justify-content",
+    "flex-end",
+  );
   await details.press("Enter");
   await expect(page).toHaveURL(/\/app\?view=Devices$/);
   await expect(
@@ -142,7 +146,7 @@ test("reports show real measured/estimated values, export and isolate workspace 
 }) => {
   const data = await login(page);
   await page
-    .getByRole("button", { name: "Usage & reports", exact: true })
+    .getByRole("button", { name: "Explore reports", exact: true })
     .click();
   await expect(
     page.getByText("10,485,760 bytes", { exact: true }).first(),
@@ -276,7 +280,9 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
   page,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Alerts", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Manage alerts", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "In-app notifications", exact: true }),
   ).toBeVisible();
@@ -306,6 +312,13 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     .filter({ hasText: "20,000,000 bytes" });
   await expect(created).toBeVisible();
   await expect(created).toContainText("estimated");
+  await created.getByRole("button", { name: "Edit rule", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Cancel editing", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Create an alert rule", exact: true }),
+  ).toBeVisible();
   await created.getByRole("button", { name: "Edit rule", exact: true }).click();
   await expect(page.getByLabel("Threshold data quality")).toHaveValue(
     "estimated",
@@ -378,6 +391,8 @@ test("team invitations bind a recipient and management changes take effect", asy
     .getByRole("button", { name: "Create invitation", exact: true })
     .click();
   const token = await page.getByTestId("invitation-token").innerText();
+  await page.getByRole("button", { name: "Hide token", exact: true }).click();
+  await expect(page.getByTestId("invitation-token")).toHaveCount(0);
   const recipient = await browser.newContext();
   const guest = await recipient.newPage();
   await guest.goto("/app");

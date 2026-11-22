@@ -3,7 +3,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
 import {
-  Activity,
   ArrowRight,
   Bell,
   ChevronRight,
@@ -581,10 +580,10 @@ function WorkspaceShell({
                         ))}
                       </ul>
                     )}
-                    <div className="button-row">
+                    <div className="button-row align-end">
                       <button
                         type="button"
-                        className="button device-details-button"
+                        className="button accent"
                         onClick={() => choose("Devices")}
                       >
                         View device details
@@ -599,18 +598,22 @@ function WorkspaceShell({
                       collectors. Developer Tools supports service control on
                       paired computers with an explicit grant and local consent.
                     </p>
-                    <div className="button-row">
+                    <div className="button-row align-end">
                       <button
-                        className="button"
+                        type="button"
+                        className="button accent"
                         onClick={() => choose("Usage & reports")}
                       >
-                        <Activity size={16} /> Explore reports
+                        Explore reports
+                        <ArrowRight size={16} aria-hidden="true" />
                       </button>
                       <button
-                        className="button"
+                        type="button"
+                        className="button accent"
                         onClick={() => choose("Alerts")}
                       >
                         Manage alerts
+                        <ArrowRight size={16} aria-hidden="true" />
                       </button>
                     </div>
                   </Card>

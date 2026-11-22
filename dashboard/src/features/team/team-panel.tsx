@@ -179,12 +179,15 @@ export function TeamPanel({
                 Share privately. Expires{" "}
                 {formatTime(issued.invitation.expiresAt)}.
               </small>
-              <button
-                className="text-button"
-                onClick={() => setIssued(undefined)}
-              >
-                Hide token
-              </button>
+              <div className="button-row align-end">
+                <button
+                  type="button"
+                  className="button accent"
+                  onClick={() => setIssued(undefined)}
+                >
+                  Hide token
+                </button>
+              </div>
             </Notice>
           )}
           <ErrorNotice error={invitations.error} />
