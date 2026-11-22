@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
 import {
   Activity,
@@ -17,17 +17,6 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { BillingPanel } from "@/features/billing/billing-panel";
-import { OperationsPanel } from "@/features/operations/operations-panel";
-import { BusinessPanel } from "@/features/business/business-panel";
-import { FamilyPanel } from "@/features/family/family-panel";
-import { DeveloperPanel } from "@/features/developer/developer-panel";
-import { SettingsPanel } from "@/features/settings/settings-panel";
-import { TeamPanel } from "@/features/team/team-panel";
-import { AlertsPanel } from "@/features/alerts/alerts-panel";
-import { DevicesPanel } from "@/features/devices/devices-panel";
-import { NetworksPanel } from "@/features/networks/networks-panel";
-import { ReportsPanel } from "@/features/reports/reports-panel";
 import {
   api,
   signOut,
@@ -38,7 +27,7 @@ import {
 import { useResource } from "@/shared/use-resource";
 import type { Device, Permissions, User, Workspace } from "@/shared/types";
 import type { PageContext } from "./types";
-import { AuthPanel, type AuthMode } from "@/features/account/auth-panel";
+import { AuthPanel } from "@/features/account/auth-panel";
 import {
   ActionButton,
   Card,
@@ -48,6 +37,81 @@ import {
   Notice,
   formatTime,
 } from "@/shared/ui/common";
+const BillingPanel = dynamic(
+  () =>
+    import("@/features/billing/billing-panel").then(
+      (module) => module.BillingPanel,
+    ),
+  { loading: Loading },
+);
+const OperationsPanel = dynamic(
+  () =>
+    import("@/features/operations/operations-panel").then(
+      (module) => module.OperationsPanel,
+    ),
+  { loading: Loading },
+);
+const BusinessPanel = dynamic(
+  () =>
+    import("@/features/business/business-panel").then(
+      (module) => module.BusinessPanel,
+    ),
+  { loading: Loading },
+);
+const FamilyPanel = dynamic(
+  () =>
+    import("@/features/family/family-panel").then(
+      (module) => module.FamilyPanel,
+    ),
+  { loading: Loading },
+);
+const DeveloperPanel = dynamic(
+  () =>
+    import("@/features/developer/developer-panel").then(
+      (module) => module.DeveloperPanel,
+    ),
+  { loading: Loading },
+);
+const SettingsPanel = dynamic(
+  () =>
+    import("@/features/settings/settings-panel").then(
+      (module) => module.SettingsPanel,
+    ),
+  { loading: Loading },
+);
+const TeamPanel = dynamic(
+  () => import("@/features/team/team-panel").then((module) => module.TeamPanel),
+  { loading: Loading },
+);
+const AlertsPanel = dynamic(
+  () =>
+    import("@/features/alerts/alerts-panel").then(
+      (module) => module.AlertsPanel,
+    ),
+  { loading: Loading },
+);
+const DevicesPanel = dynamic(
+  () =>
+    import("@/features/devices/devices-panel").then(
+      (module) => module.DevicesPanel,
+    ),
+  { loading: Loading },
+);
+const NetworksPanel = dynamic(
+  () =>
+    import("@/features/networks/networks-panel").then(
+      (module) => module.NetworksPanel,
+    ),
+  { loading: Loading },
+);
+const ReportsPanel = dynamic(
+  () =>
+    import("@/features/reports/reports-panel").then(
+      (module) => module.ReportsPanel,
+    ),
+  { loading: Loading },
+);
+
 const navigation = [
   { label: "Overview", icon: Home },
   { label: "Devices", icon: Smartphone },
@@ -79,8 +143,7 @@ function sectionFromUrl(): Section {
   const view = new URLSearchParams(window.location.search).get("view");
   return navigation.find(({ label }) => label === view)?.label ?? "Overview";
 }
-export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
-  const router = useRouter();
+export function DashboardShell() {
   const [session, setSession] = useState<{
     user?: User;
     ready: boolean;
@@ -88,7 +151,6 @@ export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
     notice?: string;
   }>({ ready: false });
   useEffect(() => {
-    if (initialMode) return;
     let active = true;
     api<User>("/auth/me")
       .then((user) => {
@@ -103,7 +165,7 @@ export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
     return () => {
       active = false;
     };
-  }, [initialMode]);
+  }, []);
   useEffect(() => {
     const expired = () =>
       setSession({
@@ -114,7 +176,6 @@ export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
     return () => window.removeEventListener("netsentry:expired", expired);
   }, []);
   useEffect(() => {
-    if (initialMode) return;
     return listenForSessionChanges((type) => {
       if (type === "ended") {
         adoptActor(undefined);
@@ -123,15 +184,11 @@ export function DashboardShell({ initialMode }: { initialMode?: AuthMode }) {
       // A full document refresh clears every in-flight user/workspace response on identity changes.
       if (type === "changed") window.location.reload();
     });
-  }, [initialMode, router]);
-  if (initialMode || (session.ready && !session.user))
+  }, []);
+  if (session.ready && !session.user)
     return (
       <AuthPanel
-        initialMode={initialMode}
-        onSignedIn={(user) => {
-          if (initialMode) router.push("/app");
-          else setSession({ ready: true, user });
-        }}
+        onSignedIn={(user) => setSession({ ready: true, user })}
         notice={
           session.notice ??
           (session.error instanceof Error &&
@@ -201,15 +258,15 @@ function WorkspaceShell({
     workspace ? `/workspaces/${workspace.id}/permissions` : null,
     true,
   );
+  const needsDevices = deviceSections.has(section);
   const devices = useResource<Device[]>(
-    workspace ? `/workspaces/${workspace.id}/devices` : null,
+    workspace && needsDevices ? `/workspaces/${workspace.id}/devices` : null,
     true,
   );
   const needsWorkspace =
     section !== "Settings & privacy" &&
     section !== "Operations" &&
     section !== "More modules";
-  const needsDevices = deviceSections.has(section);
   const context =
     workspace && permission.data && (!needsDevices || devices.data)
       ? {

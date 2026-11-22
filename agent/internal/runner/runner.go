@@ -39,6 +39,7 @@ type Status struct {
 	ServiceControlAvailable bool         `json:"serviceControlAvailable"`
 }
 type Runner struct {
+	remoteMu        sync.Mutex
 	networkMu       sync.Mutex
 	networkDiscover func(context.Context, []string) (network.Inventory, error)
 	mu              sync.Mutex

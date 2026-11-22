@@ -95,9 +95,11 @@ actor ClientRepository {
         }; return reply.value
     }
     private func account(
-        _ method: String, _ path: String, body: JSONValue? = nil, query: [String: String] = [:]
+        _ method: String, _ path: String, body: JSONValue? = nil, query: [String: String] = [:],
+        expectedScope: ScopeTicket? = nil
     ) async throws -> JSONValue {
-        let ticket = try scope();
+        let ticket = try scope()
+        if let expectedScope { try check(expectedScope) }
         guard let used = state.session?.accessToken else { throw ClientError.signedOut }
         var reply = try await raw(method, path, token: used, body: body, query: query);
         try check(ticket)
@@ -118,8 +120,11 @@ actor ClientRepository {
                 do {
                     let renewed = try await refreshTask!.value; try check(ticket)
                     guard renewed.userID == ticket.userID else { throw ClientError.signedOut }
-                    if state.session?.accessToken == used { state.session = renewed; try save() }
-                    refreshTask = nil
+                    if state.session?.accessToken == used {
+                        state.session = renewed
+                        try save()
+                        refreshTask = nil
+                    }
                 } catch {
                     // An old refresh may not erase a newly signed-in account.
                     try check(ticket); try clearLocal(); throw ClientError.signedOut
@@ -181,11 +186,17 @@ actor ClientRepository {
     }
     func refresh() async throws {
         let ticket = try scope()
-        let me = try await account("GET", "/auth/me"); try check(ticket); user = me
-        let spaces = try await account("GET", "/workspaces"); try check(ticket);
-        workspaces = spaces.values
-        let disclosure = try result(try await raw("GET", "/privacy/disclosures"));
-        try check(ticket); disclosures = disclosure
+        let base = try Wire.base(state.base)
+        async let profile = account("GET", "/auth/me", expectedScope: ticket)
+        async let spaces = account("GET", "/workspaces", expectedScope: ticket)
+        async let disclosure = transport.send(
+            base: base, method: "GET", path: "/privacy/disclosures", query: [:],
+            token: nil, body: nil)
+        let (me, availableWorkspaces, disclosureReply) = try await (profile, spaces, disclosure)
+        try check(ticket)
+        disclosures = try result(disclosureReply)
+        user = me
+        workspaces = availableWorkspaces.values
         if !state.workspaceID.isEmpty
             && !workspaces.contains(where: { $0["id"].text == state.workspaceID })
         {

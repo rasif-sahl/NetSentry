@@ -254,19 +254,6 @@ class Repository(
         preferences = account("GET", "/notifications/preferences") as JSONObject
         if (state.optString("workspaceId").isBlank()) return
         devices = (account("GET", "/workspaces/${workspace()}/devices") as JSONArray).objects()
-        val selectedRole =
-            workspaces.firstOrNull { it.optString("id") == workspace() }?.optString("role")
-        computers =
-            if (selectedRole in setOf("OWNER", "ADMIN", "GUARDIAN", "MEMBER", "VIEWER", "ANALYST"))
-                (account("GET", "/workspaces/${workspace()}/developer") as JSONArray).objects()
-            else emptyList()
-        commands =
-            computers.associate { c ->
-                val id = Policy.uuid(c.getString("id"))
-                id to
-                    (account("GET", "/workspaces/${workspace()}/agents/$id/commands") as JSONArray)
-                        .objects()
-            }
         rules = (account("GET", "${path()}/rules") as JSONArray).objects()
         alerts = (account("GET", "${path()}/alerts") as JSONArray).objects()
         notifications = (account("GET", "${path()}/notifications") as JSONArray).objects()
@@ -428,7 +415,7 @@ class Repository(
     }
 
     @Synchronized
-    fun refreshDeveloper() {
+    fun refreshDeveloper(includeHistory: Boolean = false) {
         computers = emptyList()
         commands = emptyMap()
         val selectedRole =
@@ -437,14 +424,18 @@ class Repository(
             if (selectedRole in setOf("OWNER", "ADMIN", "GUARDIAN", "MEMBER", "VIEWER", "ANALYST"))
                 (account("GET", "/workspaces/${workspace()}/developer") as JSONArray).objects()
             else emptyList()
-        commands =
-            computers.associate { c ->
-                val id = Policy.uuid(c.getString("id"))
-                id to
-                    (account("GET", "/workspaces/${workspace()}/agents/$id/commands") as JSONArray)
-                        .objects()
-            }
+        if (includeHistory)
+            commands =
+                computers.associate { c ->
+                    val id = Policy.uuid(c.getString("id"))
+                    id to commandHistory(id)
+                }
     }
+
+    private fun commandHistory(agentId: String): List<JSONObject> =
+        (account("GET", "/workspaces/${workspace()}/agents/${Policy.uuid(agentId)}/commands")
+                as JSONArray)
+            .objects()
 
     @Synchronized
     fun selectWorkspace(id: String) {
@@ -1122,7 +1113,7 @@ class Repository(
             "/workspaces/${workspace()}/agents/${Policy.uuid(intent.agentId)}/commands",
             Wire.command(intent),
         )
-        refresh()
+        commands = commands + (intent.agentId to commandHistory(intent.agentId))
     }
 
     @Synchronized
@@ -1131,6 +1122,6 @@ class Repository(
             "POST",
             "/workspaces/${workspace()}/agents/${Policy.uuid(agentId)}/commands/${Policy.uuid(commandId)}/cancel",
         )
-        refresh()
+        commands = commands + (agentId to commandHistory(agentId))
     }
 }

@@ -493,6 +493,16 @@ fun main(args: Array<String>) {
         check(runCatching { h.repo.remote(intent) }.exceptionOrNull() is ObservationChanged)
         check(h.remoteCount == 0 && h.repo.view().queueSize == 0)
     }
+    test("account refresh leaves computer history for the command history screen") {
+        val h = Harness()
+        h.login()
+        check(h.calls.none { it.second.endsWith("/developer") || it.second.endsWith("/commands") })
+        h.repo.refreshDeveloper()
+        check(h.repo.view().computers.size == 1)
+        check(h.calls.none { it.second.endsWith("/commands") })
+        h.repo.refreshDeveloper(includeHistory = true)
+        check(h.calls.count { it.first == "GET" && it.second.endsWith("/commands") } == 1)
+    }
     test("remote commands are never added to offline upload queue") {
         val h = Harness()
         h.login()

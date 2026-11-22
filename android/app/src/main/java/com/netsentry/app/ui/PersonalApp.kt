@@ -154,11 +154,17 @@ private fun PersonalContent(model: PersonalViewModel) {
                     model.run("Family observations refreshed") { refreshFamily() }
             }
         }
-        if (state?.signedIn == true && tab == "Computers") {
+    }
+    LaunchedEffect(state?.signedIn, state?.workspaceId, destination) {
+        if (
+            state?.signedIn == true &&
+                (destination == "Paired computers & services" || destination == "Command history")
+        ) {
+            val includeHistory = destination == "Command history"
             while (true) {
-                delay(5000)
                 if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && !model.busy)
-                    model.run("Updated computer outcomes") { refreshDeveloper() }
+                    model.run("Updated computer outcomes") { refreshDeveloper(includeHistory) }
+                delay(5000)
             }
         }
     }
@@ -184,22 +190,16 @@ private fun PersonalContent(model: PersonalViewModel) {
         }
     ) { insets ->
         key(accountScope, state?.workspaceId, tab, destination) {
-            Column(
-                Modifier.fillMaxSize()
-                    .padding(insets)
-                    .consumeWindowInsets(insets)
-                    .imePadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                val signedIn = state?.signedIn == true
-                val selectedWorkspaceId = state?.workspaceId
-                val workspaceName =
-                    state
-                        ?.workspaces
-                        ?.firstOrNull { it.optString("id") == selectedWorkspaceId }
-                        ?.optString("name")
+            val screenModifier =
+                Modifier.fillMaxSize().padding(insets).consumeWindowInsets(insets).imePadding()
+            val signedIn = state?.signedIn == true
+            val selectedWorkspaceId = state?.workspaceId
+            val workspaceName =
+                state
+                    ?.workspaces
+                    ?.firstOrNull { it.optString("id") == selectedWorkspaceId }
+                    ?.optString("name")
+            val header: @Composable () -> Unit = {
                 ScreenHeader(
                     title = if (signedIn) destination ?: tab else "NetSentry",
                     workspace = if (signedIn) workspaceName else null,
@@ -208,16 +208,39 @@ private fun PersonalContent(model: PersonalViewModel) {
                 )
                 if (model.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
                 if (model.message.isNotBlank()) StatusNotice(model.message)
+            }
+            val verifyEmail: @Composable () -> Unit = {
+                if (signedIn && state?.profile?.isNull("emailVerifiedAt") != false) {
+                    StatusNotice(
+                        "Verify your email before enrolling this phone or requesting service controls."
+                    )
+                    Action("Send verification email", model) { requestVerification() }
+                }
+            }
+            val section = destination
+            if (
+                state?.signedIn == true &&
+                    section != null &&
+                    (section == "Application usage" ||
+                        section == "Categories & corrections" ||
+                        section == "Timeline & evidence")
+            ) {
+                ApplicationScreen(state, model, section, screenModifier) {
+                    header()
+                    verifyEmail()
+                }
+                return@key
+            }
+            Column(
+                screenModifier.verticalScroll(rememberScrollState()).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                header()
                 if (!signedIn) {
                     SignIn(model, state?.base ?: "")
                 } else if (state != null)
                     key(state.profile?.optString("id"), state.workspaceId) {
-                        if (state.profile?.isNull("emailVerifiedAt") != false) {
-                            StatusNotice(
-                                "Verify your email before enrolling this phone or requesting service controls."
-                            )
-                            Action("Send verification email", model) { requestVerification() }
-                        }
+                        verifyEmail()
                         if (destination == null) {
                             mobileDestinations.getValue(tab).forEach { label ->
                                 NavigationCard(label, onClick = { destination = label })
@@ -248,10 +271,6 @@ private fun PersonalContent(model: PersonalViewModel) {
                                 "Usage reports",
                                 "Alerts & rules",
                                 "In-app notifications" -> Usage(state, model, destination!!)
-                                "Application usage",
-                                "Categories & corrections",
-                                "Timeline & evidence" ->
-                                    ApplicationScreen(state, model, destination!!)
                                 "Child profiles",
                                 "Wellbeing reports & policy status",
                                 "Sharing & consent",
@@ -674,7 +693,9 @@ private fun Computers(state: Repository.View, model: PersonalViewModel, historyO
         Text(
             "Sharing and named controller grants must be enabled separately on the computer and web dashboard. Offline/sleeping/revoked computers cannot be controlled. No command is queued for later reconnection."
         )
-        Action("Refresh computers and command outcomes", model) { refreshDeveloper() }
+        Action(if (historyOnly) "Refresh command outcomes" else "Refresh computers", model) {
+            refreshDeveloper(historyOnly)
+        }
         if (state.computers.isEmpty()) Text("No paired computers available.")
         state.computers.forEach { computer ->
             Panel(computer.optString("name")) {
@@ -732,7 +753,7 @@ private fun Computers(state: Repository.View, model: PersonalViewModel, historyO
                             }
                         }
                     }
-                if (historyOnly && state.commands[computer.optString("id")].isNullOrEmpty())
+                if (historyOnly && state.commands[computer.optString("id")]?.isEmpty() == true)
                     Text("No commands yet.")
                 if (historyOnly)
                     state.commands[computer.optString("id")]?.forEach { command ->

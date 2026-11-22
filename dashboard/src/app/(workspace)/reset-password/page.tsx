@@ -1,4 +1,4 @@
-import { DashboardShell } from "@/features/workspace/dashboard-shell";
+import { AccountLinkPanel } from "@/features/account/account-link-panel";
 export default function ResetPassword() {
-  return <DashboardShell initialMode="reset" />;
+  return <AccountLinkPanel mode="reset" />;
 }

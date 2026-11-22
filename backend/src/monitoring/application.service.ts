@@ -44,6 +44,21 @@ export const builtinCategories = [
   'accessibility',
   'unknown',
 ];
+
+function groupReportRows<Row, Key>(
+  rows: Row[],
+  keyFor: (row: Row) => Key,
+): Map<Key, Row[]> {
+  const groups = new Map<Key, Row[]>();
+  for (const row of rows) {
+    const key = keyFor(row);
+    const group = groups.get(key);
+    if (group) group.push(row);
+    else groups.set(key, [row]);
+  }
+  return groups;
+}
+
 export function classification(app: AppMetadata, catalog: ApplicationCatalog) {
   const override = catalog.overrides[app.applicationId];
   const custom = catalog.categories.find((c) => c.id === override);
@@ -465,11 +480,23 @@ export class ApplicationService {
       });
       if (rows.length > 10000)
         throw new BadRequestException('Narrow the application report.');
+      const metadataById = new Map(
+        catalog.applications.map((app) => [
+          app.applicationId,
+          { ...app, ...classification(app, catalog) },
+        ]),
+      );
       const metadata = (id: string) => {
-        const app = catalog.applications.find(
-          (a) => a.applicationId === id,
-        ) ?? { applicationId: id, label: null, platformCategory: 'unknown' };
-        return { ...app, ...classification(app, catalog) };
+        const known = metadataById.get(id);
+        if (known) return known;
+        const app = {
+          applicationId: id,
+          label: null,
+          platformCategory: 'unknown',
+        };
+        const value = { ...app, ...classification(app, catalog) };
+        metadataById.set(id, value);
+        return value;
       };
       const accepts = (id: string) =>
         id !== '' &&
@@ -487,46 +514,50 @@ export class ApplicationService {
           r.localDate < query.from &&
           accepts(r.applicationId),
       );
-      const apps = [...new Set(selected.map((r) => r.applicationId))]
-        .sort()
-        .map((id) => {
-          const own = selected.filter((r) => r.applicationId === id),
-            before = preceding.filter((r) => r.applicationId === id);
-          const seconds = own.reduce(
-              (sum, r) => sum + Number(r.durationMs) / 1000,
-              0,
-            ),
-            previous = before.length
-              ? before.reduce((sum, r) => sum + Number(r.durationMs) / 1000, 0)
-              : null;
-          return {
-            ...metadata(id),
-            seconds,
-            previousSeconds: previous,
-            observedLaunches: own.reduce(
-              (sum, r) => sum + r.observedLaunches,
-              0,
-            ),
-            launchCount: own.every((r) => r.launchesComplete)
-              ? own.reduce((sum, r) => sum + r.observedLaunches, 0)
-              : null,
-            firstUse:
-              own
-                .map((r) => r.firstUse)
-                .filter((d) => d !== null)
-                .sort((a, b) => a.getTime() - b.getTime())[0] ?? null,
-            lastUse:
-              own
-                .map((r) => r.lastUse)
-                .filter((d) => d !== null)
-                .sort((a, b) => b.getTime() - a.getTime())[0] ?? null,
-            lateNightSeconds: own.reduce(
-              (sum, r) => sum + Number(r.lateNightMs) / 1000,
-              0,
-            ),
-            quality: 'estimated',
-          };
-        });
+      const currentByApp = groupReportRows(
+        selected,
+        (row) => row.applicationId,
+      );
+      const previousByApp = groupReportRows(
+        preceding,
+        (row) => row.applicationId,
+      );
+      const appIds = [...currentByApp.keys()].sort();
+      const apps = appIds.map((id) => {
+        const own = currentByApp.get(id)!;
+        const before = previousByApp.get(id);
+        const seconds = own.reduce(
+            (sum, r) => sum + Number(r.durationMs) / 1000,
+            0,
+          ),
+          previous = before
+            ? before.reduce((sum, r) => sum + Number(r.durationMs) / 1000, 0)
+            : null;
+        return {
+          ...metadata(id),
+          seconds,
+          previousSeconds: previous,
+          observedLaunches: own.reduce((sum, r) => sum + r.observedLaunches, 0),
+          launchCount: own.every((r) => r.launchesComplete)
+            ? own.reduce((sum, r) => sum + r.observedLaunches, 0)
+            : null,
+          firstUse:
+            own
+              .map((r) => r.firstUse)
+              .filter((d) => d !== null)
+              .sort((a, b) => a.getTime() - b.getTime())[0] ?? null,
+          lastUse:
+            own
+              .map((r) => r.lastUse)
+              .filter((d) => d !== null)
+              .sort((a, b) => b.getTime() - a.getTime())[0] ?? null,
+          lateNightSeconds: own.reduce(
+            (sum, r) => sum + Number(r.lateNightMs) / 1000,
+            0,
+          ),
+          quality: 'estimated',
+        };
+      });
       const screen = rows.filter(
         (r) =>
           r.applicationId === '' &&
@@ -538,15 +569,21 @@ export class ApplicationService {
           `SELECT d::date::text AS date,date_trunc($4,d)::date::text AS bucket,EXTRACT(EPOCH FROM (((d+interval '1 day') AT TIME ZONE $3)-(d AT TIME ZONE $3)))*1000 AS duration FROM generate_series($1::date::timestamp,($2::date-1)::timestamp,interval '1 day') d`,
           [query.from, query.to, workspace.timezone, query.period ?? 'day'],
         );
-      const trends = [...new Set(days.map((d) => d.bucket))].map((bucket) => {
-        const dates = days
-            .filter((d) => d.bucket === bucket)
-            .map((d) => d.date),
-          part = selected.filter((r) => dates.includes(r.localDate)),
-          screens = screen.filter((r) => dates.includes(r.localDate));
-        const expectedMs = days
-            .filter((d) => d.bucket === bucket)
-            .reduce((sum, d) => sum + Number(d.duration), 0),
+      const bucketByDate = new Map(days.map((day) => [day.date, day.bucket]));
+      const foregroundByBucket = groupReportRows(selected, (row) =>
+        bucketByDate.get(row.localDate),
+      );
+      const screenByBucket = groupReportRows(screen, (row) =>
+        bucketByDate.get(row.localDate),
+      );
+      const daysByBucket = groupReportRows(days, (day) => day.bucket);
+      const trends = [...daysByBucket].map(([bucket, bucketDays]) => {
+        const part = foregroundByBucket.get(bucket) ?? [];
+        const screens = screenByBucket.get(bucket) ?? [];
+        const expectedMs = bucketDays.reduce(
+            (sum, day) => sum + Number(day.duration),
+            0,
+          ),
           coverageMs = Math.min(
             expectedMs,
             screens.reduce((sum, r) => sum + Number(r.coverageMs), 0),
@@ -572,15 +609,12 @@ export class ApplicationService {
           missingMs: expectedMs - coverageMs,
         };
       });
-      const categories = [...new Set(apps.map((a) => a.categoryId))].map(
-        (id) => ({
-          id,
-          name: apps.find((a) => a.categoryId === id)!.category,
-          seconds: apps
-            .filter((a) => a.categoryId === id)
-            .reduce((sum, a) => sum + a.seconds, 0),
-        }),
-      );
+      const appsByCategory = groupReportRows(apps, (app) => app.categoryId);
+      const categories = [...appsByCategory].map(([id, categoryApps]) => ({
+        id,
+        name: categoryApps[0].category,
+        seconds: categoryApps.reduce((sum, app) => sum + app.seconds, 0),
+      }));
       const timeline =
         last - first <= 7 * 86400000
           ? await manager

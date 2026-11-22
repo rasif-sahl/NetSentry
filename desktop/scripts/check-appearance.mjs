@@ -249,6 +249,7 @@ try {
     };
   });
   const controls = await paired.newPage();
+  await controls.clock.install();
   await controls.goto(`http://127.0.0.1:${server.address().port}/#services`);
   await controls
     .getByRole("button", { name: "Refresh services", exact: true })
@@ -256,9 +257,14 @@ try {
   await controls
     .getByRole("button", { name: "Review service", exact: true })
     .click();
-  await controls
-    .getByRole("button", { name: "Stop gracefully", exact: true })
-    .waitFor();
+  const stop = controls.getByRole("button", {
+    name: "Stop gracefully",
+    exact: true,
+  });
+  await stop.waitFor();
+  assert.equal(await stop.isEnabled(), true);
+  await controls.clock.fastForward(15000);
+  assert.equal(await stop.isDisabled(), true);
   await visit(controls, "updates");
   await controls
     .getByRole("button", { name: "Update status", exact: true })
