@@ -27,30 +27,42 @@ export function PublicScrollMotion({
       return;
     }
 
-    const pending = new Set<Element>();
-    const observer = new IntersectionObserver(
+    const watched = new Set<Element>();
+    // Enter inside the viewport and reset only after a full exit. The gap
+    // keeps the animation's own translation from immediately triggering a reset.
+    const enter = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting || !pending.delete(entry.target)) continue;
-          entry.target.setAttribute("data-motion-entered", "");
-          observer.unobserve(entry.target);
+        for (const { isIntersecting, target } of entries) {
+          if (!isIntersecting || !watched.has(target)) continue;
+          target.setAttribute("data-motion-entered", "");
+          enter.unobserve(target);
+          leave.observe(target);
         }
       },
-      { rootMargin: "0px 0px -24px" },
+      { rootMargin: "-40px 0px" },
     );
+    const leave = new IntersectionObserver((entries) => {
+      for (const { isIntersecting, target } of entries) {
+        if (isIntersecting || !watched.has(target)) continue;
+        target.removeAttribute("data-motion-entered");
+        leave.unobserve(target);
+        enter.observe(target);
+      }
+    });
 
     function observeSections() {
       if (!root) return;
-      for (const element of pending) {
+      for (const element of watched) {
         if (root.contains(element)) continue;
-        observer.unobserve(element);
-        pending.delete(element);
+        enter.unobserve(element);
+        leave.unobserve(element);
+        element.removeAttribute("data-motion-entered");
+        watched.delete(element);
       }
       for (const element of root.querySelectorAll(targets)) {
-        if (pending.has(element) || element.hasAttribute("data-motion-entered"))
-          continue;
-        pending.add(element);
-        observer.observe(element);
+        if (watched.has(element)) continue;
+        watched.add(element);
+        enter.observe(element);
       }
     }
 
@@ -60,7 +72,8 @@ export function PublicScrollMotion({
     changes.observe(root, { childList: true, subtree: true });
 
     return () => {
-      observer.disconnect();
+      enter.disconnect();
+      leave.disconnect();
       changes.disconnect();
       root.removeAttribute("data-public-motion");
       for (const element of root.querySelectorAll("[data-motion-entered]")) {

@@ -226,6 +226,8 @@ test("homepage text stays readable and motion follows the system preference", as
       .toBe(true);
   }
 
+  await expect(privacy).not.toHaveAttribute("data-motion-entered", "");
+  await privacy.scrollIntoViewIfNeeded();
   await expect(privacy).toHaveAttribute("data-motion-entered", "");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(intro).toHaveCSS("animation-name", "none");
@@ -337,7 +339,7 @@ test("public pages beyond the homepage share scroll motion and respect reduced m
   }
 });
 
-test("scroll triggers below-the-fold animation once and continues after public navigation", async ({
+test("scroll replays below-the-fold animation in both directions and after navigation", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -347,21 +349,35 @@ test("scroll triggers below-the-fold animation once and continues after public n
   await expect(comparison).not.toHaveAttribute("data-motion-entered", "");
   await expect(comparison).toHaveCSS("animation-name", "none");
 
+  const activeAnimations = () =>
+    comparison.evaluate((element) => element.getAnimations().length);
+
   await comparison.scrollIntoViewIfNeeded();
   await expect(comparison).toHaveAttribute("data-motion-entered", "");
-  await expect(comparison).not.toHaveCSS("animation-name", "none");
-  await expect
-    .poll(() =>
-      comparison.evaluate((element) => element.getAnimations().length),
-    )
-    .toBe(0);
+  await expect.poll(activeAnimations).toBeGreaterThan(0);
+  await expect.poll(activeAnimations).toBe(0);
+
+  await page.evaluate(() => window.scrollBy(0, 1));
+  await expect(comparison).toBeInViewport();
+  await expect(comparison).toHaveAttribute("data-motion-entered", "");
+  expect(await activeAnimations()).toBe(0);
 
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(comparison).not.toBeInViewport();
+  await expect(comparison).not.toHaveAttribute("data-motion-entered", "");
   await comparison.scrollIntoViewIfNeeded();
-  expect(
-    await comparison.evaluate((element) => element.getAnimations().length),
-  ).toBe(0);
+  await expect(comparison).toHaveAttribute("data-motion-entered", "");
+  await expect.poll(activeAnimations).toBeGreaterThan(0);
+  await expect.poll(activeAnimations).toBe(0);
+
+  await comparison.evaluate((element) => {
+    window.scrollBy(0, element.getBoundingClientRect().bottom + 40);
+  });
+  await expect(comparison).not.toBeInViewport();
+  await expect(comparison).not.toHaveAttribute("data-motion-entered", "");
+  await comparison.scrollIntoViewIfNeeded();
+  await expect(comparison).toHaveAttribute("data-motion-entered", "");
+  await expect.poll(activeAnimations).toBeGreaterThan(0);
 
   await page
     .getByRole("navigation", { name: "Main navigation" })
