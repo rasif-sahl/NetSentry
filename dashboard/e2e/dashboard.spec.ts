@@ -30,6 +30,9 @@ test("sign in, restore an HTTP-only session and sign out", async ({
   context,
 }) => {
   await login(page);
+  await expect(
+    page.getByRole("region", { name: "Email verification" }),
+  ).toHaveCount(0);
   const cookies = await context.cookies();
   expect(cookies.filter((c) => c.name.startsWith("netsentry_"))).toHaveLength(
     2,
@@ -550,16 +553,39 @@ test("profile, appearance, retention, sessions and personal export use the backe
 });
 test("email verification and password recovery consume email-fragment codes", async ({
   page,
+  context,
 }) => {
   const data = await fixtures();
-  await page.goto("/verify-email#token=" + data.tokens.unverified);
-  await expect(page.getByLabel("Verification code")).toHaveValue(
+  await page.goto("/app");
+  await page.getByLabel("Email address").fill(data.accounts.unverified.email);
+  await page.getByLabel("Password", { exact: true }).fill(data.password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  const stripe = page.getByRole("region", { name: "Email verification" });
+  await expect(stripe).toBeVisible();
+  await stripe.getByRole("button", { name: "I’ve verified my email" }).click();
+  await expect(stripe.getByRole("status")).toHaveText(
+    "Email verification is still pending.",
+  );
+
+  const verifyPage = await context.newPage();
+  await verifyPage.goto("/verify-email#token=" + data.tokens.unverified);
+  await expect(verifyPage.getByLabel("Verification code")).toHaveValue(
     data.tokens.unverified,
   );
-  expect(page.url()).not.toContain(data.tokens.unverified);
-  await page.getByRole("button", { name: "Verify email", exact: true }).click();
+  expect(verifyPage.url()).not.toContain(data.tokens.unverified);
+  await verifyPage
+    .getByRole("button", { name: "Verify email", exact: true })
+    .click();
   await expect(
-    page.getByText(/Email verified. You can now sign in/),
+    verifyPage.getByText(/Email verified. You can now sign in/),
+  ).toBeVisible();
+  await verifyPage.close();
+  await stripe.getByRole("button", { name: "I’ve verified my email" }).click();
+  await expect(stripe).toHaveCount(0);
+  await expect(page.getByRole("main")).toBeFocused();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
   await page.goto("/reset-password#token=" + data.tokens.recovery);
   await expect(page.getByLabel("Reset code")).toHaveValue(data.tokens.recovery);
@@ -631,7 +657,37 @@ test("registration and password-confirmed account deletion clear the browser ses
   await expect(
     page.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText(/Verify your email to manage/)).toBeVisible();
+  const stripe = page.getByRole("region", { name: "Email verification" });
+  const sendEmail = stripe.getByRole("button", {
+    name: "Send verification email",
+  });
+  await expect(stripe).toContainText(
+    "Verify your email to manage workspace access and monitoring.",
+  );
+  await expect(
+    page.locator("header.topbar + .verification-stripe + main"),
+  ).toBeVisible();
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const desktopButton = await sendEmail.boundingBox();
+  const desktopStripe = await stripe.boundingBox();
+  expect(desktopButton!.y).toBeLessThan(desktopStripe!.y + 12);
+
+  const viewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 320, height: 760 });
+  const copy = await stripe
+    .getByText("Verify your email", { exact: true })
+    .boundingBox();
+  const mobileButton = await sendEmail.boundingBox();
+  expect(mobileButton!.y).toBeGreaterThan(copy!.y + copy!.height);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    320,
+  );
+  await sendEmail.click();
+  await expect(stripe.getByRole("status")).toHaveText(
+    "Verification email requested. Check your inbox.",
+  );
+  await page.setViewportSize(viewport);
   await page
     .getByRole("button", { name: "Settings & privacy", exact: true })
     .click();

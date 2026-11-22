@@ -420,6 +420,38 @@
   font-size: 0.75rem;
   color: var(--text-secondary);
 }
+.workspace-app .verification-stripe {
+  background: var(--surface-lavender);
+  border-bottom: 1px solid var(--border);
+}
+.workspace-app .verification-stripe-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  max-width: 1500px;
+  margin-inline: auto;
+  padding: 0.375rem 2.2rem;
+}
+.workspace-app .verification-stripe-message {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--primary-hover);
+  font-size: 0.83rem;
+}
+.workspace-app .verification-stripe-message svg {
+  flex-shrink: 0;
+}
+.workspace-app .verification-stripe-message strong {
+  color: var(--text);
+}
+.workspace-app .verification-stripe-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+}
 .workspace-app .page-content {
   max-width: 1500px;
   margin: auto;
@@ -621,6 +653,9 @@
   .workspace-app .page-content {
     padding: 1.3rem;
   }
+  .workspace-app .verification-stripe-content {
+    padding-inline: 1.3rem;
+  }
   .workspace-app .topbar {
     padding-inline: 1rem;
   }
@@ -656,6 +691,12 @@
   }
   .workspace-app .page-content {
     padding: 1rem;
+  }
+  .workspace-app .verification-stripe-content {
+    padding: 0.625rem 1rem;
+  }
+  .workspace-app .verification-stripe-actions {
+    flex-basis: 100%;
   }
   .workspace-app .card {
     padding: 1.1rem;

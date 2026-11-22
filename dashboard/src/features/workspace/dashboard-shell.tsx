@@ -34,10 +34,10 @@ import {
   Empty,
   ErrorNotice,
   Loading,
-  Notice,
   formatTime,
 } from "@/shared/ui/common";
 import { PageLoading } from "@/shared/ui/loading";
+import { EmailVerificationStripe } from "./email-verification-stripe";
 const BillingPanel = dynamic(
   () =>
     import("@/features/billing/billing-panel").then(
@@ -453,7 +453,21 @@ function WorkspaceShell({
             <Bell size={20} />
           </button>
         </header>
-        <main id="dashboard-content" tabIndex={-1} className="page-content">
+        {!user.emailVerifiedAt && (
+          <EmailVerificationStripe
+            onChecked={(currentUser) => {
+              updateUser(currentUser);
+              if (currentUser.emailVerifiedAt)
+                contentRef.current?.focus({ preventScroll: true });
+            }}
+          />
+        )}
+        <main
+          ref={contentRef}
+          id="dashboard-content"
+          tabIndex={-1}
+          className="page-content"
+        >
           <div className="page-heading">
             <div>
               <p className="eyebrow">
@@ -477,23 +491,6 @@ function WorkspaceShell({
               Refresh workspace
             </button>
           </div>
-          {!user.emailVerifiedAt && (
-            <Notice>
-              Verify your email to manage workspace access and monitoring.{" "}
-              <ActionButton
-                action={async () => {
-                  await api("/auth/verification/request", "POST", {});
-                }}
-              >
-                Request verification email
-              </ActionButton>{" "}
-              <ActionButton
-                action={async () => updateUser(await api<User>("/auth/me"))}
-              >
-                I have verified my email
-              </ActionButton>
-            </Notice>
-          )}
           <ErrorNotice error={selectionError} />
           {section === "Operations" && (
             <div className="page-stack">
