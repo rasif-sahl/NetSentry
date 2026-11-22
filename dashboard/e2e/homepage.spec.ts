@@ -189,3 +189,26 @@ test("public pages share the same navigation and skip link", async ({
     page.getByRole("button", { name: "Open navigation" }),
   ).toHaveAttribute("aria-expanded", "false");
 });
+
+test("homepage text stays readable and motion follows the system preference", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  const heading = page.getByRole("heading", { level: 1 });
+  const intro = heading.locator("..");
+  const description = page.getByText(
+    /^Your phone, your computer, your network\./,
+  );
+  await expect(heading).toHaveCSS("font-family", /system-ui/);
+  await expect(description).toHaveCSS("font-size", "16px");
+  await expect(description).toHaveCSS("color", "rgb(85, 73, 94)");
+  await expect(intro).not.toHaveCSS("animation-name", "none");
+  await expect(page.locator("#story")).not.toHaveCSS("animation-name", "none");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(intro).toHaveCSS("animation-name", "none");
+  await expect(page.locator("#story")).toHaveCSS("animation-name", "none");
+  await expect(heading).toBeInViewport();
+});

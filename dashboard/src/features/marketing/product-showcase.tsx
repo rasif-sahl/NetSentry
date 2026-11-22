@@ -2,15 +2,17 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { button, caption, ProductImage, WindowFrame } from "./ui";
+import { button, ProductImage, WindowFrame } from "./ui";
 
 import {
   productScreens as screens,
   type ProductScreen as Screen,
 } from "./product-screens";
 
+const caption = "mt-5 text-center text-xs leading-relaxed text-[#65566f]";
+
 const enlargeButton =
-  "min-h-11 rounded-lg border border-[#dfd3e7] bg-white px-3 py-2 text-[10px] font-semibold text-[#705380] hover:bg-[#f2edf6]";
+  "min-h-11 rounded-lg border border-[#dfd3e7] bg-white px-3 py-2 text-xs font-semibold text-[#705380] hover:bg-[#f2edf6]";
 
 export function ProductShowcase({
   kind,
@@ -31,10 +33,10 @@ export function ProductShowcase({
         <>
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
-              <p className="text-[10px] font-semibold tracking-[1.8px] text-[#8c729c]">
+              <p className="text-xs font-semibold tracking-[1.8px] text-[#65566f]">
                 THE WEB WORKSPACE
               </p>
-              <p className="mt-1 text-xs text-marketing-copy md:text-sm">
+              <p className="mt-1 text-xs text-[#55495e] md:text-sm">
                 One place to bring your devices together.
               </p>
             </div>
@@ -56,7 +58,7 @@ export function ProductShowcase({
       )}
       {kind === "mobile" && (
         <>
-          <p className="mb-8 text-center text-[9px] font-semibold tracking-[1.5px] text-[#947da1]">
+          <p className="mb-8 text-center text-xs font-semibold tracking-[1.5px] text-[#65566f]">
             TWO PLATFORMS. ONE FAMILIAR EXPERIENCE.
           </p>
           <div className="mx-auto grid max-w-[480px] grid-cols-2 items-start gap-5 md:gap-8">
@@ -69,7 +71,7 @@ export function ProductShowcase({
                   <strong className="text-sm font-semibold">
                     {platform === "android" ? "Android" : "iOS"}
                   </strong>
-                  <span className="mt-1 block text-[10px] text-marketing-caption">
+                  <span className="mt-1 block text-xs text-[#65566f]">
                     {platform === "android" ? "Kotlin / Compose" : "SwiftUI"}
                   </span>
                   <button
@@ -101,7 +103,7 @@ export function ProductShowcase({
                 <button
                   key={screen}
                   aria-pressed={desktop === screen}
-                  className={`min-h-11 rounded-lg px-3 py-2 text-xs md:px-4 ${desktop === screen ? "bg-white text-[#604675] shadow-sm" : "text-marketing-caption hover:text-[#604675]"}`}
+                  className={`min-h-11 rounded-lg px-3 py-2 text-xs md:px-4 ${desktop === screen ? "bg-white text-[#604675] shadow-sm" : "text-[#65566f] hover:text-[#604675]"}`}
                   onClick={() => setDesktop(screen)}
                 >
                   {screens[screen].title}
