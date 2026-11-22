@@ -90,9 +90,20 @@ func (r *Runner) RemoteStatus() DeveloperPreferences {
 	return DeveloperPreferences{r.Config.ShareServices, r.Config.RemoteControlAllowed, r.developer.Supported()}
 }
 func (r *Runner) remoteLoop(ctx context.Context) {
+	attempt := 0
 	for {
-		r.RemoteCycle(ctx)
-		timer := time.NewTimer(3 * time.Second)
+		delay := 3 * time.Second
+		if err := r.RemoteCycle(ctx); err != nil {
+			delay = max(delay, Delay(attempt))
+			attempt = min(attempt+1, 5)
+			var failure *remote.Failure
+			if errors.As(err, &failure) {
+				delay = max(delay, failure.RetryAfter)
+			}
+		} else {
+			attempt = 0
+		}
+		timer := time.NewTimer(delay)
 		select {
 		case <-ctx.Done():
 			timer.Stop()
@@ -144,6 +155,8 @@ func (r *Runner) flushReceipts(ctx context.Context, value *receiptFile) error {
 	return nil
 }
 func (r *Runner) RemoteCycle(ctx context.Context) error {
+	r.remoteMu.Lock()
+	defer r.remoteMu.Unlock()
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.binding.Token == "" {
@@ -180,8 +193,17 @@ func (r *Runner) RemoteCycle(ctx context.Context) error {
 	if !r.Config.ShareServices || !r.Config.Requested.Developer {
 		return nil
 	}
+	// This read does not change server state. Let status and preference changes
+	// proceed while the backend responds, then recheck the local scope.
+	binding, local, client := r.binding, r.Config, r.Client
 	var config developerConfig
-	if err := r.Client.Request(ctx, "GET", "/agents/"+r.binding.AgentID+"/developer/configuration", r.binding.Token, nil, &config); err != nil {
+	r.mu.Unlock()
+	err = client.Request(ctx, "GET", "/agents/"+binding.AgentID+"/developer/configuration", binding.Token, nil, &config)
+	r.mu.Lock()
+	if binding != r.binding || local != r.Config || client != r.Client {
+		return nil
+	}
+	if err != nil {
 		r.failed(err)
 		return err
 	}
