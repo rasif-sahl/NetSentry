@@ -4,13 +4,15 @@ import { useEffect, useRef, type ReactNode } from "react";
 import motion from "./public-motion.module.css";
 
 const targets = [
+  `.${motion.intro}`,
+  `.${motion.preview}`,
   `.${motion.reveal}`,
   `.${motion.previewReveal}`,
   `.${motion.reading}`,
   `.${motion.stagger} > *`,
 ].join(", ");
 
-export function PublicMotionFallback({
+export function PublicScrollMotion({
   children,
   className,
 }: {
@@ -21,24 +23,21 @@ export function PublicMotionFallback({
 
   useEffect(() => {
     const root = container.current;
-    if (
-      !root ||
-      typeof IntersectionObserver === "undefined" ||
-      (CSS.supports("animation-timeline", "view()") &&
-        CSS.supports("animation-range", "entry 0% entry 65%"))
-    ) {
+    if (!root || typeof IntersectionObserver === "undefined") {
       return;
     }
 
     const pending = new Set<Element>();
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.setAttribute("data-motion-entered", "");
-        observer.unobserve(entry.target);
-        pending.delete(entry.target);
-      }
-    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting || !pending.delete(entry.target)) continue;
+          entry.target.setAttribute("data-motion-entered", "");
+          observer.unobserve(entry.target);
+        }
+      },
+      { rootMargin: "0px 0px -24px" },
+    );
 
     function observeSections() {
       if (!root) return;
@@ -56,14 +55,14 @@ export function PublicMotionFallback({
     }
 
     const changes = new MutationObserver(observeSections);
-    root.setAttribute("data-motion-fallback", "");
+    root.setAttribute("data-public-motion", "");
     observeSections();
     changes.observe(root, { childList: true, subtree: true });
 
     return () => {
       observer.disconnect();
       changes.disconnect();
-      root.removeAttribute("data-motion-fallback");
+      root.removeAttribute("data-public-motion");
       for (const element of root.querySelectorAll("[data-motion-entered]")) {
         element.removeAttribute("data-motion-entered");
       }

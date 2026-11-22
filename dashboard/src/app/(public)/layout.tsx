@@ -1,6 +1,5 @@
 import { MarketingNavigation } from "@/features/marketing/navigation";
-
-import { PublicMotionFallback } from "@/features/marketing/public-motion-fallback";
+import { PublicScrollMotion } from "@/features/marketing/public-scroll-motion";
 
 export default function PublicLayout({
   children,
@@ -8,9 +7,9 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <PublicMotionFallback className="flow-root min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif]">
+    <PublicScrollMotion className="flow-root min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif]">
       <MarketingNavigation />
       {children}
-    </PublicMotionFallback>
+    </PublicScrollMotion>
   );
 }

@@ -207,40 +207,29 @@ test("homepage text stays readable and motion follows the system preference", as
   await expect(intro).not.toHaveCSS("animation-name", "none");
   const sections = page.locator("main > section");
   await expect(sections).toHaveCount(10);
-  const sectionAnimations = () =>
-    sections.evaluateAll((nodes) =>
-      nodes.map((section) =>
-        [section, ...section.querySelectorAll("*")].some(
-          (element) => getComputedStyle(element).animationName !== "none",
+  const privacy = page.locator("#privacy > div");
+  await expect(privacy).not.toHaveAttribute("data-motion-entered", "");
+  await expect(privacy).toHaveCSS("animation-name", "none");
+
+  for (const section of await sections.all()) {
+    await section.evaluate((element) => {
+      element.scrollIntoView({ block: "start" });
+    });
+    await expect
+      .poll(() =>
+        section.evaluate(
+          (element) =>
+            element.hasAttribute("data-motion-entered") ||
+            !!element.querySelector("[data-motion-entered]"),
         ),
-      ),
-    );
-  await expect.poll(sectionAnimations).toEqual(Array(10).fill(true));
+      )
+      .toBe(true);
+  }
 
-  const privacy = page.locator("#privacy");
-  const scrollToPrivacy = (fraction: number) =>
-    privacy.evaluate((section, fraction) => {
-      window.scrollBy(
-        0,
-        section.getBoundingClientRect().top - window.innerHeight * fraction,
-      );
-    }, fraction);
-  const privacyProgress = () =>
-    privacy
-      .locator(":scope > div")
-      .evaluate(
-        (card) =>
-          card.getAnimations()[0]?.effect?.getComputedTiming().progress ?? -1,
-      );
-  await scrollToPrivacy(0.9);
-  await expect.poll(privacyProgress).toBeGreaterThan(0);
-  expect(await privacyProgress()).toBeLessThan(0.6);
-  await scrollToPrivacy(0.1);
-  await expect.poll(privacyProgress).toBeGreaterThan(0.95);
-
+  await expect(privacy).toHaveAttribute("data-motion-entered", "");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect.poll(sectionAnimations).toEqual(Array(10).fill(false));
-  await expect(privacy.getByRole("heading", { level: 2 })).toBeInViewport();
+  await expect(intro).toHaveCSS("animation-name", "none");
+  await expect(privacy).toHaveCSS("animation-name", "none");
 });
 
 test("public pages beyond the homepage share scroll motion and respect reduced motion", async ({
@@ -334,8 +323,11 @@ test("public pages beyond the homepage share scroll motion and respect reduced m
         });
 
       await expect.poll(hasIntro).toBe(true);
-      for (const item of scrollItems)
-        await expect(item).toHaveCSS("animation-timeline", /^view\(/);
+      for (const item of scrollItems) {
+        await item.scrollIntoViewIfNeeded();
+        await expect(item).toHaveAttribute("data-motion-entered", "");
+        await expect(item).not.toHaveCSS("animation-name", "none");
+      }
       await page.emulateMedia({ reducedMotion: "reduce" });
       await expect.poll(hasIntro).toBe(false);
       for (const item of scrollItems)
@@ -345,28 +337,31 @@ test("public pages beyond the homepage share scroll motion and respect reduced m
   }
 });
 
-test("below-the-fold motion works without native scroll timelines", async ({
+test("scroll triggers below-the-fold animation once and continues after public navigation", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.addInitScript(() => {
-    const supports = CSS.supports.bind(CSS);
-    CSS.supports = (property: string, value?: string) =>
-      property === "animation-timeline"
-        ? false
-        : value === undefined
-          ? supports(property)
-          : supports(property, value);
-  });
-
   await page.goto("/pricing");
   const comparison = page.getByRole("region", { name: "Edition comparison" });
-  await expect(page.locator("[data-motion-fallback]")).toBeAttached();
+  await expect(page.locator("[data-public-motion]")).toBeAttached();
   await expect(comparison).not.toHaveAttribute("data-motion-entered", "");
+  await expect(comparison).toHaveCSS("animation-name", "none");
+
   await comparison.scrollIntoViewIfNeeded();
   await expect(comparison).toHaveAttribute("data-motion-entered", "");
-  await expect(comparison).toHaveCSS("animation-timeline", "auto");
   await expect(comparison).not.toHaveCSS("animation-name", "none");
+  await expect
+    .poll(() =>
+      comparison.evaluate((element) => element.getAnimations().length),
+    )
+    .toBe(0);
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(comparison).not.toBeInViewport();
+  await comparison.scrollIntoViewIfNeeded();
+  expect(
+    await comparison.evaluate((element) => element.getAnimations().length),
+  ).toBe(0);
 
   await page
     .getByRole("navigation", { name: "Main navigation" })
@@ -374,8 +369,10 @@ test("below-the-fold motion works without native scroll timelines", async ({
     .click();
   await expect(page).toHaveURL("/product");
   const report = page.locator("#product-reports article").first();
+  await expect(report).not.toHaveAttribute("data-motion-entered", "");
   await report.scrollIntoViewIfNeeded();
   await expect(report).toHaveAttribute("data-motion-entered", "");
+
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(report).toHaveCSS("animation-name", "none");
 });
