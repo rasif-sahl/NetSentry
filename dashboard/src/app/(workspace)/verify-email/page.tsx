@@ -1,4 +1,4 @@
-import { DashboardShell } from "@/features/workspace/dashboard-shell";
+import { AccountLinkPanel } from "@/features/account/account-link-panel";
 export default function VerifyEmail() {
-  return <DashboardShell initialMode="verify" />;
+  return <AccountLinkPanel mode="verify" />;
 }
