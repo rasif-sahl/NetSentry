@@ -22,8 +22,11 @@ export function EmailVerificationStripe({
           </span>
           <div>
             <p>
-              <strong>Verify your email</strong> to manage workspace access and
-              monitoring.
+              <strong>Verify your email</strong>
+              <span className="verification-desktop-copy">
+                {" "}
+                to manage workspace access and monitoring.
+              </span>
             </p>
             <div role="status">{message}</div>
           </div>
@@ -37,7 +40,10 @@ export function EmailVerificationStripe({
               setMessage("Verification email requested. Check your inbox.");
             }}
           >
-            Send verification email
+            <span className="verification-desktop-copy">
+              Send verification email
+            </span>
+            <span className="verification-mobile-copy">Send email</span>
           </ActionButton>
           <ActionButton
             className="button accent"
@@ -49,7 +55,10 @@ export function EmailVerificationStripe({
                 setMessage("Email verification is still pending.");
             }}
           >
-            I’ve verified my email
+            <span className="verification-desktop-copy">
+              I’ve verified my email
+            </span>
+            <span className="verification-mobile-copy">Check status</span>
           </ActionButton>
         </div>
       </div>

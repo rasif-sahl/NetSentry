@@ -474,6 +474,9 @@
 .workspace-app .verification-stripe-message strong {
   color: var(--text);
 }
+.workspace-app .verification-mobile-copy {
+  display: none;
+}
 .workspace-app .verification-stripe-actions {
   display: flex;
   flex-wrap: wrap;
@@ -739,20 +742,20 @@
   }
   .workspace-app .verification-stripe-content {
     display: grid;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-  }
-  .workspace-app .verification-stripe-message {
-    align-items: flex-start;
-  }
-  .workspace-app .verification-stripe-message p {
-    line-height: 1.45;
+    gap: 0.625rem;
+    padding: 0.625rem 1rem;
   }
   .workspace-app .verification-stripe-icon {
     width: 2rem;
     height: 2rem;
     border-radius: 7px;
     background: color-mix(in srgb, var(--primary) 16%, var(--surface-lavender));
+  }
+  .workspace-app .verification-desktop-copy {
+    display: none;
+  }
+  .workspace-app .verification-mobile-copy {
+    display: inline;
   }
   .workspace-app .verification-stripe-actions {
     display: grid;

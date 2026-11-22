@@ -695,18 +695,24 @@ test("registration and password-confirmed account deletion clear the browser ses
   expect(desktopButton!.y).toBeLessThan(desktopStripe!.y + 12);
 
   const viewport = page.viewportSize()!;
-  const checkEmail = stripe.getByRole("button", {
-    name: "I’ve verified my email",
+  const sendMobileEmail = stripe.getByRole("button", {
+    name: "Send email",
+    exact: true,
+  });
+  const checkMobileEmail = stripe.getByRole("button", {
+    name: "Check status",
+    exact: true,
   });
   const metrics = page.locator(".overview-metrics > .card");
   await expect(metrics).toHaveCount(3);
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 760 });
+    await expect(stripe.getByText(/to manage workspace access/)).toBeHidden();
     const copy = await stripe
       .getByText("Verify your email", { exact: true })
       .boundingBox();
-    const send = await sendEmail.boundingBox();
-    const check = await checkEmail.boundingBox();
+    const send = await sendMobileEmail.boundingBox();
+    const check = await checkMobileEmail.boundingBox();
     expect(send!.y).toBeGreaterThan(copy!.y + copy!.height);
     expect(send!.y).toBe(check!.y);
     expect(Math.abs(send!.width - check!.width)).toBeLessThan(1);
@@ -725,9 +731,13 @@ test("registration and password-confirmed account deletion clear the browser ses
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBe(width);
   }
-  await sendEmail.click();
+  await sendMobileEmail.click();
   await expect(stripe.getByRole("status")).toHaveText(
     "Verification email requested. Check your inbox.",
+  );
+  await checkMobileEmail.click();
+  await expect(stripe.getByRole("status")).toHaveText(
+    "Email verification is still pending.",
   );
   await page.setViewportSize(viewport);
   await page
