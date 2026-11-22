@@ -9,6 +9,7 @@ import {
   Card,
   ErrorNotice,
   Field,
+  PasswordField,
   Loading,
   Notice,
   formatTime,
@@ -190,15 +191,13 @@ export function SettingsPanel({
             return "Your personal export is ready to download.";
           }}
         >
-          <Field label="Current password for export">
-            <input
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              required
-              maxLength={128}
-            />
-          </Field>
+          <PasswordField
+            label="Current password for export"
+            name="password"
+            autoComplete="current-password"
+            required
+            maxLength={128}
+          />
         </ActionForm>
       </Card>
       <Card title="Privacy history">
@@ -371,15 +370,13 @@ export function SettingsPanel({
               accountDeleted();
             }}
           >
-            <Field label="Current password for account deletion">
-              <input
-                type="password"
-                name="password"
-                autoComplete="current-password"
-                required
-                maxLength={128}
-              />
-            </Field>
+            <PasswordField
+              label="Current password for account deletion"
+              name="password"
+              autoComplete="current-password"
+              required
+              maxLength={128}
+            />
             <Field label="Type DELETE to confirm">
               <input
                 name="confirmation"

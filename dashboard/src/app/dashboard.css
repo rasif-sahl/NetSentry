@@ -189,6 +189,31 @@
 .workspace-app .field small {
   font-weight: 400;
 }
+.workspace-app .password-input {
+  position: relative;
+}
+.workspace-app .password-input input:not([type="checkbox"]) {
+  padding-inline-end: 3rem;
+}
+.workspace-app .password-input input::-ms-reveal {
+  display: none;
+}
+.workspace-app .password-input button {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: grid;
+  width: 44px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--primary-hover);
+}
+.workspace-app .password-input button:hover {
+  background: var(--surface-lavender);
+}
+.workspace-app .password-input button:focus-visible {
+  outline-offset: -3px;
+}
 .workspace-app .check {
   display: flex;
   align-items: flex-start;

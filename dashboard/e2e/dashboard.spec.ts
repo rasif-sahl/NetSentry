@@ -505,7 +505,9 @@ test("profile, appearance, retention, sessions and personal export use the backe
     `/api/backend/workspaces/${data.workspaceId}/monitoring/retention`,
   );
   expect((await policy.json()).rawDays).toBe(20);
-  await page.getByLabel("Current password for export").fill(data.password);
+  await page
+    .getByLabel("Current password for export", { exact: true })
+    .fill(data.password);
   const downloading = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Download personal data", exact: true })
@@ -533,7 +535,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
     .getByText("Review permanent account deletion", { exact: true })
     .click();
   await page
-    .getByLabel("Current password for account deletion")
+    .getByLabel("Current password for account deletion", { exact: true })
     .fill(data.password);
   await page.getByLabel("Type DELETE to confirm").fill("DELETE");
   await page
@@ -565,9 +567,18 @@ test("email verification and password recovery consume email-fragment codes", as
   await page
     .getByLabel("Password", { exact: true })
     .fill("new-fixture-recovery-password-123");
+  const confirmPassword = page.getByLabel("Confirm new password", {
+    exact: true,
+  });
+  await confirmPassword.fill("new-fixture-recovery-password-123");
   await page
-    .getByLabel("Confirm new password")
-    .fill("new-fixture-recovery-password-123");
+    .getByRole("button", { name: "Show confirm new password", exact: true })
+    .click();
+  await expect(confirmPassword).toHaveAttribute("type", "text");
+  await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
+    "type",
+    "password",
+  );
   await page
     .getByRole("button", { name: "Reset password", exact: true })
     .click();
@@ -596,9 +607,24 @@ test("registration and password-confirmed account deletion clear the browser ses
   await page
     .getByLabel("Email address")
     .fill("disposable@dashboard.example.invalid");
-  await page
-    .getByLabel("Password", { exact: true })
-    .fill("disposable-fixture-password-123");
+  const password = page.getByLabel("Password", { exact: true });
+  const showPassword = page.getByRole("button", {
+    name: "Show password",
+    exact: true,
+  });
+  const hidePassword = page.getByRole("button", {
+    name: "Hide password",
+    exact: true,
+  });
+  await expect(password).toHaveAttribute("type", "password");
+  await password.fill("disposable-fixture-password-123");
+  await password.press("Tab");
+  await expect(showPassword).toBeFocused();
+  await showPassword.press("Space");
+  await expect(password).toHaveAttribute("type", "text");
+  await hidePassword.press("Enter");
+  await expect(password).toHaveAttribute("type", "password");
+  await expect(password).toHaveValue("disposable-fixture-password-123");
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click();
@@ -613,7 +639,7 @@ test("registration and password-confirmed account deletion clear the browser ses
     .getByText("Review permanent account deletion", { exact: true })
     .click();
   await page
-    .getByLabel("Current password for account deletion")
+    .getByLabel("Current password for account deletion", { exact: true })
     .fill("disposable-fixture-password-123");
   await page.getByLabel("Type DELETE to confirm").fill("DELETE");
   await page
