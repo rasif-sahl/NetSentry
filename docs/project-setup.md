@@ -57,6 +57,23 @@ openssl rand -base64 32
 | `MAIL_ENABLED`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Leave mail disabled for ordinary development. To exercise verification and password recovery, configure a test SMTP inbox, set `MAIL_ENABLED=true`, and run `npm --prefix backend run mail:deliver` to deliver queued account mail. The default SMTP port is `587`. |
 | `BILLING_MODE`, `BILLING_ENFORCEMENT`, `BILLING_EVENT_SECRET` | Keep `disabled` and `false` for ordinary development. Set a separate secret of at least 32 characters only if using the optional local billing sandbox. |
 
+**Start the backend API**
+
+Start PostgreSQL and configure `backend/.env` first. Run migrations and verify the schema before starting the API.
+
+```sh
+npm --prefix backend run migration:run
+npm --prefix backend run db:check
+npm run dev:backend
+```
+
+From a second terminal, check liveness and database readiness.
+
+```sh
+curl --fail --silent --show-error http://127.0.0.1:3000/api/v1/health
+curl --fail --silent --show-error http://127.0.0.1:3000/api/v1/ready
+```
+
 #### Web dashboard
 
 On a fresh checkout, copy [the dashboard template](../dashboard/.env.example) to `dashboard/.env.local`. Edit the existing file if you already have one. Keep these settings server-side.
@@ -70,6 +87,16 @@ install -m 600 dashboard/.env.example dashboard/.env.local
 | `NETSENTRY_API_URL` | Server-only API base `http://127.0.0.1:3000/api/v1`. |
 | `DASHBOARD_ORIGIN` | Exact browser origin `http://localhost:3001`. Use that hostname in your browser. |
 
+**Start the web dashboard**
+
+With the backend running and `dashboard/.env.local` configured, run this from the repository root in a separate terminal.
+
+```sh
+npm run dev:dashboard
+```
+
+Open `http://localhost:3001` for the public website or `http://localhost:3001/app` for the dashboard.
+
 #### Electron desktop
 
 Pass the following variables in the shell that launches unpackaged Electron. The renderer can run by itself without either variable.
@@ -79,58 +106,96 @@ Pass the following variables in the shell that launches unpackaged Electron. The
 | `NETSENTRY_AGENT_BINARY` | Absolute path to your locally built `netsentry-agent` executable. |
 | `NETSENTRY_AGENT_STATE_DIR` | Optional absolute path to the same private state directory used for the development agent. |
 
+**Start the desktop renderer or Electron app**
+
+For a browser preview at `http://127.0.0.1:5173`:
+
+```sh
+npm --prefix desktop ci --ignore-scripts
+npm --prefix desktop run dev:renderer
+```
+
+For the native bridge on macOS, start the Go agent in a separate terminal and use an existing compatible Electron runtime. Replace the example Electron and state paths with the actual paths on your machine. The renderer-only preview has no native bridge.
+
+```sh
+npm run build:desktop
+NETSENTRY_AGENT_BINARY=/tmp/netsentry-agent \
+NETSENTRY_AGENT_STATE_DIR=/absolute/path/to/agent-state \
+"/absolute/path/to/Electron.app/Contents/MacOS/Electron" desktop
+```
+
 #### Go agent
 
 The Go agent reads runtime configuration from its private state directory. Set the API base with `init --api` and select the state directory with `--state-dir` when you need isolation. For local HTTP tests, use `--development-store` with the loopback API. See the [agent configuration instructions](../agent/README.md#development-only-credential-files).
+
+**Start the Go agent**
+
+Use Go 1.23+ and a running local backend. Build the executable and create an isolated development installation.
+
+```sh
+(cd agent && GOTOOLCHAIN=local go build -o /tmp/netsentry-agent ./cmd/netsentry-agent)
+NETSENTRY_LOCAL_AGENT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/netsentry-agent.XXXXXX")
+/tmp/netsentry-agent init --api http://127.0.0.1:3000/api/v1 \
+  --development-store --state-dir "$NETSENTRY_LOCAL_AGENT_DIR"
+```
+
+Use the reported installation ID and a verified account with workspace enrolment permission to obtain a one-time code. Save it to a private mode-`0600` file as described in the [agent enrolment instructions](../agent/README.md#run-explicitly). Keep the same state directory for subsequent commands and use its absolute path as `NETSENTRY_AGENT_STATE_DIR` if connecting Electron.
+
+```sh
+/tmp/netsentry-agent pair --state-dir "$NETSENTRY_LOCAL_AGENT_DIR" \
+  --code-file /absolute/path/to/private-code-file
+/tmp/netsentry-agent run --state-dir "$NETSENTRY_LOCAL_AGENT_DIR"
+```
+
+The agent stays in the foreground until Ctrl+C. Run `npm run test:agent` for Go checks. For macOS Keychain-backed use, use a trusted HTTPS API and follow the [agent README](../agent/README.md#run-explicitly).
 
 #### Android
 
 Enter a trusted HTTPS API address ending in `/api/v1` in the sign-in screen. The Android app stores runtime settings locally and does not load a project `.env` file. The portable JVM checks use separate [test tool variables](../android/README.md#development-checks-without-mobile-tooling).
 
+**Build and launch on a physical Android device**
+
+For a source and contract check on the development machine, run `npm run check:android`. Use an independently prepared host with JDK 17, Gradle 8.11.1 and Android SDK API 35 for the native launch below. Set `NETSENTRY_GRADLE_EXECUTABLE` to the existing Gradle executable and `ANDROID_SERIAL` to an authorized physical test phone. Use the host's existing `adb`.
+
+```sh
+(cd android && "$NETSENTRY_GRADLE_EXECUTABLE" --offline --no-daemon :app:lintDebug :app:assembleDebug)
+adb -s "${ANDROID_SERIAL:?Set your test phone serial}" install -r android/app/build/outputs/apk/debug/app-debug.apk
+adb -s "$ANDROID_SERIAL" shell am start -n com.netsentry.app.native.dev/com.netsentry.app.MainActivity
+```
+
+Enter the reachable HTTPS API in the app. See the [Android physical-device handoff](release/android-device-testing.md#build-candidate) for prerequisites and signing checks. Native build and device validation remain pending.
+
 #### iOS
 
 Enter a trusted HTTPS API address ending in `/api/v1` in the setup screen. The iOS app stores runtime settings locally and does not load a project `.env` file. `NETSENTRY_BUNDLE_PREFIX` and the optional Screen Time `NETSENTRY_APP_GROUP` are Xcode build settings. See the [iOS setup and signing handoff](../ios/README.md#targets-and-later-physical-device-handoff).
+
+**Launch on a physical iPhone or iPad**
+
+For a source check on the development machine, run `npm run check:ios`. On an independently prepared Mac with a compatible Xcode and iOS SDK, open the project.
+
+```sh
+open -a Xcode ios/NetSentry.xcodeproj
+```
+
+Configure the development signing team, select the `NetSentry` scheme and a connected physical device, then choose **Product → Run**. Enter the reachable HTTPS API in the app. See the [iOS device handoff](release/ios-device-testing.md#default-app-candidate) for the manual build command and provisioning details. Native build and device validation remain pending.
 
 #### Flutter reference
 
 The preserved Flutter reference accepts `API_BASE_URL` as a Dart build define. See the [Flutter reference README](../mobile/README.md) for its example.
 
-### Migrate, start and verify
+**Start the Flutter reference**
 
-Apply migrations to the local development database before starting the API.
-
-```sh
-npm --prefix backend run migration:run
-npm --prefix backend run db:check
-npm run dev:backend
-```
-
-Run the dashboard in a second terminal from the repository root.
+On a host with existing Flutter tooling and a prepared device, replace the example URL with an API address reachable from that device.
 
 ```sh
-npm run dev:dashboard
+cd mobile
+flutter pub get
+flutter run --dart-define=API_BASE_URL=https://netsentry.example.com/api/v1
 ```
 
-Open the homepage at `http://localhost:3001` and the workspace at `http://localhost:3001/app`. Check API liveness and database/schema readiness separately.
+### Run repository checks
 
-```sh
-curl --fail --silent --show-error http://127.0.0.1:3000/api/v1/health
-curl --fail --silent --show-error http://127.0.0.1:3000/api/v1/ready
-```
-
-Run `npm run check` for the repository checks after preparing the desktop dependencies below as well. For database, API and dashboard integration checks, create a separate empty database owned by the local test role. Its name must end in `_test`. Set `TEST_DATABASE_URL` and, for isolated local PostgreSQL without TLS, `TEST_DATABASE_SSL=false` in your test shell. Run `npm run test:database`, `npm run test:api` and `npm run test:dashboard` separately. The dashboard suite needs an existing compatible Chromium browser or the `PLAYWRIGHT_CHROME_EXECUTABLE` override for an existing Chrome executable. Test data is synthetic. See [database test configuration](../backend/.env.test.example) and the [dashboard test instructions](../dashboard/README.md#checks).
-
-### Optional clients and tooling
-
-| Component | Local setup |
-| --- | --- |
-| Go agent | Use Go 1.23+ and run `npm run test:agent` from the root. From `agent/`, build with `GOTOOLCHAIN=local go build -o /tmp/netsentry-agent ./cmd/netsentry-agent`. Use the documented loopback-only development credential store against the local HTTP API. The macOS Keychain path requires existing Command Line Tools and a trusted HTTPS API. See the [agent README](../agent/README.md). |
-| Desktop | Run `npm --prefix desktop ci --ignore-scripts` and `npm run build:desktop`. Run `npm --prefix desktop run dev:renderer` for the browser renderer on `http://127.0.0.1:5173`. The native bridge requires an existing Electron runtime. For agent connection settings and native launch, see the [desktop README](../desktop/README.md). |
-| Android | Run `npm run check:android` for source/contract checks. The pending native build uses JDK 17, Gradle 8.11.1 and Android SDK API 35 on a separately prepared host. See the [Android build and signing handoff](../android/README.md#build-and-signing-handoff--pending). |
-| iOS | Run `npm run check:ios` for source checks. The host Swift checks use existing Apple Command Line Tools. The pending native build targets iOS 17+ and needs a separately prepared compatible Xcode host and signing configuration. See the [iOS build and signing handoff](../ios/README.md#targets-and-later-physical-device-handoff). |
-| Flutter | `mobile/` is the preserved reference. The Android and iOS clients live in the root `android/` and `ios/` directories. |
-
-The local web stack requires no mobile tooling. Keep native build, signing and physical-device checks pending until they run on a prepared host. The native clients need a reachable, trusted HTTPS API ending in `/api/v1`.
+Run `npm run check` for the repository checks after preparing the desktop dependencies above as well. For database, API and dashboard integration checks, create a separate empty database owned by the local test role. Its name must end in `_test`. Set `TEST_DATABASE_URL` and, for isolated local PostgreSQL without TLS, `TEST_DATABASE_SSL=false` in your test shell. Run `npm run test:database`, `npm run test:api` and `npm run test:dashboard` separately. The dashboard suite needs an existing compatible Chromium browser or the `PLAYWRIGHT_CHROME_EXECUTABLE` override for an existing Chrome executable. Test data is synthetic. See [database test configuration](../backend/.env.test.example) and the [dashboard test instructions](../dashboard/README.md#checks).
 
 ## Deploy to production
 
