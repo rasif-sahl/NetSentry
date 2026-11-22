@@ -20,16 +20,13 @@ export function EmailVerificationStripe({
           <span className="verification-stripe-icon" aria-hidden="true">
             <Mail size={19} />
           </span>
-          <div>
-            <p>
-              <strong>Verify your email</strong>
-              <span className="verification-desktop-copy">
-                {" "}
-                to manage workspace access and monitoring.
-              </span>
-            </p>
-            <div role="status">{message}</div>
-          </div>
+          <p>
+            <strong>Verify your email</strong>
+            <span className="verification-desktop-copy">
+              {" "}
+              to manage workspace access and monitoring.
+            </span>
+          </p>
         </div>
         <div className="verification-stripe-actions">
           <ActionButton
@@ -60,6 +57,9 @@ export function EmailVerificationStripe({
             </span>
             <span className="verification-mobile-copy">Check status</span>
           </ActionButton>
+        </div>
+        <div className="verification-stripe-feedback" role="status">
+          {message}
         </div>
       </div>
     </section>
