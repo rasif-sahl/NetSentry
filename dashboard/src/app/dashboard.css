@@ -505,14 +505,28 @@
   outline: 0;
 }
 .workspace-app .page-heading {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "eyebrow refresh"
+    "title refresh"
+    "description refresh";
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  column-gap: 1rem;
   margin-bottom: 1.8rem;
 }
+.workspace-app .page-heading .eyebrow {
+  grid-area: eyebrow;
+}
 .workspace-app .page-heading h1 {
+  grid-area: title;
   margin: 0.3rem 0 0.5rem;
+}
+.workspace-app .page-heading > .button {
+  grid-area: refresh;
+}
+.workspace-app .page-heading .page-description {
+  grid-area: description;
 }
 .workspace-app .page-stack {
   display: grid;
@@ -752,12 +766,22 @@
     padding: 1rem;
   }
   .workspace-app .page-heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: var(--content-gap);
+    grid-template-areas:
+      "eyebrow eyebrow"
+      "title refresh";
+    gap: 0.375rem var(--content-gap);
     margin-bottom: 1.25rem;
   }
-  .workspace-app .page-heading > .button,
+  .workspace-app .page-heading .page-description {
+    grid-area: 3 / 1 / auto / -1;
+  }
+  .workspace-app .page-heading h1 {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .workspace-app .page-content .page-heading > .button {
+    padding-inline: 0.65rem;
+  }
   .workspace-app
     .page-content
     :is(.row, .section-heading, .item-list > li)

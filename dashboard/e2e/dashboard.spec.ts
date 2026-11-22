@@ -707,6 +707,22 @@ test("registration and password-confirmed account deletion clear the browser ses
   await expect(metrics).toHaveCount(3);
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 760 });
+    const title = await page
+      .getByRole("heading", { name: "Overview", exact: true })
+      .boundingBox();
+    const refresh = await page
+      .getByRole("button", { name: "Refresh workspace" })
+      .boundingBox();
+    const description = await page
+      .getByText("Your devices and the information they report, in one place.")
+      .boundingBox();
+    expect(title!.x + title!.width).toBeLessThan(refresh!.x);
+    expect(
+      Math.abs(
+        title!.y + title!.height / 2 - (refresh!.y + refresh!.height / 2),
+      ),
+    ).toBeLessThan(1);
+    expect(description!.y).toBeGreaterThan(refresh!.y + refresh!.height);
     await expect(stripe.getByText(/to manage workspace access/)).toBeHidden();
     expect((await stripe.boundingBox())!.height).toBeLessThanOrEqual(60);
     const copy = await stripe

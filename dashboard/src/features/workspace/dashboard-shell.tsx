@@ -469,20 +469,14 @@ function WorkspaceShell({
           className="page-content"
         >
           <div className="page-heading">
-            <div>
-              <p className="eyebrow">
-                {workspace
-                  ? `${workspace.type} / ${permission.data?.role ?? workspace.role}`
-                  : "NETSENTRY"}
-              </p>
-              <h1>{section}</h1>
-              {section === "Overview" && (
-                <p>
-                  Your devices and the information they report, in one place.
-                </p>
-              )}
-            </div>
+            <p className="eyebrow">
+              {workspace
+                ? `${workspace.type} / ${permission.data?.role ?? workspace.role}`
+                : "NETSENTRY"}
+            </p>
+            <h1>{section}</h1>
             <button
+              type="button"
               className="button"
               onClick={() => {
                 window.dispatchEvent(new Event("netsentry:refresh"));
@@ -490,6 +484,11 @@ function WorkspaceShell({
             >
               Refresh workspace
             </button>
+            {section === "Overview" && (
+              <p className="page-description">
+                Your devices and the information they report, in one place.
+              </p>
+            )}
           </div>
           <ErrorNotice error={selectionError} />
           {section === "Operations" && (
