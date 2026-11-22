@@ -1,6 +1,6 @@
 import motion from "@/features/marketing/public-motion.module.css";
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { notFound } from "next/navigation";
 import { Search } from "lucide-react";
 import {

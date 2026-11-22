@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Route } from "@playwright/test";
 
 test("public pages lead to the Applications guide without account API calls", async ({
   page,
@@ -10,12 +10,27 @@ test("public pages lead to the Applications guide without account API calls", as
       accountRequests.push(request.url());
   });
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
-  await page
-    .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Applications", exact: true })
-    .click();
+  const applications = Promise.withResolvers<void>();
+  const matchesApplications = (url: URL) => url.pathname === "/applications";
+  const holdApplications = async (route: Route) => {
+    await applications.promise;
+    await route.continue();
+  };
+  await page.route(matchesApplications, holdApplications);
+  const preloader = page.getByRole("status").filter({ hasText: /^Loading…$/ });
+  try {
+    await page.goto("/");
+    await page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("link", { name: "Applications", exact: true })
+      .click();
+    await expect(preloader).toBeVisible();
+  } finally {
+    applications.resolve();
+  }
   await expect(page).toHaveURL("/applications");
+  await expect(preloader).toHaveCount(0);
+  await page.unroute(matchesApplications, holdApplications);
   await expect(page).toHaveTitle("NetSentry — Applications");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "One workspace.The right app for your day.",

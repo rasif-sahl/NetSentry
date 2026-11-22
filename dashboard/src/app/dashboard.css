@@ -241,15 +241,6 @@
   margin: 0.5rem auto 0;
   max-width: 550px;
 }
-.workspace-app .loading {
-  padding: 1.5rem;
-  color: var(--primary);
-}
-.workspace-app .boot {
-  display: grid;
-  min-height: 100dvh;
-  place-content: center;
-}
 .workspace-app .auth-layout {
   min-height: 100dvh;
   display: grid;

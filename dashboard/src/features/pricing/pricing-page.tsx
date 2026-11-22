@@ -1,5 +1,5 @@
 import motion from "@/features/marketing/public-motion.module.css";
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { Check } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
 import {

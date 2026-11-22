@@ -35,11 +35,28 @@ test("public homepage explains each app without contacting account APIs", async 
   const primary = page.getByRole("link", { name: "See the bigger picture" });
   await expect(primary).toHaveCSS("background-color", "rgb(126, 96, 148)");
   await expect(primary).toHaveCSS("color", "rgb(255, 255, 255)");
-  await page.getByRole("link", { name: "Sign in", exact: true }).click();
-  await expect(page).toHaveURL(/\/app$/);
+  const session = Promise.withResolvers<void>();
+  await page.route("**/api/backend/auth/me", async (route) => {
+    await session.promise;
+    await route.continue();
+  });
+  const preloader = page.getByRole("status").filter({
+    hasText: "Loading your workspace…",
+  });
+  try {
+    await page.getByRole("link", { name: "Sign in", exact: true }).click();
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(preloader).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "NetSentry", exact: true }),
+    ).toBeVisible();
+  } finally {
+    session.resolve();
+  }
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
+  await expect(preloader).toHaveCount(0);
 });
 
 test("desktop previews switch, enlarge and restore keyboard focus", async ({

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { useSelectedLayoutSegments } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useRef, useState } from "react";

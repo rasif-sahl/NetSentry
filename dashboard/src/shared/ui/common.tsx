@@ -9,6 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import { ApiError } from "@/shared/api";
+export { Loading } from "./loading";
 export function Card({
   children,
   title,
@@ -73,13 +74,6 @@ export function Empty({
       <strong>{title}</strong>
       {children && <p>{children}</p>}
     </div>
-  );
-}
-export function Loading() {
-  return (
-    <p className="loading" role="status">
-      Loading your workspace…
-    </p>
   );
 }
 export function Field({

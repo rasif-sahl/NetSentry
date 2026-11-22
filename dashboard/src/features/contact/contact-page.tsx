@@ -1,5 +1,5 @@
 import motion from "@/features/marketing/public-motion.module.css";
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { BookOpen, Building2, Lightbulb, MessageCircle } from "lucide-react";
 import { ContactForm } from "./contact-form";
 import { CopyrightYear } from "@/features/marketing/copyright-year";

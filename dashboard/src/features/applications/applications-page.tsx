@@ -1,6 +1,6 @@
 import motion from "@/features/marketing/public-motion.module.css";
 import type { ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import {
   Check,
   LayoutGrid,

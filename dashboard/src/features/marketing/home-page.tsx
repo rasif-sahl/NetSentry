@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { CopyrightYear } from "./copyright-year";
 import {
   Building2,

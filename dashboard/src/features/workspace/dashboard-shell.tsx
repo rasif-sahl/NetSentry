@@ -37,6 +37,7 @@ import {
   Notice,
   formatTime,
 } from "@/shared/ui/common";
+import { PageLoading } from "@/shared/ui/loading";
 const BillingPanel = dynamic(
   () =>
     import("@/features/billing/billing-panel").then(
@@ -198,15 +199,7 @@ export function DashboardShell() {
         }
       />
     );
-  if (!session.user)
-    return (
-      <main className="boot">
-        <Link className="brand" href="/">
-          ◈ NetSentry
-        </Link>
-        <Loading />
-      </main>
-    );
+  if (!session.user) return <PageLoading />;
   return (
     <WorkspaceShell
       key={session.user.id}

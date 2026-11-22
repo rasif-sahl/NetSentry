@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { usePathname } from "next/navigation";
 import { useId, useRef, useState } from "react";
 import { BookOpen, Minus, Plus } from "lucide-react";

@@ -1,7 +1,7 @@
 "use client";
 
 import motion from "@/features/marketing/public-motion.module.css";
-import Link from "next/link";
+import Link from "@/features/marketing/public-link";
 import { useSearchParams } from "next/navigation";
 import { useId, useRef, useState } from "react";
 import {
