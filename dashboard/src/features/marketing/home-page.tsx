@@ -138,20 +138,24 @@ export default function Home() {
         </section>
         <section
           id="story"
-          className={`${motion.reveal} ${container} scroll-mt-28 py-16 text-center md:py-24`}
+          className={`${container} scroll-mt-28 py-16 text-center md:py-24`}
         >
-          <Chapter>The story starts with a question</Chapter>
-          <Title>
-            More devices.
-            <br />
-            <span className={accent}>More things to make sense of.</span>
-          </Title>
-          <p className={`${muted} mx-auto mt-6 max-w-[680px]`}>
-            A busy phone. A shared workspace. A development server you forgot
-            about. Small questions add up when the answers live in different
-            places.
-          </p>
-          <div className="mt-9 grid gap-4 text-left md:grid-cols-3">
+          <div className={motion.reveal}>
+            <Chapter>The story starts with a question</Chapter>
+            <Title>
+              More devices.
+              <br />
+              <span className={accent}>More things to make sense of.</span>
+            </Title>
+            <p className={`${muted} mx-auto mt-6 max-w-[680px]`}>
+              A busy phone. A shared workspace. A development server you forgot
+              about. Small questions add up when the answers live in different
+              places.
+            </p>
+          </div>
+          <div
+            className={`${motion.stagger} mt-9 grid gap-4 text-left md:grid-cols-3`}
+          >
             {[
               { icon: Clock3, text: "“Where is my screen time going?”" },
               {
@@ -178,8 +182,10 @@ export default function Home() {
           </div>
         </section>
         <section id="dashboard" className={section}>
-          <div className={`${motion.reveal} ${container}`}>
-            <div className="mb-9 grid gap-6 md:grid-cols-[1fr_340px] md:items-end md:gap-12">
+          <div className={container}>
+            <div
+              className={`${motion.reveal} mb-9 grid gap-6 md:grid-cols-[1fr_340px] md:items-end md:gap-12`}
+            >
               <div>
                 <Chapter>01 / Step back. See the bigger picture.</Chapter>
                 <Title>
@@ -193,8 +199,12 @@ export default function Home() {
                 usage and follow the alerts that matter to your workspace.
               </p>
             </div>
-            <ProductShowcase kind="dashboard" />
-            <div className="mt-10 grid gap-6 md:grid-cols-3 md:gap-8">
+            <div className={motion.previewReveal}>
+              <ProductShowcase kind="dashboard" />
+            </div>
+            <div
+              className={`${motion.stagger} mt-10 grid gap-6 md:grid-cols-3 md:gap-8`}
+            >
               {[
                 [
                   "Know which device reported it",
@@ -229,9 +239,9 @@ export default function Home() {
         </section>
         <section
           id="apps"
-          className={`${motion.reveal} ${container} grid scroll-mt-28 items-center gap-10 py-16 md:py-24 lg:grid-cols-[.85fr_1.15fr] lg:gap-14`}
+          className={`${container} grid scroll-mt-28 items-center gap-10 py-16 md:py-24 lg:grid-cols-[.85fr_1.15fr] lg:gap-14`}
         >
-          <div>
+          <div className={motion.reveal}>
             <Chapter>02 / Keep your everyday devices in the story.</Chapter>
             <Title>
               Your phone has a part
@@ -271,13 +281,15 @@ export default function Home() {
               Native apps · Release validation in progress
             </p>
           </div>
-          <div>
+          <div className={motion.previewReveal}>
             <ProductShowcase kind="mobile" />
           </div>
         </section>
         <section id="desktop" className={section}>
-          <div className={`${motion.reveal} ${container}`}>
-            <div className="mb-10 grid gap-6 md:grid-cols-2 md:gap-14">
+          <div className={container}>
+            <div
+              className={`${motion.reveal} mb-10 grid gap-6 md:grid-cols-2 md:gap-14`}
+            >
               <div>
                 <Chapter>03 / Follow through on your computer.</Chapter>
                 <Title>
@@ -303,22 +315,29 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <ProductShowcase kind="desktop" />
+            <div className={motion.previewReveal}>
+              <ProductShowcase kind="desktop" />
+            </div>
           </div>
         </section>
         <section
           id="features"
-          className={`${motion.reveal} ${container} scroll-mt-28 py-16 text-center md:py-24`}
+          className={`${container} scroll-mt-28 py-16 text-center md:py-24`}
         >
-          <Chapter>One product. Different everyday stories.</Chapter>
-          <Title>
-            Built around <span className={accent}>your part of the story.</span>
-          </Title>
-          <p className={`${muted} mx-auto mt-6 max-w-[550px]`}>
-            Personal insight, shared responsibility or a clearer development
-            workspace. Start with the tools relevant to you.
-          </p>
-          <div className="mt-9 grid grid-cols-2 gap-3 text-left md:grid-cols-4 md:gap-4">
+          <div className={motion.reveal}>
+            <Chapter>One product. Different everyday stories.</Chapter>
+            <Title>
+              Built around{" "}
+              <span className={accent}>your part of the story.</span>
+            </Title>
+            <p className={`${muted} mx-auto mt-6 max-w-[550px]`}>
+              Personal insight, shared responsibility or a clearer development
+              workspace. Start with the tools relevant to you.
+            </p>
+          </div>
+          <div
+            className={`${motion.stagger} mt-9 grid grid-cols-2 gap-3 text-left md:grid-cols-4 md:gap-4`}
+          >
             {[
               {
                 title: "For yourself",
@@ -359,7 +378,9 @@ export default function Home() {
           </div>
         </section>
         <section id="privacy" className={`${container} scroll-mt-28`}>
-          <div className="grid gap-8 rounded-2xl border border-[#e8dfee] bg-marketing-hover p-6 md:grid-cols-2 md:items-center md:gap-16 md:p-12">
+          <div
+            className={`${motion.reveal} grid gap-8 rounded-2xl border border-[#e8dfee] bg-marketing-hover p-6 md:grid-cols-2 md:items-center md:gap-16 md:p-12`}
+          >
             <div>
               <Chapter>Understanding should come with choice.</Chapter>
               <Title>
@@ -416,14 +437,18 @@ export default function Home() {
         </section>
         <section
           id="how-it-works"
-          className={`${motion.reveal} ${container} scroll-mt-28 py-16 text-center md:py-24`}
+          className={`${container} scroll-mt-28 py-16 text-center md:py-24`}
         >
-          <Chapter>When you’re ready, begin with one device.</Chapter>
-          <Title>
-            A simple path to{" "}
-            <span className={accent}>your first clear picture.</span>
-          </Title>
-          <div className="mt-10 grid gap-7 text-left md:grid-cols-3 md:gap-8">
+          <div className={motion.reveal}>
+            <Chapter>When you’re ready, begin with one device.</Chapter>
+            <Title>
+              A simple path to{" "}
+              <span className={accent}>your first clear picture.</span>
+            </Title>
+          </div>
+          <div
+            className={`${motion.stagger} mt-10 grid gap-7 text-left md:grid-cols-3 md:gap-8`}
+          >
             {[
               [
                 "Create your workspace",
@@ -462,7 +487,7 @@ export default function Home() {
           <div
             className={`${container} grid gap-9 md:grid-cols-[.8fr_1.2fr] md:gap-20`}
           >
-            <div>
+            <div className={motion.reveal}>
               <Chapter>A few things worth knowing.</Chapter>
               <Title>
                 Clear expectations.
@@ -474,7 +499,7 @@ export default function Home() {
                 limitation than disguise it as a measurement.
               </p>
             </div>
-            <div id="faq" className="scroll-mt-28">
+            <div id="faq" className={`${motion.stagger} scroll-mt-28`}>
               {faqs.map(([question, answer], i) => (
                 <details
                   key={question}
@@ -505,7 +530,7 @@ export default function Home() {
           </div>
         </section>
         <section className="py-16 text-center md:py-24">
-          <div className={container}>
+          <div className={`${motion.reveal} ${container}`}>
             <Chapter>Your devices. Your workspace. Your choices.</Chapter>
             <Title>
               Bring your digital world

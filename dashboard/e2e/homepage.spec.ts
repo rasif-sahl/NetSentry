@@ -205,10 +205,40 @@ test("homepage text stays readable and motion follows the system preference", as
   await expect(description).toHaveCSS("font-size", "16px");
   await expect(description).toHaveCSS("color", "rgb(85, 73, 94)");
   await expect(intro).not.toHaveCSS("animation-name", "none");
-  await expect(page.locator("#story")).not.toHaveCSS("animation-name", "none");
+  const sections = page.locator("main > section");
+  await expect(sections).toHaveCount(10);
+  const sectionAnimations = () =>
+    sections.evaluateAll((nodes) =>
+      nodes.map((section) =>
+        [section, ...section.querySelectorAll("*")].some(
+          (element) => getComputedStyle(element).animationName !== "none",
+        ),
+      ),
+    );
+  await expect.poll(sectionAnimations).toEqual(Array(10).fill(true));
+
+  const privacy = page.locator("#privacy");
+  const scrollToPrivacy = (fraction: number) =>
+    privacy.evaluate((section, fraction) => {
+      window.scrollBy(
+        0,
+        section.getBoundingClientRect().top - window.innerHeight * fraction,
+      );
+    }, fraction);
+  const privacyProgress = () =>
+    privacy
+      .locator(":scope > div")
+      .evaluate(
+        (card) =>
+          card.getAnimations()[0]?.effect?.getComputedTiming().progress ?? -1,
+      );
+  await scrollToPrivacy(0.9);
+  await expect.poll(privacyProgress).toBeGreaterThan(0);
+  expect(await privacyProgress()).toBeLessThan(0.6);
+  await scrollToPrivacy(0.1);
+  await expect.poll(privacyProgress).toBeGreaterThan(0.95);
 
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(intro).toHaveCSS("animation-name", "none");
-  await expect(page.locator("#story")).toHaveCSS("animation-name", "none");
-  await expect(heading).toBeInViewport();
+  await expect.poll(sectionAnimations).toEqual(Array(10).fill(false));
+  await expect(privacy.getByRole("heading", { level: 2 })).toBeInViewport();
 });
