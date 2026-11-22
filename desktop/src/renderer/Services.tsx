@@ -74,13 +74,23 @@ export function Services({
     mode: "graceful" | "force";
   }>();
   const [children, setChildren] = useState(false);
-  const [now, setNow] = useState(Date.now());
+  const deadline = inventory?.expiresAt;
+  const [expiredDeadline, setExpiredDeadline] = useState<string>();
   const dialog = useRef<HTMLDialogElement>(null);
   const generation = useRef(0);
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+    if (!deadline) return;
+    const expiresAt = Date.parse(deadline);
+    let timer: ReturnType<typeof setTimeout>;
+    const expire = () => {
+      const remaining = expiresAt - Date.now();
+      if (remaining > 0) timer = setTimeout(expire, remaining);
+      else setExpiredDeadline(deadline);
+    };
+    const remaining = expiresAt - Date.now();
+    timer = setTimeout(expire, remaining > 0 ? remaining : 0);
+    return () => clearTimeout(timer);
+  }, [deadline]);
   useEffect(() => {
     generation.current++;
     setInventory(undefined);
@@ -196,7 +206,14 @@ export function Services({
     }
   }
   async function stop() {
-    if (!selected || expired || busy) return;
+    if (
+      !selected ||
+      !inventory ||
+      expired ||
+      Date.now() >= Date.parse(inventory.expiresAt) ||
+      busy
+    )
+      return;
     const epoch = generation.current;
     const input: StopInput = {
       actionId: crypto.randomUUID(),
@@ -241,16 +258,15 @@ export function Services({
       if (epoch === generation.current) setBusy(false);
     }
   }
-  const expired = !inventory || now > Date.parse(inventory.expiresAt);
+  const expired = !deadline || expiredDeadline === deadline;
   const visible = (inventory?.services || []).filter(
     (s) => filter !== "controllable" || s.canStop,
   );
   const groups = new Map<string, Service[]>();
   for (const service of visible) {
-    groups.set(service.project.id, [
-      ...(groups.get(service.project.id) || []),
-      service,
-    ]);
+    const group = groups.get(service.project.id);
+    if (group) group.push(service);
+    else groups.set(service.project.id, [service]);
   }
   const detail = inventory?.services.find((service) => service.id === detailId);
   const endpoints = (service: Service) =>
