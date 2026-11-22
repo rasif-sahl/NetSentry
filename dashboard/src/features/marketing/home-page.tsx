@@ -15,7 +15,6 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
-import { MarketingNavigation } from "./navigation";
 import { ProductShowcase } from "./product-showcase";
 import {
   Brand,
@@ -55,14 +54,7 @@ const faqs = [
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation />
-      <main id="main">
+      <main id="main" tabIndex={-1}>
         <section
           className="pb-5 pt-12 text-center md:pt-16"
           aria-labelledby="hero-title"

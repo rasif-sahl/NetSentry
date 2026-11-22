@@ -12,7 +12,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import { SolutionPreview } from "./solution-preview";
 import {
   Brand,
@@ -160,14 +159,7 @@ function CardTitle({
 export default function SolutionsPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#solutions-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation page="solutions" />
-      <main id="solutions-main">
+      <main id="solutions-main" tabIndex={-1}>
         <section className={`${container} pb-8 pt-12 text-center md:pt-16`}>
           <Chapter>NetSentry solutions / Start with your everyday</Chapter>
           <h1 className="mb-6 font-[inherit] text-[38px] font-semibold leading-[1.15] tracking-[-.045em] md:text-[clamp(38px,4.4vw,64px)]">

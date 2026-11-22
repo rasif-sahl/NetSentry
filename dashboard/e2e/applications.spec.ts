@@ -13,7 +13,7 @@ test("public pages lead to the Applications guide without account API calls", as
   await page.goto("/");
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Our apps", exact: true })
+    .getByRole("link", { name: "Applications", exact: true })
     .click();
   await expect(page).toHaveURL("/applications");
   await expect(page).toHaveTitle("NetSentry — Applications");
@@ -124,9 +124,12 @@ test("mobile guide supports comparison, menu, availability and straight screens 
   await menu.click();
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Getting started", exact: true })
+    .getByRole("link", { name: "Applications", exact: true })
     .click();
   await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await page
+    .getByRole("link", { name: "Getting started", exact: true })
+    .click();
   await expect(page).toHaveURL(/#applications-setup$/);
   await menu.click();
   await page.keyboard.press("Escape");

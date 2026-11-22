@@ -13,7 +13,7 @@ test("homepage opens the product overview with useful sections and no account re
   await page.goto("/");
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "The product", exact: true })
+    .getByRole("link", { name: "Product", exact: true })
     .click();
   await expect(page).toHaveURL(/\/product$/);
   await expect(page).toHaveTitle("NetSentry — Product overview");
@@ -123,9 +123,12 @@ test("product layout keeps upright previews and usable navigation across screen 
   await menu.click();
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Privacy & choice", exact: true })
+    .getByRole("link", { name: "Product", exact: true })
     .click();
   await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await page
+    .getByRole("link", { name: "Privacy & choice", exact: true })
+    .click();
   await expect(page).toHaveURL(/#product-privacy$/);
   await menu.click();
   await page.keyboard.press("Escape");

@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { ApplicationPreview } from "./application-preview";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import {
   Brand,
   button,
@@ -185,14 +184,7 @@ function Note({ title, children }: { title: string; children: ReactNode }) {
 export default function ApplicationsPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#applications-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation page="applications" />
-      <main id="applications-main">
+      <main id="applications-main" tabIndex={-1}>
         <section className={`${container} pb-8 pt-12 text-center md:pt-16`}>
           <Chapter>NetSentry applications / Find your starting point</Chapter>
           <h1 className="mb-6 font-[inherit] text-[38px] font-semibold leading-[1.15] tracking-[-.045em] md:text-[clamp(38px,4.4vw,64px)]">
@@ -211,6 +203,9 @@ export default function ApplicationsPage() {
             </a>
             <a href="#applications-compare" className={button}>
               Compare the apps
+            </a>
+            <a href="#applications-setup" className={button}>
+              Getting started
             </a>
           </div>
           <p className="mt-4 text-[10px] text-marketing-caption">

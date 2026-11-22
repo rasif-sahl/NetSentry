@@ -2,7 +2,6 @@ import Link from "next/link";
 import { BookOpen, Building2, Lightbulb, MessageCircle } from "lucide-react";
 import { ContactForm } from "./contact-form";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import { Chapter, container } from "@/features/marketing/ui";
 
 const muted = "text-xs leading-[1.85] text-marketing-copy";
@@ -80,14 +79,11 @@ const questions = [
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#contact-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
+      <main
+        id="contact-main"
+        tabIndex={-1}
+        className={`${container} max-w-[1060px]`}
       >
-        Skip to content
-      </a>
-      <MarketingNavigation page="contact" />
-      <main id="contact-main" className={`${container} max-w-[1060px]`}>
         <section className="pb-10 pt-12 text-center md:pb-12 md:pt-16">
           <Chapter>Contact NetSentry</Chapter>
           <h1 className="font-[inherit] text-[37px] font-semibold leading-[1.16] tracking-[-.045em] md:text-5xl">
@@ -99,6 +95,12 @@ export default function ContactPage() {
             Whether you’re finding your way around NetSentry or exploring it for
             your team, we’d like to hear from you.
           </p>
+          <a
+            href="#contact-form"
+            className="mt-6 inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-semibold text-[#604675] underline underline-offset-4 hover:bg-marketing-hover"
+          >
+            Get in touch
+          </a>
         </section>
         <section
           aria-label="Contact and help"

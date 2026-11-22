@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
 import { FeatureExplorer } from "./feature-explorer";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import {
   Brand,
   button,
@@ -98,14 +97,7 @@ function Steps({ items }: { items: { title: string; description: string }[] }) {
 export default function ProductPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#product-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation page="product" />
-      <main id="product-main">
+      <main id="product-main" tabIndex={-1}>
         <section
           id="product-top"
           className={`${container} scroll-mt-28 pb-5 pt-12 text-center md:pt-16`}

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import {
   button,
   Chapter,
@@ -126,14 +125,7 @@ const heading =
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#2c2437] selection:bg-[#e7dcef]">
-      <a
-        href="#pricing-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation page="pricing" />
-      <main id="pricing-main" className={container}>
+      <main id="pricing-main" tabIndex={-1} className={container}>
         <section className="pb-10 pt-14 text-center md:pb-12 md:pt-20">
           <Chapter>NetSentry pricing</Chapter>
           <h1 className="font-[inherit] text-[38px] font-semibold leading-[1.16] tracking-[-.045em] md:text-[49px]">

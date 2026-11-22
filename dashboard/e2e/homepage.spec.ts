@@ -89,10 +89,13 @@ test("narrow layout keeps screens straight and navigation accessible", async ({
     page.getByRole("button", { name: "Close navigation" }),
   ).toHaveAttribute("aria-expanded", "true");
   await page
-    .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "How it works" })
-    .click();
+    .getByRole("link", { name: "Product", exact: true })
+    .first()
+    .focus();
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeFocused();
   await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await page.getByRole("link", { name: "How it works", exact: true }).click();
   await expect(page).toHaveURL(/#how-it-works$/);
   await page
     .locator("summary")
@@ -126,4 +129,63 @@ test("existing workspace bookmarks retain their section", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
+});
+
+test("public pages share the same navigation and skip link", async ({
+  page,
+}) => {
+  const links = [
+    "Home",
+    "Product",
+    "Applications",
+    "Solutions",
+    "Documentation",
+    "Pricing",
+    "Contact",
+  ];
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  for (const [route, active] of [
+    ["/", "Home"],
+    ["/product", "Product"],
+    ["/applications", "Applications"],
+    ["/solutions", "Solutions"],
+    ["/docs", "Documentation"],
+    ["/docs/workspace", "Documentation"],
+    ["/pricing", "Pricing"],
+    ["/contact", "Contact"],
+    ["/privacy", null],
+    ["/terms", null],
+  ] as const) {
+    await page.goto(route);
+    await expect(nav).toHaveCount(1);
+    await expect(nav.getByRole("link")).toHaveText(links);
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "Sign in" }),
+    ).toHaveAttribute("href", "/app");
+    if (active) {
+      await expect(nav.locator("[aria-current]")).toHaveText(active);
+    } else {
+      await expect(nav.locator("[aria-current]")).toHaveCount(0);
+    }
+    const skip = page.getByRole("link", { name: "Skip to content" });
+    await skip.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("main")).toBeFocused();
+  }
+
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/docs/workspace");
+  const banner = page.getByRole("banner");
+  expect(
+    await banner.evaluate((header) => header.scrollWidth <= header.clientWidth),
+  ).toBe(true);
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(nav.getByRole("link")).toHaveText(links);
+  await nav.getByRole("link", { name: "Pricing" }).click();
+  await expect(page).toHaveURL("/pricing");
+  await expect(
+    page.getByRole("button", { name: "Open navigation" }),
+  ).toHaveAttribute("aria-expanded", "false");
 });

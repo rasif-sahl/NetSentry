@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { CopyrightYear } from "@/features/marketing/copyright-year";
-import { MarketingNavigation } from "@/features/marketing/navigation";
 import { PolicyContents } from "./policy-contents";
 import { button, Chapter } from "@/features/marketing/ui";
 import { termsSections } from "./terms";
@@ -13,14 +12,7 @@ const paragraph = "text-[13px] leading-[1.95] text-marketing-copy";
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#fdfcfe] font-['Avenir_Next','Segoe_UI',Arial,sans-serif] text-[#30283c] selection:bg-[#e7dcef]">
-      <a
-        href="#terms-main"
-        className="fixed left-4 top-4 z-50 -translate-y-32 rounded-lg bg-[#7e6094] px-4 py-3 text-sm text-white focus:translate-y-0"
-      >
-        Skip to content
-      </a>
-      <MarketingNavigation page="terms" />
-      <main id="terms-main" className={container}>
+      <main id="terms-main" tabIndex={-1} className={container}>
         <section
           id="terms-top"
           className="scroll-mt-28 pb-8 pt-12 text-center md:pb-10 md:pt-16"
@@ -39,6 +31,12 @@ export default function TermsPage() {
             </span>
             <span>Effective date to be confirmed</span>
           </div>
+          <a
+            href="#terms-overview"
+            className="mt-6 inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-semibold text-[#604675] underline underline-offset-4 hover:bg-marketing-hover"
+          >
+            Read the terms
+          </a>
         </section>
         <aside
           aria-labelledby="terms-draft-title"

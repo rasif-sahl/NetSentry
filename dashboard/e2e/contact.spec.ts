@@ -42,7 +42,7 @@ test("Contact is reachable from public navigation and offers working documentati
     .click();
   await expect(page).toHaveURL("/docs");
   await page
-    .getByRole("navigation", { name: "Website navigation" })
+    .getByRole("navigation", { name: "Main navigation" })
     .getByRole("link", { name: "Contact", exact: true })
     .click();
   await expect(page).toHaveURL("/contact");
