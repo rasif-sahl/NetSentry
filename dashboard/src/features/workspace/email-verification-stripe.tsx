@@ -17,7 +17,9 @@ export function EmailVerificationStripe({
     <section aria-label="Email verification" className="verification-stripe">
       <div className="verification-stripe-content">
         <div className="verification-stripe-message">
-          <Mail size={19} aria-hidden="true" />
+          <span className="verification-stripe-icon" aria-hidden="true">
+            <Mail size={19} />
+          </span>
           <div>
             <p>
               <strong>Verify your email</strong> to manage workspace access and

@@ -466,7 +466,9 @@
   color: var(--primary-hover);
   font-size: 0.83rem;
 }
-.workspace-app .verification-stripe-message svg {
+.workspace-app .verification-stripe-icon {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
 }
 .workspace-app .verification-stripe-message strong {
@@ -712,6 +714,22 @@
   .workspace-app .two-columns {
     grid-template-columns: 1fr;
   }
+  .workspace-app .metric-grid.overview-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  .workspace-app .overview-metrics .card {
+    padding: 0.85rem;
+  }
+  .workspace-app .overview-metrics .metric-value {
+    font-size: 1.9rem;
+    margin-block: 0.45rem 0.25rem;
+  }
+  .workspace-app .overview-metrics .metric-time {
+    font-size: 0.875rem;
+    margin-block: 0.6rem 0.4rem;
+    overflow-wrap: anywhere;
+  }
   .workspace-app .page-heading {
     align-items: flex-start;
     flex-direction: column;
@@ -720,10 +738,33 @@
     padding: 1rem;
   }
   .workspace-app .verification-stripe-content {
-    padding: 0.625rem 1rem;
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+  .workspace-app .verification-stripe-message {
+    align-items: flex-start;
+  }
+  .workspace-app .verification-stripe-message p {
+    line-height: 1.45;
+  }
+  .workspace-app .verification-stripe-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--primary) 16%, var(--surface-lavender));
   }
   .workspace-app .verification-stripe-actions {
-    flex-basis: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-inline-start: 0;
+  }
+  .workspace-app .verification-stripe-actions .button {
+    padding-inline: 0.5rem;
+    text-align: center;
+    line-height: 1.25;
   }
   .workspace-app .card {
     padding: 1.1rem;

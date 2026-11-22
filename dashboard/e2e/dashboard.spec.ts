@@ -695,15 +695,36 @@ test("registration and password-confirmed account deletion clear the browser ses
   expect(desktopButton!.y).toBeLessThan(desktopStripe!.y + 12);
 
   const viewport = page.viewportSize()!;
-  await page.setViewportSize({ width: 320, height: 760 });
-  const copy = await stripe
-    .getByText("Verify your email", { exact: true })
-    .boundingBox();
-  const mobileButton = await sendEmail.boundingBox();
-  expect(mobileButton!.y).toBeGreaterThan(copy!.y + copy!.height);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
-    320,
-  );
+  const checkEmail = stripe.getByRole("button", {
+    name: "I’ve verified my email",
+  });
+  const metrics = page.locator(".overview-metrics > .card");
+  await expect(metrics).toHaveCount(3);
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 760 });
+    const copy = await stripe
+      .getByText("Verify your email", { exact: true })
+      .boundingBox();
+    const send = await sendEmail.boundingBox();
+    const check = await checkEmail.boundingBox();
+    expect(send!.y).toBeGreaterThan(copy!.y + copy!.height);
+    expect(send!.y).toBe(check!.y);
+    expect(Math.abs(send!.width - check!.width)).toBeLessThan(1);
+    expect(send!.height).toBe(check!.height);
+    expect(send!.height).toBeGreaterThanOrEqual(44);
+    expect(send!.x + send!.width).toBeLessThan(check!.x);
+    const [registered, consent, refreshed] = await Promise.all(
+      (await metrics.all()).map((card) => card.boundingBox()),
+    );
+    expect(consent!.y).toBe(registered!.y);
+    expect(consent!.x).toBeGreaterThan(registered!.x);
+    expect(Math.abs(consent!.width - registered!.width)).toBeLessThan(1);
+    expect(refreshed!.y).toBeGreaterThan(registered!.y);
+    expect(refreshed!.x).toBe(registered!.x);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(width);
+  }
   await sendEmail.click();
   await expect(stripe.getByRole("status")).toHaveText(
     "Verification email requested. Check your inbox.",

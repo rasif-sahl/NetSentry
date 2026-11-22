@@ -525,7 +525,7 @@ function WorkspaceShell({
             <div key={context.workspace.id} className="page-stack">
               {section === "Overview" && (
                 <>
-                  <div className="metric-grid">
+                  <div className="metric-grid overview-metrics">
                     <Card>
                       <span className="metric-label">Registered devices</span>
                       <strong className="metric-value">
