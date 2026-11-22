@@ -59,7 +59,7 @@ export function OrganizationReport({
           {report.rows.length === 0 ? (
             <Empty title="No consented organization observations" />
           ) : (
-            <div className="table-wrap">
+            <div className="table-scroll">
               <table>
                 <thead>
                   <tr>

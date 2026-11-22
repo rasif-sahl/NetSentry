@@ -844,6 +844,74 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
   ).toBeVisible();
 });
 
+test("dashboard sections share compact card spacing and action buttons on mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  const data = await login(page);
+  const overviewAction = page.getByRole("button", {
+    name: "View device details",
+  });
+  const actionBackground = await overviewAction.evaluate(
+    (button) => getComputedStyle(button).backgroundColor,
+  );
+  const sections = [
+    ["Devices", "Device inventory", "View Fixture iOS"],
+    ["Usage & reports", "Usage over time", "Download CSV"],
+    ["Alerts", "In-app notifications", "Edit rule"],
+    ["Networks", "Network labels"],
+    ["Developer Tools", "Paired developer computers", "Refresh computers"],
+    ["Family", "Your family profiles"],
+    ["Subscription", "Subscription and editions", "Start sandbox trial"],
+    ["Operations", "Platform operations", "Export redacted diagnostics"],
+    ["Team", "Workspace members"],
+    ["Settings & privacy", "Your profile"],
+    ["More modules", "Network Security"],
+    ["Business", "Business organization"],
+  ];
+
+  for (const [section, heading, action] of sections) {
+    await test.step(section, async () => {
+      if (section === "Business") {
+        await page
+          .getByLabel("Active workspace")
+          .selectOption(data.business.workspaceId);
+        await expect(page.locator("#dashboard-content .eyebrow")).toContainText(
+          "BUSINESS",
+        );
+      }
+      await page
+        .getByRole("button", { name: "Open navigation", exact: true })
+        .click();
+      await page.getByRole("button", { name: section, exact: true }).click();
+      await page.mouse.move(2, 2);
+      await expect(
+        page.getByRole("heading", { name: heading, exact: true }),
+      ).toBeVisible();
+      const main = page.getByRole("main");
+      await expect(main.locator(".card > h2").first()).toHaveCSS(
+        "margin-bottom",
+        "12px",
+      );
+      for (const width of [320, 390]) {
+        await page.setViewportSize({ width, height: 760 });
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth),
+        ).toBe(width);
+        if (action) {
+          const button = main
+            .getByRole("button", { name: action, exact: true })
+            .first();
+          await expect(button).toHaveCSS("background-color", actionBackground);
+          expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(
+            44,
+          );
+        }
+      }
+    });
+  }
+});
+
 test("signing out or changing accounts clears other tabs instead of mixing user data", async ({
   page,
   context,

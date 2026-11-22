@@ -1,4 +1,10 @@
 .workspace-app {
+  --button-accent-border: color-mix(in srgb, var(--primary) 55%, var(--border));
+  --button-accent-hover: color-mix(
+    in srgb,
+    var(--primary) 17%,
+    var(--surface-lavender)
+  );
   --text-secondary: #62596e;
   --muted: #70667a;
 }
@@ -129,14 +135,14 @@
 .workspace-app .button.accent {
   padding-inline: 1rem;
   background: var(--surface-lavender);
-  border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+  border-color: var(--button-accent-border);
   color: var(--primary-hover);
   transition:
     background-color 150ms ease,
     border-color 150ms ease;
 }
 .workspace-app .button.accent:hover {
-  background: color-mix(in srgb, var(--primary) 17%, var(--surface-lavender));
+  background: var(--button-accent-hover);
   border-color: var(--primary);
 }
 .workspace-app .button.accent:focus-visible {
@@ -733,12 +739,79 @@
     margin-block: 0.6rem 0.4rem;
     overflow-wrap: anywhere;
   }
+  .workspace-app .page-content {
+    --content-gap: 0.75rem;
+    padding: 1rem;
+  }
   .workspace-app .page-heading {
     align-items: flex-start;
     flex-direction: column;
+    gap: var(--content-gap);
+    margin-bottom: 1.25rem;
   }
-  .workspace-app .page-content {
-    padding: 1rem;
+  .workspace-app .page-heading > .button,
+  .workspace-app
+    .page-content
+    :is(.row, .section-heading, .item-list > li)
+    > :is(.button, .action) {
+    margin-inline-start: auto;
+  }
+  .workspace-app
+    .page-content
+    :is(.page-stack, .stack, .module-grid, .two-columns, .form-fields) {
+    gap: var(--content-gap);
+  }
+  .workspace-app .page-content .stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-app .page-content .row {
+    display: grid;
+    gap: 0.5rem;
+    padding-block: var(--content-gap);
+    border-bottom: 1px solid var(--border);
+    overflow-wrap: anywhere;
+  }
+  .workspace-app .page-content .card > h2 {
+    margin-bottom: var(--content-gap);
+  }
+  .workspace-app .page-content .item-list > li {
+    gap: 0.5rem;
+    padding-block: var(--content-gap);
+  }
+  .workspace-app .page-content .button-row {
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: var(--content-gap);
+  }
+  .workspace-app .page-content .form-fields > .button {
+    justify-self: end;
+  }
+  .workspace-app .page-content .card > .button {
+    display: flex;
+    width: fit-content;
+    margin-inline-start: auto;
+  }
+  .workspace-app .page-content .button {
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  .workspace-app .page-content .button:where(:not(.primary, .danger)) {
+    padding-inline: 1rem;
+    background: var(--surface-lavender);
+    color: var(--primary-hover);
+    border-color: var(--button-accent-border);
+  }
+  .workspace-app .page-content .button:where(:not(.primary, .danger)):hover {
+    background: var(--button-accent-hover);
+    border-color: var(--primary);
+  }
+  .workspace-app
+    .page-content
+    .button:where(:not(.primary, .danger)):focus-visible {
+    outline-color: var(--primary);
   }
   .workspace-app .verification-stripe-content {
     display: grid;
