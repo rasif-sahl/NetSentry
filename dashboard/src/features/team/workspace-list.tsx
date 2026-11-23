@@ -20,60 +20,65 @@ export function WorkspaceList({
   const [notice, setNotice] = useState("");
 
   return (
-    <Card title="Your workspaces" className="mb-4">
-      <div className="mb-4 flex flex-wrap gap-2 sm:justify-end">
-        <WorkspaceAction
-          label="Create workspace"
-          primary
-          action={async (form) => {
-            setNotice("");
-            await api<Workspace>("/workspaces", "POST", {
-              name: text(form, "name"),
-              type: text(form, "type"),
-              timezone: text(form, "timezone"),
-            });
-            onChanged();
-            setNotice("Workspace created.");
-          }}
-        >
-          <Field label="Workspace name">
-            <input name="name" required maxLength={100} />
-          </Field>
-          <Field label="Workspace type">
-            <select name="type">
-              <option value="FAMILY">Family</option>
-              <option value="BUSINESS">Business</option>
-            </select>
-          </Field>
-          <Field label="Workspace timezone">
-            <input
-              name="timezone"
-              required
-              defaultValue={Intl.DateTimeFormat().resolvedOptions().timeZone}
-            />
-          </Field>
-        </WorkspaceAction>
-        <WorkspaceAction
-          label="Accept invitation"
-          action={async (form) => {
-            setNotice("");
-            await api("/workspaces/invitations/accept", "POST", {
-              token: text(form, "token"),
-            });
-            onChanged();
-            setNotice("Invitation accepted.");
-          }}
-        >
-          <Field label="Invitation token">
-            <input
-              name="token"
-              required
-              pattern="[A-Za-z0-9_-]{43}"
-              autoComplete="off"
-            />
-          </Field>
-        </WorkspaceAction>
-      </div>
+    <Card
+      title="Your workspaces"
+      className="mb-4 @container"
+      headingAction={
+        <div className="flex flex-wrap justify-end gap-2 @max-lg:col-span-2">
+          <WorkspaceAction
+            label="Create workspace"
+            primary
+            action={async (form) => {
+              setNotice("");
+              await api<Workspace>("/workspaces", "POST", {
+                name: text(form, "name"),
+                type: text(form, "type"),
+                timezone: text(form, "timezone"),
+              });
+              onChanged();
+              setNotice("Workspace created.");
+            }}
+          >
+            <Field label="Workspace name">
+              <input name="name" required maxLength={100} />
+            </Field>
+            <Field label="Workspace type">
+              <select name="type">
+                <option value="FAMILY">Family</option>
+                <option value="BUSINESS">Business</option>
+              </select>
+            </Field>
+            <Field label="Workspace timezone">
+              <input
+                name="timezone"
+                required
+                defaultValue={Intl.DateTimeFormat().resolvedOptions().timeZone}
+              />
+            </Field>
+          </WorkspaceAction>
+          <WorkspaceAction
+            label="Accept invitation"
+            action={async (form) => {
+              setNotice("");
+              await api("/workspaces/invitations/accept", "POST", {
+                token: text(form, "token"),
+              });
+              onChanged();
+              setNotice("Invitation accepted.");
+            }}
+          >
+            <Field label="Invitation token">
+              <input
+                name="token"
+                required
+                pattern="[A-Za-z0-9_-]{43}"
+                autoComplete="off"
+              />
+            </Field>
+          </WorkspaceAction>
+        </div>
+      }
+    >
       {notice && (
         <div className="mb-4">
           <Notice tone="success">{notice}</Notice>

@@ -576,6 +576,25 @@ test("a verified user can create and switch to a new workspace", async ({
     name: "Create workspace",
     exact: true,
   });
+  const acceptTrigger = page.getByRole("button", {
+    name: "Accept invitation",
+    exact: true,
+  });
+  const workspaceTitle = page.getByRole("heading", {
+    name: "Your workspaces",
+    exact: true,
+  });
+  await expect(workspaceTitle).toBeVisible();
+  const titleBounds = (await workspaceTitle.boundingBox())!;
+  const createBounds = (await createTrigger.boundingBox())!;
+  const acceptBounds = (await acceptTrigger.boundingBox())!;
+  expect(createBounds.x).toBeGreaterThanOrEqual(titleBounds.x + titleBounds.width);
+  expect(acceptBounds.x).toBeGreaterThan(createBounds.x);
+  expect(createBounds.y).toBe(acceptBounds.y);
+  expect(titleBounds.y + titleBounds.height / 2).toBeCloseTo(
+    createBounds.y + createBounds.height / 2,
+    0,
+  );
   const createDialog = page.getByRole("dialog", { name: "Create workspace" });
   const workspaceName = createDialog.getByLabel("Workspace name", {
     exact: true,
@@ -657,6 +676,11 @@ test("a verified user can create and switch to a new workspace", async ({
   await expect(
     family.getByRole("button", { name: "Active workspace: Fixture family" }),
   ).toBeFocused();
+  const narrowTitle = (await workspaceTitle.boundingBox())!;
+  const narrowCreate = (await createTrigger.boundingBox())!;
+  const narrowAccept = (await acceptTrigger.boundingBox())!;
+  expect(narrowCreate.y).toBeGreaterThan(narrowTitle.y);
+  expect(narrowAccept.x + narrowAccept.width).toBeLessThanOrEqual(320);
   await createTrigger.click();
   await expect(createDialog).toBeVisible();
   const dialogBounds = (await createDialog.boundingBox())!;
