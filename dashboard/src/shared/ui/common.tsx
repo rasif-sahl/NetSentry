@@ -15,15 +15,34 @@ export { Loading } from "./loading";
 export function Card({
   children,
   title,
+  icon,
+  headingAction,
   className = "",
 }: {
   children: ReactNode;
   title?: string;
+  icon?: ReactNode;
+  headingAction?: ReactNode;
   className?: string;
 }) {
   return (
     <section className={`card ${className}`}>
-      {title && <h2>{title}</h2>}
+      {title && (
+        <header className="card-heading -mx-(--card-padding) mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-(--card-padding) pb-(--card-padding) max-[650px]:mb-3">
+          <h2 className="flex min-w-0 items-center gap-3">
+            {icon && (
+              <span
+                aria-hidden="true"
+                className="grid size-10 shrink-0 place-items-center rounded-lg bg-surface-lavender text-primary-hover"
+              >
+                {icon}
+              </span>
+            )}
+            {title}
+          </h2>
+          {headingAction}
+        </header>
+      )}
       {children}
     </section>
   );
@@ -184,9 +203,11 @@ export function ActionForm({
     <form onSubmit={handle} className={className} aria-busy={pending}>
       <fieldset disabled={pending} className="form-fields">
         {children}
-        <button className="button primary" type="submit">
-          {pending ? "Please wait…" : submit}
-        </button>
+        <div className="form-actions flex">
+          <button className="button primary" type="submit">
+            {pending ? "Please wait…" : submit}
+          </button>
+        </div>
       </fieldset>
       <ErrorNotice error={error} />
       {message && <Notice tone="success">{message}</Notice>}

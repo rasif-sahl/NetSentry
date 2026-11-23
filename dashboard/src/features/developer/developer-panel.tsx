@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { Member } from "@/shared/types";
@@ -97,13 +98,23 @@ export function DeveloperPanel(context: PageContext & { tab: string }) {
         </Card>
       )}
       {tab === "computers" && (
-        <Card>
-          <div className="section-heading card-heading">
-            <h2>Paired developer computers</h2>
-            <button type="button" className="button" onClick={resource.reload}>
-              Refresh computers
+        <Card
+          title="Paired developer computers"
+          headingAction={
+            <button
+              type="button"
+              aria-label="Refresh computers"
+              className="button max-[650px]:size-11 max-[650px]:px-0!"
+              onClick={resource.reload}
+            >
+              <span className="max-[650px]:hidden">Refresh computers</span>
+              <RefreshCw
+                aria-hidden="true"
+                className="hidden size-4 max-[650px]:block"
+              />
             </button>
-          </div>
+          }
+        >
           <ErrorNotice error={resource.error} />
           {resource.loading && <Loading />}
           {resource.data?.length === 0 && (
@@ -269,7 +280,7 @@ function ComputerPanel({
                 descendants
               </small>
             </div>
-            <div className="actions">
+            <div className="flex flex-wrap justify-end gap-2">
               <button
                 className="button"
                 disabled={

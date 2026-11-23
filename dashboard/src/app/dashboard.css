@@ -1,4 +1,5 @@
 .workspace-app {
+  --on-primary: white;
   --button-accent-border: color-mix(in srgb, var(--primary) 55%, var(--border));
   --button-accent-hover: color-mix(
     in srgb,
@@ -128,7 +129,7 @@
 }
 .workspace-app .button.primary {
   background: var(--primary);
-  color: white;
+  color: var(--on-primary);
   border-color: var(--primary);
 }
 .workspace-app .button.primary:hover {
@@ -206,8 +207,21 @@
   display: grid;
   gap: 1rem;
 }
-.workspace-app .form-fields > .button {
-  justify-self: start;
+.workspace-app .card > form .form-actions {
+  margin-inline: calc(-1 * var(--card-padding));
+  border-top: 1px solid var(--border);
+  padding: var(--card-padding) var(--card-padding) 0;
+}
+.workspace-app .page-content .form-actions {
+  justify-content: flex-end;
+}
+.workspace-app .settings-form > .form-fields {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.workspace-app .settings-form .form-actions {
+  margin-top: auto;
 }
 .workspace-app .field {
   display: grid;
@@ -274,11 +288,12 @@
   max-width: 100%;
 }
 .workspace-app .card {
+  --card-padding: 1.35rem;
   min-width: 0;
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 15px;
-  padding: 1.35rem;
+  padding: var(--card-padding);
   box-shadow: 0 3px 20px #36264304;
 }
 .workspace-app .card > p + p {
@@ -337,7 +352,7 @@
   font-size: 1.6rem;
   margin-block: 0.7rem 1.8rem;
 }
-.workspace-app .auth-card .form-fields > .button {
+.workspace-app .auth-card .form-actions > .button {
   width: 100%;
   margin-top: 0.5rem;
 }
@@ -655,10 +670,8 @@
 .workspace-app .section-heading h2 {
   margin: 0;
 }
-.workspace-app .card-heading {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  margin-bottom: 1rem;
+.workspace-app .card-heading h2 {
+  margin: 0;
 }
 .workspace-app .details-grid {
   display: grid;
@@ -854,9 +867,6 @@
     border-bottom: 1px solid var(--border);
     overflow-wrap: anywhere;
   }
-  .workspace-app .page-content .card > h2 {
-    margin-bottom: var(--content-gap);
-  }
   .workspace-app .page-content .item-list > li {
     gap: 0.5rem;
     padding-block: var(--content-gap);
@@ -872,9 +882,6 @@
   .workspace-app .workspace-tabs a {
     padding-inline: 0.45rem;
     font-size: 0.8rem;
-  }
-  .workspace-app .page-content .form-fields > .button {
-    justify-self: end;
   }
   .workspace-app .page-content .card > .button {
     display: flex;
@@ -948,7 +955,7 @@
     grid-column: 1 / -1;
   }
   .workspace-app .card {
-    padding: 1.1rem;
+    --card-padding: 1.1rem;
   }
   .workspace-app .topbar {
     gap: 0.35rem;
@@ -1028,6 +1035,7 @@
   padding: 1rem 0;
 }
 :root[data-theme="dark"] .workspace-app {
+  --on-primary: #261b30;
   color-scheme: dark;
   --background: #19151f;
   --surface: #241e2c;
@@ -1042,9 +1050,6 @@
   --border: #463b50;
   --success-surface: #1d342e;
   --danger-surface: #452431;
-}
-:root[data-theme="dark"] .workspace-app .button.primary {
-  color: #261b30;
 }
 :root[data-theme="dark"] .workspace-app .notice.error {
   color: #ffc1d2;

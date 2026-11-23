@@ -1,4 +1,5 @@
 "use client";
+import { Monitor, UserRound } from "lucide-react";
 import { api, download } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { Retention, Session, User, Workspace } from "@/shared/types";
@@ -62,72 +63,105 @@ export function SettingsPanel({
   return (
     <>
       {tab === "profile" && (
-        <>
-          <div className="two-columns">
-            <Card title="Your profile">
-              <ActionForm
-                submit="Update profile"
-                action={async (form) => {
-                  updateUser(
-                    await api<User>("/auth/me", "PATCH", {
-                      displayName: text(form, "displayName"),
-                    }),
-                  );
-                }}
-              >
-                <Field label="Display name">
-                  <input
-                    name="displayName"
-                    required
-                    minLength={2}
-                    maxLength={100}
-                    defaultValue={user.displayName}
-                  />
-                </Field>
-                <Field label="Account email">
-                  <input type="email" readOnly value={user.email} />
-                </Field>
-                <span className="badge">
-                  {user.emailVerifiedAt
-                    ? "Email verified"
-                    : "Email verification required"}
+        <div className="grid gap-4 min-[651px]:grid-cols-2">
+          <Card
+            title="Your profile"
+            icon={<UserRound size={20} />}
+            className="flex flex-col"
+          >
+            <ActionForm
+              className="settings-form flex flex-1 flex-col"
+              submit="Update profile"
+              action={async (form) => {
+                updateUser(
+                  await api<User>("/auth/me", "PATCH", {
+                    displayName: text(form, "displayName"),
+                  }),
+                );
+              }}
+            >
+              <Field label="Display name">
+                <input
+                  name="displayName"
+                  required
+                  minLength={2}
+                  maxLength={100}
+                  defaultValue={user.displayName}
+                />
+              </Field>
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3">
+                <dl className="min-w-0">
+                  <dt className="text-xs font-semibold text-text-secondary">
+                    Account email
+                  </dt>
+                  <dd className="mt-1 break-all text-sm text-text">
+                    {user.email}
+                  </dd>
+                </dl>
+                <span className="rounded-full bg-surface-lavender px-2.5 py-1 text-xs font-semibold text-primary-hover">
+                  {user.emailVerifiedAt ? "Verified" : "Unverified"}
                 </span>
-              </ActionForm>
-            </Card>
-            <Card title="Appearance and accessibility">
-              <ActionForm
-                submit="Save display preferences"
-                action={async (form) => {
-                  updateUser(
-                    await api<User>("/auth/preferences", "PATCH", {
-                      theme: text(form, "theme"),
-                      reducedMotion: form.has("reducedMotion"),
-                    }),
-                  );
-                }}
-              >
-                <Field label="Color theme">
-                  <select
-                    name="theme"
-                    defaultValue={user.preferences.theme ?? "SYSTEM"}
-                  >
-                    <option value="SYSTEM">System</option>
-                    <option value="LIGHT">Light</option>
-                    <option value="DARK">Dark</option>
-                  </select>
-                </Field>
-                <label className="check">
-                  <input
-                    type="checkbox"
-                    name="reducedMotion"
-                    defaultChecked={user.preferences.reducedMotion}
-                  />
-                  Reduce motion
-                </label>
-              </ActionForm>
-            </Card>
-          </div>
-        </>
+              </div>
+            </ActionForm>
+          </Card>
+          <Card
+            title="Appearance and accessibility"
+            icon={<Monitor size={20} />}
+            className="flex flex-col"
+          >
+            <ActionForm
+              className="settings-form flex flex-1 flex-col"
+              submit="Save display preferences"
+              action={async (form) => {
+                updateUser(
+                  await api<User>("/auth/preferences", "PATCH", {
+                    theme: text(form, "theme"),
+                    reducedMotion: form.has("reducedMotion"),
+                  }),
+                );
+              }}
+            >
+              <fieldset>
+                <legend className="mb-2 text-sm font-semibold">
+                  Color theme
+                </legend>
+                <div className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-background p-1">
+                  {(["System", "Light", "Dark"] as const).map((theme) => (
+                    <label key={theme} className="relative cursor-pointer">
+                      <input
+                        className="peer sr-only"
+                        type="radio"
+                        name="theme"
+                        value={theme.toUpperCase()}
+                        defaultChecked={
+                          (user.preferences.theme ?? "SYSTEM") ===
+                          theme.toUpperCase()
+                        }
+                      />
+                      <span className="flex min-h-11 items-center justify-center rounded-md px-1 text-sm font-semibold text-text peer-checked:bg-primary peer-checked:text-[color:var(--on-primary)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-1 peer-focus-visible:outline-primary">
+                        {theme}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <label className="relative flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold">
+                Reduce motion
+                <input
+                  className="peer sr-only"
+                  type="checkbox"
+                  role="switch"
+                  name="reducedMotion"
+                  defaultChecked={user.preferences.reducedMotion}
+                />
+                <span
+                  aria-hidden="true"
+                  className="relative h-6 w-11 shrink-0 rounded-full bg-border after:absolute after:start-1 after:top-1 after:size-4 after:rounded-full after:bg-surface after:content-[''] peer-checked:bg-primary peer-checked:after:start-6 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary"
+                />
+              </label>
+            </ActionForm>
+          </Card>
+        </div>
       )}
       {tab === "notifications" && <NotificationPreferencesPanel />}
       {tab === "sessions" && (

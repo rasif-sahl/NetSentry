@@ -575,6 +575,37 @@ test("profile, appearance, retention, sessions and personal export use the backe
   await expect(
     page.getByRole("heading", { name: "Your profile", exact: true }),
   ).toBeVisible();
+  const profileCard = page.locator(".card").filter({
+    has: page.getByRole("heading", { name: "Your profile", exact: true }),
+  });
+  const appearanceCard = page.locator(".card").filter({
+    has: page.getByRole("heading", {
+      name: "Appearance and accessibility",
+      exact: true,
+    }),
+  });
+  const viewport = page.viewportSize()!;
+  const profileAction = await profileCard
+    .getByRole("button", { name: "Update profile" })
+    .boundingBox();
+  const appearanceAction = await appearanceCard
+    .getByRole("button", { name: "Save display preferences" })
+    .boundingBox();
+  expect(profileAction!.y).toBeCloseTo(appearanceAction!.y, 0);
+  await expect(
+    profileCard.getByText("Verified", { exact: true }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 760 });
+  const mobileProfile = (await profileCard.boundingBox())!;
+  const mobileAppearance = (await appearanceCard.boundingBox())!;
+  expect(mobileAppearance.x).toBe(mobileProfile.x);
+  expect(mobileAppearance.y).toBeGreaterThan(
+    mobileProfile.y + mobileProfile.height,
+  );
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    320,
+  );
+  await page.setViewportSize(viewport);
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Fixture owner updated");
@@ -584,12 +615,21 @@ test("profile, appearance, retention, sessions and personal export use the backe
   await expect(page.locator(".sidebar-profile")).toContainText(
     "Fixture owner updated",
   );
-  await page.getByLabel("Color theme").selectOption("DARK");
-  await page.getByLabel("Reduce motion", { exact: true }).check();
+  await page.getByText("Dark", { exact: true }).click();
+  await expect(
+    page.getByRole("radio", { name: "Dark", exact: true }),
+  ).toBeChecked();
+  await page.getByText("Reduce motion", { exact: true }).click();
+  await expect(
+    page.getByRole("switch", { name: "Reduce motion" }),
+  ).toBeChecked();
   await page
     .getByRole("button", { name: "Save display preferences", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(
+    page.getByRole("radio", { name: "Dark", exact: true }),
+  ).toBeChecked();
   await expect(page.locator("html")).toHaveAttribute(
     "data-reduced-motion",
     "true",
@@ -872,6 +912,7 @@ test("registration and password-confirmed account deletion clear the browser ses
   await page
     .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
+  await expect(page.getByText("Unverified", { exact: true })).toBeVisible();
   await openTab(page, "Privacy");
   await page
     .getByText("Review permanent account deletion", { exact: true })
@@ -1018,20 +1059,17 @@ test("dashboard sections share compact card spacing and action buttons on mobile
         page.getByRole("heading", { name: heading, exact: true }),
       ).toBeVisible();
       const main = page.getByRole("main");
-      const cardTitle = main.getByRole("heading", {
-        name: heading,
-        exact: true,
-      });
       const hasRefreshHeader = section === "Developer Tools";
-      await expect(cardTitle).toHaveCSS(
-        "margin-bottom",
-        hasRefreshHeader ? "0px" : "12px",
-      );
+      const cardHeader = main.locator(".card-heading").filter({
+        has: page.getByRole("heading", { name: heading, exact: true }),
+      });
+      await expect(cardHeader).toHaveCSS("margin-bottom", "12px");
+      await expect(cardHeader).toHaveCSS("border-bottom-width", "1px");
       for (const width of hasRefreshHeader ? [1280, 320, 390] : [320, 390]) {
         await page.setViewportSize({ width, height: 760 });
-        expect(
-          await page.evaluate(() => document.documentElement.scrollWidth),
-        ).toBe(width);
+        await expect
+          .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+          .toBe(width);
         if (action) {
           const button = main
             .getByRole("button", { name: action, exact: true })
@@ -1041,20 +1079,37 @@ test("dashboard sections share compact card spacing and action buttons on mobile
               "background-color",
               actionBackground,
             );
-          const bounds = (await button.boundingBox())!;
-          expect(bounds.height).toBeGreaterThanOrEqual(44);
+          await expect
+            .poll(() => button.evaluate((element) => element.offsetHeight))
+            .toBeGreaterThanOrEqual(44);
           if (hasRefreshHeader) {
-            const title = (await cardTitle.boundingBox())!;
-            const header = (await main.locator(".card-heading").boundingBox())!;
-            expect(bounds.x).toBeGreaterThan(title.x + title.width);
-            expect(bounds.x + bounds.width).toBeCloseTo(
-              header.x + header.width,
-              0,
-            );
-            expect(bounds.y + bounds.height / 2).toBeCloseTo(
-              title.y + title.height / 2,
-              0,
-            );
+            await expect
+              .poll(() =>
+                cardHeader.evaluate((header) => {
+                  const title = header
+                    .querySelector("h2")!
+                    .getBoundingClientRect();
+                  const action = header
+                    .querySelector("button")!
+                    .getBoundingClientRect();
+                  const inset = parseFloat(
+                    getComputedStyle(header).paddingRight,
+                  );
+                  const rightEdge =
+                    header.getBoundingClientRect().right - inset;
+                  return (
+                    action.left > title.right &&
+                    Math.abs(action.right - rightEdge) < 1 &&
+                    Math.abs(
+                      action.top +
+                        action.height / 2 -
+                        title.top -
+                        title.height / 2,
+                    ) < 1
+                  );
+                }),
+              )
+              .toBe(true);
           }
         }
       }
@@ -1430,9 +1485,9 @@ test("family viewers cannot see child profiles and policy edits require explicit
   ).toBeVisible();
   await login(page, "owner");
   await page.getByRole("link", { name: "Family", exact: true }).click();
-  const policy = page
-    .getByRole("heading", { name: "Family policy", exact: true })
-    .locator("..");
+  const policy = page.locator("section.card").filter({
+    has: page.getByRole("heading", { name: "Family policy", exact: true }),
+  });
   await policy
     .getByLabel("Daily observed screen-time allowance (minutes)", {
       exact: true,
@@ -1647,7 +1702,7 @@ test("email alert opt-in stays visibly disabled and saved themes follow account 
   await page
     .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
-  await page.getByLabel("Color theme").selectOption("DARK");
+  await page.getByText("Dark", { exact: true }).click();
   await page
     .getByRole("button", { name: "Save display preferences", exact: true })
     .click();
