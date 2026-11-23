@@ -22,7 +22,6 @@ import {
 import {
   ArrowRight,
   Bell,
-  RefreshCw,
   Smartphone,
 } from "lucide-react";
 import {
@@ -45,6 +44,7 @@ import {
 } from "@/shared/ui/common";
 import { PageLoading } from "@/shared/ui/loading";
 import { EmailVerificationStripe } from "./email-verification-stripe";
+import { WorkspaceRefreshButton } from "./workspace-refresh-button";
 import { DashboardBrand, DashboardNavigation } from "./dashboard-navigation";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { WorkspaceList } from "@/features/team/workspace-list";
@@ -283,6 +283,10 @@ function WorkspaceShell({
           reloadDevices: devices.reload,
         }
       : undefined;
+  const hasMobileFilterToolbar =
+    !!context &&
+    (slug === "usage-reports" || slug === "devices" ||
+      (slug === "networks" && activeTab === "monitoring"));
   const contentRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -363,28 +367,14 @@ function WorkspaceShell({
           className="page-content"
         >
           {!isNetworkDetail && (
-            <div className="page-heading">
+            <div className={`page-heading ${hasMobileFilterToolbar ? "max-[700px]:mb-3!" : ""}`}>
               <p className="eyebrow">
                 {workspace
                   ? `${workspace.type} / ${permission.data?.role ?? workspace.role}`
                   : "NETSENTRY"}
               </p>
               <h1>{section ?? "Workspace"}</h1>
-              <button
-                type="button"
-                className="button"
-                aria-label="Refresh workspace"
-                onClick={() => {
-                  window.dispatchEvent(new Event("netsentry:refresh"));
-                }}
-              >
-                <span className="refresh-label">Refresh workspace</span>
-                <RefreshCw
-                  className="refresh-icon"
-                  size={18}
-                  aria-hidden="true"
-                />
-              </button>
+              <WorkspaceRefreshButton className={hasMobileFilterToolbar ? "max-[700px]:hidden!" : ""} />
               {section === "Overview" && (
                 <p className="page-description">
                   Your devices and the information they report, in one place.

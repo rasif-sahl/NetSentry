@@ -1,4 +1,6 @@
 "use client";
+import { WorkspaceRefreshButton } from "@/features/workspace/workspace-refresh-button";
+import { ResponsiveSearch } from "@/shared/ui/responsive-filters";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { usePage } from "@/shared/use-page";
 import { PageControls } from "@/shared/ui/page-controls";
@@ -54,15 +56,14 @@ export function DevicesPanel({ user, workspace, permissions }: PageContext) {
     <>
       <Card title="Device inventory">
         <div className="page-stack">
-          <Field label="Find a device">
-            <input
-              type="search"
-              value={search}
-              maxLength={200}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by name or platform"
-            />
-          </Field>
+          <ResponsiveSearch
+            title="Device filters"
+            beside={<WorkspaceRefreshButton iconOnly />}
+            label="Find a device"
+            value={search}
+            onChange={setSearch}
+            placeholder="Search by name or platform"
+          />
           <ErrorNotice error={page.error} />
           {page.loading && <Loading />}
           {page.data?.length ? (

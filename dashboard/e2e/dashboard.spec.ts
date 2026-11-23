@@ -135,10 +135,14 @@ test("device inventory uses reported health and capability states", async ({
   const viewport = page.viewportSize()!;
   for (const width of [viewport.width, 390]) {
     await page.setViewportSize({ width, height: viewport.height });
-    const inputBounds = await search.boundingBox();
+    const filterControl = width === 390
+      ? inventory.getByRole("button", { name: "Device filters" })
+      : search;
+    await expect(filterControl).toBeVisible();
+    const filterBounds = await filterControl.boundingBox();
     const emptyBounds = await inventory.locator(".empty").boundingBox();
     expect(
-      emptyBounds!.y - (inputBounds!.y + inputBounds!.height),
+      emptyBounds!.y - (filterBounds!.y + filterBounds!.height),
     ).toBeGreaterThanOrEqual(12);
   }
   await page.setViewportSize(viewport);
@@ -282,6 +286,23 @@ test("phone report filters slide in from the right and keep applied values", asy
   const submit = dialog.getByRole("button", { name: "Apply report filters" });
   await expect(page.getByRole("heading", { name: "Choose your report" })).toBeHidden();
   await expect(dialog).toBeHidden();
+  const refresh = page.getByRole("button", { name: "Refresh workspace" });
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await expect(refresh).toHaveCount(1);
+    await expect.poll(async () => {
+      const [filterBounds, refreshBounds] = await Promise.all([
+        trigger.boundingBox(),
+        refresh.boundingBox(),
+      ]);
+      return !!filterBounds && !!refreshBounds &&
+        filterBounds.x + filterBounds.width < refreshBounds.x &&
+        Math.abs(
+          filterBounds.y + filterBounds.height / 2 -
+          refreshBounds.y - refreshBounds.height / 2,
+        ) < 1;
+    }).toBe(true);
+  }
   await trigger.click();
   await expect(dialog.getByRole("button", { name: "Close dialog" })).toBeFocused();
   await expect(dialog).toHaveCSS("animation-name", "workspace-drawer-enter");
@@ -325,6 +346,38 @@ test("phone report filters slide in from the right and keep applied values", asy
   await expect(trigger).toBeHidden();
   await expect(page.getByRole("heading", { name: "Choose your report" })).toBeVisible();
   await expect(page.getByLabel("Group by", { exact: true })).toHaveValue("week");
+});
+
+test("phone inventory drawers apply device and network filters", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  const data = await login(page);
+  await page.goto("/app/devices");
+  await page.getByRole("button", { name: "Device filters" }).click();
+  const devices = page.getByRole("dialog", { name: "Device filters" });
+  await devices.getByLabel("Find a device").fill("Fixture iOS");
+  await devices.getByRole("button", { name: "Apply filters" }).click();
+  await expect(devices).toBeHidden();
+  await expect(page.getByRole("button", { name: "View Fixture iOS" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "View Fixture Android" })).toBeHidden();
+
+  await page.goto("/app/networks/monitoring");
+  await page.getByRole("button", { name: "Network filters" }).click();
+  const networks = page.getByRole("dialog", { name: "Network filters" });
+  await networks.getByLabel("Find a monitored network").fill("unmatched fixture network");
+  await networks.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page.getByText("No matching networks", { exact: true })).toBeVisible();
+
+  await page.goto(`/app/networks/monitoring/${data.monitoredNetworkId}`);
+  const inventoryTrigger = page.getByRole("button", { name: "Inventory filters" });
+  const inventory = page.getByRole("dialog", { name: "Inventory filters" });
+  await inventoryTrigger.click();
+  await inventory.getByLabel("Include archived devices").check();
+  await inventory.getByLabel("Search inventory").fill("unmatched fixture endpoint");
+  await inventory.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page.getByText("No matching observed devices", { exact: true })).toBeVisible();
+  await inventoryTrigger.click();
+  await expect(inventory.getByLabel("Include archived devices")).toBeChecked();
+  await expect(inventory.getByLabel("Search inventory")).toHaveValue("unmatched fixture endpoint");
 });
 
 test("account settings and Operations stay available during an inventory outage", async ({
@@ -716,7 +769,10 @@ test("inventory and retained history pages reach records beyond their previous l
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBe(320);
-  await page.getByLabel("Find a device").fill("Paged device 27");
+  await page.getByRole("button", { name: "Device filters" }).click();
+  const filters = page.getByRole("dialog", { name: "Device filters" });
+  await filters.getByLabel("Find a device").fill("Paged device 27");
+  await filters.getByRole("button", { name: "Apply filters" }).click();
   await expect(controls).toHaveCount(0);
   await expect(
     page.getByRole("listitem").filter({ hasText: "Paged device 27" }),
@@ -2308,6 +2364,25 @@ test("Business roles review organization structure and employees explicitly acce
   await expect(
     page.getByText("No consented organization observations", { exact: true }),
   ).toBeVisible();
+  const desktopViewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 320, height: 760 });
+  await page.getByRole("button", { name: "Location filters" }).click();
+  const locationFilters = page.getByRole("dialog", { name: "Location filters" });
+  await expect(locationFilters.getByLabel("Business location")).toHaveValue(locationId);
+  await page.keyboard.press("Escape");
+
+  const organizationFilters = page.getByRole("button", { name: "Organization report filters" });
+  await organizationFilters.click();
+  const organizationReport = page.getByRole("dialog", { name: "Organization report filters" });
+  await organizationReport.getByLabel("From date", { exact: true }).fill("2026-11-01");
+  await organizationReport.getByLabel("To date (exclusive)", { exact: true }).fill("2026-11-16");
+  await organizationReport.getByRole("button", { name: "Load organization report" }).click();
+  await expect(organizationReport).toBeHidden();
+  await organizationFilters.click();
+  await expect(organizationReport.getByLabel("From date", { exact: true })).toHaveValue("2026-11-01");
+  await expect(organizationReport.getByLabel("To date (exclusive)", { exact: true })).toHaveValue("2026-11-16");
+  await page.setViewportSize(desktopViewport);
+  await expect(organizationReport).toBeHidden();
   const employeeContext = await browser.newContext();
   const employee = await employeeContext.newPage();
   await employee.goto("/app");

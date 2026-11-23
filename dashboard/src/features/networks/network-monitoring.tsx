@@ -1,4 +1,6 @@
 "use client";
+import { WorkspaceRefreshButton } from "@/features/workspace/workspace-refresh-button";
+import { ResponsiveSearch } from "@/shared/ui/responsive-filters";
 import { usePage } from "@/shared/use-page";
 import { PageControls } from "@/shared/ui/page-controls";
 import { useDeferredValue, useState } from "react";
@@ -74,15 +76,14 @@ export function NetworkMonitoring({ workspace, permissions }: PageContext) {
         </div>
       )}
       <div className="mb-4">
-        <Field label="Find a monitored network">
-          <input
-            type="search"
-            maxLength={200}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by network name"
-          />
-        </Field>
+        <ResponsiveSearch
+          title="Network filters"
+          beside={<WorkspaceRefreshButton iconOnly />}
+          label="Find a monitored network"
+          value={search}
+          onChange={setSearch}
+          placeholder="Search by network name"
+        />
       </div>
       <ErrorNotice error={sites.error} />
       {sites.loading && <Loading />}

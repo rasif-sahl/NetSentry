@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
-import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
+import { ResponsiveFilters } from "@/shared/ui/responsive-filters";
+import { WorkspaceRefreshButton } from "@/features/workspace/workspace-refresh-button";
 import { api, download } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { Report, UsageNetwork } from "@/shared/types";
@@ -91,28 +91,27 @@ export function ReportsPanel({
   );
   return (
     <>
-      <div className="grid justify-items-end min-[700px]:hidden">
-        <ActionFormDialog
-          label="Report filters"
-          submit="Apply report filters"
-          icon={<SlidersHorizontal size={16} aria-hidden="true" />}
-          mobileDrawer
-          action={applyFilters}
-        >
-          {filterFields}
-        </ActionFormDialog>
-      </div>
-      <Card title="Choose your report" className="max-[700px]:hidden">
-        <ActionForm
-          submit="Apply report filters"
-          action={async (form) => {
-            await applyFilters(form);
-            return "Report filters applied.";
-          }}
-        >
-          {filterFields}
-        </ActionForm>
-      </Card>
+      <ResponsiveFilters
+        label="Report filters"
+        submit="Apply report filters"
+        action={applyFilters}
+        beside={<WorkspaceRefreshButton iconOnly />}
+        inline={
+          <Card title="Choose your report">
+            <ActionForm
+              submit="Apply report filters"
+              action={async (form) => {
+                await applyFilters(form);
+                return "Report filters applied.";
+              }}
+            >
+              {filterFields}
+            </ActionForm>
+          </Card>
+        }
+      >
+        {filterFields}
+      </ResponsiveFilters>
       <ErrorNotice error={report.error} />
       {report.loading && <Loading />}
       {report.data && (
