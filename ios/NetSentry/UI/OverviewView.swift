@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct OverviewView: View {
@@ -90,7 +91,9 @@ struct OverviewView: View {
                             }
                         }
                         Picker("Period", selection: $period) {
-                            ForEach(["day", "week", "month"], id: \.self) { Text($0) }
+                            ForEach(["day", "week", "month"], id: \.self) { period in
+                                Text(period.capitalized).tag(period)
+                            }
                         }
                         Picker("Metric", selection: $metric) {
                             ForEach(
@@ -98,7 +101,9 @@ struct OverviewView: View {
                                     "screen_time_seconds", "application_foreground_seconds",
                                     "mobile_data_bytes", "wifi_data_bytes",
                                 ], id: \.self
-                            ) { Text($0.replacingOccurrences(of: "_", with: " ")) }
+                            ) { metric in
+                                Text(reportMetricName(metric)).tag(metric)
+                            }
                         }
                         Button("Load report") {
                             model.run {
@@ -109,7 +114,13 @@ struct OverviewView: View {
                         Text(
                             "Server observations from authorized supported devices. Review sources, declared gaps, estimates and workspace timezone below."
                         ).font(.footnote)
-                        ServerDetails(title: "Report, comparison and quality", value: s.report)
+                    }
+                    if s.report.isNull {
+                        Section("Usage summary") {
+                            Text("No usage report loaded.").foregroundStyle(.secondary)
+                        }
+                    } else {
+                        UsageReportSummary(report: s.report, devices: s.devices)
                     }
                 }
                 if section.isEmpty || section == "Alerts & rules"
@@ -156,6 +167,78 @@ struct OverviewView: View {
                     }
                 }
             }
+        }
+    }
+}
+
+private func reportMetricName(_ metric: String) -> String {
+    switch metric {
+    case "screen_time_seconds": "Screen time"
+    case "application_foreground_seconds": "App foreground time"
+    case "mobile_data_bytes": "Mobile data"
+    case "wifi_data_bytes": "Wi-Fi data"
+    default: "Usage"
+    }
+}
+
+private struct UsageReportSummary: View {
+    let report: JSONValue
+    let devices: [JSONValue]
+
+    var body: some View {
+        Section("Usage summary") {
+            if let id = report["deviceIds"].values.first?.text,
+                let device = devices.first(where: { $0["id"].text == id }),
+                !device["name"].text.isEmpty
+            {
+                LabeledContent("Device", value: device["name"].text)
+            }
+            LabeledContent("Metric", value: reportMetricName(report["metric"].text))
+            if !report["from"].text.isEmpty, !report["to"].text.isEmpty {
+                LabeledContent("From", value: report["from"].text)
+                LabeledContent("To (exclusive)", value: report["to"].text)
+            }
+            if !report["timezone"].text.isEmpty {
+                LabeledContent("Timezone", value: report["timezone"].text)
+            }
+            LabeledContent(
+                "Measured total", value: amount(report["comparison"]["currentMeasured"].text))
+            LabeledContent("Estimated total", value: estimatedTotal.map(amount) ?? "Unavailable")
+            LabeledContent("Measured coverage", value: coverage)
+            ServerDetails(title: "Report, comparison and quality", value: report)
+        }
+    }
+
+    private var estimatedTotal: String? {
+        let estimates = report["buckets"].values.compactMap {
+            Decimal(string: $0["estimated"].text, locale: Locale(identifier: "en_US_POSIX"))
+        }
+        guard !estimates.isEmpty else { return nil }
+        return NSDecimalNumber(decimal: estimates.reduce(0, +)).stringValue
+    }
+
+    private var coverage: String {
+        let buckets = report["buckets"].values
+        var measured = 0.0
+        var expected = 0.0
+        for bucket in buckets {
+            guard case .number(let covered) = bucket["measuredCoverageMs"],
+                case .number(let duration) = bucket["expectedMs"],
+                covered >= 0, duration >= 0
+            else { return "Unavailable" }
+            measured += min(covered, duration)
+            expected += duration
+        }
+        guard expected > 0 else { return "Unavailable" }
+        return (measured / expected).formatted(.percent.precision(.fractionLength(0...1)))
+    }
+
+    private func amount(_ value: String) -> String {
+        guard !value.isEmpty else { return "Unavailable" }
+        switch report["metric"].text {
+        case "screen_time_seconds", "application_foreground_seconds": return "\(value) s"
+        case "mobile_data_bytes", "wifi_data_bytes": return "\(value) bytes"
+        default: return value
         }
     }
 }

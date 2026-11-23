@@ -122,6 +122,38 @@ private struct SignedInNavigation: View {
     }
 }
 
+private struct HomeSummary: View {
+    let snapshot: ClientSnapshot
+
+    var body: some View {
+        let workspace = snapshot.workspaces.first { $0["id"].text == snapshot.workspaceID }
+        let phone = snapshot.device
+        let inWorkspace = phone?.workspaceID == snapshot.workspaceID && phone != nil
+        let record = inWorkspace ? snapshot.devices.first { $0["id"].text == phone?.id } : nil
+        Section("At a glance") {
+            LabeledContent("Workspace", value: workspace?["name"].text ?? "Not selected")
+            LabeledContent("This phone", value: phoneSetup(inWorkspace: inWorkspace))
+            LabeledContent(
+                "Reported permission", value: permissionLabel(record?["permissionStatus"].text))
+        }
+        .listRowBackground(AppAppearance.card)
+    }
+
+    private func phoneSetup(inWorkspace: Bool) -> String {
+        guard snapshot.device != nil else { return "Setup required" }
+        return inWorkspace ? "Paired" : "Paired in another workspace"
+    }
+
+    private func permissionLabel(_ status: String?) -> String {
+        switch status {
+        case "granted": "Granted"
+        case "denied": "Denied"
+        case "revoked": "Revoked"
+        default: "Unavailable"
+        }
+    }
+}
+
 private struct MobileMenu: View {
     @EnvironmentObject private var model: AppModel
     let tab: MobileTab
@@ -130,6 +162,9 @@ private struct MobileMenu: View {
             VStack(spacing: 0) {
                 NavigationStatus()
                 List {
+                    if tab == .home, let snapshot = model.snapshot {
+                        HomeSummary(snapshot: snapshot)
+                    }
                     Section {
                         ForEach(tab.destinations, id: \.self) { destination in
                             AppMenuRow(title: destination)
