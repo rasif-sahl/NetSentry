@@ -90,14 +90,16 @@
   line-height: 1.7;
 }
 .workspace-app .brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-weight: 800;
-  font-size: 1.35rem;
-  letter-spacing: -0.045em;
-  text-decoration: none;
-  color: var(--primary);
+  display: inline-flex;
+  align-self: flex-start;
+}
+.workspace-app .brand img {
+  width: 9.75rem;
+  height: auto;
+  color-scheme: light;
+}
+:root[data-theme="dark"] .workspace-app .brand img {
+  color-scheme: dark;
 }
 .workspace-app .eyebrow {
   display: block;

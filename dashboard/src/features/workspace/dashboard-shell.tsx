@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
@@ -358,7 +359,12 @@ function WorkspaceShell({
       >
         <div className="sidebar-brand">
           <Link href="/app" className="brand">
-            <ShieldCheck aria-hidden="true" /> NetSentry
+            <Image
+              src="/brand/netsentry-logo.svg"
+              alt="NetSentry"
+              width={223}
+              height={64}
+            />
           </Link>
           <button
             className="icon-button mobile-only"
