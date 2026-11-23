@@ -4,6 +4,8 @@
 
 Run the commands from the repository root on the `develop` branch. The core development stack is PostgreSQL, the NestJS API and the Next.js website/dashboard. Use Git, Node.js 24 (the exact version is in [`.nvmrc`](../.nvmrc)), its bundled npm, PostgreSQL 17 (the version used by CI), the PostgreSQL command-line tools, and OpenSSL. The Go agent, Electron desktop app and native clients have separate prerequisites below.
 
+If a default port is occupied, use the [alternate-port instructions](#if-a-default-port-is-already-in-use) before starting services or running migrations.
+
 ### Install dependencies
 
 Each Node project has its own lockfile. Install backend and dashboard dependencies for the web stack, plus contracts dependencies for the shared schema checks.
@@ -35,11 +37,12 @@ On a fresh checkout, copy [the backend template](../backend/.env.example) to `ba
 install -m 600 backend/.env.example backend/.env
 ```
 
-Use the password you set for the database login, URL-encoding special characters in the connection string. Generate a fresh value for each JWT secret and a separate mail encryption key. Paste the values into the private file.
+Use the password you set for the database login, URL-encoding special characters in the connection string. Generate two distinct JWT secrets and separate mail and router credential encryption keys. Paste the values into the private file in that order.
 
 ```sh
 openssl rand -base64 48
 openssl rand -base64 48
+openssl rand -base64 32
 openssl rand -base64 32
 ```
 
@@ -191,6 +194,53 @@ On a host with existing Flutter tooling and a prepared device, replace the examp
 cd mobile
 flutter pub get
 flutter run --dart-define=API_BASE_URL=https://netsentry.example.com/api/v1
+```
+
+### If a default port is already in use
+
+On macOS or Linux with `lsof`, check which processes are listening. Use a free alternate port for the affected service and leave existing services running.
+
+```sh
+lsof -nP -iTCP:5432 -iTCP:3000 -iTCP:3001 -iTCP:5173 -sTCP:LISTEN
+```
+
+The ports below are examples. Check that your chosen ports are free and update every matching URL or setting before starting the services.
+
+| Service | Default → example | Settings to update |
+| --- | --- | --- |
+| PostgreSQL | `5432` → `55432` | Start a dedicated local PostgreSQL instance on the new port. In `backend/.env`, set `DATABASE_URL=postgresql://netsentry:PASSWORD@127.0.0.1:55432/netsentry` with the new login's password. Use `DATABASE_SSL=false` for the loopback-only example below. |
+| Backend API | `3000` → `3100` | In `backend/.env`, set `PORT=3100`. In `dashboard/.env.local`, set `NETSENTRY_API_URL=http://127.0.0.1:3100/api/v1`. Update the API port in any separately configured client and in the health and readiness URLs. |
+| Web dashboard | `3001` → `3101` | In `dashboard/.env.local`, set `DASHBOARD_ORIGIN=http://localhost:3101`. In `backend/.env`, set `CORS_ORIGINS=http://localhost:3101` and `PUBLIC_APP_URL=http://localhost:3101`. Use that exact origin in your browser. |
+| Desktop renderer | `5173` → `5174` | Pass the new port to Vite. Open `http://127.0.0.1:5174` for the browser preview. |
+
+If port 5432 belongs to a shared database, initialize a separate local cluster with the PostgreSQL 17 tools. The database administration commands below connect through the new cluster's private socket. Choose a password for the cluster administrator and another for the `netsentry` login when prompted, then put the latter in `DATABASE_URL`.
+
+```sh
+NETSENTRY_LOCAL_PG_DIR=$(mktemp -d /tmp/netsentry-pg.XXXXXX)
+mkdir "$NETSENTRY_LOCAL_PG_DIR/socket"
+initdb -D "$NETSENTRY_LOCAL_PG_DIR/data" -U netsentry_local_admin \
+  --auth-local=trust --auth-host=scram-sha-256 --pwprompt
+pg_ctl -D "$NETSENTRY_LOCAL_PG_DIR/data" -l "$NETSENTRY_LOCAL_PG_DIR/postgres.log" \
+  -o "-h 127.0.0.1 -p 55432 -k '$NETSENTRY_LOCAL_PG_DIR/socket'" -w start
+createuser -h "$NETSENTRY_LOCAL_PG_DIR/socket" -p 55432 -U netsentry_local_admin \
+  --login --pwprompt netsentry
+createdb -h "$NETSENTRY_LOCAL_PG_DIR/socket" -p 55432 -U netsentry_local_admin \
+  --owner=netsentry netsentry
+```
+
+Before running migrations or `db:check`, confirm that `DATABASE_URL` points to the new cluster. If your shell, IDE or task runner exports database settings, update those too. Follow the [backend startup steps](#backend-api), using the new API port for the health and readiness checks.
+
+Restart any NetSentry process whose environment file changed. If you changed the dashboard or renderer port, use the corresponding command from the repository root in a separate terminal. The root `dev:dashboard` script uses port 3001.
+
+```sh
+npm --prefix dashboard run dev -- --port 3101
+npm --prefix desktop run dev:renderer -- --port 5174
+```
+
+Open `http://localhost:3101/app` for the dashboard. When you finish with the separate PostgreSQL instance, stop it from the shell where you set `NETSENTRY_LOCAL_PG_DIR`.
+
+```sh
+pg_ctl -D "$NETSENTRY_LOCAL_PG_DIR/data" -m fast -w stop
 ```
 
 ### Run repository checks
