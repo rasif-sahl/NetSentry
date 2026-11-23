@@ -25,6 +25,8 @@ Android adds **Application usage, Categories & corrections, Timeline & evidence*
 
 `docs/design/mobile/index.html` is a self-contained, offline design preview with clickable bottom tabs, all submenu routes, Back behavior, a searchable 66-view gallery and related-state selectors. `navigation.json` maps native route labels to illustrative previews. Long source pages and conditional states have separate gallery cards; the number of previews is not the navigation count. HTML forms and dialogs are illustrations and never call APIs.
 
+The Home previews include workspace, installation and permission summaries. The Android Usage and Application Usage pages demonstrate local filter-sheet selections, and the iOS Usage page shows an illustrative report summary with separate measured and estimated totals and measured coverage.
+
 Build the bundled catalogue with `python3 scripts/design/build-mobile-designs.py`. With dashboard Playwright dependencies and an existing desktop Chrome, run:
 
 ```sh

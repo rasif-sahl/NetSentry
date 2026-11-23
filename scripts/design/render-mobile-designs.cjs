@@ -48,6 +48,27 @@ if (
         .locator("#preview .phone")
         .screenshot({ path: path.join(output, platform + "-home.png") });
     }
+    const phone = page.locator("#preview .phone");
+    for (const [platform, destination, filename, filters] of [
+      ["android", "Usage reports", "android-usage", "Filters"],
+      ["android", "Application usage", "android-application-usage", "Report filters"],
+      ["ios", "Usage reports", "ios-usage-summary"],
+    ]) {
+      const hash = new URLSearchParams({ platform, tab: "Usage", destination });
+      await page.goto(index + "#" + hash);
+      await phone.locator(".brand").getByText(destination, { exact: true }).waitFor();
+      if (platform === "ios") {
+        await phone.locator(".content").evaluate((content) => {
+          content.scrollTop = content.scrollHeight;
+        });
+      }
+      await phone.screenshot({ path: path.join(output, filename + ".png") });
+      if (filters) {
+        await phone.getByRole("button", { name: filters, exact: true }).click();
+        await phone.locator(".filter-sheet[open]").waitFor();
+        await phone.screenshot({ path: path.join(output, filename + "-filters.png") });
+      }
+    }
     const board = path.join(output, "navigation-overview.html");
     fs.writeFileSync(
       board,

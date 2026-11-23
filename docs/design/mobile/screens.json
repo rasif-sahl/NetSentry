@@ -144,17 +144,9 @@
       "section": "Usage \u00b7 section",
       "items": [
         ["h", "Mobile and Wi-Fi usage"],
-        [
-          "p",
-          "Phone aggregate totals from Android OS accounting. Attribution is estimated. Missing values are not zero."
-        ],
-        ["o", "mobile_data_bytes     wifi_data_bytes"],
-        ["o", "day     week     month"],
-        ["b", "Load usage report"],
-        [
-          "p",
-          "Reports show measured/estimated values, missing intervals, timezone and declared gaps. No report loaded."
-        ]
+        ["p", "Android accounts for this phone\u2019s network usage. Interval attribution is estimated. Missing values are not zero."],
+        ["filters", "usage"],
+        ["p", "No usage report loaded."]
       ]
     },
     {
@@ -192,14 +184,10 @@
       "title": "Application usage report",
       "section": "Apps \u00b7 section",
       "items": [
+        ["filters", "application"],
         ["h", "Screen time and application usage"],
-        ["p", "Enable app-usage-v1 on the Phone tab first."],
-        ["o", "day     week     month"],
-        ["f", "Optional application ID filter"],
-        ["f", "Optional category ID filter"],
-        ["b", "Load application report"],
-        ["p", "No application report loaded. Missing data is not zero."],
-        ["o", "Prepare application CSV export \u00b7 after loading"]
+        ["p", "Enable app-usage-v1 under Home \u2192 This phone first."],
+        ["p", "No application report loaded. Missing data is not zero."]
       ]
     },
     {
@@ -224,6 +212,7 @@
       "title": "Categories and corrections",
       "section": "Apps \u00b7 section",
       "items": [
+        ["filters", "device-period"],
         ["h", "Categories and custom corrections"],
         [
           "p",
@@ -240,6 +229,7 @@
       "title": "Timeline and health alerts",
       "section": "Apps \u00b7 sections",
       "items": [
+        ["filters", "device-period"],
         ["h", "Timeline and evidence"],
         [
           "p",
@@ -562,16 +552,21 @@
       "section": "Overview \u00b7 section",
       "items": [
         ["h", "Server reports"],
-        ["f", "Device \u00b7 Choose a device"],
-        ["f", "Period \u00b7 day / week / month"],
-        ["f", "Metric \u00b7 screen time seconds"],
+        ["f", "Device \u00b7 My iPhone"],
+        ["f", "Period \u00b7 Day"],
+        ["f", "Metric \u00b7 Screen time"],
         ["b", "Load report"],
-        ["p", "Server observations from authorized supported devices."],
-        ["r", "Report, comparison and quality"],
-        [
-          "p",
-          "Review sources, declared gaps, estimates and workspace timezone."
-        ]
+        ["p", "Illustrative report from a supported device."],
+        ["h", "Usage summary"],
+        ["kv", "Device|My iPhone"],
+        ["kv", "Metric|Screen time"],
+        ["kv", "From|2026-11-16"],
+        ["kv", "To (exclusive)|2026-11-17"],
+        ["kv", "Timezone|Asia/Colombo"],
+        ["kv", "Measured total|8400 s"],
+        ["kv", "Estimated total|Unavailable"],
+        ["kv", "Measured coverage|75%"],
+        ["r", "Report, comparison and quality"]
       ]
     },
     {
