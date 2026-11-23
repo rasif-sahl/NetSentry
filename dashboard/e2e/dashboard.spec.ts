@@ -269,6 +269,64 @@ test("report failures have a recoverable error state", async ({ page }) => {
     page.getByRole("heading", { name: "Usage over time", exact: true }),
   ).toBeVisible();
 });
+test("phone report filters slide in from the right and keep applied values", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const data = await login(page);
+  await page.goto("/app/usage-reports");
+  const trigger = page.getByRole("button", { name: "Report filters", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Report filters" });
+  const from = dialog.getByLabel("From (local date)", { exact: true });
+  const to = dialog.getByLabel("To (exclusive local date)", { exact: true });
+  const device = dialog.getByLabel("Device", { exact: true });
+  const group = dialog.getByLabel("Group by", { exact: true });
+  const submit = dialog.getByRole("button", { name: "Apply report filters" });
+  await expect(page.getByRole("heading", { name: "Choose your report" })).toBeHidden();
+  await expect(dialog).toBeHidden();
+  await trigger.click();
+  await expect(dialog.getByRole("button", { name: "Close dialog" })).toBeFocused();
+  await expect(dialog).toHaveCSS("animation-name", "workspace-drawer-enter");
+  await expect.poll(async () => {
+    const bounds = await dialog.boundingBox();
+    return bounds ? Math.round(bounds.x + bounds.width) : null;
+  }).toBe(390);
+
+  const start = await from.inputValue();
+  await from.fill(await to.inputValue());
+  await submit.click();
+  await expect(dialog.getByRole("alert")).toContainText("The end date must follow the start date.");
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await expect(from).toHaveValue(start);
+  await device.selectOption(data.deviceId);
+  await group.selectOption("week");
+  await Promise.all([
+    page.waitForRequest((request) => {
+      const url = new URL(request.url());
+      return url.pathname.endsWith("/monitoring/usage") &&
+        url.searchParams.get("period") === "week" &&
+        url.searchParams.get("deviceId") === data.deviceId;
+    }),
+    submit.click(),
+  ]);
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await expect(device).toHaveValue(data.deviceId);
+  await expect(group).toHaveValue("week");
+
+  await page.setViewportSize({ width: 320, height: 760 });
+  await expect(dialog).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeHidden();
+  await expect(page.getByRole("heading", { name: "Choose your report" })).toBeVisible();
+  await expect(page.getByLabel("Group by", { exact: true })).toHaveValue("week");
+});
+
 test("account settings and Operations stay available during an inventory outage", async ({
   page,
 }) => {

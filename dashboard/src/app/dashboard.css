@@ -1,3 +1,8 @@
+@keyframes workspace-drawer-enter {
+  from {
+    transform: translateX(100%);
+  }
+}
 .workspace-app {
   --on-primary: white;
   --button-accent-border: color-mix(in srgb, var(--primary) 55%, var(--border));

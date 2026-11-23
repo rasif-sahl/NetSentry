@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api, download } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { Report, UsageNetwork } from "@/shared/types";
@@ -38,7 +40,6 @@ export function ReportsPanel({
       period: "day",
     }).toString(),
   );
-  const [metric, setMetric] = useState("mobile_data_bytes");
   const report = useResource<Report>(
     `/workspaces/${workspace.id}/monitoring/usage?${query}`,
     true,
@@ -59,104 +60,57 @@ export function ReportsPanel({
       ? devices.find((d) => d.id === selectedId)?.registeredById === user.id
       : !permissions.includes("reports:read") ||
         devices.every((d) => d.registeredById === user.id));
+  async function applyFilters(form: FormData) {
+    const values = {
+      from: text(form, "from"),
+      to: text(form, "to"),
+      metric: text(form, "metric"),
+      period: text(form, "period"),
+    };
+    if (values.to <= values.from)
+      throw new Error("The end date must follow the start date.");
+
+    const next = new URLSearchParams(values);
+    for (const key of ["deviceId", "networkId", "applicationId"]) {
+      const value = text(form, key);
+      if (value) next.set(key, value);
+    }
+    setQuery(next.toString());
+    report.reload();
+  }
+
+  const filterFields = (
+    <ReportFilterFields
+      key={query}
+      params={params}
+      timezone={workspace.timezone}
+      devices={allowedDevices}
+      networks={networks.data}
+      canReadShared={permissions.includes("reports:read")}
+    />
+  );
   return (
     <>
-      <Card title="Choose your report">
+      <div className="grid justify-items-end min-[700px]:hidden">
+        <ActionFormDialog
+          label="Report filters"
+          submit="Apply report filters"
+          icon={<SlidersHorizontal size={16} aria-hidden="true" />}
+          mobileDrawer
+          action={applyFilters}
+        >
+          {filterFields}
+        </ActionFormDialog>
+      </div>
+      <Card title="Choose your report" className="max-[700px]:hidden">
         <ActionForm
           submit="Apply report filters"
           action={async (form) => {
-            const values = {
-              from: text(form, "from"),
-              to: text(form, "to"),
-              metric: text(form, "metric"),
-              period: text(form, "period"),
-            };
-            const params = new URLSearchParams(values);
-            for (const key of ["deviceId", "networkId", "applicationId"])
-              if (text(form, key)) params.set(key, text(form, key));
-            if (values.to <= values.from)
-              throw new Error("The end date must follow the start date.");
-            setQuery(params.toString());
-            report.reload();
+            await applyFilters(form);
             return "Report filters applied.";
           }}
         >
-          <div className="field-row">
-            <Field label="From (local date)">
-              <input
-                name="from"
-                type="date"
-                required
-                defaultValue={params.get("from")!}
-              />
-            </Field>
-            <Field label="To (exclusive local date)">
-              <input
-                name="to"
-                type="date"
-                required
-                defaultValue={params.get("to")!}
-              />
-            </Field>
-            <Field label="Group by">
-              <select name="period">
-                <option value="day">Day</option>
-                <option value="week">Week</option>
-                <option value="month">Month</option>
-              </select>
-            </Field>
-          </div>
-          <div className="field-row">
-            <Field label="Metric">
-              <select
-                name="metric"
-                value={metric}
-                onChange={(e) => setMetric(e.target.value)}
-              >
-                {Object.entries(metrics).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Device">
-              <select name="deviceId">
-                <option value="">
-                  {permissions.includes("reports:read")
-                    ? "All permitted devices"
-                    : "My devices only"}
-                </option>
-                {allowedDevices.map((device) => (
-                  <option key={device.id} value={device.id}>
-                    {device.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Network label">
-              <select name="networkId">
-                <option value="">All labels</option>
-                {networks.data?.map((network) => (
-                  <option key={network.id} value={network.id}>
-                    {network.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-          {metric === "application_foreground_seconds" && (
-            <Field
-              label="Application identifier"
-              hint="Use the identifier reported by the collector."
-            >
-              <input name="applicationId" required maxLength={255} />
-            </Field>
-          )}
-          <small>
-            Dates use {workspace.timezone}. Up to 366 local days; larger
-            histories may need a device filter.
-          </small>
+          {filterFields}
         </ActionForm>
       </Card>
       <ErrorNotice error={report.error} />
@@ -403,5 +357,105 @@ function UsageChart({ report }: { report: Report }) {
         ))}
       </div>
     </figure>
+  );
+}
+
+function ReportFilterFields({
+  params,
+  timezone,
+  devices,
+  networks,
+  canReadShared,
+}: {
+  params: URLSearchParams;
+  timezone: string;
+  devices: PageContext["devices"];
+  networks?: UsageNetwork[];
+  canReadShared: boolean;
+}) {
+  const [metric, setMetric] = useState(params.get("metric") ?? "mobile_data_bytes");
+
+  return (
+    <>
+      <div className="field-row">
+        <Field label="From (local date)">
+          <input
+            name="from"
+            type="date"
+            required
+            defaultValue={params.get("from") ?? ""}
+          />
+        </Field>
+        <Field label="To (exclusive local date)">
+          <input
+            name="to"
+            type="date"
+            required
+            defaultValue={params.get("to") ?? ""}
+          />
+        </Field>
+        <Field label="Group by">
+          <select name="period" defaultValue={params.get("period") ?? "day"}>
+            <option value="day">Day</option>
+            <option value="week">Week</option>
+            <option value="month">Month</option>
+          </select>
+        </Field>
+      </div>
+      <div className="field-row">
+        <Field label="Metric">
+          <select
+            name="metric"
+            value={metric}
+            onChange={(e) => setMetric(e.target.value)}
+          >
+            {Object.entries(metrics).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Device">
+          <select name="deviceId" defaultValue={params.get("deviceId") ?? ""}>
+            <option value="">
+              {canReadShared ? "All permitted devices" : "My devices only"}
+            </option>
+            {devices.map((device) => (
+              <option key={device.id} value={device.id}>
+                {device.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Network label">
+          <select name="networkId" defaultValue={params.get("networkId") ?? ""}>
+            <option value="">All labels</option>
+            {networks?.map((network) => (
+              <option key={network.id} value={network.id}>
+                {network.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      {metric === "application_foreground_seconds" && (
+        <Field
+          label="Application identifier"
+          hint="Use the identifier reported by the collector."
+        >
+          <input
+            name="applicationId"
+            defaultValue={params.get("applicationId") ?? ""}
+            required
+            maxLength={255}
+          />
+        </Field>
+      )}
+      <small>
+        Dates use {timezone}. Up to 366 local days; larger histories may need a
+        device filter.
+      </small>
+    </>
   );
 }
