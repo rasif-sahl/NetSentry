@@ -397,6 +397,42 @@ test("expired access cookies refresh safely across browser tabs", async ({
   ).toHaveLength(1);
 });
 
+test("sign out revokes the server session after the access cookie expires", async ({
+  page,
+  context,
+}) => {
+  await login(page);
+  const refresh = (await context.cookies()).find(
+    (cookie) => cookie.name === "netsentry_refresh",
+  )!;
+  expect(refresh).toBeDefined();
+  await context.clearCookies({ name: "netsentry_access" });
+  const [logout] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.url().endsWith("/api/backend/auth/logout/refresh"),
+    ),
+    page.getByRole("button", { name: "Sign out", exact: true }).click(),
+  ]);
+  expect(logout.status()).toBe(201);
+  await expect(
+    page.getByText("You have signed out.", { exact: true }),
+  ).toBeVisible();
+  expect(
+    (await context.cookies()).filter(({ name }) =>
+      name.startsWith("netsentry_"),
+    ),
+  ).toHaveLength(0);
+
+  // The isolated fixture verifies server revocation independently of cookie clearing.
+  const result = await page.request.post(
+    "http://127.0.0.1:54110/api/v1/auth/refresh",
+    {
+      data: { refreshToken: refresh.value },
+    },
+  );
+  expect(result.status()).toBe(401);
+});
+
 test("team invitations bind a recipient and management changes take effect", async ({
   page,
   browser,
