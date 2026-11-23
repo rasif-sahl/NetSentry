@@ -1,8 +1,10 @@
+import { PageQuery } from '../common/pagination';
 import {
   Body,
   Controller,
   Delete,
   Get,
+  Query,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -57,6 +59,20 @@ export class AlertController {
     @Param('workspaceId', ParseUUIDPipe) wid: string,
   ) {
     return this.alerts.list(user.userId, wid, true);
+  }
+  @Get('alerts/page') alertPage(
+    @CurrentUser() user: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) wid: string,
+    @Query() query: PageQuery,
+  ) {
+    return this.alerts.list(user.userId, wid, false, query);
+  }
+  @Get('notifications/page') notificationPage(
+    @CurrentUser() user: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) wid: string,
+    @Query() query: PageQuery,
+  ) {
+    return this.alerts.list(user.userId, wid, true, query);
   }
   @Post('alerts/:alertId/acknowledge') acknowledge(
     @CurrentUser() user: RequestUser,

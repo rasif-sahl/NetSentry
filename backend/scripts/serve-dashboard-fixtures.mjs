@@ -157,6 +157,39 @@ try {
       );
   }
   const owner = accounts.owner;
+  const pagingWorkspace = await call(
+    '/workspaces',
+    'POST',
+    { name: 'Fixture pagination', type: 'FAMILY', timezone: 'UTC' },
+    owner.accessToken,
+  );
+  const pagingRule = await call(
+    `/workspaces/${pagingWorkspace.id}/monitoring/rules`,
+    'POST',
+    {
+      kind: 'threshold',
+      metric: 'mobile_data_bytes',
+      period: 'month',
+      threshold: 1,
+      severity: 'warning',
+      channels: ['in_app'],
+      enabled: true,
+    },
+    owner.accessToken,
+  );
+  await source.query(
+    `WITH inserted AS (
+       INSERT INTO alerts ("ruleId", cycle, "sourceDeviceIds", snapshot, "createdAt")
+       SELECT $1, i, '[]'::jsonb,
+         jsonb_build_object('kind','threshold','severity','warning','value',i::text,'windowKey','fixture-page'),
+         date_trunc('second', now()) - CASE WHEN i <= 30 THEN interval '1 minute' ELSE interval '0 second' END
+       FROM generate_series(1, 130) AS i RETURNING id, cycle
+     )
+     INSERT INTO notification_deliveries ("alertId", channel, status, "dueAt")
+     SELECT id, 'in_app', CASE WHEN cycle <= 30 THEN 'delivered' ELSE 'suppressed' END, now()
+     FROM inserted`,
+    [pagingRule.id],
+  );
   const workspace = await call(
     '/workspaces',
     'POST',
@@ -646,6 +679,7 @@ try {
       password,
       workspaceId: workspace.id,
       emptyId: empty.id,
+      pagingWorkspaceId: pagingWorkspace.id,
       deviceId: pair.device.id,
       familyProfileId: familyProfile.id,
       business,

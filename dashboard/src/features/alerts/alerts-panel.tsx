@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
+import { usePage } from "@/shared/use-page";
+import { PageControls } from "@/shared/ui/page-controls";
 import { useResource } from "@/shared/use-resource";
 import type { Alert, AlertRule, UsageNetwork } from "@/shared/types";
 import { metrics, exactValue } from "@/shared/usage";
@@ -86,12 +88,12 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
     tab === "rules" ? `${base}/rules` : null,
     true,
   );
-  const alerts = useResource<Alert[]>(
-    tab === "history" ? `${base}/alerts` : null,
+  const alerts = usePage<Alert>(
+    tab === "history" ? `${base}/alerts/page` : null,
     true,
   );
-  const notifications = useResource<Alert[]>(
-    tab === "notifications" ? `${base}/notifications` : null,
+  const notifications = usePage<Alert>(
+    tab === "notifications" ? `${base}/notifications/page` : null,
     true,
   );
   const networks = useResource<UsageNetwork[]>(
@@ -157,6 +159,7 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
                 </Empty>
               )
             )}
+            <PageControls label="Notifications" page={notifications} />
           </Card>
         </>
       )}
@@ -263,10 +266,8 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
         <>
           <Card title="Alert history and delivery">
             <ErrorNotice error={alerts.error} />
-            <small>
-              Latest 100 scoped occurrences. Last refreshed{" "}
-              {formatTime(alerts.updatedAt)}.
-            </small>
+            <small>Last refreshed {formatTime(alerts.updatedAt)}.</small>
+            {alerts.loading && <Loading />}
             {alerts.data?.length ? (
               <div className="page-stack">
                 {alerts.data.map((alert) => (
@@ -333,6 +334,7 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
             ) : (
               alerts.data && <Empty title="No alerts in your history" />
             )}
+            <PageControls label="Alert history" page={alerts} />
           </Card>
         </>
       )}

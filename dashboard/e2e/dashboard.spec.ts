@@ -483,6 +483,42 @@ test("sign out revokes the server session after the access cookie expires", asyn
   expect(result.status()).toBe(401);
 });
 
+test("alert pages include older delivered notifications and keep tied timestamps stable", async ({
+  page,
+}) => {
+  const data = await login(page);
+  await selectWorkspace(page, data.pagingWorkspaceId);
+  await page.getByRole("link", { name: "Alerts", exact: true }).click();
+  const inbox = page.getByRole("navigation", { name: "Notifications pages" });
+  const notifications = page.getByRole("button", {
+    name: "Acknowledge notification",
+    exact: true,
+  });
+  await expect(notifications).toHaveCount(25);
+  await inbox.getByRole("button", { name: "Next" }).click();
+  await expect(notifications).toHaveCount(5);
+  await expect(inbox.getByRole("button", { name: "Next" })).toBeDisabled();
+  await inbox.getByRole("button", { name: "Previous" }).click();
+  await expect(notifications).toHaveCount(25);
+
+  const path = `/api/backend/workspaces/${data.pagingWorkspaceId}/monitoring/alerts/page?limit=100`;
+  const first = await page.request.get(path);
+  expect(first.ok()).toBeTruthy();
+  const firstPage = await first.json();
+  const second = await page.request.get(
+    `${path}&cursor=${encodeURIComponent(firstPage.nextCursor)}`,
+  );
+  expect(second.ok()).toBeTruthy();
+  const secondPage = await second.json();
+  expect(firstPage.items).toHaveLength(100);
+  expect(secondPage.items).toHaveLength(30);
+  expect(
+    new Set([...firstPage.items, ...secondPage.items].map((item) => item.id))
+      .size,
+  ).toBe(130);
+  expect(secondPage.nextCursor).toBeNull();
+});
+
 test("team invitations bind a recipient and management changes take effect", async ({
   page,
   browser,
