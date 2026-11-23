@@ -25,6 +25,14 @@ async function login(page: Page, account = "owner") {
   ).toBeVisible();
   return data;
 }
+async function openTab(page: Page, name: string) {
+  const tab = page
+    .getByRole("navigation", { name: / sections$/ })
+    .getByRole("link", { name, exact: true });
+  await tab.click();
+  await expect(tab).toHaveAttribute("aria-current", "page");
+}
+
 test("sign in, restore an HTTP-only session and sign out", async ({
   page,
   context,
@@ -308,13 +316,32 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     page.getByRole("heading", { name: "In-app notifications", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("threshold · warning", { exact: true }).first(),
+    page.getByText("threshold · measured · warning", { exact: true }).first(),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Acknowledge notification", exact: true })
     .first()
     .click();
   await expect(page.getByText(/Acknowledged/).first()).toBeVisible();
+  await expect(page).toHaveURL("/app/alerts");
+  await expect(
+    page.getByRole("heading", { name: "Your alert rules" }),
+  ).toHaveCount(0);
+  await openTab(page, "History");
+  await expect(page).toHaveURL("/app/alerts/history");
+  await expect(
+    page.getByRole("heading", { name: "Alert history and delivery" }),
+  ).toBeVisible();
+  await page.goBack();
+  await expect(
+    page.getByRole("heading", { name: "In-app notifications" }),
+  ).toBeVisible();
+  await openTab(page, "Rules");
+  await expect(page).toHaveURL("/app/alerts/rules");
+  await expect(
+    page.getByRole("heading", { name: "Create an alert rule" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Create rule", exact: true }).click();
   await page.getByLabel("Rule device").selectOption(data.deviceId);
   await expect(page.getByLabel("Threshold data quality")).toHaveValue(
     "measured",
@@ -338,7 +365,7 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     .getByRole("button", { name: "Cancel editing", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Create an alert rule", exact: true }),
+    page.getByRole("button", { name: "Create rule", exact: true }),
   ).toBeVisible();
   await created.getByRole("button", { name: "Edit rule", exact: true }).click();
   await expect(page.getByLabel("Threshold data quality")).toHaveValue(
@@ -359,6 +386,7 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
   await expect(
     page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" }),
   ).toContainText("estimated");
+  await openTab(page, "Preferences");
   await page.getByLabel("In-app notifications", { exact: true }).uncheck();
   await page
     .getByRole("button", { name: "Save notification preferences", exact: true })
@@ -460,6 +488,7 @@ test("team invitations bind a recipient and management changes take effect", asy
     guest.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
   await guest.getByRole("link", { name: "Team", exact: true }).click();
+  await openTab(guest, "Workspaces");
   await guest.getByLabel("Invitation token").fill(token);
   await guest
     .getByRole("button", { name: "Accept invitation", exact: true })
@@ -513,6 +542,7 @@ test("a verified user can create and switch to a new workspace", async ({
 }) => {
   const data = await login(page);
   await page.getByRole("link", { name: "Team", exact: true }).click();
+  await openTab(page, "Workspaces");
   await page
     .getByLabel("Workspace name", { exact: true })
     .fill("Browser-created workspace");
@@ -569,6 +599,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
     page.getByRole("heading", { name: "Settings & privacy", exact: true }),
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await openTab(page, "Workspace");
   await page.getByLabel("Raw observations (days)", { exact: true }).fill("20");
   await page
     .getByLabel("Aggregates and gaps (days)", { exact: true })
@@ -586,6 +617,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
     `/api/backend/workspaces/${data.workspaceId}/monitoring/retention`,
   );
   expect((await policy.json()).rawDays).toBe(20);
+  await openTab(page, "Privacy");
   await page
     .getByLabel("Current password for export", { exact: true })
     .fill(data.password);
@@ -602,6 +634,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
   expect(JSON.stringify(exported)).not.toMatch(
     /credentialHash|payloadHash|refreshToken/,
   );
+  await openTab(page, "Sessions");
   page.once("dialog", (dialog) => dialog.accept());
   await page
     .getByRole("button", { name: "Sign out other sessions", exact: true })
@@ -612,6 +645,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
       (session: { revokedAt: string | null }) => !!session.revokedAt,
     ),
   ).toBeTruthy();
+  await openTab(page, "Privacy");
   await page
     .getByText("Review permanent account deletion", { exact: true })
     .click();
@@ -838,6 +872,7 @@ test("registration and password-confirmed account deletion clear the browser ses
   await page
     .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
+  await openTab(page, "Privacy");
   await page
     .getByText("Review permanent account deletion", { exact: true })
     .click();
@@ -952,7 +987,7 @@ test("dashboard sections share compact card spacing and action buttons on mobile
   const sections = [
     ["Devices", "Device inventory", "View Fixture iOS"],
     ["Usage & reports", "Usage over time", "Download CSV"],
-    ["Alerts", "In-app notifications", "Edit rule"],
+    ["Alerts", "In-app notifications"],
     ["Networks", "Network labels"],
     ["Developer Tools", "Paired developer computers", "Refresh computers"],
     ["Family", "Your family profiles"],
@@ -1003,6 +1038,55 @@ test("dashboard sections share compact card spacing and action buttons on mobile
         }
       }
     });
+  }
+});
+
+test("mobile workflow tabs deep-link within the same dashboard layout", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  await login(page);
+  await page.goto("/app/alerts");
+  const alertTabs = page.getByRole("navigation", { name: "Alerts sections" });
+  await expect(
+    alertTabs.getByRole("link", { name: "Notifications" }),
+  ).toHaveAttribute("aria-current", "page");
+  const tabWidths = await alertTabs.evaluate((element) => ({
+    total: element.scrollWidth,
+    visible: element.clientWidth,
+  }));
+  expect(tabWidths.total).toBe(tabWidths.visible);
+  await openTab(page, "Preferences");
+  await expect(
+    page.getByRole("heading", { name: "Notification preferences" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "In-app notifications" }),
+  ).toHaveCount(0);
+  await expect(page).toHaveURL("/app/alerts/preferences");
+  await page.reload();
+  await expect(
+    alertTabs.getByRole("link", { name: "Preferences" }),
+  ).toHaveAttribute("aria-current", "page");
+
+  for (const [path, tabLabel, heading] of [
+    ["developer-tools/sharing", "Sharing", "Service-sharing disclosure"],
+    ["family/sharing", "Sharing", "Family-sharing disclosure"],
+    ["operations/audit", "Audit", "Operator audit review"],
+    ["settings/sessions", "Sessions", "Account sessions"],
+  ]) {
+    await page.goto(`/app/${path}`);
+    await expect(
+      page.getByRole("heading", { name: heading, exact: true }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByRole("navigation", { name: / sections$/ })
+        .getByRole("link", { name: tabLabel, exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(320);
   }
 });
 
@@ -1168,6 +1252,8 @@ test("missing-report rules preserve their device scope and seconds threshold", a
 }) => {
   const data = await login(page);
   await page.getByRole("link", { name: "Alerts", exact: true }).click();
+  await openTab(page, "Rules");
+  await page.getByRole("button", { name: "Create rule", exact: true }).click();
   await page.getByLabel("Rule type").selectOption("not_reporting");
   await page.getByLabel("Rule device").selectOption(data.deviceId);
   await page.getByLabel("Reporting/heartbeat threshold (seconds)").fill("600");
@@ -1190,6 +1276,7 @@ test("network inventory exposes uncertain observations and editable labels witho
 }) => {
   await login(page);
   await page.getByRole("link", { name: "Networks", exact: true }).click();
+  await openTab(page, "Monitoring");
   await expect(
     page.getByRole("heading", { name: "Observed devices", exact: true }),
   ).toBeVisible();
@@ -1237,6 +1324,7 @@ test("network viewers cannot grant collectors or configure router secrets", asyn
 }) => {
   await login(page, "viewer");
   await page.getByRole("link", { name: "Networks", exact: true }).click();
+  await openTab(page, "Monitoring");
   await expect(
     page.getByRole("heading", { name: "Observed devices", exact: true }),
   ).toBeVisible();
@@ -1381,6 +1469,16 @@ test("Business roles review organization structure and employees explicitly acce
   await expect(
     observed.getByText(/Synthetic business LAN · Fixture engineering/),
   ).toBeVisible();
+  const location = page.getByRole("combobox", {
+    name: "Business location",
+    exact: true,
+  });
+  const [locationId] = await location.selectOption({ label: "Fixture office" });
+  await openTab(page, "Reports");
+  await expect(
+    page.getByRole("heading", { name: "Organization usage reports" }),
+  ).toBeVisible();
+  await expect(location).toHaveValue(locationId);
   await page
     .getByRole("button", { name: "Load organization report", exact: true })
     .click();
@@ -1400,12 +1498,14 @@ test("Business roles review organization structure and employees explicitly acce
   await expect(
     employee.getByRole("button", { name: "Add location", exact: true }),
   ).toHaveCount(0);
+  await openTab(employee, "Reports");
   await expect(
     employee.getByRole("heading", {
       name: "Organization usage reports",
       exact: true,
     }),
   ).toHaveCount(0);
+  await openTab(employee, "People");
   employee.once("dialog", (dialog) => dialog.accept());
   await employee
     .getByRole("button", { name: "Accept organization sharing", exact: true })
@@ -1433,6 +1533,7 @@ test("Business roles review organization structure and employees explicitly acce
     .getByLabel("Active workspace")
     .selectOption(data.business.workspaceId);
   await analyst.getByRole("link", { name: "Business", exact: true }).click();
+  await openTab(analyst, "Reports");
   await expect(
     analyst.getByRole("heading", {
       name: "Organization usage reports",
@@ -1477,11 +1578,13 @@ test("sandbox billing is owner-only and operator flags require separate authorit
   await expect(
     page.getByText(/Edition: family · status: active/),
   ).toBeVisible();
+  await openTab(page, "Payment history");
   await expect(page.getByText(/TST test minor units/)).toBeVisible();
   await page.getByRole("link", { name: "Operations", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Platform operations", exact: true }),
   ).toBeVisible();
+  await openTab(page, "Administration");
   await page
     .getByLabel("Feature key", { exact: true })
     .selectOption("developer");
@@ -1528,14 +1631,13 @@ test("email alert opt-in stays visibly disabled and saved themes follow account 
     .getByRole("button", { name: "Save display preferences", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await openTab(page, "Notifications");
   await page.getByLabel("Opt in to email alerts (delivery disabled)").check();
   await page
     .getByRole("button", { name: "Save notification preferences", exact: true })
     .click();
   await page.reload();
-  await page
-    .getByRole("link", { name: "Settings & privacy", exact: true })
-    .click();
+  await expect(page).toHaveURL("/app/settings/notifications");
   await expect(
     page.getByLabel("Opt in to email alerts (delivery disabled)"),
   ).toBeChecked();

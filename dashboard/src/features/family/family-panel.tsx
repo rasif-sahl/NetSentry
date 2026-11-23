@@ -18,7 +18,8 @@ import {
   text,
 } from "@/shared/ui/common";
 
-export function FamilyPanel(context: PageContext) {
+export function FamilyPanel(context: PageContext & { tab: string }) {
+  const { tab } = context;
   const enabled = context.workspace.type === "FAMILY",
     path = `/workspaces/${context.workspace.id}/family`;
   const family = useResource<{
@@ -61,89 +62,101 @@ export function FamilyPanel(context: PageContext) {
       </Notice>
       <ErrorNotice error={family.error} />
       {family.loading && <Loading />}
-      <details>
-        <summary>Family-sharing disclosure</summary>
-        <p>{family.data?.disclosure.text}</p>
-      </details>
-      <Card title="Your family profiles">
-        {family.data?.profiles.length ? (
-          <Field label="Child profile">
-            <select value={id} onChange={(e) => setSelected(e.target.value)}>
-              {family.data.profiles.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                  {p.archived ? " (archived)" : ""}
-                </option>
-              ))}
-            </select>
-          </Field>
-        ) : (
-          <Empty title="No child profiles in your current grant" />
-        )}
-        <details>
-          <summary>Withdraw sharing on your own device</summary>
-          <p>
-            You can withdraw family sharing for a device you own even if a
-            guardian profile grant has been removed. Personal measurements
-            remain separate.
-          </p>
-          <ActionForm
-            submit="Withdraw your device's family sharing"
-            action={async (f) => {
-              await api(
-                `/devices/${text(f, "ownDeviceId")}/family-assignment`,
-                "DELETE",
-              );
-              family.reload();
-              return "Your device sharing was withdrawn. Refresh any open child profile.";
-            }}
-          >
-            <Field label="Your device for family withdrawal">
-              <select name="ownDeviceId" required>
-                <option value="">Choose your device</option>
-                {context.devices
-                  .filter((d) => d.registeredById === context.user.id)
-                  .map((d) => (
-                    <option value={d.id} key={d.id}>
-                      {d.name}
+      {tab === "sharing" && (
+        <Card title="Family-sharing disclosure">
+          <p>{family.data?.disclosure.text}</p>
+          <details>
+            <summary>Withdraw sharing on your own device</summary>
+            <p>
+              You can withdraw family sharing for a device you own even if a
+              guardian profile grant has been removed. Personal measurements
+              remain separate.
+            </p>
+            <ActionForm
+              submit="Withdraw your device's family sharing"
+              action={async (f) => {
+                await api(
+                  `/devices/${text(f, "ownDeviceId")}/family-assignment`,
+                  "DELETE",
+                );
+                family.reload();
+                return "Your device sharing was withdrawn. Refresh any open child profile.";
+              }}
+            >
+              <Field label="Your device for family withdrawal">
+                <select name="ownDeviceId" required>
+                  <option value="">Choose your device</option>
+                  {context.devices
+                    .filter((d) => d.registeredById === context.user.id)
+                    .map((d) => (
+                      <option value={d.id} key={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                </select>
+              </Field>
+            </ActionForm>
+          </details>
+        </Card>
+      )}
+      {tab === "profiles" && (
+        <>
+          <Card title="Your family profiles">
+            {family.data?.profiles.length ? (
+              <Field label="Child profile">
+                <select
+                  value={id}
+                  onChange={(e) => setSelected(e.target.value)}
+                >
+                  {family.data.profiles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                      {p.archived ? " (archived)" : ""}
                     </option>
                   ))}
-              </select>
-            </Field>
-          </ActionForm>
-        </details>
-        <p>
-          Invite guardians and child accounts from Team. Owners/admins assign
-          explicit profile grants after the invitation is accepted. Child
-          accounts use the Member role.
-        </p>
-        {family.data?.canCreate && (
-          <details>
-            <summary>Create a child profile</summary>
-            <ProfileForm
+                </select>
+              </Field>
+            ) : (
+              <Empty title="No child profiles in your current grant" />
+            )}
+            <p>
+              Invite guardians and child accounts from Team. Owners/admins
+              assign explicit profile grants after the invitation is accepted.
+              Child accounts use the Member role.
+            </p>
+            {family.data?.canCreate && (
+              <details>
+                <summary>Create a child profile</summary>
+                <ProfileForm
+                  members={members.data ?? []}
+                  networks={networks.data ?? []}
+                  action={async (input) => {
+                    const p = await api<Profile>(
+                      `${path}/profiles`,
+                      "POST",
+                      input,
+                    );
+                    family.reload();
+                    setSelected(p.id);
+                  }}
+                />
+              </details>
+            )}
+            <ErrorNotice error={members.error} />
+            <ErrorNotice error={networks.error} />
+          </Card>
+          {id && (
+            <ChildPanel
+              key={`${context.workspace.id}/${id}`}
+              context={context}
+              path={`${path}/profiles/${id}`}
+              elevated={!!family.data?.canCreate}
               members={members.data ?? []}
               networks={networks.data ?? []}
-              action={async (input) => {
-                const p = await api<Profile>(`${path}/profiles`, "POST", input);
-                family.reload();
-                setSelected(p.id);
-              }}
+              reloadFamily={family.reload}
             />
-          </details>
-        )}
-        <ErrorNotice error={members.error} />
-        <ErrorNotice error={networks.error} />
-      </Card>
-      {id && (
-        <ChildPanel
-          key={`${context.workspace.id}/${id}`}
-          context={context}
-          path={`${path}/profiles/${id}`}
-          elevated={!!family.data?.canCreate}
-          members={members.data ?? []}
-          networks={networks.data ?? []}
-          reloadFamily={family.reload}
-        />
+          )}
+        </>
       )}
     </>
   );

@@ -58,21 +58,30 @@ type Command = {
   startedAt: string | null;
   audit: { id: string; event: string; outcome: string; occurredAt: string }[];
 };
-export function DeveloperPanel(context: PageContext) {
+export function DeveloperPanel(context: PageContext & { tab: string }) {
+  const { tab } = context;
   const path = `/workspaces/${context.workspace.id}`;
-  const resource = useResource<Computer[]>(`${path}/developer`);
-  const disclosure = useResource<{ version: string; text: string }>(
-    "/agents/developer-disclosure",
+  const resource = useResource<Computer[]>(
+    tab === "computers" ? `${path}/developer` : null,
   );
-  const members = useResource<Member[]>(`${path}/members`);
+  const disclosure = useResource<{ version: string; text: string }>(
+    tab === "sharing" ? "/agents/developer-disclosure" : null,
+  );
+  const members = useResource<Member[]>(
+    tab === "computers" ? `${path}/members` : null,
+  );
   const reloadComputers = resource.reload;
   useEffect(() => {
     const id = setInterval(() => {
-      if (document.visibilityState === "visible" && navigator.onLine)
+      if (
+        tab === "computers" &&
+        document.visibilityState === "visible" &&
+        navigator.onLine
+      )
         reloadComputers();
     }, 5000);
     return () => clearInterval(id);
-  }, [reloadComputers]);
+  }, [reloadComputers, tab]);
   return (
     <>
       <Notice>
@@ -81,35 +90,38 @@ export function DeveloperPanel(context: PageContext) {
         Acceptance is not confirmed shutdown; inspect the recorded outcome.
         Android/iOS UI and physical-device checks remain later phases.
       </Notice>
-      <details>
-        <summary>Service-sharing disclosure</summary>
-        <ErrorNotice error={disclosure.error} />
-        <p>{disclosure.data?.text || "Loading disclosure…"}</p>
-      </details>
-      <Card title="Paired developer computers">
-        <button className="button" onClick={() => resource.reload()}>
-          Refresh computers
-        </button>
-        <ErrorNotice error={resource.error} />
-        {resource.loading && <Loading />}
-        {resource.data?.length === 0 && (
-          <Empty title="No paired computers">
-            Pair the Go agent with the desktop first. Then enable sharing
-            locally and grant workspace access here.
-          </Empty>
-        )}
-        {resource.data?.map((computer) => (
-          <ComputerPanel
-            key={`${context.workspace.id}/${computer.id}`}
-            computer={computer}
-            path={path}
-            userId={context.user.id}
-            members={members.data || []}
-            permissions={context.permissions}
-            refresh={resource.reload}
-          />
-        ))}
-      </Card>
+      {tab === "sharing" && (
+        <Card title="Service-sharing disclosure">
+          <ErrorNotice error={disclosure.error} />
+          <p>{disclosure.data?.text || "Loading disclosure…"}</p>
+        </Card>
+      )}
+      {tab === "computers" && (
+        <Card title="Paired developer computers">
+          <button className="button" onClick={() => resource.reload()}>
+            Refresh computers
+          </button>
+          <ErrorNotice error={resource.error} />
+          {resource.loading && <Loading />}
+          {resource.data?.length === 0 && (
+            <Empty title="No paired computers">
+              Pair the Go agent with the desktop first. Then enable sharing
+              locally and grant workspace access here.
+            </Empty>
+          )}
+          {resource.data?.map((computer) => (
+            <ComputerPanel
+              key={`${context.workspace.id}/${computer.id}`}
+              computer={computer}
+              path={path}
+              userId={context.user.id}
+              members={members.data || []}
+              permissions={context.permissions}
+              refresh={resource.reload}
+            />
+          ))}
+        </Card>
+      )}
     </>
   );
 }

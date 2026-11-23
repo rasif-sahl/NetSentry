@@ -538,6 +538,38 @@
   display: grid;
   gap: 1.2rem;
 }
+.workspace-app .workspace-tabs {
+  display: flex;
+  max-width: 100%;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.workspace-app .workspace-tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.85rem;
+  border-bottom: 3px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.workspace-app .workspace-tabs a:hover {
+  background: var(--surface-lavender);
+}
+.workspace-app .workspace-tabs a[aria-current="page"] {
+  border-bottom-color: var(--primary);
+  color: var(--text);
+  font-weight: 700;
+}
+.workspace-app .workspace-tabs a:focus-visible {
+  outline-offset: -3px;
+}
+.workspace-app .workflow-actions {
+  margin-top: 0;
+}
 .workspace-app .metric-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -828,6 +860,13 @@
     gap: 0.5rem;
     justify-content: flex-end;
     margin-top: var(--content-gap);
+  }
+  .workspace-app .page-content .workflow-actions {
+    margin-top: 0;
+  }
+  .workspace-app .workspace-tabs a {
+    padding-inline: 0.45rem;
+    font-size: 0.8rem;
   }
   .workspace-app .page-content .form-fields > .button {
     justify-self: end;

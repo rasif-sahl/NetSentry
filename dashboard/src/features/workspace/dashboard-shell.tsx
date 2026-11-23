@@ -15,6 +15,7 @@ import {
   isWorkspaceSlug,
   workspaceHref,
   workspaceSections,
+  workspaceTabs,
   type WorkspaceSection,
   type WorkspaceSlug,
 } from "./routes";
@@ -256,9 +257,13 @@ function WorkspaceShell({
   const [switching, setSwitching] = useState(false);
   const switchPending = useRef(false);
   const [selected, setSelected] = useState<string>();
+  const [businessLocation, setBusinessLocation] = useState<{
+    workspaceId: string;
+    locationId: string;
+  }>();
   const pathname = usePathname();
   const router = useRouter();
-  const slug = pathname.split("/")[2] ?? "";
+  const [, , slug = "", activeTab] = pathname.split("/");
   const section = isWorkspaceSlug(slug) ? workspaceSections[slug] : undefined;
   const [menu, setMenu] = useState(false);
   const workspace =
@@ -441,6 +446,7 @@ function WorkspaceShell({
                 try {
                   await api(`/workspaces/${id}/select`, "POST", {});
                   setSelected(id);
+                  setBusinessLocation(undefined);
                   updateUser(await api<User>("/auth/me"));
                 } catch (error) {
                   setSelectionError(error);
@@ -513,6 +519,9 @@ function WorkspaceShell({
             )}
           </div>
           <ErrorNotice error={selectionError} />
+          {isWorkspaceSlug(slug) && (
+            <WorkspaceTabs slug={slug} tab={activeTab} />
+          )}
           <WorkspaceContext.Provider
             value={{
               user,
@@ -525,6 +534,17 @@ function WorkspaceShell({
               updateUser,
               accountDeleted,
               choose,
+              location:
+                businessLocation?.workspaceId === workspace?.id
+                  ? (businessLocation?.locationId ?? "")
+                  : "",
+              changeLocation: (locationId) => {
+                if (workspace)
+                  setBusinessLocation({
+                    workspaceId: workspace.id,
+                    locationId,
+                  });
+              },
             }}
           >
             {children}
@@ -545,11 +565,41 @@ type WorkspaceContextValue = {
   updateUser: (user: User) => void;
   accountDeleted: () => void;
   choose: (slug: WorkspaceSlug) => void;
+  location: string;
+  changeLocation: (locationId: string) => void;
 };
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
-export function WorkspacePage({ section }: { section: WorkspaceSection }) {
+function WorkspaceTabs({ slug, tab }: { slug: WorkspaceSlug; tab?: string }) {
+  const tabs = workspaceTabs(slug);
+  const selected = tab ?? tabs[0]?.id;
+  if (!tabs.length) return null;
+  return (
+    <nav
+      className="workspace-tabs"
+      aria-label={`${workspaceSections[slug]} sections`}
+    >
+      {tabs.map(({ id, label }) => (
+        <Link
+          key={id}
+          href={workspaceHref(slug, id)}
+          aria-current={selected === id ? "page" : undefined}
+        >
+          {label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+export function WorkspacePage({
+  slug,
+  tab,
+}: {
+  slug: WorkspaceSlug;
+  tab?: string;
+}) {
   const state = useContext(WorkspaceContext);
   if (!state) throw new Error("Workspace page requires its layout.");
   const {
@@ -563,7 +613,11 @@ export function WorkspacePage({ section }: { section: WorkspaceSection }) {
     updateUser,
     accountDeleted,
     choose,
+    location,
+    changeLocation,
   } = state;
+  const section = workspaceSections[slug];
+  const selectedTab = tab ?? "";
   const needsWorkspace =
     section !== "Settings & privacy" &&
     section !== "Operations" &&
@@ -572,12 +626,13 @@ export function WorkspacePage({ section }: { section: WorkspaceSection }) {
     <>
       {section === "Operations" && (
         <div className="page-stack">
-          <OperationsPanel />
+          <OperationsPanel tab={selectedTab} />
         </div>
       )}
       {section === "Settings & privacy" && (
         <div className="page-stack" key={workspace?.id}>
           <SettingsPanel
+            tab={selectedTab}
             user={user}
             workspace={workspace}
             permissions={permission.data?.permissions}
@@ -693,7 +748,10 @@ export function WorkspacePage({ section }: { section: WorkspaceSection }) {
           {section !== "Overview" && (
             <ConnectedSection
               section={section}
+              tab={selectedTab}
               context={context}
+              location={location}
+              changeLocation={changeLocation}
               workspacesChanged={workspaces.reload}
             />
           )}
@@ -736,24 +794,44 @@ export function WorkspacePage({ section }: { section: WorkspaceSection }) {
 
 function ConnectedSection({
   section,
+  tab,
   context,
   workspacesChanged,
+  location,
+  changeLocation,
 }: {
   section: WorkspaceSection;
+  tab: string;
   context: PageContext;
   workspacesChanged: () => void;
+  location: string;
+  changeLocation: (locationId: string) => void;
 }) {
-  if (section === "Subscription") return <BillingPanel {...context} />;
-  if (section === "Business") return <BusinessPanel {...context} />;
-  if (section === "Family") return <FamilyPanel {...context} />;
-  if (section === "Developer Tools") return <DeveloperPanel {...context} />;
+  if (section === "Subscription")
+    return <BillingPanel {...context} tab={tab} />;
+  if (section === "Business")
+    return (
+      <BusinessPanel
+        {...context}
+        tab={tab}
+        location={location}
+        changeLocation={changeLocation}
+      />
+    );
+  if (section === "Family") return <FamilyPanel {...context} tab={tab} />;
+  if (section === "Developer Tools")
+    return <DeveloperPanel {...context} tab={tab} />;
   if (section === "Devices") return <DevicesPanel {...context} />;
   if (section === "Usage & reports") return <ReportsPanel {...context} />;
-  if (section === "Networks") return <NetworksPanel {...context} />;
-  if (section === "Alerts") return <AlertsPanel {...context} />;
+  if (section === "Networks") return <NetworksPanel {...context} tab={tab} />;
+  if (section === "Alerts") return <AlertsPanel {...context} tab={tab} />;
   if (section === "Team")
     return (
-      <TeamPanel context={context} workspacesChanged={workspacesChanged} />
+      <TeamPanel
+        context={context}
+        workspacesChanged={workspacesChanged}
+        tab={tab}
+      />
     );
   return null;
 }
