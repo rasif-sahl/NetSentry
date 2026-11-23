@@ -1530,25 +1530,67 @@ test("monitored networks can be added in a dialog and opened at a dedicated URL"
   await detail.press("Enter");
   await expect(page).toHaveURL(href);
   await expect(
-    page.getByRole("heading", { name: "Browser network", exact: true }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Browser network",
+      exact: true,
+    }),
   ).toBeVisible();
+  const tabs = page.getByRole("navigation", {
+    name: "Networks sections",
+    exact: true,
+  });
+  await expect(tabs).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Refresh workspace", exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByText("No collectors assigned", { exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("navigation", { name: "Network details sections" }),
-  ).toBeVisible();
+  const collector = page.getByRole("heading", {
+    name: "Collectors",
+    exact: true,
+  });
+  const devices = page.getByRole("heading", {
+    name: "Observed devices",
+    exact: true,
+  });
+  expect((await devices.boundingBox())!.y).toBeGreaterThan(
+    (await collector.boundingBox())!.y,
+  );
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBe(320);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  expect((await devices.boundingBox())!.y).toBeCloseTo(
+    (await collector.boundingBox())!.y,
+    0,
+  );
+  await page.getByText("Assign collector", { exact: true }).click();
+  await expect(
+    page.getByRole("button", {
+      name: "Save collector assignment",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByText("Network settings", { exact: true }).click();
+  await expect(
+    page.getByLabel("Updated network name", { exact: true }),
+  ).toHaveValue("Browser network");
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Browser network", exact: true }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Browser network",
+      exact: true,
+    }),
   ).toBeVisible();
+  await expect(tabs).toHaveCount(0);
   await page
     .getByRole("link", { name: "Back to monitored networks", exact: true })
     .click();
   await expect(page).toHaveURL("/app/networks/monitoring");
+  await expect(tabs).toBeVisible();
   await expect(row).toBeVisible();
 });
 

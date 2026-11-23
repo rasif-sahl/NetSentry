@@ -85,6 +85,17 @@ export function networkDetailHref(networkId: string) {
   return `${workspaceHref("networks", "monitoring")}/${encodeURIComponent(networkId)}`;
 }
 
+export function networkDetailId(segments: string[]) {
+  const [section, tab, id] = segments;
+  if (
+    segments.length === 3 &&
+    section === "networks" &&
+    tab === "monitoring" &&
+    /^[a-f\d]{8}(?:-[a-f\d]{4}){3}-[a-f\d]{12}$/i.test(id)
+  )
+    return id;
+}
+
 export function legacyWorkspaceHref(view: string) {
   const normalized = view.trim().toLowerCase();
   for (const slug of Object.keys(workspaceSections)) {

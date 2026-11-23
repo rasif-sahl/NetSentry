@@ -1,4 +1,5 @@
 "use client";
+import { Router } from "lucide-react";
 import { api } from "@/shared/api";
 import {
   ActionButton,
@@ -33,7 +34,12 @@ export function RouterPanel({
   reload: () => void;
 }) {
   return (
-    <Card title="Router and WAN">
+    <Card
+      title="Router and WAN"
+      icon={<Router size={19} />}
+      headingAction={<span className="badge">Optional</span>}
+      className="[overflow-wrap:anywhere]"
+    >
       <p>
         Router API: <strong>{view.routerHealth}</strong> · WAN interface:{" "}
         {view.wanUp === null ? "unknown" : view.wanUp ? "up" : "down"} ·

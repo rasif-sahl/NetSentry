@@ -1,7 +1,15 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import {
+  Activity,
+  ArrowLeft,
+  ChevronDown,
+  Laptop,
+  Plus,
+  RefreshCw,
+  Settings,
+} from "lucide-react";
 import { workspaceHref } from "@/features/workspace/routes";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
@@ -44,89 +52,88 @@ export function NetworkDetail({
       }[]
     >(manage ? `/workspaces/${context.workspace.id}/agents` : null);
   const v = resource.data;
+  const lastCapture = v?.collectors.reduce<string | null>(
+    (latest, collector) =>
+      collector.observedAt && (!latest || collector.observedAt > latest)
+        ? collector.observedAt
+        : latest,
+    null,
+  );
+  const collectorStatus = !v?.collectors.some((collector) => collector.enabled)
+    ? "Awaiting collector"
+    : lastCapture
+      ? "Collector assigned"
+      : "Awaiting first report";
   const eligible =
     agents.data?.filter((a) => a.state === "ACTIVE" && a.modules.network) || [];
   return (
     <>
       <div>
-        <Link href={listHref} className="button accent">
+        <Link
+          href={listHref}
+          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary-hover underline-offset-4 hover:underline"
+        >
           <ArrowLeft size={16} aria-hidden="true" />
           Back to monitored networks
         </Link>
       </div>
+      {!v && <h1>Network details</h1>}
       <ErrorNotice error={resource.error} />
       {resource.loading && <Loading />}
       {v && (
         <>
-          <Card
-            title={v.name}
-            className="[&_h2]:[overflow-wrap:anywhere]"
-            headingAction={
-              <button
-                type="button"
-                aria-label="Refresh network"
-                className="button max-[650px]:size-11 max-[650px]:px-0!"
-                onClick={resource.reload}
-              >
-                <span className="max-[650px]:hidden">Refresh network</span>
-                <RefreshCw
-                  size={16}
-                  aria-hidden="true"
-                  className="hidden max-[650px]:block"
-                />
-              </button>
-            }
-          >
-            <dl className="grid gap-3 sm:grid-cols-2">
+          <header className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="[overflow-wrap:anywhere]">{v.name}</h1>
+              <span className="badge mt-2">{collectorStatus}</span>
+            </div>
+            <button
+              type="button"
+              aria-label="Refresh network"
+              className="button shrink-0 max-[650px]:size-11 max-[650px]:px-0!"
+              onClick={resource.reload}
+            >
+              <RefreshCw size={16} aria-hidden="true" />
+              <span className="hidden min-[651px]:inline">Refresh network</span>
+            </button>
+          </header>
+          <Card>
+            <dl className="grid gap-4 text-sm min-[800px]:grid-cols-[1fr_1.65fr_1fr] [&_dt]:mb-1 [&_dt]:text-xs [&_dt]:font-semibold [&_dt]:text-text-secondary">
               <div className="min-w-0">
-                <dt className="text-xs font-semibold text-text-secondary">
-                  Network ID
-                </dt>
+                <dt>Private IPv4 subnets</dt>
+                <dd className="[overflow-wrap:anywhere]">
+                  {v.cidrs.join(", ")}
+                </dd>
+              </div>
+              <div className="min-w-0">
+                <dt>Network ID</dt>
                 <dd>
-                  <code className="text-sm [overflow-wrap:anywhere]">
+                  <code className="[overflow-wrap:anywhere]">
                     {v.networkId}
                   </code>
                 </dd>
               </div>
               <div className="min-w-0">
-                <dt className="text-xs font-semibold text-text-secondary">
-                  Private IPv4 subnets
-                </dt>
-                <dd className="text-sm [overflow-wrap:anywhere]">
-                  {v.cidrs.join(", ")}
+                <dt>Last captured</dt>
+                <dd>
+                  {lastCapture
+                    ? formatTime(lastCapture)
+                    : "Awaiting first report"}
                 </dd>
               </div>
             </dl>
-            <nav
-              aria-label="Network details sections"
-              className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4"
-            >
-              <a href="#network-collection" className="button">
-                Collection
-              </a>
-              <a href="#network-devices" className="button">
-                Observed devices
-              </a>
-              <a href="#network-router" className="button">
-                Router and WAN
-              </a>
-              <a href="#network-events" className="button">
-                Events
-              </a>
-            </nav>
           </Card>
-          <div id="network-collection" className="scroll-mt-4">
-            <Card title="Collection">
-              <details className="mb-3">
-                <summary>Network-sharing disclosure</summary>
-                <ErrorNotice error={disclosure.error} />
-                <p>
-                  {disclosure.data?.text ||
-                    (disclosure.loading ? "Loading disclosure…" : "")}
-                </p>
-              </details>
+          <div className="grid items-stretch gap-4 min-[1100px]:grid-cols-2">
+            <Card
+              title="Collectors"
+              icon={<Laptop size={19} />}
+              className="flex flex-col"
+            >
               {v.collectors.length === 0 && (
-                <Empty title="No collectors assigned" />
+                <Empty title="No collectors assigned">
+                  Collection needs a paired computer with local network sharing
+                  enabled.
+                </Empty>
               )}
               <ul className="item-list">
                 {v.collectors.map((c) => (
@@ -159,11 +166,15 @@ export function NetworkDetail({
                 ))}
               </ul>
               {manage && (
-                <>
+                <details className="mt-4 border-t border-border pt-3">
+                  <summary className="button primary ms-auto flex! w-fit list-none [&::-webkit-details-marker]:hidden">
+                    <Plus size={16} aria-hidden="true" />
+                    Assign collector
+                  </summary>
                   <ErrorNotice error={agents.error} />
                   <ActionForm
                     className="mt-4"
-                    submit="Assign collector"
+                    submit="Save collector assignment"
                     action={async (f) => {
                       await api(`${path}/collectors`, "POST", {
                         agentId: text(f, "agentId"),
@@ -186,51 +197,9 @@ export function NetworkDetail({
                     </Field>
                     <NetworkConsent />
                   </ActionForm>
-                  <details className="mt-4 border-t border-border pt-4">
-                    <summary>Edit or erase network collection</summary>
-                    <ActionForm
-                      action={async (f) => {
-                        await api(path, "PATCH", {
-                          name: text(f, "name"),
-                          cidrs: text(f, "cidrs")
-                            .split(/[\s,]+/)
-                            .filter(Boolean),
-                        });
-                        resource.reload();
-                        return "Network updated. Existing source observations have been invalidated.";
-                      }}
-                    >
-                      <Field label="Updated network name">
-                        <input
-                          name="name"
-                          required
-                          defaultValue={v.name}
-                          maxLength={100}
-                        />
-                      </Field>
-                      <Field label="Updated subnets">
-                        <input
-                          name="cidrs"
-                          required
-                          defaultValue={v.cidrs.join(", ")}
-                        />
-                      </Field>
-                    </ActionForm>
-                    <ActionButton
-                      confirm="Erase this network’s inventory, router credentials, history and grants? The manual network label remains."
-                      action={async () => {
-                        await api(path, "DELETE");
-                        router.replace(listHref);
-                      }}
-                    >
-                      Erase network monitoring data
-                    </ActionButton>
-                  </details>
-                </>
+                </details>
               )}
             </Card>
-          </div>
-          <div id="network-devices" className="scroll-mt-4">
             <NetworkInventory
               view={v}
               path={path}
@@ -238,17 +207,13 @@ export function NetworkDetail({
               devices={context.devices}
               reload={resource.reload}
             />
-          </div>
-          <div id="network-router" className="scroll-mt-4">
             <RouterPanel
               view={v}
               path={path}
               canManage={manage}
               reload={resource.reload}
             />
-          </div>
-          <div id="network-events" className="scroll-mt-4">
-            <Card title="Network events">
+            <Card title="Network events" icon={<Activity size={19} />}>
               <p>
                 Latest 100 inventory and health events. Device-change events
                 reflect cache observations; health warnings need operator
@@ -294,94 +259,163 @@ export function NetworkDetail({
               </ul>
             </Card>
           </div>
-          <Card title="Router compatibility registry">
-            <p>
-              Records describe evidence for a specific model and firmware. They
-              do not certify hardware or authorize access.
-            </p>
-            <ul>
-              {v.compatibility.map((c) => (
-                <li key={c.id}>
-                  <strong>
-                    {c.manufacturer} {c.model} / {c.firmware}
-                  </strong>{" "}
-                  · {c.evidence} · {formatTime(c.testedAt)}
-                  <p>
-                    {c.features.join(", ")}. Limitations: {c.limitations}.
-                    Feedback: {c.feedback}
-                  </p>
-                </li>
-              ))}
-            </ul>
-            {manage && (
-              <details>
-                <summary>Record compatibility feedback</summary>
-                <ActionForm
-                  submit="Save compatibility record"
-                  reset
-                  action={async (f) => {
-                    await api(`${path}/compatibility`, "POST", {
-                      manufacturer: text(f, "manufacturer"),
-                      model: text(f, "model"),
-                      firmware: text(f, "firmware"),
-                      adapter: "openwrt-ubus-v1",
-                      features: f.getAll("features"),
-                      limitations: text(f, "limitations"),
-                      feedback: text(f, "feedback"),
-                      evidence: text(f, "evidence"),
-                      testedAt: new Date(
-                        String(f.get("testedAt")),
-                      ).toISOString(),
-                    });
-                    resource.reload();
-                    return "Evidence recorded without changing collector authorization.";
-                  }}
+          <details className="card">
+            <summary className="flex min-h-6 list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+              <Settings size={17} aria-hidden="true" />
+              Network settings
+              <ChevronDown size={16} aria-hidden="true" className="ms-auto" />
+            </summary>
+            <div className="mt-4 grid gap-4 border-t border-border pt-4">
+              {manage && (
+                <section
+                  aria-labelledby="network-edit-title"
+                  className="grid gap-3"
                 >
-                  {["manufacturer", "model", "firmware"].map((n) => (
-                    <Field key={n} label={n}>
-                      <input name={n} required maxLength={100} />
+                  <h2
+                    id="network-edit-title"
+                    className="text-base font-semibold"
+                  >
+                    Edit name and subnets
+                  </h2>
+                  <ActionForm
+                    action={async (f) => {
+                      await api(path, "PATCH", {
+                        name: text(f, "name"),
+                        cidrs: text(f, "cidrs")
+                          .split(/[\s,]+/)
+                          .filter(Boolean),
+                      });
+                      resource.reload();
+                      return "Network updated. Existing source observations have been invalidated.";
+                    }}
+                  >
+                    <Field label="Updated network name">
+                      <input
+                        name="name"
+                        required
+                        defaultValue={v.name}
+                        maxLength={100}
+                      />
                     </Field>
-                  ))}
-                  <Field label="Evidence">
-                    <select name="evidence">
-                      <option value="operator_reported">
-                        Operator reported
-                      </option>
-                      <option value="fixture_only">
-                        Synthetic fixture only
-                      </option>
-                    </select>
-                  </Field>
-                  <Field label="Test date">
-                    <input name="testedAt" type="datetime-local" required />
-                  </Field>
-                  {[
-                    "wan_interface_health",
-                    "wan_counters",
-                    "optional_board_metadata",
-                  ].map((f) => (
-                    <label className="check" key={f}>
-                      <input type="checkbox" name="features" value={f} />
-                      {f.replaceAll("_", " ")}
-                    </label>
-                  ))}
-                  <Field label="Limitations">
-                    <textarea name="limitations" maxLength={1000} />
-                  </Field>
-                  <Field label="Feedback">
-                    <textarea name="feedback" maxLength={1000} />
-                  </Field>
-                </ActionForm>
+                    <Field label="Updated subnets">
+                      <input
+                        name="cidrs"
+                        required
+                        defaultValue={v.cidrs.join(", ")}
+                      />
+                    </Field>
+                  </ActionForm>
+                  <ActionButton
+                    confirm="Erase this network’s inventory, router credentials, history and grants? The manual network label remains."
+                    action={async () => {
+                      await api(path, "DELETE");
+                      router.replace(listHref);
+                    }}
+                  >
+                    Erase network monitoring data
+                  </ActionButton>
+                </section>
+              )}
+              <details>
+                <summary>Network-sharing disclosure</summary>
+                <ErrorNotice error={disclosure.error} />
+                <p>
+                  {disclosure.data?.text ||
+                    (disclosure.loading ? "Loading disclosure…" : "")}
+                </p>
               </details>
-            )}
-          </Card>
-          <Card title="Monitoring limitations">
-            <ul className="grid list-disc gap-2 ps-5">
-              {v.limitations.map((l) => (
-                <li key={l}>{l}</li>
-              ))}
-            </ul>
-          </Card>
+              <details>
+                <summary>Router compatibility registry</summary>
+                <p>
+                  Records describe evidence for a specific model and firmware.
+                  They do not certify hardware or authorize access.
+                </p>
+                <ul>
+                  {v.compatibility.map((c) => (
+                    <li key={c.id}>
+                      <strong>
+                        {c.manufacturer} {c.model} / {c.firmware}
+                      </strong>{" "}
+                      · {c.evidence} · {formatTime(c.testedAt)}
+                      <p>
+                        {c.features.join(", ")}. Limitations: {c.limitations}.
+                        Feedback: {c.feedback}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+                {manage && (
+                  <details>
+                    <summary>Record compatibility feedback</summary>
+                    <ActionForm
+                      submit="Save compatibility record"
+                      reset
+                      action={async (f) => {
+                        await api(`${path}/compatibility`, "POST", {
+                          manufacturer: text(f, "manufacturer"),
+                          model: text(f, "model"),
+                          firmware: text(f, "firmware"),
+                          adapter: "openwrt-ubus-v1",
+                          features: f.getAll("features"),
+                          limitations: text(f, "limitations"),
+                          feedback: text(f, "feedback"),
+                          evidence: text(f, "evidence"),
+                          testedAt: new Date(
+                            String(f.get("testedAt")),
+                          ).toISOString(),
+                        });
+                        resource.reload();
+                        return "Evidence recorded without changing collector authorization.";
+                      }}
+                    >
+                      {["manufacturer", "model", "firmware"].map((n) => (
+                        <Field key={n} label={n}>
+                          <input name={n} required maxLength={100} />
+                        </Field>
+                      ))}
+                      <Field label="Evidence">
+                        <select name="evidence">
+                          <option value="operator_reported">
+                            Operator reported
+                          </option>
+                          <option value="fixture_only">
+                            Synthetic fixture only
+                          </option>
+                        </select>
+                      </Field>
+                      <Field label="Test date">
+                        <input name="testedAt" type="datetime-local" required />
+                      </Field>
+                      {[
+                        "wan_interface_health",
+                        "wan_counters",
+                        "optional_board_metadata",
+                      ].map((f) => (
+                        <label className="check" key={f}>
+                          <input type="checkbox" name="features" value={f} />
+                          {f.replaceAll("_", " ")}
+                        </label>
+                      ))}
+                      <Field label="Limitations">
+                        <textarea name="limitations" maxLength={1000} />
+                      </Field>
+                      <Field label="Feedback">
+                        <textarea name="feedback" maxLength={1000} />
+                      </Field>
+                    </ActionForm>
+                  </details>
+                )}
+              </details>
+              <details>
+                <summary>Monitoring limitations</summary>
+                <ul className="grid list-disc gap-2 ps-5">
+                  {v.limitations.map((l) => (
+                    <li key={l}>{l}</li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          </details>
         </>
       )}
     </>

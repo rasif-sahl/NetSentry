@@ -13,6 +13,7 @@ import {
 } from "react";
 import {
   isWorkspaceSlug,
+  networkDetailId,
   workspaceHref,
   workspaceSections,
   workspaceTabs,
@@ -265,7 +266,9 @@ function WorkspaceShell({
   }>();
   const pathname = usePathname();
   const router = useRouter();
-  const [, , slug = "", activeTab] = pathname.split("/");
+  const segments = pathname.split("/").slice(2);
+  const [slug = "", activeTab] = segments;
+  const isNetworkDetail = !!networkDetailId(segments);
   const section = isWorkspaceSlug(slug) ? workspaceSections[slug] : undefined;
   const [menu, setMenu] = useState(false);
   const workspace =
@@ -483,36 +486,38 @@ function WorkspaceShell({
           tabIndex={-1}
           className="page-content"
         >
-          <div className="page-heading">
-            <p className="eyebrow">
-              {workspace
-                ? `${workspace.type} / ${permission.data?.role ?? workspace.role}`
-                : "NETSENTRY"}
-            </p>
-            <h1>{section ?? "Workspace"}</h1>
-            <button
-              type="button"
-              className="button"
-              aria-label="Refresh workspace"
-              onClick={() => {
-                window.dispatchEvent(new Event("netsentry:refresh"));
-              }}
-            >
-              <span className="refresh-label">Refresh workspace</span>
-              <RefreshCw
-                className="refresh-icon"
-                size={18}
-                aria-hidden="true"
-              />
-            </button>
-            {section === "Overview" && (
-              <p className="page-description">
-                Your devices and the information they report, in one place.
+          {!isNetworkDetail && (
+            <div className="page-heading">
+              <p className="eyebrow">
+                {workspace
+                  ? `${workspace.type} / ${permission.data?.role ?? workspace.role}`
+                  : "NETSENTRY"}
               </p>
-            )}
-          </div>
+              <h1>{section ?? "Workspace"}</h1>
+              <button
+                type="button"
+                className="button"
+                aria-label="Refresh workspace"
+                onClick={() => {
+                  window.dispatchEvent(new Event("netsentry:refresh"));
+                }}
+              >
+                <span className="refresh-label">Refresh workspace</span>
+                <RefreshCw
+                  className="refresh-icon"
+                  size={18}
+                  aria-hidden="true"
+                />
+              </button>
+              {section === "Overview" && (
+                <p className="page-description">
+                  Your devices and the information they report, in one place.
+                </p>
+              )}
+            </div>
+          )}
           <ErrorNotice error={selectionError} />
-          {isWorkspaceSlug(slug) && (
+          {!isNetworkDetail && isWorkspaceSlug(slug) && (
             <WorkspaceTabs slug={slug} tab={activeTab} />
           )}
           <WorkspaceContext.Provider

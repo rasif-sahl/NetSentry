@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { WorkspacePage } from "@/features/workspace/dashboard-shell";
 import {
   isWorkspaceSlug,
+  networkDetailId,
   workspaceHref,
   workspaceSections,
   workspaceTabs,
@@ -24,13 +25,9 @@ export default async function DashboardPage({
   params,
 }: PageProps<"/app/[...segments]">) {
   const { segments } = await params;
-  const [section, requestedTab, networkId] = segments;
-  if (
-    segments.length === 3 &&
-    section === "networks" &&
-    requestedTab === "monitoring" &&
-    /^[a-f\d]{8}(?:-[a-f\d]{4}){3}-[a-f\d]{12}$/i.test(networkId)
-  ) {
+  const [section, requestedTab] = segments;
+  const networkId = networkDetailId(segments);
+  if (networkId) {
     return (
       <WorkspacePage slug="networks" tab="monitoring" networkId={networkId} />
     );

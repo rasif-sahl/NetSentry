@@ -10,6 +10,7 @@ import {
   text,
 } from "@/shared/ui/common";
 import { useState } from "react";
+import { MonitorSmartphone } from "lucide-react";
 import type { Device } from "@/shared/types";
 import type { NetworkView } from "./types";
 
@@ -41,7 +42,11 @@ export function NetworkInventory({
   const [search, setSearch] = useState(""),
     [archived, setArchived] = useState(false);
   return (
-    <Card title="Observed devices">
+    <Card
+      title="Observed devices"
+      icon={<MonitorSmartphone size={19} />}
+      className="[overflow-wrap:anywhere]"
+    >
       <Field label="Search inventory">
         <input value={search} onChange={(e) => setSearch(e.target.value)} />
       </Field>
