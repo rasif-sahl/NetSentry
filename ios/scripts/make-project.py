@@ -47,6 +47,7 @@ def configlist(settings, debug_settings=None):
 files = {}
 products = []
 targets = []
+app_resource_phases = []
 allpaths = sorted(
     str(p.relative_to(ROOT)) for p in ROOT.rglob("*.swift") if "Tests" not in p.parts
 )
@@ -91,6 +92,8 @@ def target(
             "buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;",
         ),
     ]
+    if not extension:
+        app_resource_phases.append(phases[-1])
     if embedded:
         copies = [
             add(
@@ -128,6 +131,8 @@ def target(
     )
     if extension:
         settings.update(APPLICATION_EXTENSION_API_ONLY="YES", SKIP_INSTALL="YES")
+    else:
+        settings["ASSETCATALOG_COMPILER_APPICON_NAME"] = "AppIcon"
     if feature:
         settings["SWIFT_ACTIVE_COMPILATION_CONDITIONS"] = (
             "$(inherited) NETSENTRY_SCREEN_TIME"
@@ -197,9 +202,16 @@ productgroup = add(
     "PBXGroup",
     f'children = {sequence(products)}; name = Products; sourceTree = "<group>";',
 )
+catalog = add(
+    "PBXFileReference",
+    'lastKnownFileType = folder.assetcatalog; path = "NetSentry/Assets.xcassets"; sourceTree = "<group>";',
+)
+for phase in app_resource_phases:
+    build = add("PBXBuildFile", f"fileRef = {catalog};")
+    objects[phase] = objects[phase].replace("files = ();", f"files = ({build});")
 main = add(
     "PBXGroup",
-    f'children = {sequence(list(files.values())+[productgroup])}; sourceTree = "<group>";',
+    f'children = {sequence([*files.values(), catalog, productgroup])}; sourceTree = "<group>";',
 )
 configs = configlist(
     dict(

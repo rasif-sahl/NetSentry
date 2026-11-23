@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
 export const container =
@@ -13,10 +12,13 @@ export const caption =
 
 export function Brand() {
   return (
-    <span className="inline-flex items-center gap-2 text-2xl font-bold tracking-[-1px] text-[#705283]">
-      <ShieldCheck size={27} strokeWidth={1.6} aria-hidden="true" />
-      NetSentry
-    </span>
+    <Image
+      src="/brand/netsentry-logo.svg"
+      alt="NetSentry"
+      width={223}
+      height={64}
+      className="h-auto w-36 scheme-light sm:w-40"
+    />
   );
 }
 

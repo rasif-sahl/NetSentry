@@ -16,8 +16,17 @@ struct SetupView: View {
                         NavigationStatus()
                         SignInView().disabled(model.busy)
                     }
-                    .navigationTitle("NetSentry")
-                    .navigationBarTitleDisplayMode(.large)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .principal) {
+                            Image("NetSentryLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 36)
+                                .accessibilityLabel("NetSentry")
+                                .accessibilityAddTraits(.isHeader)
+                        }
+                    }
                     .appPageStyle()
                 }
             }
