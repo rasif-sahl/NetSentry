@@ -75,6 +75,9 @@ export function BillingPanel({
     );
   const [requestId, setRequestId] = useState("");
   const current = state.data?.entitlements ?? access.data;
+  const pendingRequests =
+    state.data?.requests.filter((request) => request.status === "pending") ??
+    [];
   async function action(path: string, body: unknown) {
     await api(base + path, "POST", body);
     state.reload();
@@ -85,15 +88,17 @@ export function BillingPanel({
     return <ErrorNotice error={state.error ?? access.error} />;
   if (!current) return <Empty title="Subscription unavailable" />;
   return (
-    <div className="stack">
+    <div className="page-stack">
       {tab === "plan" && (
         <>
           <Card title="Subscription and editions">
-            <Notice>
-              {current.mode === "sandbox"
-                ? "Provider-neutral sandbox: no real charge, external billing provider or native purchase is connected."
-                : "Live billing is unconfigured. Subscription purchases are unavailable."}
-            </Notice>
+            <div className="mb-4">
+              <Notice>
+                {current.mode === "sandbox"
+                  ? "Provider-neutral sandbox: no real charge, external billing provider or native purchase is connected."
+                  : "Live billing is unconfigured. Subscription purchases are unavailable."}
+              </Notice>
+            </div>
             <p>
               Edition: {current.edition} · status: {current.status} · revision{" "}
               {current.revision}
@@ -108,13 +113,20 @@ export function BillingPanel({
               {formatTime(current.trialEndsAt)} · grace ends{" "}
               {formatTime(current.graceUntil)}
             </p>
-            <ul>
+            <ul className="mt-4 divide-y divide-border border-t border-border">
               {Object.entries(current.features).map(([key, value]) => (
-                <li key={key}>
-                  {key.replaceAll("_", " ")}:{" "}
-                  {value
-                    ? "Available subject to permission, consent and platform support"
-                    : "Unavailable"}
+                <li
+                  key={key}
+                  className="grid gap-x-4 gap-y-1 py-2.5 text-sm last:pb-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]"
+                >
+                  <strong className="break-words capitalize">
+                    {key.replaceAll("_", " ")}
+                  </strong>
+                  <span className="text-text-secondary">
+                    {value
+                      ? "Available subject to permission, consent and platform support"
+                      : "Unavailable"}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -130,12 +142,20 @@ export function BillingPanel({
                   Current allocation counts, not measured traffic or time.
                   Downgrades do not erase existing data.
                 </p>
-                {Object.entries(state.data.usage).map(([name, count]) => (
-                  <p key={name}>
-                    {name}: {count} /{" "}
-                    {String(current.limits[name] ?? "Unavailable")}
-                  </p>
-                ))}
+                <dl className="my-4 grid gap-2 sm:grid-cols-2">
+                  {Object.entries(state.data.usage).map(([name, count]) => (
+                    <div
+                      key={name}
+                      className="flex flex-wrap justify-between gap-x-3 gap-y-1 rounded-lg border border-border px-3 py-2 text-sm"
+                    >
+                      <dt className="capitalize text-text-secondary">{name}</dt>
+                      <dd className="font-semibold tabular-nums">
+                        {count} /{" "}
+                        {String(current.limits[name] ?? "Unavailable")}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
                 <p>
                   Retention setting limits: {String(current.limits.rawDays)} raw
                   days / {String(current.limits.aggregateDays)} aggregate days.
@@ -143,7 +163,9 @@ export function BillingPanel({
                 </p>
               </Card>
               <Card title="Sandbox billing portal">
-                <Notice>{state.data.notice}</Notice>
+                <div className="mb-4">
+                  <Notice>{state.data.notice}</Notice>
+                </div>
                 {current.mode === "sandbox" && (
                   <>
                     <ActionForm
@@ -161,86 +183,96 @@ export function BillingPanel({
                         return "Request prepared. Review it, then explicitly simulate payment.";
                       }}
                     >
-                      <Field label="Edition">
-                        <select name="plan">
-                          {Object.entries(state.data.catalog)
-                            .filter(
-                              ([key, p]) =>
-                                key !== "free" &&
-                                p.workspaceTypes.includes(workspace.type),
-                            )
-                            .map(([key, p]) => (
-                              <option key={key} value={key}>
-                                {p.label}
-                              </option>
-                            ))}
-                        </select>
-                      </Field>
-                      <Field label="Billing interval">
-                        <select name="interval">
-                          <option value="monthly">
-                            Monthly sandbox period
-                          </option>
-                          <option value="annual">Annual sandbox period</option>
-                        </select>
-                      </Field>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <Field label="Edition">
+                          <select name="plan">
+                            {Object.entries(state.data.catalog)
+                              .filter(
+                                ([key, p]) =>
+                                  key !== "free" &&
+                                  p.workspaceTypes.includes(workspace.type),
+                              )
+                              .map(([key, p]) => (
+                                <option key={key} value={key}>
+                                  {p.label}
+                                </option>
+                              ))}
+                          </select>
+                        </Field>
+                        <Field label="Billing interval">
+                          <select name="interval">
+                            <option value="monthly">
+                              Monthly sandbox period
+                            </option>
+                            <option value="annual">
+                              Annual sandbox period
+                            </option>
+                          </select>
+                        </Field>
+                      </div>
                     </ActionForm>
-                    {requestId && (
+                    <div className="button-row align-end">
+                      {requestId && (
+                        <ActionButton
+                          confirm="Simulate a successful sandbox payment? No money will move."
+                          action={async () => {
+                            await action("/sandbox/confirm", { requestId });
+                            setRequestId("");
+                          }}
+                        >
+                          Simulate sandbox payment
+                        </ActionButton>
+                      )}
                       <ActionButton
-                        confirm="Simulate a successful sandbox payment? No money will move."
+                        confirm="Start a one-time, 14-day sandbox trial? No payment method or future automatic charge is created."
                         action={async () => {
-                          await action("/sandbox/confirm", { requestId });
-                          setRequestId("");
+                          await action("/trial", {
+                            requestId: crypto.randomUUID(),
+                            expectedRevision: current.revision,
+                            plan:
+                              workspace.type === "BUSINESS"
+                                ? "business"
+                                : workspace.type === "FAMILY"
+                                  ? "family"
+                                  : "premium",
+                            interval: "monthly",
+                          });
                         }}
                       >
-                        Simulate sandbox payment
+                        Start sandbox trial
                       </ActionButton>
-                    )}
-                    <ActionButton
-                      confirm="Start a one-time, 14-day sandbox trial? No payment method or future automatic charge is created."
-                      action={async () => {
-                        await action("/trial", {
-                          requestId: crypto.randomUUID(),
-                          expectedRevision: current.revision,
-                          plan:
-                            workspace.type === "BUSINESS"
-                              ? "business"
-                              : workspace.type === "FAMILY"
-                                ? "family"
-                                : "premium",
-                          interval: "monthly",
-                        });
-                      }}
-                    >
-                      Start sandbox trial
-                    </ActionButton>
-                    <ActionButton
-                      confirm="Schedule cancellation at the current period end? No data is deleted."
-                      action={async () => {
-                        await action("/cancel", {
-                          expectedRevision: current.revision,
-                        });
-                      }}
-                    >
-                      Cancel at period end
-                    </ActionButton>
-                    {current.cancelAtPeriodEnd && (
                       <ActionButton
-                        confirm="Resume this sandbox subscription?"
+                        confirm="Schedule cancellation at the current period end? No data is deleted."
                         action={async () => {
-                          await action("/resume", {
+                          await action("/cancel", {
                             expectedRevision: current.revision,
                           });
                         }}
                       >
-                        Resume sandbox subscription
+                        Cancel at period end
                       </ActionButton>
-                    )}
-                    <p>Pending requests</p>
-                    {state.data.requests
-                      .filter((r) => r.status === "pending")
-                      .map((r) => (
-                        <div className="row" key={r.id}>
+                      {current.cancelAtPeriodEnd && (
+                        <ActionButton
+                          confirm="Resume this sandbox subscription?"
+                          action={async () => {
+                            await action("/resume", {
+                              expectedRevision: current.revision,
+                            });
+                          }}
+                        >
+                          Resume sandbox subscription
+                        </ActionButton>
+                      )}
+                    </div>
+                    <section className="mt-4 grid gap-2 border-t border-border pt-4">
+                      <h3 className="text-sm font-semibold">
+                        Pending requests
+                      </h3>
+                      {pendingRequests.map((r) => (
+                        <div
+                          className="flex flex-wrap items-center justify-between gap-3 py-1"
+                          key={r.id}
+                        >
                           <p>
                             {r.plan} · {r.interval} · prepared{" "}
                             {formatTime(r.createdAt)}
@@ -257,6 +289,12 @@ export function BillingPanel({
                           </ActionButton>
                         </div>
                       ))}
+                      {pendingRequests.length === 0 && (
+                        <p className="text-sm text-text-secondary">
+                          No pending requests.
+                        </p>
+                      )}
+                    </section>
                   </>
                 )}
               </Card>
@@ -267,14 +305,19 @@ export function BillingPanel({
               {state.data.payments.length === 0 ? (
                 <Empty title="No sandbox payments recorded" />
               ) : (
-                state.data.payments.map((p) => (
-                  <p key={p.id}>
-                    {formatTime(p.paidAt)} · {p.amountMinor} {p.currency} test
-                    minor units · {p.status} · {p.provider}
-                  </p>
-                ))
+                <ul className="divide-y divide-border">
+                  {state.data.payments.map((p) => (
+                    <li
+                      key={p.id}
+                      className="break-words py-2.5 first:pt-0 last:pb-0"
+                    >
+                      {formatTime(p.paidAt)} · {p.amountMinor} {p.currency} test
+                      minor units · {p.status} · {p.provider}
+                    </li>
+                  ))}
+                </ul>
               )}
-              <p>
+              <p className="mt-4">
                 No card details, real invoices, taxes or offered prices are
                 represented.
               </p>
