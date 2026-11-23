@@ -1,6 +1,5 @@
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import "./styles.css";
 
 const favicon = document.createElement("link");
 favicon.rel = "icon";
