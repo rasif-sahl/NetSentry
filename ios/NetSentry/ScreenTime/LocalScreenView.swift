@@ -26,10 +26,10 @@ private struct LocalControlsForm: View {
             Text(
                 "Individual authorization is for self-management. Child authorization requires Apple's Family Sharing approval; your NetSentry role cannot grant it."
             ).font(.footnote)
-            Button("Request authorization from Apple") {
+            AppAction("Request authorization from Apple") {
                 Task { await controller.authorize(child: child) }
             }.disabled(!available)
-            Button("Choose applications, categories or websites") { picker = true }.disabled(
+            AppAction("Choose applications, categories or websites") { picker = true }.disabled(
                 AuthorizationCenter.shared.authorizationStatus != .approved || !available
             )
             .familyActivityPicker(isPresented: $picker, selection: $controller.selection)
@@ -41,7 +41,7 @@ private struct LocalControlsForm: View {
                 "This is a local, nonrepeating window of at least 15 minutes. Apple may include earlier authorized activity in threshold calculations. No exact post-consent usage or server policy enforcement is promised."
             ).font(.footnote)
             Toggle("I accept local Apple controls for my selections", isOn: $accepted)
-            Button("Request local schedule") {
+            AppAction("Request local schedule", primary: true) {
                 controller.start(
                     scope: scope, start: start, end: end,
                     thresholdMinutes: threshold ? minutes : nil, accepted: accepted)
@@ -63,7 +63,7 @@ private struct LocalControlsForm: View {
                 "Family Controls is disabled in this build. Separate Apple approval, provisioning and device validation are required."
             ).font(.footnote)
         #endif
-        Button("Stop controls and erase selections", role: .destructive) {
+        AppAction("Stop controls and erase selections", role: .destructive) {
             controller.stop(eraseSelection: true)
         }
     }

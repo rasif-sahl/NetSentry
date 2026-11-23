@@ -6,7 +6,7 @@ struct BusinessView: View {
     var body: some View {
         AppForm {
             Section("Business organization") {
-                Button("Refresh organization") { model.run { try await $0.businessOverview() } }
+                AppAction("Refresh organization") { model.run { try await $0.businessOverview() } }
                 Text(
                     "Choose a Business workspace. Organization administration is available in the web dashboard. Sharing does not enable monitoring or grant Apple permissions."
                 ).font(.footnote)
@@ -41,10 +41,10 @@ struct BusinessView: View {
                                 assignment["consentedAt"].isNull
                                     ? "Sharing awaiting acceptance"
                                     : "Report access begins \(assignment["reportFrom"].text)")
-                            Button("Review and accept organization sharing") {
+                            AppAction("Review and accept organization sharing", primary: true) {
                                 reviewing = .object(["assignment": assignment, "device": device])
                             }.disabled(device["state"].text != "ACTIVE")
-                            Button("Withdraw sharing", role: .destructive) {
+                            AppAction("Withdraw sharing", role: .destructive) {
                                 model.privacyAction {
                                     try await $0.withdrawBusinessSharing(
                                         deviceID: device["id"].text)

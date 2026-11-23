@@ -172,7 +172,7 @@ private struct MobileMenu: View {
                     }
                 }
                 .listStyle(.insetGrouped)
-                .environment(\.defaultMinListRowHeight, 48)
+                .environment(\.defaultMinListRowHeight, AppSpacing.rowHeight)
                 .scrollContentBackground(.hidden)
                 .background(AppAppearance.background)
             }
@@ -224,7 +224,7 @@ struct SignInView: View {
                     register ? .newPassword : .password)
                 Toggle("Create an account", isOn: $register)
                 if register { TextField("Display name", text: $name) }
-                Button(register ? "Create account" : "Sign in") {
+                AppAction(register ? "Create account" : "Sign in", primary: true) {
                     let secret = password; password = "";
                     model.run {
                         try await $0.authenticate(
@@ -236,17 +236,17 @@ struct SignInView: View {
                 TextField("Verification or reset token", text: $token).textInputAutocapitalization(
                     .never
                 ).autocorrectionDisabled().privacySensitive()
-                Button("Request password reset") {
+                AppAction("Request password reset") {
                     model.run { try await $0.recovery(base: base, action: "forgot", email: email) }
                 }
-                Button("Reset password using token") {
+                AppAction("Reset password using token") {
                     let secret = password, code = token; password = ""; token = "";
                     model.run {
                         try await $0.recovery(
                             base: base, action: "reset", token: code, password: secret)
                     }
                 }
-                Button("Verify email using token") {
+                AppAction("Verify email using token") {
                     let code = token; token = "";
                     model.run { try await $0.recovery(base: base, action: "verify", token: code) }
                 }
@@ -256,7 +256,7 @@ struct SignInView: View {
                     "Pairing is separate from monitoring consent. iOS device-wide mobile/Wi-Fi usage is unavailable. Screen Time requires separate Apple provisioning and authorization."
                 ).font(.footnote)
             }
-            Button("Clear local credentials", role: .destructive) { model.recoverLocal() }
+            AppAction("Clear local credentials", role: .destructive) { model.recoverLocal() }
         }
     }
 }

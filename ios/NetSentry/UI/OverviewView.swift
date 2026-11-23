@@ -14,7 +14,7 @@ struct OverviewView: View {
                     Section("Workspace") {
                         Text(s.user["displayName"].text)
                         ForEach(s.workspaces, id: \.self) { workspace in
-                            Button(
+                            AppAction(
                                 "\(workspace["name"].text) · \(workspace["type"].text)\(s.workspaceID == workspace["id"].text ? " ✓" : "")"
                             ) {
                                 model.local.stop(eraseSelection: true);
@@ -28,7 +28,7 @@ struct OverviewView: View {
                     Section("This installation") {
                         if let binding = s.device {
                             Text("Paired · \(binding.id)").font(.caption)
-                            Button("Send metadata heartbeat") {
+                            AppAction("Send metadata heartbeat") {
                                 model.run { try await $0.heartbeat() }
                             }
                             Text(
@@ -40,7 +40,7 @@ struct OverviewView: View {
                             Toggle(
                                 "I accept device-enrolment-v1 for this installation",
                                 isOn: $accepted)
-                            Button("Pair this iOS installation") {
+                            AppAction("Pair this iOS installation", primary: true) {
                                 model.run {
                                     try await $0.enrol(name: deviceName, accepted: accepted)
                                 }
@@ -66,7 +66,7 @@ struct OverviewView: View {
                             Text("No devices available.").foregroundStyle(.secondary)
                         }
                         ForEach(s.devices, id: \.self) { d in
-                            VStack(alignment: .leading) {
+                            VStack(alignment: .leading, spacing: AppSpacing.actionGap) {
                                 Text(
                                     "\(d["name"].text) · \(d["platform"].text) · \(d["state"].text)"
                                 )
@@ -74,7 +74,7 @@ struct OverviewView: View {
                                 ForEach(
                                     ["pause", "revoke", "unenrol", "erase", "remove"], id: \.self
                                 ) { verb in
-                                    Button(verb.capitalized, role: .destructive) {
+                                    AppAction(verb.capitalized, role: .destructive) {
                                         actionDevice = d["id"].text; action = verb
                                     }
                                 }
@@ -105,7 +105,7 @@ struct OverviewView: View {
                                 Text(reportMetricName(metric)).tag(metric)
                             }
                         }
-                        Button("Load report") {
+                        AppAction("Load report", primary: true) {
                             model.run {
                                 try await $0.usage(
                                     deviceID: deviceID, period: period, metric: metric)
@@ -127,7 +127,7 @@ struct OverviewView: View {
                     || section == "In-app notifications"
                 {
                     Section(section == "In-app notifications" ? "Notifications" : "Alerts") {
-                        Button("Refresh alerts and notifications") {
+                        AppAction("Refresh alerts and notifications") {
                             model.run { try await $0.loadAlerts() }
                         }
                         if section != "In-app notifications" {
@@ -135,13 +135,13 @@ struct OverviewView: View {
                             ForEach(s.alerts, id: \.self) { a in
                                 ServerDetails(
                                     title: a["state"].text + " " + a["id"].text, value: a);
-                                Button("Acknowledge alert") {
+                                AppAction("Acknowledge alert") {
                                     model.run { try await $0.acknowledge(a["id"].text) }
                                 }
                             }
                             ForEach(s.rules, id: \.self) { r in
                                 ServerDetails(title: "Rule", value: r);
-                                Button("Remove rule", role: .destructive) {
+                                AppAction("Remove rule", role: .destructive) {
                                     actionDevice = r["id"].text; action = "remove rule"
                                 }
                             }
@@ -171,7 +171,7 @@ struct OverviewView: View {
     }
 }
 
-private func reportMetricName(_ metric: String) -> String {
+func reportMetricName(_ metric: String) -> String {
     switch metric {
     case "screen_time_seconds": "Screen time"
     case "application_foreground_seconds": "App foreground time"
