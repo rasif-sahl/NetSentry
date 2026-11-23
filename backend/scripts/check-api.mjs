@@ -621,6 +621,33 @@ try {
   });
   await request('POST', '/auth/logout', 201, null, null, login.accessToken);
   await request('GET', '/auth/me', 401, 'ApiError', null, login.accessToken);
+  const refreshLogout = await request(
+    'POST',
+    '/auth/login',
+    201,
+    'AuthSession',
+    {
+      email: 'alice@example.invalid',
+      password: 'fixture-password-1234',
+    },
+  );
+  assert.deepEqual(
+    await request('POST', '/auth/logout/refresh', 201, null, {
+      refreshToken: refreshLogout.refreshToken,
+    }),
+    { loggedOut: true },
+  );
+  await request(
+    'GET',
+    '/auth/me',
+    401,
+    'ApiError',
+    null,
+    refreshLogout.accessToken,
+  );
+  await request('POST', '/auth/refresh', 401, 'ApiError', {
+    refreshToken: refreshLogout.refreshToken,
+  });
   await request('GET', '/missing', 404, 'ApiError');
   const beforeReset = await request('POST', '/auth/login', 201, 'AuthSession', {
     email: 'alice@example.invalid',
@@ -748,6 +775,16 @@ try {
     [currentSession.id],
   );
   assert.ok(new Date(activity.lastUsedAt).getTime() > Date.now() - 60000);
+  const independentLogin = await request(
+    'POST',
+    '/auth/login',
+    201,
+    'AuthSession',
+    {
+      email: 'alice@example.invalid',
+      password: 'replacement-password-5678',
+    },
+  );
   const refreshRace = await Promise.all(
     [0, 1].map(() =>
       fetch(`${base}/auth/refresh`, {
@@ -762,8 +799,22 @@ try {
     [201, 401],
   );
   const refreshWinner = refreshRace.find((response) => response.status === 201);
-  recovered = await refreshWinner.json();
-  validateApiPayload('AuthSession', recovered);
+  const rotated = await refreshWinner.json();
+  validateApiPayload('AuthSession', rotated);
+  await request('GET', '/auth/me', 401, 'ApiError', null, rotated.accessToken);
+  await request('POST', '/auth/refresh', 401, 'ApiError', {
+    refreshToken: rotated.refreshToken,
+  });
+  // A separate sign-in still works after reuse revocation.
+  await request(
+    'GET',
+    '/auth/me',
+    200,
+    'User',
+    null,
+    independentLogin.accessToken,
+  );
+  recovered = independentLogin;
   await request('POST', '/auth/password/forgot', 201, null, {
     email: 'alice@example.invalid',
   });

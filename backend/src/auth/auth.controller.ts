@@ -135,4 +135,10 @@ export class AuthController {
     await this.auth.revokeSession(user.userId, user.sessionId);
     return { loggedOut: true };
   }
+
+  @Post('logout/refresh')
+  async logoutWithRefreshToken(@Body() input: RefreshDto) {
+    await this.auth.logoutWithRefreshToken(input.refreshToken);
+    return { loggedOut: true };
+  }
 }

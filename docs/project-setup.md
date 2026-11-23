@@ -280,7 +280,7 @@ node infra/scripts/deployment.mjs start /etc/netsentry/deployment.env
 node infra/scripts/deployment.mjs status /etc/netsentry/deployment.env
 ```
 
-The migration command applies the release's eighteen versioned migrations. Startup checks schema parity, waits for container health and checks the public HTTPS homepage and API endpoints `/api/v1/health` and `/api/v1/ready`. Open `https://PUBLIC_HOST/app` in a browser with the real hostname and verify sign-in, secure cookies and a workspace request. A failed smoke check can leave the stack running with migrations already applied. For breaking migrations, drain traffic and stop the API and maintenance worker before migration, and plan recovery against a compatible schema.
+The migration command applies the release's nineteen versioned migrations. Startup checks schema parity, waits for container health and checks the public HTTPS homepage and API endpoints `/api/v1/health` and `/api/v1/ready`. Open `https://PUBLIC_HOST/app` in a browser with the real hostname and verify sign-in, secure cookies and a workspace request. A failed smoke check can leave the stack running with migrations already applied. For breaking migrations, drain traffic and stop the API and maintenance worker before migration, and plan recovery against a compatible schema.
 
 The Compose maintenance service covers monitoring, retention, agent, network, Family, Business, account cleanup and operations tasks. Check its health with the deployment `status` command. The stack does not deliver SMTP account mail. For verification and password recovery email in production, arrange a separately operated account-mail delivery process with private SMTP credentials. Alert email and live billing remain disabled in the supplied deployment.
 
