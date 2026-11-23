@@ -22,7 +22,9 @@ async function login(page: Page, account = "owner") {
   return data;
 }
 async function selectWorkspace(page: Page, id: string) {
-  const trigger = page.getByRole("button", { name: /^Active workspace/ });
+  const trigger = page
+    .getByRole("banner")
+    .getByRole("button", { name: /^Active workspace/ });
   await trigger.click();
   const choices = page.getByRole("group", { name: "Switch workspace" });
   await choices.locator(`button[data-workspace-id="${id}"]`).click();
@@ -498,6 +500,11 @@ test("team invitations bind a recipient and management changes take effect", asy
     .getByRole("button", { name: "Accept invitation", exact: true })
     .click();
   await expect(guest.getByText(/Invitation accepted/)).toBeVisible();
+  await expect(
+    guest
+      .getByRole("list", { name: "Your workspaces" })
+      .getByText("Fixture family", { exact: true }),
+  ).toBeVisible();
   await selectWorkspace(guest, data.workspaceId);
   await expect(
     guest.getByRole("heading", { name: "Invite someone", exact: true }),
@@ -544,6 +551,15 @@ test("a verified user can create and switch to a new workspace", async ({
   const data = await login(page);
   await page.getByRole("link", { name: "Team", exact: true }).click();
   await openTab(page, "Workspaces");
+  const list = page.getByRole("list", { name: "Your workspaces" });
+  await expect(list.getByText("My Network", { exact: true })).toBeVisible();
+  const family = list
+    .getByRole("listitem")
+    .filter({ hasText: "Fixture family" });
+  await expect(family).toContainText(/family · owner · America\/New_York/);
+  await expect(
+    family.getByRole("button", { name: "Active workspace: Fixture family" }),
+  ).toHaveAttribute("aria-current", "true");
   await page
     .getByLabel("Workspace name", { exact: true })
     .fill("Browser-created workspace");
@@ -557,9 +573,14 @@ test("a verified user can create and switch to a new workspace", async ({
     .getByRole("button", { name: "Create workspace", exact: true })
     .click();
   await expect(page.getByText(/Workspace created/)).toBeVisible();
+  await expect(
+    list.getByText("Browser-created workspace", { exact: true }),
+  ).toBeVisible();
   const viewport = page.viewportSize()!;
   await page.setViewportSize({ width: 320, height: 760 });
-  const trigger = page.getByRole("button", { name: /^Active workspace/ });
+  const trigger = page
+    .getByRole("banner")
+    .getByRole("button", { name: /^Active workspace/ });
   await trigger.focus();
   await trigger.press("Enter");
   const choices = page.getByRole("group", { name: "Switch workspace" });
@@ -598,7 +619,18 @@ test("a verified user can create and switch to a new workspace", async ({
   await expect(
     page.getByText("Asia/Colombo", { exact: true }).first(),
   ).toBeVisible();
-  await selectWorkspace(page, data.workspaceId);
+  await page.setViewportSize({ width: 320, height: 760 });
+  const switchToFamily = family.getByRole("button", {
+    name: "Switch to Fixture family",
+  });
+  await switchToFamily.click();
+  await expect(trigger).toHaveAttribute("data-workspace-id", data.workspaceId);
+  await expect(
+    family.getByRole("button", { name: "Active workspace: Fixture family" }),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("heading", { name: "Create a workspace" }),
+  ).toBeVisible();
 });
 
 test("profile, appearance, retention, sessions and personal export use the backend", async ({

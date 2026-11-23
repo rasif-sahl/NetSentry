@@ -286,7 +286,7 @@ export function TeamPanel({
                     timezone: text(form, "timezone"),
                   });
                   workspacesChanged();
-                  return "Workspace created. Select it from the workspace menu.";
+                  return "Workspace created.";
                 }}
               >
                 <Field label="Workspace name">
@@ -318,7 +318,7 @@ export function TeamPanel({
                     token: text(form, "token"),
                   });
                   workspacesChanged();
-                  return "Invitation accepted. Select the workspace from the workspace menu.";
+                  return "Invitation accepted.";
                 }}
               >
                 <Field label="Invitation token">

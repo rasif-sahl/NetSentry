@@ -57,6 +57,7 @@ import {
 import { PageLoading } from "@/shared/ui/loading";
 import { EmailVerificationStripe } from "./email-verification-stripe";
 import { WorkspaceSwitcher } from "./workspace-switcher";
+import { WorkspaceList } from "@/features/team/workspace-list";
 const BillingPanel = dynamic(
   () =>
     import("@/features/billing/billing-panel").then(
@@ -271,6 +272,24 @@ function WorkspaceShell({
     workspaces.data?.find(
       (w) => w.id === (selected ?? user.preferences.activeWorkspaceId),
     ) ?? workspaces.data?.[0];
+  async function selectWorkspace(id: string) {
+    if (switchPending.current || workspace?.id === id) return;
+    switchPending.current = true;
+    setSwitching(true);
+    setSelectionError(undefined);
+    try {
+      await api(`/workspaces/${id}/select`, "POST", {});
+      setSelected(id);
+      setBusinessLocation(undefined);
+      updateUser(await api<User>("/auth/me"));
+    } catch (error) {
+      setSelectionError(error);
+      workspaces.reload();
+    } finally {
+      switchPending.current = false;
+      setSwitching(false);
+    }
+  }
   const permission = useResource<Permissions>(
     workspace ? `/workspaces/${workspace.id}/permissions` : null,
     true,
@@ -436,24 +455,7 @@ function WorkspaceShell({
             workspace={workspace}
             workspaces={workspaces.data}
             switching={switching}
-            onSelect={async (id) => {
-              if (switchPending.current) return;
-              switchPending.current = true;
-              setSwitching(true);
-              setSelectionError(undefined);
-              try {
-                await api(`/workspaces/${id}/select`, "POST", {});
-                setSelected(id);
-                setBusinessLocation(undefined);
-                updateUser(await api<User>("/auth/me"));
-              } catch (error) {
-                setSelectionError(error);
-                workspaces.reload();
-              } finally {
-                switchPending.current = false;
-                setSwitching(false);
-              }
-            }}
+            onSelect={selectWorkspace}
           />
           <span className="topbar-note">
             {workspace?.timezone ?? "Workspace"}
@@ -520,6 +522,8 @@ function WorkspaceShell({
               permission,
               devices,
               workspaces,
+              selectWorkspace,
+              switching,
               context,
               needsDevices,
               updateUser,
@@ -551,6 +555,8 @@ type WorkspaceContextValue = {
   permission: ReturnType<typeof useResource<Permissions>>;
   devices: ReturnType<typeof useResource<Device[]>>;
   workspaces: ReturnType<typeof useResource<Workspace[]>>;
+  selectWorkspace: (id: string) => Promise<void>;
+  switching: boolean;
   context?: PageContext;
   needsDevices: boolean;
   updateUser: (user: User) => void;
@@ -599,6 +605,8 @@ export function WorkspacePage({
     permission,
     devices,
     workspaces,
+    selectWorkspace,
+    switching,
     context,
     needsDevices,
     updateUser,
@@ -645,6 +653,16 @@ export function WorkspacePage({
         (workspaces.loading ||
           permission.loading ||
           (needsDevices && devices.loading)) && <Loading />}
+      {section === "Team" &&
+        selectedTab === "workspaces" &&
+        workspaces.data && (
+          <WorkspaceList
+            workspaces={workspaces.data}
+            activeId={workspace?.id}
+            switching={switching}
+            onSelect={selectWorkspace}
+          />
+        )}
       {needsWorkspace && context ? (
         <div key={context.workspace.id} className="page-stack">
           {section === "Overview" && (
