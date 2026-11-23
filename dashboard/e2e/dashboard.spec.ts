@@ -300,6 +300,9 @@ test("account settings and Operations stay available during an inventory outage"
 test("manual network labels are explicit and editable", async ({ page }) => {
   await login(page);
   await page.getByRole("link", { name: "Networks", exact: true }).click();
+  await expect(page).toHaveURL("/app/networks/monitoring");
+  await openTab(page, "Labels");
+  await expect(page).toHaveURL("/app/networks");
   await expect(
     page.getByRole("listitem").getByText("Fixture home label", { exact: true }),
   ).toBeVisible();
@@ -1444,7 +1447,7 @@ test("dashboard sections share compact card spacing and action buttons on mobile
     ["Devices", "Device inventory", "View Fixture iOS"],
     ["Usage & reports", "Usage over time", "Download CSV"],
     ["Alerts", "In-app notifications"],
-    ["Networks", "Network labels"],
+    ["Networks", "Monitored networks"],
     ["Developer Tools", "Paired developer computers", "Refresh computers"],
     ["Family", "Your family profiles"],
     ["Subscription", "Subscription and editions", "Start sandbox trial"],
@@ -1767,7 +1770,7 @@ test("network inventory exposes uncertain observations and editable labels witho
 }) => {
   await login(page);
   await page.getByRole("link", { name: "Networks", exact: true }).click();
-  await openTab(page, "Monitoring");
+  await expect(page).toHaveURL("/app/networks/monitoring");
   await page
     .getByRole("link", { name: "Synthetic lab network", exact: true })
     .click();
@@ -1824,7 +1827,7 @@ test("network viewers cannot grant collectors or configure router secrets", asyn
 }) => {
   await login(page, "viewer");
   await page.getByRole("link", { name: "Networks", exact: true }).click();
-  await openTab(page, "Monitoring");
+  await expect(page).toHaveURL("/app/networks/monitoring");
   await expect(
     page.getByRole("button", { name: "Add network", exact: true }),
   ).toHaveCount(0);
@@ -1848,9 +1851,10 @@ test("monitored networks can be added in a dialog and opened at a dedicated URL"
 }) => {
   await login(page);
   await page.getByRole("link", { name: "Networks", exact: true }).click();
-  await openTab(page, "Monitoring");
+  await expect(page).toHaveURL("/app/networks/monitoring");
   await page.setViewportSize({ width: 320, height: 760 });
   const add = page.getByRole("button", { name: "Add network", exact: true });
+  await expect(page.locator(".card-heading").getByRole("button", { name: "Add network" })).toBeVisible();
   const dialog = page.getByRole("dialog", { name: "Add network" });
   await add.click();
   await expect(

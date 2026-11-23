@@ -49,7 +49,11 @@ const groups = [
 ] as const;
 
 const linkStyle =
-  "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-text-secondary hover:bg-surface-lavender hover:text-primary-hover focus-visible:outline-2 focus-visible:outline-primary aria-[current=page]:bg-surface-lavender aria-[current=page]:text-primary-hover";
+  "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-text-secondary! hover:bg-surface-lavender hover:text-primary-hover! focus-visible:outline-2 focus-visible:outline-primary aria-[current=page]:bg-surface-lavender aria-[current=page]:text-primary-hover!";
+
+function navigationHref(slug: WorkspaceSlug) {
+  return slug === "networks" ? workspaceHref(slug, "monitoring") : workspaceHref(slug);
+}
 
 export function DashboardNavigation({
   active,
@@ -101,7 +105,10 @@ export function DashboardNavigation({
           <small className="block truncate">{user.email}</small>
         </div>
       </div>
-      <ActionButton action={onSignOut}>
+      <ActionButton
+        action={onSignOut}
+        className="button w-full min-[700px]:max-[1100px]:px-0!"
+      >
         <LogOut aria-hidden="true" size={18} className="shrink-0" />
         <span className="min-[700px]:max-[1100px]:sr-only">Sign out</span>
       </ActionButton>
@@ -118,7 +125,13 @@ export function DashboardNavigation({
               {links.filter(visible).map((slug) => {
                 const Icon = icons[slug];
                 return (
-                  <Link key={slug} href={workspaceHref(slug)} aria-current={active === slug ? "page" : undefined} title={workspaceSections[slug]} className={`${linkStyle} min-[700px]:max-[1100px]:justify-center`}>
+                  <Link
+                    key={slug}
+                    href={navigationHref(slug)}
+                    aria-current={active === slug ? "page" : undefined}
+                    title={workspaceSections[slug]}
+                    className={`${linkStyle} min-[700px]:max-[1100px]:justify-center`}
+                  >
                     <Icon size={19} className="shrink-0" aria-hidden="true" />
                     <span className="min-[700px]:max-[1100px]:sr-only">{workspaceSections[slug]}</span>
                   </Link>
@@ -135,9 +148,9 @@ export function DashboardNavigation({
           return (
             <Link
               key={slug}
-              href={workspaceHref(slug)}
+              href={navigationHref(slug)}
               aria-current={active === slug ? "page" : undefined}
-              className="grid min-h-12 content-center justify-items-center gap-0.5 rounded-lg text-[.65rem] font-semibold text-text-secondary hover:bg-surface-lavender focus-visible:outline-2 focus-visible:outline-primary aria-[current=page]:bg-surface-lavender aria-[current=page]:text-primary-hover"
+              className="grid min-h-12 content-center justify-items-center gap-0.5 rounded-lg text-[.65rem] font-semibold text-text-secondary! hover:bg-surface-lavender focus-visible:outline-2 focus-visible:outline-primary aria-[current=page]:bg-surface-lavender aria-[current=page]:text-primary-hover!"
             >
               <Icon size={19} aria-hidden="true" />
               {workspaceSections[slug]}
@@ -150,7 +163,7 @@ export function DashboardNavigation({
           aria-controls={dialogId}
           aria-expanded={open}
           data-active={active !== undefined && !dockLinks.some((slug) => slug === active)}
-          className="grid min-h-12 content-center justify-items-center gap-0.5 rounded-lg text-[.65rem] font-semibold text-text-secondary hover:bg-surface-lavender focus-visible:outline-2 focus-visible:outline-primary data-[active=true]:bg-surface-lavender data-[active=true]:text-primary-hover"
+          className="grid min-h-12 content-center justify-items-center gap-0.5 rounded-lg text-[.65rem]! font-semibold! text-text-secondary hover:bg-surface-lavender focus-visible:outline-2 focus-visible:outline-primary data-[active=true]:bg-surface-lavender data-[active=true]:text-primary-hover"
           onClick={() => {
             sheet.current?.showModal();
             setOpen(true);
@@ -184,7 +197,13 @@ export function DashboardNavigation({
                 {links.filter((slug) => visible(slug) && !dockLinks.some((dock) => dock === slug)).map((slug) => {
                   const Icon = icons[slug];
                   return (
-                    <Link key={slug} href={workspaceHref(slug)} aria-current={active === slug ? "page" : undefined} onNavigate={() => sheet.current?.close()} className={linkStyle}>
+                    <Link
+                      key={slug}
+                      href={navigationHref(slug)}
+                      aria-current={active === slug ? "page" : undefined}
+                      onNavigate={() => sheet.current?.close()}
+                      className={linkStyle}
+                    >
                       <Icon size={19} aria-hidden="true" />
                       {workspaceSections[slug]}
                       <ChevronRight size={15} aria-hidden="true" className="ms-auto" />
