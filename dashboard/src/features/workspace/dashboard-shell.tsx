@@ -453,23 +453,36 @@ type WorkspaceContextValue = {
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
 function WorkspaceTabs({ slug, tab }: { slug: WorkspaceSlug; tab?: string }) {
+  const router = useRouter();
   const tabs = workspaceTabs(slug);
   const selected = tab ?? tabs[0]?.id;
   if (!tabs.length) return null;
+
+  const sectionLabel = `${workspaceSections[slug]} sections`;
   return (
-    <nav
-      className="workspace-tabs"
-      aria-label={`${workspaceSections[slug]} sections`}
-    >
-      {tabs.map(({ id, label }) => (
-        <Link
-          key={id}
-          href={workspaceHref(slug, id)}
-          aria-current={selected === id ? "page" : undefined}
+    <nav aria-label={sectionLabel} className="mb-4">
+      <label className="field min-[620px]:hidden">
+        Section
+        <select
+          aria-label={sectionLabel}
+          value={selected}
+          onChange={(event) => router.push(workspaceHref(slug, event.target.value))}
         >
-          {label}
-        </Link>
-      ))}
+          {tabs.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
+        </select>
+      </label>
+      <div className="hidden flex-wrap items-end gap-x-1 border-b border-border min-[620px]:flex">
+        {tabs.map(({ id, label }) => (
+          <Link
+            key={id}
+            href={workspaceHref(slug, id)}
+            aria-current={selected === id ? "page" : undefined}
+            className="inline-flex min-h-11 items-center border-b-3 border-transparent px-3 text-sm whitespace-nowrap text-text-secondary! hover:bg-surface-lavender focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary aria-[current=page]:border-primary aria-[current=page]:font-bold aria-[current=page]:text-text!"
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
     </nav>
   );
 }
@@ -554,7 +567,7 @@ export function WorkspacePage({
         <div key={context.workspace.id} className="page-stack">
           {section === "Overview" && (
             <>
-              <div className="metric-grid overview-metrics">
+              <div className="overview-metrics grid grid-cols-2 gap-3 min-[700px]:grid-cols-3 min-[700px]:gap-4">
                 <Card>
                   <span className="metric-label">Registered devices</span>
                   <strong className="metric-value">
@@ -569,7 +582,7 @@ export function WorkspacePage({
                   </strong>
                   <p>Collection still requires supported permissions</p>
                 </Card>
-                <Card>
+                <Card className="min-w-0 max-[700px]:col-span-2">
                   <span className="metric-label">Last inventory refresh</span>
                   <strong className="metric-time">
                     {formatTime(devices.updatedAt)}

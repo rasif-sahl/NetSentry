@@ -1287,6 +1287,7 @@ test("registration and password-confirmed account deletion clear the browser ses
     expect(Math.abs(consent!.width - registered!.width)).toBeLessThan(1);
     expect(refreshed!.y).toBeGreaterThan(registered!.y);
     expect(refreshed!.x).toBe(registered!.x);
+    expect(refreshed!.x + refreshed!.width).toBe(consent!.x + consent!.width);
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBe(width);
@@ -1539,16 +1540,9 @@ test("mobile workflow tabs deep-link within the same dashboard layout", async ({
   await page.setViewportSize({ width: 320, height: 760 });
   await login(page);
   await page.goto("/app/alerts");
-  const alertTabs = page.getByRole("navigation", { name: "Alerts sections" });
-  await expect(
-    alertTabs.getByRole("link", { name: "Notifications" }),
-  ).toHaveAttribute("aria-current", "page");
-  const tabWidths = await alertTabs.evaluate((element) => ({
-    total: element.scrollWidth,
-    visible: element.clientWidth,
-  }));
-  expect(tabWidths.total).toBe(tabWidths.visible);
-  await openTab(page, "Preferences");
+  const alertSections = page.getByRole("combobox", { name: "Alerts sections" });
+  await expect(alertSections).toHaveValue("notifications");
+  await alertSections.selectOption({ label: "Preferences" });
   await expect(
     page.getByRole("heading", { name: "Notification preferences" }),
   ).toBeVisible();
@@ -1557,9 +1551,14 @@ test("mobile workflow tabs deep-link within the same dashboard layout", async ({
   ).toHaveCount(0);
   await expect(page).toHaveURL("/app/alerts/preferences");
   await page.reload();
-  await expect(
-    alertTabs.getByRole("link", { name: "Preferences" }),
-  ).toHaveAttribute("aria-current", "page");
+  await expect(alertSections).toHaveValue("preferences");
+  await page.goto("/app/settings");
+  const settingsSections = page.getByRole("combobox", { name: "Settings & privacy sections" });
+  await settingsSections.selectOption({ label: "Workspace" });
+  await expect(page).toHaveURL("/app/settings/workspace");
+  await expect(settingsSections).toHaveValue("workspace");
+  await page.goBack();
+  await expect(settingsSections).toHaveValue("profile");
 
   for (const [path, tabLabel, heading] of [
     ["developer-tools/sharing", "Sharing", "Service-sharing disclosure"],
@@ -1572,10 +1571,8 @@ test("mobile workflow tabs deep-link within the same dashboard layout", async ({
       page.getByRole("heading", { name: heading, exact: true }),
     ).toBeVisible();
     await expect(
-      page
-        .getByRole("navigation", { name: / sections$/ })
-        .getByRole("link", { name: tabLabel, exact: true }),
-    ).toHaveAttribute("aria-current", "page");
+      page.getByRole("combobox", { name: / sections$/ }),
+    ).toHaveValue(tabLabel.toLowerCase());
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBe(320);
