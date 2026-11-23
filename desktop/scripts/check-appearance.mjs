@@ -469,12 +469,16 @@ try {
       .waitFor();
     await controls.keyboard.press("Escape");
   }
+  await controls.getByRole("link", { name: "Back to inventory", exact: true }).click();
+  await controls.getByRole("heading", { name: "Service inventory", exact: true, level: 1 }).waitFor();
   await controls.setViewportSize({ width: 1040, height: 800 });
   assert.equal(await layout(), true);
   assert.equal(await controls.evaluate(() => window.__fixtureStops), 0);
   await controls
     .getByRole("button", { name: "Refresh services", exact: true })
     .focus();
+  await controls.keyboard.press("Shift+Tab");
+  await controls.keyboard.press("Tab");
   assert.equal(
     await controls
       .getByRole("button", { name: "Refresh services", exact: true })
@@ -511,12 +515,22 @@ try {
   }
   for (const [id, label] of Object.entries(routes)) {
     await visit(controls, id);
+    const group = id === "status" || id === "pairing" || id === "modules" ? "Overview" :
+      ["services", "projects", "control", "history"].includes(id) ? "Developer Tools" :
+      ["remote", "network"].includes(id) ? "Sharing" :
+      ["background", "login"].includes(id) ? "Background Service" : "Settings";
     assert.equal(
-      await controls
-        .locator('nav[aria-label="Desktop navigation"] [aria-current="page"]')
-        .innerText(),
-      label,
+      await controls.getByRole("navigation", { name: "Desktop navigation" })
+        .getByRole("link", { name: group, exact: true }).getAttribute("aria-current"),
+      "true",
     );
+    if (id !== "status") {
+      assert.equal(
+        await controls.getByRole("navigation", { name: `${group} sections` })
+          .getByRole("link", { name: label, exact: true }).getAttribute("aria-current"),
+        "page",
+      );
+    }
     assert.equal(await layout(), true);
     if (captures) {
       await controls.evaluate(() => window.scrollTo(0, 0));
@@ -533,6 +547,48 @@ try {
   await controls
     .getByRole("button", { name: "Review service", exact: true })
     .waitFor();
+  await controls.getByRole("button", { name: "Review service", exact: true }).click();
+  await controls.getByRole("heading", { name: "Service details", level: 1 }).waitFor();
+  assert.equal(await controls.evaluate(() => location.hash), "#service-review");
+  await controls.goBack();
+  await controls.getByRole("button", { name: "Review service", exact: true }).waitFor();
+  await controls.goForward();
+  await controls.getByRole("heading", { name: "Service details", level: 1 }).waitFor();
+  await controls.getByRole("link", { name: "Back to inventory", exact: true }).click();
+  for (const [width, height] of [[640, 480], [800, 600], [1040, 760]]) {
+    await controls.setViewportSize({ width, height });
+    await controls.getByRole("heading", { name: "Service inventory", level: 1 }).waitFor();
+    const geometry = await controls.evaluate(() => {
+      const header = document.querySelector("h1").getBoundingClientRect();
+      const sidebar = document.querySelector(".desktop-sidebar").getBoundingClientRect();
+      const toolbar = document.querySelector(".desktop-service-toolbar");
+      const [filters, refresh] = [...toolbar.querySelectorAll("button")].map((button) => button.getBoundingClientRect());
+      const review = document.querySelector(".desktop-service-list button").getBoundingClientRect();
+      return { headingTop: header.top, sidebarWidth: sidebar.width, filtersY: filters.y, refreshY: refresh.y, reviewRight: review.right };
+    });
+    assert.ok(geometry.headingTop < height);
+    assert.ok(width > 900 || geometry.sidebarWidth <= 60);
+    assert.equal(geometry.filtersY, geometry.refreshY);
+    assert.ok(geometry.reviewRight <= width);
+    assert.ok(await layout());
+  }
+  const filtersButton = controls.getByRole("button", { name: "Filters", exact: true });
+  await filtersButton.click();
+  const filterDrawer = controls.getByRole("dialog", { name: "Service filters" });
+  const search = filterDrawer.getByRole("searchbox");
+  await search.fill("43210");
+  await filterDrawer.getByRole("button", { name: "Apply filters", exact: true }).click();
+  await filterDrawer.waitFor({ state: "hidden" });
+  await controls.getByRole("button", { name: "Review service", exact: true }).waitFor();
+  await filtersButton.click();
+  assert.equal(await search.inputValue(), "43210");
+  await search.fill("unapplied query");
+  await controls.keyboard.press("Escape");
+  await filterDrawer.waitFor({ state: "hidden" });
+  assert.equal(await filtersButton.evaluate((button) => document.activeElement === button), true);
+  await filtersButton.click();
+  assert.equal(await search.inputValue(), "43210");
+  await controls.keyboard.press("Escape");
   // A late service response cannot recreate inventory on another page.
   await controls.evaluate(async () => {
     const original = window.netsentry.listServices;
@@ -583,6 +639,10 @@ try {
     0,
   );
   assert.equal(await controls.evaluate(() => window.__fixtureStops), 0);
+  await controls.goto(`http://127.0.0.1:${server.address().port}/#service-review`);
+  await controls.getByRole("heading", { name: "Service details", level: 1 }).waitFor();
+  assert.equal(await controls.getByRole("button", { name: "Stop gracefully", exact: true }).count(), 0);
+  await controls.getByRole("link", { name: "Back to inventory", exact: true }).waitFor();
   await paired.close();
   console.log(
     "Desktop Chromium navigation/appearance checks passed: 14 destinations, browser Back, late-response isolation, lost-agent clearing, system changes, explicit overrides, reload, cross-window sync, blocked storage, responsive service cards, themed confirmation dialogs, keyboard focus and no stop submission. Electron/Keychain packaging remains unverified.",

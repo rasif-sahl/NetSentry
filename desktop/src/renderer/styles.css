@@ -80,79 +80,71 @@
 
 @layer components {
   .desktop-shell {
-    @apply grid min-h-dvh grid-cols-[248px_minmax(0,1fr)] gap-[22px] p-[18px];
+    @apply grid min-h-dvh grid-cols-[210px_minmax(0,1fr)] gap-4 p-4;
   }
   .desktop-sidebar {
-    @apply sticky top-[18px] flex h-[calc(100dvh_-_36px)] min-h-[620px] flex-col overflow-y-auto rounded-3xl border border-line bg-surface px-4 pt-6 pb-[18px] shadow-[0_8px_30px_#41304d06];
+    @apply sticky top-4 h-[calc(100dvh_-_32px)] min-h-0 overflow-y-auto rounded-2xl border border-line bg-surface p-3;
   }
   .desktop-brand {
-    @apply flex items-center px-3 pb-5;
+    @apply mb-3 flex min-h-11 items-center gap-2 px-2;
   }
-  .desktop-brand img {
-    @apply h-auto w-40;
+  .desktop-brand img:first-child {
+    @apply h-auto w-36;
   }
-  .desktop-eyebrow {
-    @apply m-0 px-3 pb-3.5 text-[10px] font-bold tracking-[0.17em] text-muted;
-  }
-  .desktop-nav-group {
-    @apply mb-1.5;
+  .desktop-brand img:last-child {
+    @apply hidden size-9;
   }
   .desktop-main-link {
-    @apply flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-muted no-underline hover:bg-soft;
+    @apply flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-semibold text-muted no-underline hover:bg-soft;
   }
-  .desktop-main-link.selected {
+  .desktop-main-link[aria-current] {
     @apply bg-soft text-primary;
   }
-  .desktop-main-link svg {
-    @apply size-[19px] shrink-0;
-  }
-  .desktop-nav-arrow {
-    @apply ml-auto text-sm;
-  }
-  .desktop-sub-links {
-    @apply my-1.5 ml-8;
-  }
-  .desktop-sub-links a {
-    @apply block min-h-[35px] border-l border-line px-3 py-2 text-xs leading-[18px] text-muted no-underline hover:text-primary;
-  }
-  .desktop-sub-links a[aria-current="page"] {
-    @apply rounded-r-lg border-l-2 border-primary bg-subtle font-semibold text-primary;
-  }
-  .desktop-sidebar-footer {
-    @apply mt-auto flex flex-col gap-1 rounded-[15px] bg-background p-3 text-[11px] text-muted;
-  }
-  .desktop-sidebar-footer strong {
-    @apply text-xs text-foreground;
-  }
-  .desktop-sidebar-footer strong span {
-    @apply mr-1 text-muted;
+  .desktop-main-link svg,
+  .desktop-computer svg,
+  .desktop-setup-row svg,
+  .desktop-metric svg {
+    @apply size-[18px] shrink-0 text-primary;
   }
   .desktop-main {
-    @apply min-w-0 px-3 pb-5 outline-none;
+    @apply min-w-0 pb-5 outline-none;
   }
   .desktop-topbar {
-    @apply flex min-h-[59px] items-center justify-between gap-4 border-b border-line py-2 text-xs text-muted;
+    @apply flex min-h-[54px] flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-xs;
   }
-  .desktop-topbar nav {
-    @apply flex flex-wrap items-center gap-2;
+  .desktop-topbar-actions,
+  .desktop-computer {
+    @apply inline-flex items-center gap-2;
+  }
+  .desktop-connection {
+    @apply rounded-full bg-soft px-2.5 py-1.5 text-xs text-muted;
+  }
+  .desktop-connection[data-connected="true"] {
+    @apply text-primary;
+  }
+  .desktop-section-links {
+    @apply mb-3 flex flex-wrap gap-x-2 gap-y-1 border-b border-line;
+  }
+  .desktop-section-links a {
+    @apply inline-flex min-h-10 items-center rounded-t-lg border-b-2 border-transparent px-2.5 text-xs text-muted no-underline hover:bg-subtle;
+  }
+  .desktop-section-links a[aria-current="page"] {
+    @apply border-primary font-semibold text-primary;
   }
   .desktop-theme-button {
     @apply min-w-10 bg-surface p-2 text-primary;
   }
   .desktop-page-heading {
-    @apply my-7 flex items-start justify-between gap-5;
+    @apply my-4 flex flex-wrap items-center justify-between gap-3;
   }
   .desktop-page-heading > div {
     @apply min-w-0;
-  }
-  .desktop-kicker {
-    @apply mt-0 mb-2.5 text-[10px] font-bold tracking-[0.18em] text-primary uppercase;
   }
   .desktop-page-heading h1 {
     @apply break-words outline-none;
   }
   .desktop-page-heading h1 + p {
-    @apply mt-3 mb-0 text-[13px] text-muted;
+    @apply mt-1 mb-0 text-[13px] text-muted;
   }
   .desktop-page-content > section {
     @apply mt-0;
@@ -176,22 +168,28 @@
     @apply mb-5 max-w-none rounded-[14px] border border-line bg-soft px-[17px] py-3.5 text-xs leading-[1.6] text-primary;
   }
   .desktop-metrics {
-    @apply mb-5 grid grid-cols-3 gap-4;
+    @apply mb-4 grid grid-cols-3 gap-3;
   }
   .desktop-metric {
-    @apply min-w-0 rounded-[18px] border border-line bg-surface p-6;
+    @apply grid min-w-0 content-start gap-1.5 rounded-[14px] border border-line bg-surface p-4;
   }
   .desktop-metric > span {
     @apply text-[11px] text-muted;
   }
   .desktop-metric strong {
-    @apply mt-[18px] mb-2.5 block break-words text-[23px] leading-tight font-bold tracking-tight;
+    @apply block break-words text-lg leading-tight font-bold tracking-tight;
   }
   .desktop-metric p {
     @apply m-0 text-[11px] text-muted;
   }
-  .desktop-two-column {
-    @apply grid grid-cols-[1.25fr_1fr] gap-[18px];
+  .desktop-setup-row {
+    @apply flex flex-wrap items-center gap-3 border-t border-line py-3 last:pb-0;
+  }
+  .desktop-setup-row > div {
+    @apply min-w-0 flex-1;
+  }
+  .desktop-setup-row p {
+    @apply m-0;
   }
   .desktop-status-row {
     @apply flex min-w-0 items-center justify-between gap-4 border-b border-line py-3.5 text-xs text-muted last:border-0;
@@ -201,12 +199,6 @@
   }
   .desktop-state {
     @apply rounded-lg bg-soft px-2.5 py-1.5 text-[10px] text-primary;
-  }
-  .desktop-shortcuts {
-    @apply flex flex-col gap-2;
-  }
-  .desktop-shortcuts a {
-    @apply flex items-center justify-between gap-3 rounded-xl border border-line bg-subtle p-3 text-xs text-primary no-underline;
   }
   .desktop-setting-row {
     @apply my-4 flex flex-wrap items-center justify-between gap-3 border-b border-line py-4 text-[13px];
@@ -233,33 +225,57 @@
   .desktop-filter {
     @apply min-w-[150px];
   }
-  .desktop-table-scroll {
-    @apply max-w-full overflow-x-auto;
+  .desktop-service-toolbar {
+    @apply my-3 flex flex-wrap items-center justify-end gap-2;
   }
-  .desktop-service-table {
-    @apply w-full min-w-[680px] table-fixed border-collapse;
+  .desktop-service-toolbar button,
+  .desktop-icon-button {
+    @apply inline-flex items-center gap-2;
   }
-  .desktop-service-table th {
-    @apply bg-subtle px-3 py-3 text-left text-[10px] font-medium text-muted uppercase;
+  .desktop-icon-button svg,
+  .desktop-service-toolbar svg {
+    @apply size-4 shrink-0;
   }
-  .desktop-service-table th:first-child {
-    @apply w-[27%];
+  .desktop-service-list {
+    @apply m-0 list-none p-0;
   }
-  .desktop-service-table td {
-    @apply border-b border-line px-3 py-[18px] text-xs break-words text-muted;
+  .desktop-service-list li {
+    @apply m-0 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-t border-line py-3;
   }
-  .desktop-service-table td strong,
-  .desktop-service-table td span:not(.desktop-state) {
-    @apply block;
+  .desktop-service-list li > div {
+    @apply min-w-0;
   }
-  .desktop-service-table td strong {
-    @apply mb-1 text-foreground;
+  .desktop-service-list strong {
+    @apply block break-words text-sm;
   }
-  .desktop-service-table code {
-    @apply break-all text-[11px];
+  .desktop-service-list small {
+    @apply block break-words text-xs text-muted;
   }
-  .desktop-service-table td button {
-    @apply text-[11px];
+  .desktop-service-list code,
+  .desktop-review-values code {
+    @apply break-all;
+  }
+  .desktop-review-values {
+    @apply grid grid-cols-2 gap-4 text-xs;
+  }
+  .desktop-review-values dt {
+    @apply text-muted;
+  }
+  .desktop-review-values dd {
+    @apply m-0 break-words text-foreground;
+  }
+  .desktop-filter-drawer {
+    @apply fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[min(360px,calc(100%-16px))] max-w-none overflow-y-auto overscroll-contain rounded-s-2xl border border-line bg-surface p-5 text-foreground backdrop:bg-[#20152a99];
+    animation: desktop-filter-enter 180ms ease-out;
+  }
+  .desktop-filter-drawer header {
+    @apply mb-4 flex items-center justify-between gap-3;
+  }
+  .desktop-filter-drawer h2 {
+    @apply m-0;
+  }
+  .desktop-filter-drawer form {
+    @apply grid gap-3;
   }
   .desktop-service-detail {
     @apply my-5 min-w-0 break-words rounded-[14px] border border-line bg-subtle p-5;
@@ -277,48 +293,69 @@
     @apply fixed top-4 left-4 z-50 -translate-y-24 rounded-xl bg-primary px-4 py-3 text-on-primary focus:translate-y-0;
   }
 }
-@media (max-width: 1050px) {
-  .desktop-shell {
-    @apply grid-cols-[210px_minmax(0,1fr)] gap-3 p-3;
-  }
-  .desktop-sidebar {
-    @apply top-3 h-[calc(100dvh_-_24px)] px-2.5;
-  }
-  .desktop-main {
-    @apply px-1;
-  }
-  .desktop-two-column {
-    @apply grid-cols-1;
-  }
-  .desktop-card,
-  .desktop-metric {
-    @apply p-[18px];
-  }
+@keyframes desktop-filter-enter {
+  from { transform: translateX(100%); }
 }
-@media (max-width: 700px) {
+@media (prefers-reduced-motion: reduce) {
+  .desktop-filter-drawer { animation: none; }
+}
+@media (max-width: 900px) {
   .desktop-shell {
-    @apply block;
+    @apply grid-cols-[60px_minmax(0,1fr)] gap-3 p-3;
   }
   .desktop-sidebar {
-    @apply relative top-0 mb-4 h-auto min-h-0 overflow-visible;
+    @apply top-3 h-[calc(100dvh_-_24px)] p-1.5;
   }
   .desktop-brand {
-    @apply pb-3;
+    @apply justify-center px-0;
   }
-  .desktop-sidebar-footer {
-    @apply mt-4;
+  .desktop-brand img:first-child {
+    @apply hidden;
   }
-  .desktop-page-heading {
-    @apply flex-col;
+  .desktop-brand img:last-child {
+    @apply block;
+    filter: var(--desktop-mark-filter, none);
+  }
+  .desktop-main-link {
+    @apply justify-center px-0;
+  }
+  .desktop-main-link span {
+    @apply sr-only;
+  }
+  .desktop-card {
+    @apply p-4;
+  }
+}
+:root[data-theme="dark"] {
+  --desktop-mark-filter: brightness(1.5);
+}
+@media (max-width: 450px) {
+  .desktop-shell {
+    @apply grid-cols-[48px_minmax(0,1fr)] gap-2 p-2;
+  }
+  .desktop-sidebar {
+    @apply top-2 h-[calc(100dvh_-_16px)] p-1;
   }
   .desktop-metrics {
+    @apply grid-cols-2 gap-2;
+  }
+  .desktop-metric {
+    @apply p-2.5;
+  }
+  .desktop-metric:last-child {
+    @apply col-span-2;
+  }
+  .desktop-service-list li {
+    @apply grid-cols-[minmax(0,1fr)_auto];
+  }
+  .desktop-service-list li > div {
+    @apply col-span-2;
+  }
+  .desktop-service-list li > button {
+    @apply justify-self-end;
+  }
+  .desktop-review-values {
     @apply grid-cols-1;
-  }
-  .desktop-filter {
-    @apply w-full;
-  }
-  .desktop-card label {
-    @apply break-words;
   }
 }
 

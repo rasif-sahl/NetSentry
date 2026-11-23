@@ -8,6 +8,9 @@ import { Services } from "./Services";
 import {
   currentPage,
   navigation,
+  NavigationIcon,
+  sectionPage,
+  SectionLinks,
   PageCard,
   Sidebar,
   Unavailable,
@@ -29,10 +32,12 @@ export function App() {
   const heading = useRef<HTMLHeadingElement>(null);
   const content = useRef<HTMLElement>(null);
   const { theme, setTheme } = useAppearance();
+  const section = sectionPage(page);
   const group = navigation.find((group) =>
-    group.pages.some((child) => child.id === page),
+    group.pages.some((child) => child.id === section),
   )!;
-  const destination = group.pages.find((child) => child.id === page)!;
+  const destination = group.pages.find((child) => child.id === section)!;
+  const reviewingService = page === "service-review";
   const perform = useCallback(
     async (action: () => Promise<AgentResult> | undefined) => {
       const epoch = ++generation.current;
@@ -93,6 +98,11 @@ export function App() {
   }, [page, refreshBackground]);
   const scope = `${status?.installationId || "unavailable"}:${status?.paired}:${status?.connection}:${status?.requested.developer}:${status?.requested.network}`;
   const developer = Boolean(status?.paired && status.requested.developer);
+  function refreshAgent() {
+    void perform(() => window.netsentry?.getAgentStatus());
+    if (page === "status") void refreshBackground();
+  }
+
   function modulePreferences() {
     return status ? (
       <PageCard title="Local module preferences">
@@ -147,7 +157,8 @@ export function App() {
           <>
             <div className="desktop-metrics">
               <div className="desktop-metric">
-                <span>LOCAL AGENT</span>
+                <NavigationIcon name="developer" />
+                <span>Local Agent</span>
                 <strong>{status ? "Connected" : "Unavailable"}</strong>
                 <p>
                   {status
@@ -156,7 +167,8 @@ export function App() {
                 </p>
               </div>
               <div className="desktop-metric">
-                <span>PAIRING</span>
+                <NavigationIcon name="pairing" />
+                <span>Pairing</span>
                 <strong>
                   {status
                     ? status.paired
@@ -167,7 +179,8 @@ export function App() {
                 <p>Pairing identifies this installation.</p>
               </div>
               <div className="desktop-metric">
-                <span>BACKGROUND SERVICE</span>
+                <NavigationIcon name="background" />
+                <span>Background Service</span>
                 <strong>
                   {background
                     ? background.registered
@@ -178,68 +191,40 @@ export function App() {
                 <p>Registration is separate from consent.</p>
               </div>
             </div>
-            <div className="desktop-two-column">
-              <PageCard title="Computer overview">
-                <p>
-                  Only reported state appears here. This page does not start a
-                  scan or enable monitoring.
-                </p>
-                <div className="desktop-status-row">
-                  <span>Agent version</span>
+            <PageCard title="Computer setup">
+              <div className="desktop-setup-row">
+                <NavigationIcon name="pairing" />
+                <div>
+                  <strong>Pairing &amp; identity</strong>
+                  <p>Review this installation and its workspace pairing.</p>
+                </div>
+                <a className="desktop-button secondary" href="#pairing">View pairing</a>
+              </div>
+              <div className="desktop-setup-row">
+                <NavigationIcon name="settings" />
+                <div>
+                  <strong>Module preferences</strong>
+                  <p>Developer Tools and Network Monitoring.</p>
+                </div>
+                <a className="desktop-button secondary" href="#modules">View modules</a>
+              </div>
+            </PageCard>
+            <PageCard title="Reported configuration">
+              <div className="desktop-status-row">
+                <span>Agent version</span>
+                <span className="desktop-state">{status?.version || "Unavailable"}</span>
+              </div>
+              {(["developer", "network"] as const).map((module) => (
+                <div className="desktop-status-row" key={module}>
+                  <span>{module === "developer" ? "Developer Tools" : "Network Monitoring"}</span>
                   <span className="desktop-state">
-                    {status?.version || "Unavailable"}
+                    {status
+                      ? status.effective[module] ? "Enabled by configuration" : "Not enabled"
+                      : "Not checked"}
                   </span>
                 </div>
-                <div className="desktop-status-row">
-                  <span>Backend connection</span>
-                  <span className="desktop-state">
-                    {status?.connection || "Not checked"}
-                  </span>
-                </div>
-                {(["developer", "network"] as const).map((module) => (
-                  <div className="desktop-status-row" key={module}>
-                    <span>
-                      {module === "developer"
-                        ? "Developer Tools"
-                        : "Network Monitoring"}
-                    </span>
-                    <span className="desktop-state">
-                      {status
-                        ? status.effective[module]
-                          ? "Enabled by configuration"
-                          : "Not enabled"
-                        : "Not checked"}
-                    </span>
-                  </div>
-                ))}
-                <div className="desktop-actions">
-                  <a className="desktop-button secondary" href="#pairing">
-                    Review pairing
-                  </a>
-                  <a className="desktop-button secondary" href="#modules">
-                    Module preferences
-                  </a>
-                </div>
-              </PageCard>
-              <PageCard title="Quick access">
-                <p>Go directly to a focused workspace.</p>
-                <div className="desktop-shortcuts">
-                  {["services", "remote", "background", "diagnostics"].map(
-                    (id) => {
-                      const link = navigation
-                        .flatMap((group) => [...group.pages])
-                        .find((item) => item.id === id)!;
-                      return (
-                        <a key={id} href={`#${id}`}>
-                          {link.label}
-                          <span aria-hidden="true">›</span>
-                        </a>
-                      );
-                    },
-                  )}
-                </div>
-              </PageCard>
-            </div>
+              ))}
+            </PageCard>
           </>
         );
       case "pairing":
@@ -306,6 +291,7 @@ export function App() {
       case "modules":
         return modulePreferences();
       case "services":
+      case "service-review":
       case "projects":
       case "control":
       case "history":
@@ -313,7 +299,8 @@ export function App() {
           <Services
             enabled={developer}
             installationId={status?.installationId || ""}
-            view={page === "services" ? "inventory" : page}
+            view={page === "services" || page === "service-review" ? "inventory" : page}
+            review={reviewingService}
           />
         );
       case "remote":
@@ -398,7 +385,7 @@ export function App() {
       >
         Skip to content
       </a>
-      <Sidebar page={page} connected={Boolean(status)} />
+      <Sidebar page={section} />
       <main
         className="desktop-main"
         id="desktop-content"
@@ -406,48 +393,58 @@ export function App() {
         ref={content}
       >
         <header className="desktop-topbar">
-          <nav aria-label="Breadcrumb">
-            Desktop <span aria-hidden="true">/</span> {group.label}{" "}
-            <span aria-hidden="true">/</span>{" "}
-            <span aria-current="page">{destination.label}</span>
-          </nav>
-          <button
-            className="desktop-theme-button"
-            onClick={() =>
-              setTheme(
-                document.documentElement.dataset.theme === "dark"
-                  ? "LIGHT"
-                  : "DARK",
-              )
-            }
-            aria-label="Toggle appearance"
-          >
-            ◐
-          </button>
+          <strong className="desktop-computer">
+            <NavigationIcon name="developer" />
+            This computer
+          </strong>
+          <div className="desktop-topbar-actions">
+            <span className="desktop-connection" data-connected={Boolean(status)}>
+              <span aria-hidden="true">●</span>{" "}
+              {status ? "Agent connected" : busy ? "Checking agent" : "Agent unavailable"}
+            </span>
+            {page !== "status" && (
+              <button
+                type="button"
+                className="desktop-theme-button desktop-icon-button"
+                aria-label="Refresh agent status"
+                title="Refresh agent status"
+                disabled={busy}
+                onClick={refreshAgent}
+              >
+                <NavigationIcon name="refresh" />
+              </button>
+            )}
+            <button
+              className="desktop-theme-button"
+              onClick={() =>
+                setTheme(
+                  document.documentElement.dataset.theme === "dark"
+                    ? "LIGHT"
+                    : "DARK",
+                )
+              }
+              aria-label="Toggle appearance"
+            >
+              ◐
+            </button>
+          </div>
         </header>
         <div className="desktop-page-heading">
           <div>
-            <p className="desktop-kicker">{group.label}</p>
             <h1 ref={heading} tabIndex={-1}>
-              {destination.label}
+              {reviewingService ? "Service details" : destination.label}
             </h1>
-            <p>{destination.description}</p>
+            <p>{reviewingService ? "Review a captured local service observation." : destination.description}</p>
           </div>
-          <button
-            className="secondary"
-            disabled={busy}
-            onClick={() => {
-              void perform(() => window.netsentry?.getAgentStatus());
-              if (page === "status") void refreshBackground();
-            }}
-          >
-            Refresh agent status
-          </button>
+          {page === "status" && (
+            <button type="button" className="secondary desktop-icon-button" disabled={busy} onClick={refreshAgent}>
+              <NavigationIcon name="refresh" /> Refresh agent status
+            </button>
+          )}
         </div>
-        <p role="status" className="desktop-notice">
-          {message}
-        </p>
-        <div className="desktop-page-content" key={`${page}:${scope}`}>
+        <p role="status" className={status ? "sr-only" : "desktop-notice"}>{message}</p>
+        {page !== "status" && !reviewingService && <SectionLinks page={section} />}
+        <div className="desktop-page-content" key={`${section}:${scope}`}>
           {renderPage()}
         </div>
       </main>
