@@ -110,11 +110,32 @@ test("device inventory uses reported health and capability states", async ({
   await expect(
     page.getByRole("heading", { name: "Device inventory" }),
   ).toBeVisible();
-  await page.getByLabel("Find a device").fill("no-such-fixture");
+  const search = page.getByLabel("Find a device");
+  await search.fill("no-such-fixture");
   await expect(
     page.getByText("No matching devices", { exact: true }),
   ).toBeVisible();
-  await page.getByLabel("Find a device").fill("");
+  const inventory = page.locator(".card").filter({
+    has: page.getByRole("heading", { name: "Device inventory", exact: true }),
+  });
+  const viewport = page.viewportSize()!;
+  for (const width of [viewport.width, 390]) {
+    await page.setViewportSize({ width, height: viewport.height });
+    const inputBounds = await search.boundingBox();
+    const emptyBounds = await inventory.locator(".empty").boundingBox();
+    expect(
+      emptyBounds!.y - (inputBounds!.y + inputBounds!.height),
+    ).toBeGreaterThanOrEqual(12);
+  }
+  await page.setViewportSize(viewport);
+  await search.fill("");
+  const list = inventory.getByRole("list");
+  await expect(list).toBeVisible();
+  const inputBounds = await search.boundingBox();
+  const listBounds = await list.boundingBox();
+  expect(
+    listBounds!.y - (inputBounds!.y + inputBounds!.height),
+  ).toBeGreaterThanOrEqual(12);
   await page
     .getByRole("button", { name: "View Fixture iOS", exact: true })
     .click();

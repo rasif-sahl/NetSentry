@@ -41,50 +41,52 @@ export function DevicesPanel({
   return (
     <>
       <Card title="Device inventory">
-        <Field label="Find a device">
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name or platform"
-          />
-        </Field>
-        {filtered.length ? (
-          <ul className="item-list">
-            {filtered.map((item) => (
-              <li key={item.id}>
-                <div>
-                  <strong>{item.name}</strong>
-                  <small>
-                    {item.platform} · {item.state.toLowerCase()} · last reported{" "}
-                    {formatTime(item.lastSeenAt)}
-                  </small>
-                </div>
-                <span className="badge">
-                  {item.monitoringEnabled
-                    ? "Consent enabled"
-                    : "Monitoring paused"}
-                </span>
-                <button
-                  className="button"
-                  onClick={() => setSelected(item.id)}
-                  aria-pressed={device?.id === item.id}
-                >
-                  View {item.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <Empty
-            title={
-              devices.length ? "No matching devices" : "No registered devices"
-            }
-          >
-            Pair an installation through a supported native client. Browser
-            access does not enroll or certify this computer.
-          </Empty>
-        )}
+        <div className="page-stack">
+          <Field label="Find a device">
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by name or platform"
+            />
+          </Field>
+          {filtered.length ? (
+            <ul className="item-list">
+              {filtered.map((item) => (
+                <li key={item.id}>
+                  <div>
+                    <strong>{item.name}</strong>
+                    <small>
+                      {item.platform} · {item.state.toLowerCase()} · last
+                      reported {formatTime(item.lastSeenAt)}
+                    </small>
+                  </div>
+                  <span className="badge">
+                    {item.monitoringEnabled
+                      ? "Consent enabled"
+                      : "Monitoring paused"}
+                  </span>
+                  <button
+                    className="button"
+                    onClick={() => setSelected(item.id)}
+                    aria-pressed={device?.id === item.id}
+                  >
+                    View {item.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Empty
+              title={
+                devices.length ? "No matching devices" : "No registered devices"
+              }
+            >
+              Pair an installation through a supported native client. Browser
+              access does not enroll or certify this computer.
+            </Empty>
+          )}
+        </div>
       </Card>
       {device && (
         <Card title={device.name} key={device.id}>
