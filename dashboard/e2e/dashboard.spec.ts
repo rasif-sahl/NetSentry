@@ -1393,9 +1393,9 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
   await login(page);
   const primary = page.getByRole("navigation", { name: "Primary navigation" });
   await expect(primary.getByRole("link")).toHaveCount(4);
-  await expect(
-    page.getByRole("banner").getByRole("link", { name: "NetSentry home" }),
-  ).toBeVisible();
+  const topbarBrand = page.getByRole("banner").getByRole("link", { name: "NetSentry home" });
+  await expect(topbarBrand.locator('img[src="/icon.svg"]')).toBeVisible();
+  await expect(topbarBrand.locator('img[src="/brand/netsentry-logo.svg"]')).toBeHidden();
   await page
     .getByRole("button", { name: "More", exact: true })
     .click();
@@ -1426,6 +1426,14 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
   await page.setViewportSize({ width: 768, height: 900 });
   await expect(page.getByRole("dialog", { name: "More navigation" })).toBeHidden();
   await expect(primary.getByRole("link", { name: "Settings & privacy" })).toBeVisible();
+  await expect(topbarBrand.locator('img[src="/brand/netsentry-logo.svg"]')).toBeVisible();
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await expect(topbarBrand).toBeHidden();
+  await expect(
+    page.getByRole("complementary", { name: "Workspace navigation" })
+      .getByRole("link", { name: "NetSentry home" })
+      .locator('img[src="/brand/netsentry-logo.svg"]'),
+  ).toBeVisible();
   await page.goBack();
   await expect(
     page.getByRole("heading", { name: "Overview", exact: true }),

@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
@@ -46,7 +45,7 @@ import {
 } from "@/shared/ui/common";
 import { PageLoading } from "@/shared/ui/loading";
 import { EmailVerificationStripe } from "./email-verification-stripe";
-import { DashboardNavigation } from "./dashboard-navigation";
+import { DashboardBrand, DashboardNavigation } from "./dashboard-navigation";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { WorkspaceList } from "@/features/team/workspace-list";
 const BillingPanel = dynamic(
@@ -330,9 +329,7 @@ function WorkspaceShell({
       />
       <div className="min-w-0 max-[700px]:pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
         <header className="topbar">
-          <Link href="/app" className="brand topbar-brand shrink-0" aria-label="NetSentry home">
-            <Image src="/brand/netsentry-logo.svg" alt="NetSentry" width={223} height={64} className="max-w-23 min-[700px]:max-w-32" />
-          </Link>
+          <DashboardBrand placement="topbar" />
           <WorkspaceSwitcher
             workspace={workspace}
             workspaces={workspaces.data}

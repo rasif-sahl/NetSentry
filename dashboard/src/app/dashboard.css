@@ -367,9 +367,6 @@
   gap: 1rem;
   padding: 0.65rem 2rem;
 }
-.workspace-app .topbar .topbar-brand {
-  align-self: center;
-}
 .workspace-app .topbar-note {
   margin-left: auto;
   font-size: 0.75rem;

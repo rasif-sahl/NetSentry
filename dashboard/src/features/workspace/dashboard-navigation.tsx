@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import {
@@ -53,6 +54,37 @@ const linkStyle =
 
 function navigationHref(slug: WorkspaceSlug) {
   return slug === "networks" ? workspaceHref(slug, "monitoring") : workspaceHref(slug);
+}
+
+export function DashboardBrand({ placement }: { placement: "sidebar" | "topbar" }) {
+  return (
+    <Link
+      href="/app"
+      aria-label="NetSentry home"
+      className={`brand min-h-11 items-center ${
+        placement === "sidebar"
+          ? "mb-4 ms-3 max-w-36 max-[1100px]:hidden!"
+          : "min-w-11 max-w-32 shrink-0 justify-center self-center! min-[1100px]:hidden!"
+      }`}
+    >
+      {placement === "topbar" && (
+        <Image
+          src="/icon.svg"
+          alt=""
+          width={32}
+          height={32}
+          className="max-w-8 min-[700px]:hidden [[data-theme=dark]_&]:brightness-150"
+        />
+      )}
+      <Image
+        src="/brand/netsentry-logo.svg"
+        alt=""
+        width={223}
+        height={64}
+        className="hidden max-w-full min-[700px]:block"
+      />
+    </Link>
+  );
 }
 
 export function DashboardNavigation({
@@ -118,6 +150,7 @@ export function DashboardNavigation({
   return (
     <>
       <aside aria-label="Workspace navigation" className="sticky top-0 hidden h-dvh min-h-0 flex-col overflow-y-auto border-e border-border bg-surface p-2 min-[700px]:flex min-[1100px]:p-4">
+        <DashboardBrand placement="sidebar" />
         <nav aria-label="Primary navigation" className="grid gap-4">
           {groups.map(({ label, links }) => (
             <div key={label} className="grid gap-1">
