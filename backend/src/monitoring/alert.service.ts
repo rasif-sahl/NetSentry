@@ -260,10 +260,9 @@ export class AlertService {
         if (items) items.push(delivery);
         else byAlert.set(delivery.alertId, [delivery]);
       }
-      const items = alerts.map((alert) => ({
-        ...alert,
-        deliveries: byAlert.get(alert.id) ?? [],
-      }));
+      const items = alerts.map((alert) =>
+        Object.assign({}, alert, { deliveries: byAlert.get(alert.id) ?? [] }),
+      );
       return paged ? { items, nextCursor: paged.nextCursor } : items;
     });
   }

@@ -519,6 +519,129 @@ test("alert pages include older delivered notifications and keep tied timestamps
   expect(secondPage.nextCursor).toBeNull();
 });
 
+test("inventory and retained history pages reach records beyond their previous limits", async ({
+  page,
+}) => {
+  const data = await login(page);
+  const f = data.inventoryPageFixture;
+  const base = `/api/backend/workspaces/${f.workspaceId}`;
+  const network = `${base}/networks/${f.networkId}`;
+  async function read(path: string, limit: number, cursor?: string) {
+    const url = new URL(path, "http://127.0.0.1:54111");
+    url.searchParams.set("limit", String(limit));
+    if (cursor) url.searchParams.set("cursor", cursor);
+    const response = await page.request.get(url.pathname + url.search);
+    expect(response.ok(), await response.text()).toBeTruthy();
+    return response.json();
+  }
+  async function verifyPages(path: string, total: number, limit = 100) {
+    const ids: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const result = await read(path, limit, cursor);
+      expect(result.items.length).toBeLessThanOrEqual(limit);
+      ids.push(
+        ...result.items.map(
+          (item: { id?: string; networkId?: string }) =>
+            item.id ?? item.networkId!,
+        ),
+      );
+      expect(ids.length).toBeLessThanOrEqual(total);
+      cursor = result.nextCursor ?? undefined;
+    } while (cursor);
+    expect(ids).toHaveLength(total);
+    expect(new Set(ids).size).toBe(total);
+  }
+
+  await verifyPages(`${base}/devices/page`, 27, 25);
+  await verifyPages(`${base}/networks/page`, 27, 25);
+  await verifyPages(`${network}/devices/page`, 204);
+  await verifyPages(
+    `${network}/devices/page?archived=true&search=Paged+endpoint+205`,
+    1,
+  );
+  await verifyPages(
+    `${base}/business/endpoints/page?locationId=${f.locationId}`,
+    205,
+  );
+  await verifyPages(
+    `${base}/business/endpoints/page?locationId=${f.unusedLocationId}`,
+    0,
+  );
+  // Creating the monitored network contributes its own event alongside the seeded history.
+  await verifyPages(`${network}/events/page`, 106);
+  await verifyPages(`${network}/devices/${f.endpointId}/presence/page`, 105);
+  await verifyPages(`${base}/billing/payments/page`, 102);
+  await verifyPages(`${base}/billing/requests/page`, 27, 20);
+  await verifyPages(
+    `/api/backend/workspaces/${data.workspaceId}/agents/${data.developerAgentId}/commands/page`,
+    27,
+    25,
+  );
+  expect(
+    (await page.request.get(`${base}/devices/page?limit=101`)).status(),
+  ).toBe(400);
+  expect(
+    (await page.request.get(`${base}/devices/page?cursor=invalid`)).status(),
+  ).toBe(400);
+  expect(
+    (
+      await page.request.get(
+        `/api/backend/workspaces/${data.workspaceId}/networks/${f.networkId}/events/page`,
+      )
+    ).status(),
+  ).toBe(403);
+
+  const networkList = `${base}/networks/page`;
+  const before = await read(networkList, 25);
+  const createdNetwork = await page.request.post(`${base}/networks`, {
+    headers: {
+      origin: "http://127.0.0.1:54111",
+      "x-netsentry-user": data.accounts.owner.id,
+    },
+    data: { name: "Added between pages", cidrs: ["192.168.78.0/24"] },
+  });
+  expect(createdNetwork.ok(), await createdNetwork.text()).toBeTruthy();
+  const added = await createdNetwork.json();
+  const after = await read(networkList, 25, before.nextCursor);
+  expect(after.items).toHaveLength(2);
+  expect(
+    new Set([...before.items, ...after.items].map((item) => item.networkId))
+      .size,
+  ).toBe(27);
+  expect((await read(networkList, 25)).items[0].networkId).toBe(
+    added.networkId,
+  );
+
+  await selectWorkspace(page, f.workspaceId);
+  await page.getByRole("link", { name: "Devices", exact: true }).click();
+  await page.setViewportSize({ width: 320, height: 760 });
+  await page
+    .getByRole("button", { name: "View Paged device 1", exact: true })
+    .click();
+  const controls = page.getByRole("navigation", {
+    name: "Device inventory pages",
+  });
+  await controls.getByRole("button", { name: "Next" }).click();
+  await expect(
+    page.getByRole("button", { name: "View Paged device 27", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Paged device 1", exact: true }),
+  ).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+    .toBe(320);
+  await page.getByLabel("Find a device").fill("Paged device 27");
+  await expect(controls).toHaveCount(0);
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "Paged device 27" }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByRole("button", { name: "View Paged device 26", exact: true }),
+  ).toHaveCount(0);
+});
+
 test("team invitations bind a recipient and management changes take effect", async ({
   page,
   browser,
@@ -1593,7 +1716,11 @@ test("network inventory exposes uncertain observations and editable labels witho
   const endpoint = page.locator("details").filter({
     has: page.locator("summary").filter({ hasText: "02:00:00:40:00:01" }),
   });
-  await endpoint.locator("summary").click();
+  await endpoint.locator(":scope > summary").click();
+  await endpoint.getByText("Observed spans", { exact: true }).click();
+  await expect(
+    endpoint.getByText(/Cached sightings reflect observations/),
+  ).toBeVisible();
   await endpoint
     .getByLabel("Device label", { exact: true })
     .fill("Browser synthetic workstation");

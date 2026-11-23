@@ -1,4 +1,4 @@
-import { SearchPageQuery, selectPage } from '../common/pagination';
+import { PageQuery, SearchPageQuery, selectPage } from '../common/pagination';
 import { assertCapacity } from '../billing/other/policy';
 import {
   BadRequestException,
@@ -753,6 +753,43 @@ export class NetworkService {
     });
   }
 
+  async eventPage(userId: string, wid: string, id: string, query: PageQuery) {
+    return this.source.transaction(async (m) => {
+      await workspacePolicy(m, userId, wid, P.READ_NETWORKS);
+      await this.site(m, wid, id);
+      const builder = m
+        .createQueryBuilder(NetworkEvent, 'e')
+        .where('e."networkId" = :id', { id });
+      return selectPage(builder, query, { timestamp: 'occurredAt' });
+    });
+  }
+
+  async presencePage(
+    userId: string,
+    wid: string,
+    id: string,
+    endpointId: string,
+    query: PageQuery,
+  ) {
+    return this.source.transaction(async (m) => {
+      await workspacePolicy(m, userId, wid, P.READ_NETWORKS);
+      await this.site(m, wid, id);
+      if (
+        !(await m.existsBy(NetworkEndpoint, { id: endpointId, networkId: id }))
+      )
+        throw new ForbiddenException(
+          'Observed device is outside this network.',
+        );
+      const builder = m
+        .createQueryBuilder(NetworkPresence, 'p')
+        .where('p."networkId" = :id AND p."endpointId" = :endpointId', {
+          id,
+          endpointId,
+        });
+      return selectPage(builder, query, { timestamp: 'lastObservedAt' });
+    });
+  }
+
   async view(
     userId: string,
     wid: string,
@@ -862,11 +899,13 @@ export class NetworkService {
         cidrs: profile.cidrs,
         collectors: sources,
         endpoints: inventory,
-        presenceHistory: await m.find(NetworkPresence, {
-          where: { networkId: id },
-          order: { lastObservedAt: 'DESC' },
-          take: 100,
-        }),
+        presenceHistory: summary
+          ? []
+          : await m.find(NetworkPresence, {
+              where: { networkId: id },
+              order: { lastObservedAt: 'DESC' },
+              take: 100,
+            }),
         router: publicRouter(router),
         routerHealth: live ? latest.status : 'unavailable',
         wanUp: live ? latest.wanUp : null,
@@ -888,11 +927,13 @@ export class NetworkService {
           samples: rates,
           history,
         },
-        events: await m.find(NetworkEvent, {
-          where: { networkId: id },
-          order: { occurredAt: 'DESC' },
-          take: 100,
-        }),
+        events: summary
+          ? []
+          : await m.find(NetworkEvent, {
+              where: { networkId: id },
+              order: { occurredAt: 'DESC' },
+              take: 100,
+            }),
         compatibility: await m.find(NetworkCompatibility, {
           where: { networkId: id },
           order: { testedAt: 'DESC' },

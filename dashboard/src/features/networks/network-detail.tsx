@@ -1,4 +1,6 @@
 "use client";
+import { usePage } from "@/shared/use-page";
+import { PageControls } from "@/shared/ui/page-controls";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -17,7 +19,6 @@ import { useResource } from "@/shared/use-resource";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
@@ -52,6 +53,13 @@ export function NetworkDetail({
         modules: { network: boolean };
       }[]
     >(manage ? `/workspaces/${context.workspace.id}/agents` : null);
+  const events = usePage<NetworkView["events"][number]>(
+    `${path}/events/page`,
+    true,
+  );
+  function refreshDetail() {
+    window.dispatchEvent(new Event("netsentry:refresh"));
+  }
   const v = resource.data;
   const lastCapture = v?.collectors.reduce<string | null>(
     (latest, collector) =>
@@ -92,7 +100,7 @@ export function NetworkDetail({
               type="button"
               aria-label="Refresh network"
               className="button shrink-0 max-[650px]:size-11 max-[650px]:px-0!"
-              onClick={resource.reload}
+              onClick={refreshDetail}
             >
               <RefreshCw size={16} aria-hidden="true" />
               <span className="hidden min-[651px]:inline">Refresh network</span>
@@ -155,7 +163,7 @@ export function NetworkDetail({
                             enabled: !c.enabled,
                             ...networkConsent,
                           });
-                          resource.reload();
+                          refreshDetail();
                         }}
                       >
                         {c.enabled
@@ -179,7 +187,7 @@ export function NetworkDetail({
                         enabled: true,
                         ...networkConsent,
                       });
-                      resource.reload();
+                      refreshDetail();
                       return "Collector assigned. Enter this network ID in the desktop Network sharing controls and accept local consent.";
                     }}
                   >
@@ -208,7 +216,6 @@ export function NetworkDetail({
               )}
             </Card>
             <NetworkInventory
-              view={v}
               path={path}
               canManage={manage}
               devices={context.devices}
@@ -222,26 +229,28 @@ export function NetworkDetail({
             />
             <Card title="Network events" icon={<Activity size={19} />}>
               <p>
-                Latest 100 inventory and health events. Device-change events
-                reflect cache observations; health warnings need operator
-                review.
+                Recent inventory and health events. Device-change events reflect
+                cache observations; health warnings need operator review.
               </p>
-              {!v.events.length && <Empty title="No network events" />}
+              <ErrorNotice error={events.error} />
+              {events.loading && <Loading />}
+              {events.data?.length === 0 && <Empty title="No network events" />}
               <ul className="item-list">
-                {v.events.map((e) => (
+                {events.data?.map((e) => (
                   <li key={e.id}>
                     <strong>{e.kind.replaceAll("_", " ")}</strong> ·{" "}
                     {e.severity} · {formatTime(e.occurredAt)} ·{" "}
                     {e.acknowledgedAt ? "acknowledged" : "unacknowledged"}
                     {context.permissions.includes("alerts:handle") && (
-                      <ActionForm
+                      <ActionFormDialog
+                        label="Edit event review"
                         submit="Review event"
                         action={async (f) => {
                           await api(`${path}/events/${e.id}`, "PATCH", {
                             acknowledged: f.has("acknowledged"),
                             severity: text(f, "severity"),
                           });
-                          resource.reload();
+                          events.reload();
                         }}
                       >
                         <Field label="Event severity">
@@ -259,11 +268,12 @@ export function NetworkDetail({
                           />
                           Acknowledged
                         </label>
-                      </ActionForm>
+                      </ActionFormDialog>
                     )}
                   </li>
                 ))}
               </ul>
+              <PageControls label="Network events" page={events} />
             </Card>
           </div>
           <details className="card">
@@ -284,7 +294,9 @@ export function NetworkDetail({
                   >
                     Edit name and subnets
                   </h2>
-                  <ActionForm
+                  <ActionFormDialog
+                    label="Edit name and subnets"
+                    submit="Save changes"
                     action={async (f) => {
                       await api(path, "PATCH", {
                         name: text(f, "name"),
@@ -311,7 +323,7 @@ export function NetworkDetail({
                         defaultValue={v.cidrs.join(", ")}
                       />
                     </Field>
-                  </ActionForm>
+                  </ActionFormDialog>
                   <ActionButton
                     confirm="Erase this network’s inventory, router credentials, history and grants? The manual network label remains."
                     action={async () => {

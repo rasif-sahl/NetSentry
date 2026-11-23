@@ -1,7 +1,9 @@
+import { PageQuery } from '../common/pagination';
 import {
   Body,
   Controller,
   Get,
+  Query,
   Headers,
   Param,
   ParseUUIDPipe,
@@ -44,6 +46,14 @@ export class WorkspaceDeveloperController {
     @Param('agentId', ParseUUIDPipe) id: string,
   ) {
     return this.service.commands(u.userId, wid, id);
+  }
+  @Get('agents/:agentId/commands/page') commandPage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) wid: string,
+    @Param('agentId', ParseUUIDPipe) id: string,
+    @Query() query: PageQuery,
+  ) {
+    return this.service.commands(u.userId, wid, id, query);
   }
   @Post('agents/:agentId/commands') create(
     @CurrentUser() u: RequestUser,

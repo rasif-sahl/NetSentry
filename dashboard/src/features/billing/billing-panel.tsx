@@ -1,4 +1,6 @@
 "use client";
+import { usePage } from "@/shared/use-page";
+import { PageControls } from "@/shared/ui/page-controls";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { useState } from "react";
 import { api } from "@/shared/api";
@@ -68,20 +70,29 @@ export function BillingPanel({
 }: PageContext & { tab: string }) {
   const base = `/workspaces/${workspace.id}/billing`,
     owner = permissions.includes("billing:manage");
-  const state = useResource<View>(owner ? base : null, true),
+  const state = useResource<View>(owner ? base + "?summary=true" : null, true),
     access = useResource<Entitlements>(
       owner ? null : base + "/entitlements",
       true,
     );
   const [requestId, setRequestId] = useState("");
   const current = state.data?.entitlements ?? access.data;
-  const pendingRequests =
-    state.data?.requests.filter((request) => request.status === "pending") ??
-    [];
+  const pendingRequests = usePage<View["requests"][number]>(
+    owner && tab === "plan" && current?.mode === "sandbox"
+      ? base + "/requests/page"
+      : null,
+    true,
+  );
+  const payments = usePage<View["payments"][number]>(
+    owner && tab === "history" ? base + "/payments/page" : null,
+    true,
+  );
   async function action(path: string, body: unknown) {
     await api(base + path, "POST", body);
     state.reload();
     access.reload();
+    pendingRequests.reload();
+    payments.reload();
   }
   if (state.loading || access.loading) return <Loading />;
   if (state.error || access.error)
@@ -179,6 +190,7 @@ export function BillingPanel({
                           plan: text(f, "plan"),
                           interval: text(f, "interval"),
                         });
+                        pendingRequests.reset();
                         setRequestId(id);
                         return "Request prepared. Review it, then explicitly simulate payment.";
                       }}
@@ -268,7 +280,9 @@ export function BillingPanel({
                       <h3 className="text-sm font-semibold">
                         Pending requests
                       </h3>
-                      {pendingRequests.map((r) => (
+                      <ErrorNotice error={pendingRequests.error} />
+                      {pendingRequests.loading && <Loading />}
+                      {pendingRequests.data?.map((r) => (
                         <div
                           className="flex flex-wrap items-center justify-between gap-3 py-1"
                           key={r.id}
@@ -289,11 +303,15 @@ export function BillingPanel({
                           </ActionButton>
                         </div>
                       ))}
-                      {pendingRequests.length === 0 && (
+                      {pendingRequests.data?.length === 0 && (
                         <p className="text-sm text-text-secondary">
                           No pending requests.
                         </p>
                       )}
+                      <PageControls
+                        label="Pending billing requests"
+                        page={pendingRequests}
+                      />
                     </section>
                   </>
                 )}
@@ -302,11 +320,13 @@ export function BillingPanel({
           )}
           {tab === "history" && (
             <Card title="Sandbox payment history">
-              {state.data.payments.length === 0 ? (
+              <ErrorNotice error={payments.error} />
+              {payments.loading && <Loading />}
+              {payments.data?.length === 0 ? (
                 <Empty title="No sandbox payments recorded" />
               ) : (
                 <ul className="divide-y divide-border">
-                  {state.data.payments.map((p) => (
+                  {payments.data?.map((p) => (
                     <li
                       key={p.id}
                       className="break-words py-2.5 first:pt-0 last:pb-0"
@@ -317,6 +337,7 @@ export function BillingPanel({
                   ))}
                 </ul>
               )}
+              <PageControls label="Sandbox payment history" page={payments} />
               <p className="mt-4">
                 No card details, real invoices, taxes or offered prices are
                 represented.

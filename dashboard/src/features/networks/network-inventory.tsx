@@ -1,10 +1,10 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { usePage } from "@/shared/use-page";
 import { PageControls } from "@/shared/ui/page-controls";
 import { api } from "@/shared/api";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
@@ -31,13 +31,11 @@ const categories = [
   "network",
 ];
 export function NetworkInventory({
-  view,
   path,
   canManage,
   devices,
   reload,
 }: {
-  view: Pick<NetworkView, "presenceHistory">;
   path: string;
   canManage: boolean;
   devices: Device[];
@@ -104,21 +102,7 @@ export function NetworkInventory({
           <p>
             MAC {e.mac ?? "unknown"} · last captured {formatTime(e.lastSeenAt)}
           </p>
-          <p>
-            Recent observed spans (latest 100 across this network). These are
-            cached sightings, not confirmed connection sessions; gaps remain
-            unknown.
-          </p>
-          <ul>
-            {view.presenceHistory
-              .filter((h) => h.endpointId === e.id)
-              .map((h) => (
-                <li key={h.id}>
-                  {h.address} · {h.evidence} · {formatTime(h.firstObservedAt)}{" "}
-                  to {formatTime(h.lastObservedAt)} · collector {h.agentId}
-                </li>
-              ))}
-          </ul>
+          <ObservedSpans path={`${path}/devices/${e.id}/presence/page`} />
           <ul>
             {e.observations.map((o) => (
               <li key={o.agentId}>
@@ -129,7 +113,9 @@ export function NetworkInventory({
           </ul>
           {canManage && (
             <>
-              <ActionForm
+              <ActionFormDialog
+                label="Edit device labels"
+                submit="Save changes"
                 action={async (f) => {
                   await api(`${path}/endpoints/${e.id}`, "PATCH", {
                     name: text(f, "name"),
@@ -195,7 +181,7 @@ export function NetworkInventory({
                   />
                   Archive label
                 </label>
-              </ActionForm>
+              </ActionFormDialog>
               <ActionButton
                 confirm="Erase this endpoint? Continued collection can rediscover it."
                 action={async () => {
@@ -211,5 +197,34 @@ export function NetworkInventory({
       ))}
       <PageControls label="Observed devices" page={page} />
     </Card>
+  );
+}
+
+function ObservedSpans({ path }: { path: string }) {
+  const [open, setOpen] = useState(false);
+  const page = usePage<NetworkView["presenceHistory"][number]>(
+    open ? path : null,
+  );
+  return (
+    <details
+      className="mt-3"
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary>Observed spans</summary>
+      <p>Cached sightings reflect observations and leave gaps unknown.</p>
+      <ErrorNotice error={page.error} />
+      {page.loading && <Loading />}
+      {page.data?.length === 0 && <p>No observed spans yet.</p>}
+      <ul>
+        {page.data?.map((item) => (
+          <li key={item.id}>
+            {item.address} · {item.evidence} ·{" "}
+            {formatTime(item.firstObservedAt)} to{" "}
+            {formatTime(item.lastObservedAt)} · collector {item.agentId}
+          </li>
+        ))}
+      </ul>
+      <PageControls label="Observed spans" page={page} />
+    </details>
   );
 }

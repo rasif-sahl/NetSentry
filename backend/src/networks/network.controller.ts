@@ -1,5 +1,5 @@
 import { IsIn, IsOptional } from 'class-validator';
-import { SearchPageQuery } from '../common/pagination';
+import { PageQuery, SearchPageQuery } from '../common/pagination';
 import {
   Body,
   Controller,
@@ -69,6 +69,23 @@ export class NetworkController {
       query,
       query.archived === 'true',
     );
+  }
+  @Get(':networkId/events/page') eventPage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Param('networkId', ParseUUIDPipe) id: string,
+    @Query() query: PageQuery,
+  ) {
+    return this.networks.eventPage(u.userId, w, id, query);
+  }
+  @Get(':networkId/devices/:endpointId/presence/page') presencePage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Param('networkId', ParseUUIDPipe) id: string,
+    @Param('endpointId', ParseUUIDPipe) endpointId: string,
+    @Query() query: PageQuery,
+  ) {
+    return this.networks.presencePage(u.userId, w, id, endpointId, query);
   }
   @Post() create(
     @CurrentUser() u: RequestUser,

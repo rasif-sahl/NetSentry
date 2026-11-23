@@ -1,4 +1,7 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
+import { usePage } from "@/shared/use-page";
+import { PageControls } from "@/shared/ui/page-controls";
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { api } from "@/shared/api";
@@ -155,7 +158,7 @@ function ComputerPanel({
   refresh: () => void;
 }) {
   const base = `${path}/agents/${c.id}`;
-  const history = useResource<Command[]>(`${base}/commands`);
+  const history = usePage<Command>(`${base}/commands/page`);
   const [selected, setSelected] = useState<{
     target: Service;
     mode: "graceful" | "force";
@@ -195,7 +198,8 @@ function ComputerPanel({
       {c.canManage && permissions.includes("services:control") && (
         <details>
           <summary>Sharing and controller grants</summary>
-          <ActionForm
+          <ActionFormDialog
+            label="Edit sharing and controller grants"
             key={`${c.sharingAllowed}/${c.controllers.join()}`}
             submit="Save developer sharing policy"
             action={async (form) => {
@@ -244,7 +248,7 @@ function ComputerPanel({
             <Field label="I accept developer-sharing-v1">
               <input type="checkbox" name="accepted" required />
             </Field>
-          </ActionForm>
+          </ActionFormDialog>
         </details>
       )}
       {!c.services.length && (
@@ -352,6 +356,7 @@ function ComputerPanel({
                   mode: selected.mode,
                   includeChildren: form.get("children") === "on",
                 });
+                history.reset();
                 history.reload();
                 return `Command ${result.state}. Refresh command history for the agent-confirmed outcome; do not assume shutdown.`;
               }}
@@ -381,6 +386,7 @@ function ComputerPanel({
         Refresh commands
       </button>
       <ErrorNotice error={history.error} />
+      {history.loading && <Loading />}
       {history.data?.length === 0 && <p>No remote commands yet.</p>}
       <ul className="item-list">
         {history.data?.map((command) => (
@@ -427,6 +433,7 @@ function ComputerPanel({
           </li>
         ))}
       </ul>
+      <PageControls label={`${c.name} command history`} page={history} />
     </article>
   );
 }

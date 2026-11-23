@@ -1,3 +1,4 @@
+import { PageQuery, selectPage } from '../common/pagination';
 import {
   BadRequestException,
   ConflictException,
@@ -320,7 +321,7 @@ export class DeveloperService {
       return publicCommand(c);
     });
   }
-  async commands(userId: string, wid: string, id: string) {
+  async commands(userId: string, wid: string, id: string, query?: PageQuery) {
     return this.source.transaction(async (m) => {
       await workspacePolicy(
         m,
@@ -335,12 +336,23 @@ export class DeveloperService {
         a,
         await m.findOneBy(AgentDeveloper, { agentId: id }),
       );
-      const commands = await m.find(DeveloperCommand, {
-        where: { agentId: id },
-        order: { requestedAt: 'DESC' },
-        take: 25,
-      });
-      if (!commands.length) return [];
+      const page = query
+        ? await selectPage(
+            m
+              .createQueryBuilder(DeveloperCommand, 'c')
+              .where('c."agentId" = :id', { id }),
+            query,
+            { timestamp: 'requestedAt' },
+          )
+        : undefined;
+      const commands =
+        page?.items ??
+        (await m.find(DeveloperCommand, {
+          where: { agentId: id },
+          order: { requestedAt: 'DESC', id: 'DESC' },
+          take: 25,
+        }));
+      if (!commands.length) return page ?? [];
       const audits: DeveloperAudit[] = await m.query(
         `SELECT audit.*
          FROM unnest($1::uuid[]) AS command(id)
@@ -360,10 +372,11 @@ export class DeveloperService {
         if (history) history.push(audit);
         else auditsByCommand.set(audit.commandId, [audit]);
       }
-      return commands.map((command) => ({
+      const items = commands.map((command) => ({
         ...publicCommand(command),
         audit: auditsByCommand.get(command.id) ?? [],
       }));
+      return page ? { ...page, items } : items;
     });
   }
   async cancel(userId: string, wid: string, id: string, commandId: string) {
