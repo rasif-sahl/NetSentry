@@ -115,10 +115,18 @@ test("device inventory uses reported health and capability states", async ({
     exact: true,
   });
   await expect(details).toBeVisible();
-  await expect(page.locator(".button-row").filter({ has: details })).toHaveCSS(
-    "justify-content",
-    "flex-end",
-  );
+  await expect
+    .poll(() =>
+      details.evaluate((button) => {
+        const row = button.closest(".button-row");
+        if (!row) return Infinity;
+        return Math.abs(
+          row.getBoundingClientRect().right -
+            button.getBoundingClientRect().right,
+        );
+      }),
+    )
+    .toBeLessThanOrEqual(1);
   await details.press("Enter");
   await expect(page).toHaveURL(/\/app\/devices$/);
   await expect(
