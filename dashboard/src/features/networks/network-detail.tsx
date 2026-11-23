@@ -11,6 +11,7 @@ import {
   Settings,
 } from "lucide-react";
 import { workspaceHref } from "@/features/workspace/routes";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { PageContext } from "@/features/workspace/types";
@@ -166,38 +167,44 @@ export function NetworkDetail({
                 ))}
               </ul>
               {manage && (
-                <details className="mt-4 border-t border-border pt-3">
-                  <summary className="button primary ms-auto flex! w-fit list-none [&::-webkit-details-marker]:hidden">
-                    <Plus size={16} aria-hidden="true" />
-                    Assign collector
-                  </summary>
-                  <ErrorNotice error={agents.error} />
-                  <ActionForm
-                    className="mt-4"
+                <div className="mt-4 flex flex-wrap justify-end border-t border-border pt-3">
+                  <ActionFormDialog
+                    label="Assign collector"
                     submit="Save collector assignment"
-                    action={async (f) => {
+                    icon={<Plus size={16} aria-hidden="true" />}
+                    primary
+                    action={async (form) => {
                       await api(`${path}/collectors`, "POST", {
-                        agentId: text(f, "agentId"),
+                        agentId: text(form, "agentId"),
                         enabled: true,
                         ...networkConsent,
                       });
                       resource.reload();
-                      return "Grant saved. Enter this network ID in the desktop Network sharing controls and accept local consent.";
+                      return "Collector assigned. Enter this network ID in the desktop Network sharing controls and accept local consent.";
                     }}
                   >
+                    <ErrorNotice error={agents.error} />
                     <Field label="Network-enabled agent (owner or admin)">
                       <select name="agentId" required>
                         <option value="">Choose an agent</option>
-                        {eligible.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.name}
+                        {eligible.map((agent) => (
+                          <option key={agent.id} value={agent.id}>
+                            {agent.name}
                           </option>
                         ))}
                       </select>
                     </Field>
+                    {!agents.loading &&
+                      !agents.error &&
+                      eligible.length === 0 && (
+                        <p className="text-sm text-text-secondary">
+                          Pair a computer and enable Network Monitoring to add
+                          an agent here.
+                        </p>
+                      )}
                     <NetworkConsent />
-                  </ActionForm>
-                </details>
+                  </ActionFormDialog>
+                </div>
               )}
             </Card>
             <NetworkInventory
@@ -345,65 +352,62 @@ export function NetworkDetail({
                   ))}
                 </ul>
                 {manage && (
-                  <details>
-                    <summary>Record compatibility feedback</summary>
-                    <ActionForm
-                      submit="Save compatibility record"
-                      reset
-                      action={async (f) => {
-                        await api(`${path}/compatibility`, "POST", {
-                          manufacturer: text(f, "manufacturer"),
-                          model: text(f, "model"),
-                          firmware: text(f, "firmware"),
-                          adapter: "openwrt-ubus-v1",
-                          features: f.getAll("features"),
-                          limitations: text(f, "limitations"),
-                          feedback: text(f, "feedback"),
-                          evidence: text(f, "evidence"),
-                          testedAt: new Date(
-                            String(f.get("testedAt")),
-                          ).toISOString(),
-                        });
-                        resource.reload();
-                        return "Evidence recorded without changing collector authorization.";
-                      }}
-                    >
-                      {["manufacturer", "model", "firmware"].map((n) => (
-                        <Field key={n} label={n}>
-                          <input name={n} required maxLength={100} />
-                        </Field>
-                      ))}
-                      <Field label="Evidence">
-                        <select name="evidence">
-                          <option value="operator_reported">
-                            Operator reported
-                          </option>
-                          <option value="fixture_only">
-                            Synthetic fixture only
-                          </option>
-                        </select>
+                  <ActionFormDialog
+                    label="Record compatibility feedback"
+                    submit="Save compatibility record"
+                    action={async (f) => {
+                      await api(`${path}/compatibility`, "POST", {
+                        manufacturer: text(f, "manufacturer"),
+                        model: text(f, "model"),
+                        firmware: text(f, "firmware"),
+                        adapter: "openwrt-ubus-v1",
+                        features: f.getAll("features"),
+                        limitations: text(f, "limitations"),
+                        feedback: text(f, "feedback"),
+                        evidence: text(f, "evidence"),
+                        testedAt: new Date(
+                          String(f.get("testedAt")),
+                        ).toISOString(),
+                      });
+                      resource.reload();
+                      return "Evidence recorded without changing collector authorization.";
+                    }}
+                  >
+                    {["manufacturer", "model", "firmware"].map((n) => (
+                      <Field key={n} label={n}>
+                        <input name={n} required maxLength={100} />
                       </Field>
-                      <Field label="Test date">
-                        <input name="testedAt" type="datetime-local" required />
-                      </Field>
-                      {[
-                        "wan_interface_health",
-                        "wan_counters",
-                        "optional_board_metadata",
-                      ].map((f) => (
-                        <label className="check" key={f}>
-                          <input type="checkbox" name="features" value={f} />
-                          {f.replaceAll("_", " ")}
-                        </label>
-                      ))}
-                      <Field label="Limitations">
-                        <textarea name="limitations" maxLength={1000} />
-                      </Field>
-                      <Field label="Feedback">
-                        <textarea name="feedback" maxLength={1000} />
-                      </Field>
-                    </ActionForm>
-                  </details>
+                    ))}
+                    <Field label="Evidence">
+                      <select name="evidence">
+                        <option value="operator_reported">
+                          Operator reported
+                        </option>
+                        <option value="fixture_only">
+                          Synthetic fixture only
+                        </option>
+                      </select>
+                    </Field>
+                    <Field label="Test date">
+                      <input name="testedAt" type="datetime-local" required />
+                    </Field>
+                    {[
+                      "wan_interface_health",
+                      "wan_counters",
+                      "optional_board_metadata",
+                    ].map((f) => (
+                      <label className="check" key={f}>
+                        <input type="checkbox" name="features" value={f} />
+                        {f.replaceAll("_", " ")}
+                      </label>
+                    ))}
+                    <Field label="Limitations">
+                      <textarea name="limitations" maxLength={1000} />
+                    </Field>
+                    <Field label="Feedback">
+                      <textarea name="feedback" maxLength={1000} />
+                    </Field>
+                  </ActionFormDialog>
                 )}
               </details>
               <details>

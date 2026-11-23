@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { Alert, AlertRule, UsageNetwork } from "@/shared/types";
@@ -97,12 +98,11 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
     tab === "rules" ? `${base}/networks` : null,
   );
   const [editing, setEditing] = useState<AlertRule>();
-  const [creating, setCreating] = useState(false);
   const [saved, setSaved] = useState(false);
   const editor = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (creating || editing) editor.current?.focus();
-  }, [creating, editing]);
+    if (editing) editor.current?.focus();
+  }, [editing]);
   function reload() {
     rules.reload();
     alerts.reload();
@@ -168,38 +168,27 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
               pass.
             </Notice>
           )}
-          {!editing && !creating && (
+          {!editing ? (
             <div className="button-row align-end workflow-actions">
-              <button
-                type="button"
-                className="button primary"
-                onClick={() => {
-                  setSaved(false);
-                  setCreating(true);
+              <RuleEditor
+                context={context}
+                networks={networks.data ?? []}
+                saved={() => {
+                  setSaved(true);
+                  reload();
                 }}
-              >
-                Create rule
-              </button>
+              />
             </div>
-          )}
-          {(editing || creating) && (
+          ) : (
             <div ref={editor} tabIndex={-1}>
-              <Card
-                title={editing ? "Edit alert rule" : "Create an alert rule"}
-              >
-                {!devices.length && (
-                  <Notice>
-                    Register a supported device to create device-specific rules.
-                  </Notice>
-                )}
+              <Card title="Edit alert rule">
                 <RuleEditor
-                  key={editing?.id ?? "new"}
+                  key={editing.id}
                   context={context}
                   networks={networks.data ?? []}
                   initial={editing}
                   saved={() => {
                     setEditing(undefined);
-                    setCreating(false);
                     setSaved(true);
                     reload();
                   }}
@@ -208,12 +197,9 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
                   <button
                     type="button"
                     className="button accent"
-                    onClick={() => {
-                      setEditing(undefined);
-                      setCreating(false);
-                    }}
+                    onClick={() => setEditing(undefined)}
                   >
-                    {editing ? "Cancel editing" : "Cancel creation"}
+                    Cancel editing
                   </button>
                 </div>
               </Card>
@@ -250,7 +236,6 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
                       className="button"
                       onClick={() => {
                         setSaved(false);
-                        setCreating(false);
                         setEditing(rule);
                       }}
                     >
@@ -387,8 +372,21 @@ function RuleEditor({
     : context.devices.filter(
         (device) => device.registeredById === context.user.id,
       );
+  const Form = initial ? ActionForm : ActionFormDialog;
+  const dialog = initial
+    ? {}
+    : {
+        label: "Create rule",
+        primary: true,
+        onClose: () => {
+          setKind("threshold");
+          setMetric("mobile_data_bytes");
+          setQuiet(false);
+        },
+      };
   return (
-    <ActionForm
+    <Form
+      {...dialog}
       submit={initial ? "Update alert rule" : "Create alert rule"}
       action={async (form) => {
         const input = {
@@ -432,9 +430,13 @@ function RuleEditor({
           input,
         );
         saved();
-        return "Rule saved. It will be checked by the next monitoring maintenance pass.";
       }}
     >
+      {!context.devices.length && (
+        <Notice>
+          Register a supported device to create device-specific rules.
+        </Notice>
+      )}
       <div className="field-row">
         <Field label="Rule type">
           <select
@@ -637,6 +639,6 @@ function RuleEditor({
           this rule’s previous alert and delivery history.
         </label>
       )}
-    </ActionForm>
+    </Form>
   );
 }

@@ -300,10 +300,23 @@ test("manual network labels are explicit and editable", async ({ page }) => {
   await expect(
     page.getByRole("listitem").getByText("Fixture home label", { exact: true }),
   ).toBeVisible();
-  await page.getByLabel("Network label name").fill("Browser fixture label");
-  await page
+  const addLabel = page.getByRole("button", {
+    name: "Create network label",
+    exact: true,
+  });
+  await addLabel.click();
+  const labelDialog = page.getByRole("dialog", {
+    name: "Create network label",
+    exact: true,
+  });
+  await labelDialog
+    .getByLabel("Network label name")
+    .fill("Browser fixture label");
+  await labelDialog
     .getByRole("button", { name: "Create network label", exact: true })
     .click();
+  await expect(labelDialog).toBeHidden();
+  await expect(addLabel).toBeFocused();
   await expect(
     page
       .getByRole("listitem")
@@ -348,6 +361,9 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     page.getByRole("heading", { name: "Create an alert rule" }),
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Create rule", exact: true }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Create rule", exact: true }),
+  ).toBeVisible();
   await page.getByLabel("Rule device").selectOption(data.deviceId);
   await expect(page.getByLabel("Threshold data quality")).toHaveValue(
     "measured",
@@ -476,11 +492,26 @@ test("team invitations bind a recipient and management changes take effect", asy
   await expect(
     page.getByRole("heading", { name: "Workspace members", exact: true }),
   ).toBeVisible();
-  await page.getByLabel("Recipient email").fill(data.accounts.recovery.email);
-  await page.getByLabel("Invitation role").selectOption("MEMBER");
-  await page
+  const createInvitation = page.getByRole("button", {
+    name: "Create invitation",
+    exact: true,
+  });
+  await createInvitation.click();
+  const createInvitationDialog = page.getByRole("dialog", {
+    name: "Create invitation",
+    exact: true,
+  });
+  await createInvitationDialog
+    .getByLabel("Recipient email")
+    .fill(data.accounts.recovery.email);
+  await createInvitationDialog
+    .getByLabel("Invitation role")
+    .selectOption("MEMBER");
+  await createInvitationDialog
     .getByRole("button", { name: "Create invitation", exact: true })
     .click();
+  await expect(createInvitationDialog).toBeHidden();
+  await expect(createInvitation).toBeFocused();
   const token = await page.getByTestId("invitation-token").innerText();
   await page.getByRole("button", { name: "Hide token", exact: true }).click();
   await expect(page.getByTestId("invitation-token")).toHaveCount(0);
@@ -588,7 +619,9 @@ test("a verified user can create and switch to a new workspace", async ({
   const titleBounds = (await workspaceTitle.boundingBox())!;
   const createBounds = (await createTrigger.boundingBox())!;
   const acceptBounds = (await acceptTrigger.boundingBox())!;
-  expect(createBounds.x).toBeGreaterThanOrEqual(titleBounds.x + titleBounds.width);
+  expect(createBounds.x).toBeGreaterThanOrEqual(
+    titleBounds.x + titleBounds.width,
+  );
   expect(acceptBounds.x).toBeGreaterThan(createBounds.x);
   expect(createBounds.y).toBe(acceptBounds.y);
   expect(titleBounds.y + titleBounds.height / 2).toBeCloseTo(
@@ -1571,10 +1604,20 @@ test("monitored networks can be added in a dialog and opened at a dedicated URL"
     .fill("Browser network");
   await dialog
     .getByLabel("Private IPv4 subnets", { exact: true })
-    .fill("192.168.52.0/24");
+    .fill("192.168.52.0/31");
+  const submitNetwork = dialog.getByRole("button", {
+    name: "Add network",
+    exact: true,
+  });
+  await submitNetwork.click();
+  await expect(dialog.getByRole("alert")).toContainText("RFC1918");
+  await expect(dialog.getByLabel("Network name", { exact: true })).toHaveValue(
+    "Browser network",
+  );
   await dialog
-    .getByRole("button", { name: "Add network", exact: true })
-    .click();
+    .getByLabel("Private IPv4 subnets", { exact: true })
+    .fill("192.168.52.0/24");
+  await submitNetwork.click();
   await expect(dialog).toBeHidden();
   const table = page.getByRole("table", { name: "Monitored networks" });
   const row = table.getByRole("row").filter({ hasText: "Browser network" });
@@ -1623,12 +1666,36 @@ test("monitored networks can be added in a dialog and opened at a dedicated URL"
     (await collector.boundingBox())!.y,
     0,
   );
-  await page.getByText("Assign collector", { exact: true }).click();
+  await page.setViewportSize({ width: 320, height: 760 });
+  const assign = page.getByRole("button", {
+    name: "Assign collector",
+    exact: true,
+  });
+  const assignment = page.getByRole("dialog", {
+    name: "Assign collector",
+    exact: true,
+  });
+  const agent = assignment.getByLabel("Network-enabled agent (owner or admin)");
+  await assign.click();
+  await expect(agent).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(assignment).toBeHidden();
+  await expect(assign).toBeFocused();
+  await assign.click();
+  await agent.selectOption({ label: "Synthetic network collector" });
+  await assignment.getByRole("checkbox").check();
+  await assignment
+    .getByRole("button", { name: "Save collector assignment", exact: true })
+    .click();
+  await expect(assignment).toBeHidden();
+  await expect(assign).toBeFocused();
   await expect(
-    page.getByRole("button", {
-      name: "Save collector assignment",
-      exact: true,
-    }),
+    page.getByRole("status").filter({ hasText: "Collector assigned." }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("listitem")
+      .filter({ hasText: "Synthetic network collector" }),
   ).toBeVisible();
   await page.getByText("Network settings", { exact: true }).click();
   await expect(
@@ -1666,13 +1733,21 @@ test("child time requests require an assigned guardian decision and never claim 
   await expect(
     page.getByRole("button", { name: "Save requested policy", exact: true }),
   ).toHaveCount(0);
-  await page.getByLabel("Requested minutes", { exact: true }).fill("20");
-  await page
-    .getByLabel("Reason for time request", { exact: true })
-    .fill("Browser fixture homework");
   await page
     .getByRole("button", { name: "Request more time", exact: true })
     .click();
+  const timeRequest = page.getByRole("dialog", {
+    name: "Request more time",
+    exact: true,
+  });
+  await timeRequest.getByLabel("Requested minutes", { exact: true }).fill("20");
+  await timeRequest
+    .getByLabel("Reason for time request", { exact: true })
+    .fill("Browser fixture homework");
+  await timeRequest
+    .getByRole("button", { name: "Request more time", exact: true })
+    .click();
+  await expect(timeRequest).toBeHidden();
   await expect(
     page.getByText("Request recorded for an authorized guardian.", {
       exact: true,
@@ -1756,8 +1831,18 @@ test("Business roles review organization structure and employees explicitly acce
   await expect(
     page.locator("strong").filter({ hasText: /^Fixture office$/ }),
   ).toBeVisible();
-  await page.getByLabel("New location name").fill("Browser Business location");
   await page.getByRole("button", { name: "Add location", exact: true }).click();
+  const locationDialog = page.getByRole("dialog", {
+    name: "Add location",
+    exact: true,
+  });
+  await locationDialog
+    .getByLabel("New location name")
+    .fill("Browser Business location");
+  await locationDialog
+    .getByRole("button", { name: "Add location", exact: true })
+    .click();
+  await expect(locationDialog).toBeHidden();
   await expect(
     page.locator("strong").filter({ hasText: /^Browser Business location$/ }),
   ).toBeVisible();
@@ -1770,14 +1855,25 @@ test("Business roles review organization structure and employees explicitly acce
       .filter({ hasText: /^Synthetic office printer$/ }),
   });
   await observed
-    .getByLabel("Department", { exact: true })
-    .selectOption(data.business.departmentId);
-  await observed
     .getByRole("button", {
       name: "Assign network device department",
       exact: true,
     })
     .click();
+  const departmentDialog = page.getByRole("dialog", {
+    name: "Assign network device department",
+    exact: true,
+  });
+  await departmentDialog
+    .getByLabel("Department", { exact: true })
+    .selectOption(data.business.departmentId);
+  await departmentDialog
+    .getByRole("button", {
+      name: "Assign network device department",
+      exact: true,
+    })
+    .click();
+  await expect(departmentDialog).toBeHidden();
   await expect(
     observed.getByText(/Synthetic business LAN · Fixture engineering/),
   ).toBeVisible();
@@ -1879,6 +1975,14 @@ test("sandbox billing is owner-only and operator flags require separate authorit
   await page
     .getByRole("button", { name: "Prepare sandbox plan change", exact: true })
     .click();
+  const planChange = page.getByRole("dialog", {
+    name: "Prepare sandbox plan change",
+    exact: true,
+  });
+  await planChange
+    .getByRole("button", { name: "Prepare sandbox plan change", exact: true })
+    .click();
+  await expect(planChange).toBeHidden();
   page.once("dialog", (d) => d.accept());
   await page
     .getByRole("button", { name: "Simulate sandbox payment", exact: true })

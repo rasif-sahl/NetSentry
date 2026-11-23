@@ -1,4 +1,5 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import {
@@ -234,9 +235,10 @@ export function OperationsPanel({ tab }: { tab: string }) {
                 adapter, certify hardware or change application classification
                 automatically. Do not include secrets.
               </p>
-              <ActionForm
+              <ActionFormDialog
+                label="Add compatibility evidence"
                 submit="Save compatibility evidence"
-                reset
+                primary
                 action={async (f) => {
                   const key = text(f, "key");
                   await mutate("/compatibility", {
@@ -250,6 +252,7 @@ export function OperationsPanel({ tab }: { tab: string }) {
                       0,
                     password: String(f.get("password") ?? ""),
                   });
+                  return "Compatibility evidence saved.";
                 }}
               >
                 <Field label="Compatibility key">
@@ -282,7 +285,7 @@ export function OperationsPanel({ tab }: { tab: string }) {
                   <input name="evidence" required maxLength={500} />
                 </Field>
                 <Password />
-              </ActionForm>
+              </ActionFormDialog>
             </Card>
           )}
           <Card title="Compatibility evidence">

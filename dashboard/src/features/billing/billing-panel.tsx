@@ -1,11 +1,11 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { useState } from "react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Field,
   Notice,
@@ -168,9 +168,9 @@ export function BillingPanel({
                 </div>
                 {current.mode === "sandbox" && (
                   <>
-                    <ActionForm
-                      key={current.revision}
+                    <ActionFormDialog
                       submit="Prepare sandbox plan change"
+                      primary
                       action={async (f) => {
                         const id = crypto.randomUUID();
                         await action("/checkout", {
@@ -210,7 +210,7 @@ export function BillingPanel({
                           </select>
                         </Field>
                       </div>
-                    </ActionForm>
+                    </ActionFormDialog>
                     <div className="button-row align-end">
                       {requestId && (
                         <ActionButton

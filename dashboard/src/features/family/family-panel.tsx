@@ -125,8 +125,7 @@ export function FamilyPanel(context: PageContext & { tab: string }) {
               Child accounts use the Member role.
             </p>
             {family.data?.canCreate && (
-              <details>
-                <summary>Create a child profile</summary>
+              <div className="button-row align-end">
                 <ProfileForm
                   members={members.data ?? []}
                   networks={networks.data ?? []}
@@ -140,7 +139,7 @@ export function FamilyPanel(context: PageContext & { tab: string }) {
                     setSelected(p.id);
                   }}
                 />
-              </details>
+              </div>
             )}
             <ErrorNotice error={members.error} />
             <ErrorNotice error={networks.error} />

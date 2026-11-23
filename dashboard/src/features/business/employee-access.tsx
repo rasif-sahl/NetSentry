@@ -1,4 +1,5 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import {
   ActionButton,
   ActionForm,
@@ -83,9 +84,9 @@ export function EmployeeAccess({
           </div>
         ))}
         {can("members:manage") && (
-          <ActionForm
-            reset
+          <ActionFormDialog
             submit="Enrol employee"
+            primary
             action={async (f) => {
               await mutate("/employees", "POST", {
                 userId: text(f, "member"),
@@ -93,6 +94,7 @@ export function EmployeeAccess({
                   ? { departmentId: text(f, "department") }
                   : {}),
               });
+              return "Employee enrolled.";
             }}
           >
             <Field label="Organization member">
@@ -108,7 +110,7 @@ export function EmployeeAccess({
               </select>
             </Field>
             <DepartmentField departments={options?.departments ?? []} />
-          </ActionForm>
+          </ActionFormDialog>
         )}
       </Card>
       <Card title="Device assignment and employee sharing">
@@ -137,8 +139,7 @@ export function EmployeeAccess({
                   : "Sharing unavailable or awaiting acceptance"}
               </p>
               {can("devices:manage") && (
-                <ActionForm
-                  key={a?.revision ?? 0}
+                <ActionFormDialog
                   submit="Assign employee device"
                   action={async (f) => {
                     await mutate(`/devices/${d.id}/assignment`, "POST", {
@@ -166,7 +167,7 @@ export function EmployeeAccess({
                         ))}
                     </select>
                   </Field>
-                </ActionForm>
+                </ActionFormDialog>
               )}
               {a && e?.userId === userId && d.state === "ACTIVE" && (
                 <ActionButton

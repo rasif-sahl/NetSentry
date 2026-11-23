@@ -1,4 +1,5 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { NetworkMonitoring } from "./network-monitoring";
 import { NetworkDetail } from "./network-detail";
 import { api } from "@/shared/api";
@@ -6,7 +7,6 @@ import { useResource } from "@/shared/use-resource";
 import type { UsageNetwork } from "@/shared/types";
 import type { PageContext } from "@/features/workspace/types";
 import {
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
@@ -64,9 +64,9 @@ export function NetworksPanel({
               networks.data && <Empty title="No network labels yet" />
             )}
             {permissions.includes("networks:manage") && (
-              <ActionForm
+              <ActionFormDialog
                 submit="Create network label"
-                reset
+                primary
                 action={async (form) => {
                   await api(`${path}/networks`, "POST", {
                     name: text(form, "name"),
@@ -78,7 +78,7 @@ export function NetworksPanel({
                 <Field label="Network label name">
                   <input name="name" required maxLength={100} />
                 </Field>
-              </ActionForm>
+              </ActionFormDialog>
             )}
           </Card>
           {permissions.includes("devices:register") && (
@@ -86,7 +86,8 @@ export function NetworksPanel({
               {!ownDevices.length || !networks.data?.length ? (
                 <Empty title="A paired device and network label are needed" />
               ) : (
-                <ActionForm
+                <ActionFormDialog
+                  label="Assign network label"
                   submit="Assign label and pause monitoring"
                   action={async (form) => {
                     await api(`${path}/network-assignment`, "POST", {
@@ -119,7 +120,7 @@ export function NetworksPanel({
                     <input type="checkbox" required />I understand this pauses
                     monitoring and requires renewed consent.
                   </label>
-                </ActionForm>
+                </ActionFormDialog>
               )}
             </Card>
           )}

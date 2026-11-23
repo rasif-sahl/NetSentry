@@ -1,4 +1,5 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import {
   ActionForm,
   Card,
@@ -48,20 +49,21 @@ export function BusinessStructure({
           </div>
         ))}
         {can("networks:manage") && (
-          <ActionForm
-            reset
+          <ActionFormDialog
             submit="Add location"
+            primary
             action={async (f) => {
               await mutate("/locations", "POST", {
                 name: text(f, "name"),
                 expectedRevision: 0,
               });
+              return "Location added.";
             }}
           >
             <Field label="New location name">
               <input name="name" required maxLength={100} />
             </Field>
-          </ActionForm>
+          </ActionFormDialog>
         )}
         {data.networks.map((n) => (
           <div key={n.id} className="row">
@@ -74,12 +76,13 @@ export function BusinessStructure({
               reachability remains unverified.
             </p>
             {can("networks:manage") && (
-              <ActionForm
+              <ActionFormDialog
                 submit="Assign network location"
                 action={async (f) => {
                   await mutate(`/networks/${n.id}/location`, "PATCH", {
                     locationId: text(f, "location"),
                   });
+                  return "Network location saved.";
                 }}
               >
                 <Field label={`Location for ${n.name}`}>
@@ -98,7 +101,7 @@ export function BusinessStructure({
                     ))}
                   </select>
                 </Field>
-              </ActionForm>
+              </ActionFormDialog>
             )}
           </div>
         ))}
@@ -141,22 +144,23 @@ export function BusinessStructure({
           </div>
         ))}
         {can("members:manage") && (
-          <ActionForm
-            reset
+          <ActionFormDialog
             submit="Add department"
+            primary
             action={async (f) => {
               await mutate("/departments", "POST", {
                 name: text(f, "name"),
                 locationId: text(f, "location"),
                 expectedRevision: 0,
               });
+              return "Department added.";
             }}
           >
             <Field label="New department name">
               <input name="name" required maxLength={100} />
             </Field>
             <LocationField locations={options?.locations ?? []} />
-          </ActionForm>
+          </ActionFormDialog>
         )}
       </Card>
       {can("networks:read") && (
@@ -184,8 +188,7 @@ export function BusinessStructure({
                   ?.name ?? "No department assigned"}
               </p>
               {can("networks:manage") && (
-                <ActionForm
-                  key={e.revision}
+                <ActionFormDialog
                   submit="Assign network device department"
                   action={async (f) => {
                     await mutate(`/endpoints/${e.id}/department`, "PATCH", {
@@ -194,13 +197,14 @@ export function BusinessStructure({
                         ? { departmentId: text(f, "department") }
                         : {}),
                     });
+                    return "Device department saved.";
                   }}
                 >
                   <DepartmentField
                     departments={options?.departments ?? []}
                     value={e.departmentId ?? ""}
                   />
-                </ActionForm>
+                </ActionFormDialog>
               )}
             </div>
           ))}

@@ -1,4 +1,5 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { useState } from "react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
@@ -214,7 +215,8 @@ function Organization({
                     {a.severity} · {formatTime(a.occurredAt)} ·{" "}
                     {a.resolvedAt ? "Resolved" : "Open"}
                   </p>
-                  <ActionForm
+                  <ActionFormDialog
+                    label="Assign alert owner"
                     submit="Save alert assignment"
                     action={async (f) => {
                       await mutate(`/alerts/${a.id}`, "PATCH", {
@@ -224,6 +226,7 @@ function Organization({
                           : {}),
                         resolved: f.has("resolved"),
                       });
+                      return "Alert assignment saved.";
                     }}
                   >
                     <Field label={`Handler for ${a.networkName}`}>
@@ -250,7 +253,7 @@ function Organization({
                       />{" "}
                       Mark resolved
                     </label>
-                  </ActionForm>
+                  </ActionFormDialog>
                 </div>
               ))}
             </Card>

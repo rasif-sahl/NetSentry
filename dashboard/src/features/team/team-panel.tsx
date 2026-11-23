@@ -1,4 +1,5 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { useState } from "react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
@@ -151,9 +152,9 @@ export function TeamPanel({
                 expire after seven days. Share the token yourself; no invitation
                 message is sent here.
               </p>
-              <ActionForm
+              <ActionFormDialog
                 submit="Create invitation"
-                reset
+                primary
                 action={async (form) => {
                   setIssued(
                     await api(`${base}/invitations`, "POST", {
@@ -177,7 +178,7 @@ export function TeamPanel({
                     ))}
                   </select>
                 </Field>
-              </ActionForm>
+              </ActionFormDialog>
               {issued && (
                 <Notice>
                   <strong>Invitation for {issued.invitation.email}</strong>

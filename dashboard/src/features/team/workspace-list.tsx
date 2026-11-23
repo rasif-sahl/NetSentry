@@ -1,8 +1,8 @@
-import { useId, useRef, useState, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
+import { useState } from "react";
 import { api } from "@/shared/api";
 import type { Workspace } from "@/shared/types";
-import { ActionForm, Card, Empty, Field, Notice, text } from "@/shared/ui/common";
+import { Card, Empty, Field, Notice, text } from "@/shared/ui/common";
 
 export function WorkspaceList({
   workspaces,
@@ -25,8 +25,8 @@ export function WorkspaceList({
       className="mb-4 @container"
       headingAction={
         <div className="flex flex-wrap justify-end gap-2 @max-lg:col-span-2">
-          <WorkspaceAction
-            label="Create workspace"
+          <ActionFormDialog
+            submit="Create workspace"
             primary
             action={async (form) => {
               setNotice("");
@@ -55,9 +55,9 @@ export function WorkspaceList({
                 defaultValue={Intl.DateTimeFormat().resolvedOptions().timeZone}
               />
             </Field>
-          </WorkspaceAction>
-          <WorkspaceAction
-            label="Accept invitation"
+          </ActionFormDialog>
+          <ActionFormDialog
+            submit="Accept invitation"
             action={async (form) => {
               setNotice("");
               await api("/workspaces/invitations/accept", "POST", {
@@ -75,7 +75,7 @@ export function WorkspaceList({
                 autoComplete="off"
               />
             </Field>
-          </WorkspaceAction>
+          </ActionFormDialog>
         </div>
       }
     >
@@ -137,82 +137,5 @@ export function WorkspaceList({
         </ul>
       )}
     </Card>
-  );
-}
-
-function WorkspaceAction({
-  label,
-  primary = false,
-  action,
-  children,
-}: {
-  label: string;
-  primary?: boolean;
-  action: (form: FormData) => Promise<void>;
-  children: ReactNode;
-}) {
-  const trigger = useRef<HTMLButtonElement>(null);
-  const dialog = useRef<HTMLDialogElement>(null);
-  const titleId = useId();
-  const [saving, setSaving] = useState(false);
-  const [formVersion, setFormVersion] = useState(0);
-
-  return (
-    <>
-      <button
-        ref={trigger}
-        type="button"
-        aria-haspopup="dialog"
-        className={primary ? "button primary" : "button accent"}
-        onClick={() => {
-          dialog.current?.showModal();
-          dialog.current?.querySelector("input")?.focus();
-        }}
-      >
-        {label}
-      </button>
-      <dialog
-        ref={dialog}
-        aria-labelledby={titleId}
-        onCancel={(event) => {
-          if (saving) event.preventDefault();
-        }}
-        onClose={() => {
-          setFormVersion((version) => version + 1);
-          trigger.current?.focus();
-        }}
-        className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-md overflow-auto rounded-2xl border border-border bg-surface p-4 text-text shadow-xl backdrop:bg-black/45 sm:p-6"
-      >
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 id={titleId} className="mb-0">
-            {label}
-          </h2>
-          <button
-            type="button"
-            className="icon-button shrink-0"
-            aria-label="Close dialog"
-            disabled={saving}
-            onClick={() => dialog.current?.close()}
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
-        </div>
-        <ActionForm
-          key={formVersion}
-          submit={label}
-          action={async (form) => {
-            setSaving(true);
-            try {
-              await action(form);
-              dialog.current?.close();
-            } finally {
-              setSaving(false);
-            }
-          }}
-        >
-          {children}
-        </ActionForm>
-      </dialog>
-    </>
   );
 }
