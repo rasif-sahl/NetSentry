@@ -152,7 +152,6 @@ const icons = {
 
 const deviceSections: ReadonlySet<WorkspaceSection> = new Set([
   "Overview",
-  "Devices",
   "Usage & reports",
   "Alerts",
   "Networks",

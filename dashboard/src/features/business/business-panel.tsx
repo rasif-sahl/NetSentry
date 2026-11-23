@@ -54,10 +54,13 @@ function Organization({
 }: BusinessPage) {
   const base = `/workspaces/${workspace.id}/business`;
   const view = useResource<Overview>(
-    base + (location ? `?locationId=${location}` : ""),
+    base +
+      `?omitEndpoints=true${location ? `&locationId=${encodeURIComponent(location)}` : ""}`,
     true,
   );
-  const all = useResource<Overview>(location ? base : null);
+  const all = useResource<Overview>(
+    location ? base + "?omitEndpoints=true" : null,
+  );
   const options = all.data ?? view.data;
   const can = (permission: string) =>
     view.data?.permissions.includes(permission) ?? false;
@@ -119,6 +122,8 @@ function Organization({
       {tab === "organization" && (
         <>
           <BusinessStructure
+            base={base}
+            location={location}
             data={data}
             options={options}
             can={can}

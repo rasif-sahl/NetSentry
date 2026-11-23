@@ -1,3 +1,4 @@
+import { SearchPageQuery } from '../common/pagination';
 import {
   Body,
   Controller,
@@ -5,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/other/auth.guard';
@@ -34,6 +36,15 @@ export class WorkspaceController {
     @Param('workspaceId', new ParseUUIDPipe()) workspaceId: string,
   ) {
     return this.workspaces.listDevices(user.userId, workspaceId);
+  }
+
+  @Get(':workspaceId/devices/page')
+  devicePage(
+    @CurrentUser() user: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+    @Query() query: SearchPageQuery,
+  ) {
+    return this.workspaces.devicePage(user.userId, workspaceId, query);
   }
 
   @Post('devices')

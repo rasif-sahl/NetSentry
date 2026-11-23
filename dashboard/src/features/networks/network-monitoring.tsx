@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { usePage } from "@/shared/use-page";
+import { PageControls } from "@/shared/ui/page-controls";
+import { useDeferredValue, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
-import { useResource } from "@/shared/use-resource";
 import type { PageContext } from "@/features/workspace/types";
 import { networkDetailHref } from "@/features/workspace/routes";
 import {
@@ -20,7 +21,12 @@ import type { NetworkSite } from "./types";
 
 export function NetworkMonitoring({ workspace, permissions }: PageContext) {
   const path = `/workspaces/${workspace.id}/networks`;
-  const sites = useResource<NetworkSite[]>(path, true);
+  const [search, setSearch] = useState("");
+  const query = useDeferredValue(search.trim());
+  const sites = usePage<NetworkSite>(
+    `${path}/page?search=${encodeURIComponent(query)}`,
+    true,
+  );
   const manage = permissions.includes("networks:manage");
   const [created, setCreated] = useState(false);
 
@@ -40,6 +46,8 @@ export function NetworkMonitoring({ workspace, permissions }: PageContext) {
                   .split(/[\s,]+/)
                   .filter(Boolean),
               });
+              setSearch("");
+              sites.reset();
               sites.reload();
               setCreated(true);
             }}
@@ -64,6 +72,16 @@ export function NetworkMonitoring({ workspace, permissions }: PageContext) {
           </Notice>
         </div>
       )}
+      <div className="mb-4">
+        <Field label="Find a monitored network">
+          <input
+            type="search"
+            maxLength={200}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </Field>
+      </div>
       <ErrorNotice error={sites.error} />
       {sites.loading && <Loading />}
       {sites.data &&
@@ -102,12 +120,15 @@ export function NetworkMonitoring({ workspace, permissions }: PageContext) {
             </tbody>
           </table>
         ) : (
-          <Empty title="No monitored networks">
+          <Empty
+            title={query ? "No matching networks" : "No monitored networks"}
+          >
             {manage
               ? "Add a network to set up collection."
               : "A workspace owner or admin can add a network."}
           </Empty>
         ))}
+      <PageControls label="Monitored networks" page={sites} />
     </Card>
   );
 }

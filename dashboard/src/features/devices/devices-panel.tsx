@@ -1,8 +1,10 @@
 "use client";
-import { useState } from "react";
+import { usePage } from "@/shared/use-page";
+import { PageControls } from "@/shared/ui/page-controls";
+import { useDeferredValue, useState } from "react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
-import type { DeviceEvent, Disclosures } from "@/shared/types";
+import type { Device, DeviceEvent, Disclosures } from "@/shared/types";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
@@ -11,22 +13,32 @@ import {
   Empty,
   ErrorNotice,
   Field,
+  Loading,
   Notice,
   formatTime,
   text,
 } from "@/shared/ui/common";
-export function DevicesPanel({
-  user,
-  devices,
-  permissions,
-  reloadDevices,
-}: PageContext) {
+export function DevicesPanel({ user, workspace, permissions }: PageContext) {
   const [selected, setSelected] = useState("");
   const [search, setSearch] = useState("");
-  const filtered = devices.filter((d) =>
-    `${d.name} ${d.platform}`.toLowerCase().includes(search.toLowerCase()),
+  const query = useDeferredValue(search.trim());
+  const page = usePage<Device>(
+    `/workspaces/${workspace.id}/devices/page?search=${encodeURIComponent(query)}`,
+    true,
   );
-  const device = devices.find((d) => d.id === selected) ?? devices[0];
+  const selectedOnPage = page.data?.find((item) => item.id === selected);
+  const selectedDetail = useResource<Device>(
+    selected && !selectedOnPage ? `/devices/${selected}` : null,
+    true,
+  );
+  const device =
+    selectedOnPage ??
+    selectedDetail.data ??
+    (!selected ? page.data?.[0] : undefined);
+  function reloadDevices() {
+    page.reload();
+    selectedDetail.reload();
+  }
   const owner = device?.registeredById === user.id;
   const canManage = owner || permissions.includes("devices:manage");
   const disclosures = useResource<Disclosures>("/privacy/disclosures");
@@ -46,13 +58,16 @@ export function DevicesPanel({
             <input
               type="search"
               value={search}
+              maxLength={200}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search by name or platform"
             />
           </Field>
-          {filtered.length ? (
+          <ErrorNotice error={page.error} />
+          {page.loading && <Loading />}
+          {page.data?.length ? (
             <ul className="item-list">
-              {filtered.map((item) => (
+              {page.data.map((item) => (
                 <li key={item.id}>
                   <div>
                     <strong>{item.name}</strong>
@@ -77,17 +92,19 @@ export function DevicesPanel({
               ))}
             </ul>
           ) : (
-            <Empty
-              title={
-                devices.length ? "No matching devices" : "No registered devices"
-              }
-            >
-              Pair an installation through a supported native client. Browser
-              access does not enroll or certify this computer.
-            </Empty>
+            page.data && (
+              <Empty
+                title={query ? "No matching devices" : "No registered devices"}
+              >
+                Pair an installation through a supported native client. Browser
+                access does not enroll or certify this computer.
+              </Empty>
+            )
           )}
+          <PageControls label="Device inventory" page={page} />
         </div>
       </Card>
+      <ErrorNotice error={selectedDetail.error} />
       {device && (
         <Card title={device.name} key={device.id}>
           <p>

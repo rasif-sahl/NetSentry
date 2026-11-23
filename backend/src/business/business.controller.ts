@@ -1,3 +1,5 @@
+import { IsUUID, IsOptional } from 'class-validator';
+import { SearchPageQuery } from '../common/pagination';
 import {
   Controller,
   UseGuards,
@@ -32,6 +34,9 @@ import {
   ConfirmOffboardDto,
   ConfirmUnenrolDto,
 } from './dto/business.dto';
+class BusinessEndpointPageQuery extends SearchPageQuery {
+  @IsOptional() @IsUUID() locationId?: string;
+}
 @Controller({ path: 'workspaces/:workspaceId/business', version: '1' })
 @UseGuards(AuthGuard)
 export class BusinessController {
@@ -44,7 +49,19 @@ export class BusinessController {
     @Param('workspaceId', ParseUUIDPipe) w: string,
     @Query() q: BusinessScopeQuery,
   ) {
-    return this.business.overview(u.userId, w, q.locationId);
+    return this.business.overview(
+      u.userId,
+      w,
+      q.locationId,
+      q.omitEndpoints === 'true',
+    );
+  }
+  @Get('endpoints/page') endpointPage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Query() query: BusinessEndpointPageQuery,
+  ) {
+    return this.business.endpointPage(u.userId, w, query, query.locationId);
   }
   @Patch('endpoints/:endpointId/department') endpointDepartment(
     @CurrentUser() u: RequestUser,

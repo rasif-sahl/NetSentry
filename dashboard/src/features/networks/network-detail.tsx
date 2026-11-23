@@ -43,7 +43,7 @@ export function NetworkDetail({
   const path = `/workspaces/${context.workspace.id}/networks/${networkId}`;
   const manage = context.permissions.includes("networks:manage");
   const disclosure = useResource<{ text: string }>("/networks/disclosure");
-  const resource = useResource<NetworkView>(path, true),
+  const resource = useResource<NetworkView>(path + "?summary=true", true),
     agents = useResource<
       {
         id: string;
