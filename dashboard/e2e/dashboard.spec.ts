@@ -106,7 +106,7 @@ test("device inventory uses reported health and capability states", async ({
     "flex-end",
   );
   await details.press("Enter");
-  await expect(page).toHaveURL(/\/app\?view=Devices$/);
+  await expect(page).toHaveURL(/\/app\/devices$/);
   await expect(
     page.getByRole("heading", { name: "Device inventory" }),
   ).toBeVisible();
@@ -211,7 +211,7 @@ test("viewers cannot expose another device report or monitoring controls", async
   page,
 }) => {
   const data = await login(page, "viewer");
-  await page.getByRole("button", { name: "Devices", exact: true }).click();
+  await page.getByRole("link", { name: "Devices", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Device inventory" }),
   ).toBeVisible();
@@ -219,7 +219,7 @@ test("viewers cannot expose another device report or monitoring controls", async
     page.getByRole("button", { name: "Pause monitoring", exact: true }),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Usage & reports", exact: true })
+    .getByRole("link", { name: "Usage & reports", exact: true })
     .click();
   await expect(
     page.getByText("No observations in this period", { exact: true }),
@@ -239,7 +239,7 @@ test("report failures have a recoverable error state", async ({ page }) => {
     }),
   );
   await page
-    .getByRole("button", { name: "Usage & reports", exact: true })
+    .getByRole("link", { name: "Usage & reports", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "Synthetic connection failure" }),
@@ -269,12 +269,12 @@ test("account settings and Operations stay available during an inventory outage"
     page.getByRole("alert").filter({ hasText: "Synthetic inventory outage" }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Your profile", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Operations", exact: true }).click();
+  await page.getByRole("link", { name: "Operations", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Platform operations", exact: true }),
   ).toBeVisible();
@@ -282,7 +282,7 @@ test("account settings and Operations stay available during an inventory outage"
 
 test("manual network labels are explicit and editable", async ({ page }) => {
   await login(page);
-  await page.getByRole("button", { name: "Networks", exact: true }).click();
+  await page.getByRole("link", { name: "Networks", exact: true }).click();
   await expect(
     page.getByRole("listitem").getByText("Fixture home label", { exact: true }),
   ).toBeVisible();
@@ -438,7 +438,7 @@ test("team invitations bind a recipient and management changes take effect", asy
   browser,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Team", exact: true }).click();
+  await page.getByRole("link", { name: "Team", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Workspace members", exact: true }),
   ).toBeVisible();
@@ -459,7 +459,7 @@ test("team invitations bind a recipient and management changes take effect", asy
   await expect(
     guest.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
-  await guest.getByRole("button", { name: "Team", exact: true }).click();
+  await guest.getByRole("link", { name: "Team", exact: true }).click();
   await guest.getByLabel("Invitation token").fill(token);
   await guest
     .getByRole("button", { name: "Accept invitation", exact: true })
@@ -475,8 +475,8 @@ test("team invitations bind a recipient and management changes take effect", asy
   await page
     .getByRole("button", { name: "Refresh workspace", exact: true })
     .click();
-  await page.getByRole("button", { name: "Overview", exact: true }).click();
-  await page.getByRole("button", { name: "Team", exact: true }).click();
+  await page.getByRole("link", { name: "Overview", exact: true }).click();
+  await page.getByRole("link", { name: "Team", exact: true }).click();
   const members = page.locator("section").filter({
     has: page.getByRole("heading", {
       name: "Workspace members",
@@ -512,7 +512,7 @@ test("a verified user can create and switch to a new workspace", async ({
   page,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Team", exact: true }).click();
+  await page.getByRole("link", { name: "Team", exact: true }).click();
   await page
     .getByLabel("Workspace name", { exact: true })
     .fill("Browser-created workspace");
@@ -540,7 +540,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
 }) => {
   const data = await login(page);
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Your profile", exact: true }),
@@ -836,7 +836,7 @@ test("registration and password-confirmed account deletion clear the browser ses
   );
   await page.setViewportSize(viewport);
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
   await page
     .getByText("Review permanent account deletion", { exact: true })
@@ -867,7 +867,7 @@ test("consent, pause, revocation and erasure are explicit device actions", async
   page,
 }) => {
   await login(page);
-  await page.getByRole("button", { name: "Devices", exact: true }).click();
+  await page.getByRole("link", { name: "Devices", exact: true }).click();
   await page
     .getByRole("button", { name: "View Fixture iOS", exact: true })
     .click();
@@ -920,8 +920,8 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
   await page
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
-  await page.getByRole("button", { name: "More modules", exact: true }).click();
-  await expect(page).toHaveURL(/\/app\?view=More\+modules$/);
+  await page.getByRole("link", { name: "More modules", exact: true }).click();
+  await expect(page).toHaveURL(/\/app\/more-modules$/);
   await expect(
     page.getByRole("heading", { name: "Network Security", exact: true }),
   ).toBeVisible();
@@ -977,7 +977,7 @@ test("dashboard sections share compact card spacing and action buttons on mobile
       await page
         .getByRole("button", { name: "Open navigation", exact: true })
         .click();
-      await page.getByRole("button", { name: section, exact: true }).click();
+      await page.getByRole("link", { name: section, exact: true }).click();
       await page.mouse.move(2, 2);
       await expect(
         page.getByRole("heading", { name: heading, exact: true }),
@@ -1026,7 +1026,7 @@ test("signing out or changing accounts clears other tabs instead of mixing user 
     received = resolve;
   });
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
   await page.route("**/api/backend/auth/me", async (route) => {
     if (route.request().method() !== "PATCH") {
@@ -1061,7 +1061,7 @@ test("signing out or changing accounts clears other tabs instead of mixing user 
     data.accounts.viewer.email,
   );
   await page
-    .getByRole("button", { name: "Usage & reports", exact: true })
+    .getByRole("link", { name: "Usage & reports", exact: true })
     .click();
   await expect(
     page.getByText("No observations in this period", { exact: true }),
@@ -1101,7 +1101,7 @@ test("developer commands show pending/cancelled outcomes and keep viewers read-o
 }) => {
   await login(page);
   await page
-    .getByRole("button", { name: "Developer Tools", exact: true })
+    .getByRole("link", { name: "Developer Tools", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Paired developer computers" }),
@@ -1144,7 +1144,7 @@ test("developer commands show pending/cancelled outcomes and keep viewers read-o
   try {
     await login(tab, "viewer");
     await tab
-      .getByRole("button", { name: "Developer Tools", exact: true })
+      .getByRole("link", { name: "Developer Tools", exact: true })
       .click();
     await expect(
       tab.getByText("Fixture remote project · Node.js", { exact: true }),
@@ -1167,7 +1167,7 @@ test("missing-report rules preserve their device scope and seconds threshold", a
   page,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Alerts", exact: true }).click();
+  await page.getByRole("link", { name: "Alerts", exact: true }).click();
   await page.getByLabel("Rule type").selectOption("not_reporting");
   await page.getByLabel("Rule device").selectOption(data.deviceId);
   await page.getByLabel("Reporting/heartbeat threshold (seconds)").fill("600");
@@ -1189,7 +1189,7 @@ test("network inventory exposes uncertain observations and editable labels witho
   page,
 }) => {
   await login(page);
-  await page.getByRole("button", { name: "Networks", exact: true }).click();
+  await page.getByRole("link", { name: "Networks", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Observed devices", exact: true }),
   ).toBeVisible();
@@ -1236,7 +1236,7 @@ test("network viewers cannot grant collectors or configure router secrets", asyn
   page,
 }) => {
   await login(page, "viewer");
-  await page.getByRole("button", { name: "Networks", exact: true }).click();
+  await page.getByRole("link", { name: "Networks", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Observed devices", exact: true }),
   ).toBeVisible();
@@ -1254,7 +1254,7 @@ test("child time requests require an assigned guardian decision and never claim 
   browser,
 }) => {
   const data = await login(page, "child");
-  await page.getByRole("button", { name: "Family", exact: true }).click();
+  await page.getByRole("link", { name: "Family", exact: true }).click();
   await expect(
     page.getByRole("heading", {
       name: "Synthetic family child · family overview",
@@ -1279,7 +1279,7 @@ test("child time requests require an assigned guardian decision and never claim 
   const guardianContext = await browser.newContext();
   const guardian = await guardianContext.newPage();
   await login(guardian, "guardian");
-  await guardian.getByRole("button", { name: "Family", exact: true }).click();
+  await guardian.getByRole("link", { name: "Family", exact: true }).click();
   const item = guardian
     .getByRole("listitem")
     .filter({ hasText: "Browser fixture homework" });
@@ -1305,7 +1305,7 @@ test("family viewers cannot see child profiles and policy edits require explicit
   page,
 }) => {
   await login(page, "viewer");
-  await page.getByRole("button", { name: "Family", exact: true }).click();
+  await page.getByRole("link", { name: "Family", exact: true }).click();
   await expect(
     page.getByText("No child profiles in your current grant", { exact: true }),
   ).toBeVisible();
@@ -1320,7 +1320,7 @@ test("family viewers cannot see child profiles and policy edits require explicit
     page.getByRole("heading", { name: "Welcome back", exact: true }),
   ).toBeVisible();
   await login(page, "owner");
-  await page.getByRole("button", { name: "Family", exact: true }).click();
+  await page.getByRole("link", { name: "Family", exact: true }).click();
   const policy = page
     .getByRole("heading", { name: "Family policy", exact: true })
     .locator("..");
@@ -1349,7 +1349,7 @@ test("Business roles review organization structure and employees explicitly acce
   await page
     .getByLabel("Active workspace")
     .selectOption(data.business.workspaceId);
-  await page.getByRole("button", { name: "Business", exact: true }).click();
+  await page.getByRole("link", { name: "Business", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Business organization", exact: true }),
   ).toBeVisible();
@@ -1396,7 +1396,7 @@ test("Business roles review organization structure and employees explicitly acce
   await employee
     .getByLabel("Active workspace")
     .selectOption(data.business.workspaceId);
-  await employee.getByRole("button", { name: "Business", exact: true }).click();
+  await employee.getByRole("link", { name: "Business", exact: true }).click();
   await expect(
     employee.getByRole("button", { name: "Add location", exact: true }),
   ).toHaveCount(0);
@@ -1432,7 +1432,7 @@ test("Business roles review organization structure and employees explicitly acce
   await analyst
     .getByLabel("Active workspace")
     .selectOption(data.business.workspaceId);
-  await analyst.getByRole("button", { name: "Business", exact: true }).click();
+  await analyst.getByRole("link", { name: "Business", exact: true }).click();
   await expect(
     analyst.getByRole("heading", {
       name: "Organization usage reports",
@@ -1450,7 +1450,7 @@ test("sandbox billing is owner-only and operator flags require separate authorit
   browser,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Subscription", exact: true }).click();
+  await page.getByRole("link", { name: "Subscription", exact: true }).click();
   await expect(
     page.getByRole("heading", {
       name: "Subscription and editions",
@@ -1478,7 +1478,7 @@ test("sandbox billing is owner-only and operator flags require separate authorit
     page.getByText(/Edition: family · status: active/),
   ).toBeVisible();
   await expect(page.getByText(/TST test minor units/)).toBeVisible();
-  await page.getByRole("button", { name: "Operations", exact: true }).click();
+  await page.getByRole("link", { name: "Operations", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Platform operations", exact: true }),
   ).toBeVisible();
@@ -1498,9 +1498,7 @@ test("sandbox billing is owner-only and operator flags require separate authorit
   const context = await browser.newContext();
   const viewer = await context.newPage();
   await login(viewer, "viewer");
-  await viewer
-    .getByRole("button", { name: "Subscription", exact: true })
-    .click();
+  await viewer.getByRole("link", { name: "Subscription", exact: true }).click();
   await expect(
     viewer.getByRole("heading", {
       name: "Subscription and editions",
@@ -1510,7 +1508,7 @@ test("sandbox billing is owner-only and operator flags require separate authorit
   await expect(
     viewer.getByRole("button", { name: "Start sandbox trial", exact: true }),
   ).toHaveCount(0);
-  await viewer.getByRole("button", { name: "Operations", exact: true }).click();
+  await viewer.getByRole("link", { name: "Operations", exact: true }).click();
   await expect(
     viewer.getByText(/Workspace ownership does not grant/),
   ).toBeVisible();
@@ -1523,7 +1521,7 @@ test("email alert opt-in stays visibly disabled and saved themes follow account 
 }) => {
   await login(page);
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
   await page.getByLabel("Color theme").selectOption("DARK");
   await page
@@ -1536,7 +1534,7 @@ test("email alert opt-in stays visibly disabled and saved themes follow account 
     .click();
   await page.reload();
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
   await expect(
     page.getByLabel("Opt in to email alerts (delivery disabled)"),

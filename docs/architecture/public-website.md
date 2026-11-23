@@ -13,7 +13,7 @@ The approved storytelling homepage is implemented in the existing Next.js dashbo
 - `/terms` presents twelve draft Terms and Conditions sections with responsive contents navigation. No acceptance is recorded.
 - `/app` contains the existing workspace and its sign-in/register/recovery flows. The homepage's sign-in and workspace actions point here.
 - `/verify-email` and `/reset-password` retain their existing URLs and fragment-token handling. Successful sign-in from these flows returns to `/app`.
-- Existing `/?view=…` bookmarks redirect to `/app?view=…`, preserving query values. Workspace navigation continues to use its existing `view` query.
+- Workspace sections use their own routes under `/app`, such as `/app/alerts`. Older `/?view=…` and `/app?view=…` links redirect to the corresponding section and preserve other query parameters.
 - The workspace route group owns the dashboard stylesheet. All its selectors are scoped to `.workspace-app`, including theme overrides, to keep workspace styles separate from the public page during client navigation.
 
 Public page entries and guide readers are server components. Client components provide responsive navigation, product previews, the feature explorer, documentation topic navigation and local guide search. It preserves the approved straight, aligned screenshots, white/lavender palette, storytelling sections, platform distinctions, consent explanation, setup journey and availability FAQ. The mobile navigation exposes expanded state; screenshot previews use native dialogs with Escape dismissal and focus restoration. Screens do not rotate, tilt or overlap, and buttons contain no arrows.

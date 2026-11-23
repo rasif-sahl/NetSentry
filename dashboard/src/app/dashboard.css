@@ -375,7 +375,8 @@
   display: grid;
   gap: 0.3rem;
 }
-.workspace-app .sidebar nav button {
+.workspace-app .sidebar nav a {
+  min-height: 44px;
   border: 0;
   text-align: left;
   background: transparent;
@@ -388,16 +389,16 @@
   font-size: 0.83rem;
   font-weight: 600;
 }
-.workspace-app .sidebar nav button svg:last-child {
+.workspace-app .sidebar nav a svg:last-child {
   margin-left: auto;
   opacity: 0;
 }
-.workspace-app .sidebar nav button:hover,
-.workspace-app .sidebar nav button[aria-current="page"] {
+.workspace-app .sidebar nav a:hover,
+.workspace-app .sidebar nav a[aria-current="page"] {
   background: var(--surface-lavender);
   color: var(--primary-hover);
 }
-.workspace-app .sidebar nav button[aria-current="page"] svg:last-child {
+.workspace-app .sidebar nav a[aria-current="page"] svg:last-child {
   opacity: 1;
 }
 .workspace-app .sidebar-profile {

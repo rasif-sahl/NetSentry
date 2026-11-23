@@ -2,7 +2,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useEffect, useState, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  type ReactNode,
+} from "react";
+import {
+  isWorkspaceSlug,
+  workspaceHref,
+  workspaceSections,
+  type WorkspaceSection,
+  type WorkspaceSlug,
+} from "./routes";
 import {
   ArrowRight,
   Bell,
@@ -115,24 +130,23 @@ const ReportsPanel = dynamic(
   { loading: Loading },
 );
 
-const navigation = [
-  { label: "Overview", icon: Home },
-  { label: "Devices", icon: Smartphone },
-  { label: "Usage & reports", icon: Gauge },
-  { label: "Alerts", icon: Bell },
-  { label: "Networks", icon: Network },
-  { label: "Developer Tools", icon: Laptop },
-  { label: "Family", icon: Users },
-  { label: "Business", icon: Users },
-  { label: "Subscription", icon: Settings },
-  { label: "Operations", icon: ShieldCheck },
-  { label: "Team", icon: Users },
-  { label: "Settings & privacy", icon: Settings },
-  { label: "More modules", icon: Laptop },
-] as const;
-type Section = (typeof navigation)[number]["label"];
+const icons = {
+  "": Home,
+  devices: Smartphone,
+  "usage-reports": Gauge,
+  alerts: Bell,
+  networks: Network,
+  "developer-tools": Laptop,
+  family: Users,
+  business: Users,
+  subscription: Settings,
+  operations: ShieldCheck,
+  team: Users,
+  settings: Settings,
+  "more-modules": Laptop,
+} satisfies Record<WorkspaceSlug, typeof Home>;
 
-const deviceSections: ReadonlySet<Section> = new Set([
+const deviceSections: ReadonlySet<WorkspaceSection> = new Set([
   "Overview",
   "Devices",
   "Usage & reports",
@@ -141,12 +155,7 @@ const deviceSections: ReadonlySet<Section> = new Set([
   "Family",
 ]);
 
-function sectionFromUrl(): Section {
-  if (typeof window === "undefined") return "Overview";
-  const view = new URLSearchParams(window.location.search).get("view");
-  return navigation.find(({ label }) => label === view)?.label ?? "Overview";
-}
-export function DashboardShell() {
+export function DashboardShell({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<{
     user?: User;
     ready: boolean;
@@ -224,15 +233,19 @@ export function DashboardShell() {
             : "Signed out of this browser. The server session could not be revoked; review your sessions after signing in.",
         });
       }}
-    />
+    >
+      {children}
+    </WorkspaceShell>
   );
 }
 function WorkspaceShell({
+  children,
   user,
   updateUser,
   onSignOut,
   accountDeleted,
 }: {
+  children: ReactNode;
   user: User;
   updateUser: (user: User) => void;
   onSignOut: () => Promise<void>;
@@ -243,7 +256,10 @@ function WorkspaceShell({
   const [switching, setSwitching] = useState(false);
   const switchPending = useRef(false);
   const [selected, setSelected] = useState<string>();
-  const [section, setSection] = useState(sectionFromUrl);
+  const pathname = usePathname();
+  const router = useRouter();
+  const slug = pathname.split("/")[2] ?? "";
+  const section = isWorkspaceSlug(slug) ? workspaceSections[slug] : undefined;
   const [menu, setMenu] = useState(false);
   const workspace =
     workspaces.data?.find(
@@ -253,15 +269,11 @@ function WorkspaceShell({
     workspace ? `/workspaces/${workspace.id}/permissions` : null,
     true,
   );
-  const needsDevices = deviceSections.has(section);
+  const needsDevices = section !== undefined && deviceSections.has(section);
   const devices = useResource<Device[]>(
     workspace && needsDevices ? `/workspaces/${workspace.id}/devices` : null,
     true,
   );
-  const needsWorkspace =
-    section !== "Settings & privacy" &&
-    section !== "Operations" &&
-    section !== "More modules";
   const context =
     workspace && permission.data && (!needsDevices || devices.data)
       ? {
@@ -293,14 +305,6 @@ function WorkspaceShell({
       delete document.documentElement.dataset.reducedMotion;
     };
   }, [user.preferences.theme, user.preferences.reducedMotion]);
-  useEffect(() => {
-    const back = () => {
-      setSection(sectionFromUrl());
-      setMenu(false);
-    };
-    window.addEventListener("popstate", back);
-    return () => window.removeEventListener("popstate", back);
-  }, []);
   const sideRef = useRef<HTMLElement>(null);
   const openRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -333,17 +337,17 @@ function WorkspaceShell({
       trigger?.focus();
     };
   }, [menu]);
-  function choose(label: Section) {
-    if (section !== label) {
-      const url = new URL(window.location.href);
-      url.pathname = "/app";
-      url.searchParams.set("view", label);
-      history.pushState(null, "", url.pathname + url.search + url.hash);
-      setSection(label);
-    }
-    setMenu(false);
-    requestAnimationFrame(() => contentRef.current?.focus());
-    window.scrollTo({ top: 0 });
+  const previousPath = useRef(pathname);
+  useEffect(() => {
+    if (previousPath.current === pathname) return;
+    previousPath.current = pathname;
+    const frame = requestAnimationFrame(() =>
+      contentRef.current?.focus({ preventScroll: true }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
+  function choose(slug: WorkspaceSlug) {
+    router.push(workspaceHref(slug));
   }
   return (
     <div className="workspace-layout">
@@ -376,17 +380,22 @@ function WorkspaceShell({
         </div>
         <span className="eyebrow">YOUR WORKSPACE</span>
         <nav aria-label="Primary navigation">
-          {navigation.map(({ label, icon: Icon }) => (
-            <button
-              key={label}
-              onClick={() => choose(label)}
-              aria-current={section === label ? "page" : undefined}
-            >
-              <Icon size={19} aria-hidden="true" />
-              {label}
-              <ChevronRight size={14} aria-hidden="true" />
-            </button>
-          ))}
+          {Object.entries(workspaceSections).map(([slug, label]) => {
+            if (!isWorkspaceSlug(slug)) return null;
+            const Icon = icons[slug];
+            return (
+              <Link
+                key={slug}
+                href={workspaceHref(slug)}
+                onNavigate={() => setMenu(false)}
+                aria-current={section === label ? "page" : undefined}
+              >
+                <Icon size={19} aria-hidden="true" />
+                {label}
+                <ChevronRight size={14} aria-hidden="true" />
+              </Link>
+            );
+          })}
         </nav>
         <div className="sidebar-profile">
           <span className="avatar">
@@ -455,7 +464,7 @@ function WorkspaceShell({
           <button
             className="icon-button"
             aria-label="Open notifications"
-            onClick={() => choose("Alerts")}
+            onClick={() => choose("alerts")}
           >
             <Bell size={20} />
           </button>
@@ -481,7 +490,7 @@ function WorkspaceShell({
                 ? `${workspace.type} / ${permission.data?.role ?? workspace.role}`
                 : "NETSENTRY"}
             </p>
-            <h1>{section}</h1>
+            <h1>{section ?? "Workspace"}</h1>
             <button
               type="button"
               className="button"
@@ -504,184 +513,233 @@ function WorkspaceShell({
             )}
           </div>
           <ErrorNotice error={selectionError} />
-          {section === "Operations" && (
-            <div className="page-stack">
-              <OperationsPanel />
-            </div>
-          )}
-          {section === "Settings & privacy" && (
-            <div className="page-stack" key={workspace?.id}>
-              <SettingsPanel
-                user={user}
-                workspace={workspace}
-                permissions={permission.data?.permissions}
-                updateUser={updateUser}
-                accountDeleted={accountDeleted}
-              />
-            </div>
-          )}
-          {needsWorkspace && (
-            <ErrorNotice
-              error={
-                workspaces.error ??
-                permission.error ??
-                (needsDevices ? devices.error : undefined)
-              }
-            />
-          )}
-          {needsWorkspace &&
-            (workspaces.loading ||
-              permission.loading ||
-              (needsDevices && devices.loading)) && <Loading />}
-          {needsWorkspace && context ? (
-            <div key={context.workspace.id} className="page-stack">
-              {section === "Overview" && (
-                <>
-                  <div className="metric-grid overview-metrics">
-                    <Card>
-                      <span className="metric-label">Registered devices</span>
-                      <strong className="metric-value">
-                        {context.devices.length}
-                      </strong>
-                      <p>Inventory, not a live network scan</p>
-                    </Card>
-                    <Card>
-                      <span className="metric-label">Consent enabled</span>
-                      <strong className="metric-value">
-                        {
-                          context.devices.filter((d) => d.monitoringEnabled)
-                            .length
-                        }
-                      </strong>
-                      <p>Collection still requires supported permissions</p>
-                    </Card>
-                    <Card>
-                      <span className="metric-label">
-                        Last inventory refresh
-                      </span>
-                      <strong className="metric-time">
-                        {formatTime(devices.updatedAt)}
-                      </strong>
-                      <p>Visible pages refresh every 30 seconds</p>
-                    </Card>
-                  </div>
-                  <Card title="Your devices">
-                    {!context.devices.length ? (
-                      <Empty title="No registered devices yet">
-                        Device pairing will be available through supported
-                        native clients. No network scan is running.
-                      </Empty>
-                    ) : (
-                      <ul className="item-list">
-                        {context.devices.slice(0, 5).map((device) => (
-                          <li key={device.id}>
-                            <span className="list-icon">
-                              <Smartphone size={21} />
-                            </span>
-                            <div>
-                              <strong>{device.name}</strong>
-                              <small>
-                                {device.platform} · {device.state.toLowerCase()}{" "}
-                                · last reported {formatTime(device.lastSeenAt)}
-                              </small>
-                            </div>
-                            <span className="badge">
-                              {device.permissionStatus}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <div className="button-row align-end">
-                      <button
-                        type="button"
-                        className="button accent"
-                        onClick={() => choose("Devices")}
-                      >
-                        View device details
-                        <ArrowRight size={16} aria-hidden="true" />
-                      </button>
-                    </div>
-                  </Card>
-                  <Card title="Monitoring availability">
-                    <p>
-                      Usage appears when a supported collector has permission to
-                      upload. Networks shows observations from approved
-                      collectors. Developer Tools supports service control on
-                      paired computers with an explicit grant and local consent.
-                    </p>
-                    <div className="button-row align-end">
-                      <button
-                        type="button"
-                        className="button accent"
-                        onClick={() => choose("Usage & reports")}
-                      >
-                        Explore reports
-                        <ArrowRight size={16} aria-hidden="true" />
-                      </button>
-                      <button
-                        type="button"
-                        className="button accent"
-                        onClick={() => choose("Alerts")}
-                      >
-                        Manage alerts
-                        <ArrowRight size={16} aria-hidden="true" />
-                      </button>
-                    </div>
-                  </Card>
-                </>
-              )}
-              {section !== "Overview" && (
-                <ConnectedSection
-                  section={section}
-                  context={context}
-                  workspacesChanged={workspaces.reload}
-                />
-              )}
-            </div>
-          ) : (
-            needsWorkspace &&
-            !workspaces.loading &&
-            !workspaces.error &&
-            !workspace && (
-              <Empty title="No workspace available">
-                Create or join a workspace after verifying your email.
-              </Empty>
-            )
-          )}
-          {section === "More modules" && (
-            <div className="page-stack">
-              <div className="module-grid">
-                {[
-                  ["Policies", "Rules and supported device enforcement."],
-                  [
-                    "Network Security",
-                    "Advanced analysis beyond the inventory and health events in Networks.",
-                  ],
-                  [
-                    "Insights",
-                    "Digital wellbeing summaries based on authorized observations.",
-                  ],
-                ].map(([title, description]) => (
-                  <Card key={title} title={title}>
-                    <span className="badge">Planned</span>
-                    <p>{description}</p>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
+          <WorkspaceContext.Provider
+            value={{
+              user,
+              workspace,
+              permission,
+              devices,
+              workspaces,
+              context,
+              needsDevices,
+              updateUser,
+              accountDeleted,
+              choose,
+            }}
+          >
+            {children}
+          </WorkspaceContext.Provider>
         </main>
       </div>
     </div>
   );
 }
+type WorkspaceContextValue = {
+  user: User;
+  workspace?: Workspace;
+  permission: ReturnType<typeof useResource<Permissions>>;
+  devices: ReturnType<typeof useResource<Device[]>>;
+  workspaces: ReturnType<typeof useResource<Workspace[]>>;
+  context?: PageContext;
+  needsDevices: boolean;
+  updateUser: (user: User) => void;
+  accountDeleted: () => void;
+  choose: (slug: WorkspaceSlug) => void;
+};
+
+const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
+
+export function WorkspacePage({ section }: { section: WorkspaceSection }) {
+  const state = useContext(WorkspaceContext);
+  if (!state) throw new Error("Workspace page requires its layout.");
+  const {
+    user,
+    workspace,
+    permission,
+    devices,
+    workspaces,
+    context,
+    needsDevices,
+    updateUser,
+    accountDeleted,
+    choose,
+  } = state;
+  const needsWorkspace =
+    section !== "Settings & privacy" &&
+    section !== "Operations" &&
+    section !== "More modules";
+  return (
+    <>
+      {section === "Operations" && (
+        <div className="page-stack">
+          <OperationsPanel />
+        </div>
+      )}
+      {section === "Settings & privacy" && (
+        <div className="page-stack" key={workspace?.id}>
+          <SettingsPanel
+            user={user}
+            workspace={workspace}
+            permissions={permission.data?.permissions}
+            updateUser={updateUser}
+            accountDeleted={accountDeleted}
+          />
+        </div>
+      )}
+      {needsWorkspace && (
+        <ErrorNotice
+          error={
+            workspaces.error ??
+            permission.error ??
+            (needsDevices ? devices.error : undefined)
+          }
+        />
+      )}
+      {needsWorkspace &&
+        (workspaces.loading ||
+          permission.loading ||
+          (needsDevices && devices.loading)) && <Loading />}
+      {needsWorkspace && context ? (
+        <div key={context.workspace.id} className="page-stack">
+          {section === "Overview" && (
+            <>
+              <div className="metric-grid overview-metrics">
+                <Card>
+                  <span className="metric-label">Registered devices</span>
+                  <strong className="metric-value">
+                    {context.devices.length}
+                  </strong>
+                  <p>Inventory, not a live network scan</p>
+                </Card>
+                <Card>
+                  <span className="metric-label">Consent enabled</span>
+                  <strong className="metric-value">
+                    {context.devices.filter((d) => d.monitoringEnabled).length}
+                  </strong>
+                  <p>Collection still requires supported permissions</p>
+                </Card>
+                <Card>
+                  <span className="metric-label">Last inventory refresh</span>
+                  <strong className="metric-time">
+                    {formatTime(devices.updatedAt)}
+                  </strong>
+                  <p>Visible pages refresh every 30 seconds</p>
+                </Card>
+              </div>
+              <Card title="Your devices">
+                {!context.devices.length ? (
+                  <Empty title="No registered devices yet">
+                    Device pairing will be available through supported native
+                    clients. No network scan is running.
+                  </Empty>
+                ) : (
+                  <ul className="item-list">
+                    {context.devices.slice(0, 5).map((device) => (
+                      <li key={device.id}>
+                        <span className="list-icon">
+                          <Smartphone size={21} />
+                        </span>
+                        <div>
+                          <strong>{device.name}</strong>
+                          <small>
+                            {device.platform} · {device.state.toLowerCase()} ·
+                            last reported {formatTime(device.lastSeenAt)}
+                          </small>
+                        </div>
+                        <span className="badge">{device.permissionStatus}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="button-row align-end">
+                  <button
+                    type="button"
+                    className="button accent"
+                    onClick={() => choose("devices")}
+                  >
+                    View device details
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </button>
+                </div>
+              </Card>
+              <Card title="Monitoring availability">
+                <p>
+                  Usage appears when a supported collector has permission to
+                  upload. Networks shows observations from approved collectors.
+                  Developer Tools supports service control on paired computers
+                  with an explicit grant and local consent.
+                </p>
+                <div className="button-row align-end">
+                  <button
+                    type="button"
+                    className="button accent"
+                    onClick={() => choose("usage-reports")}
+                  >
+                    Explore reports
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="button accent"
+                    onClick={() => choose("alerts")}
+                  >
+                    Manage alerts
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </button>
+                </div>
+              </Card>
+            </>
+          )}
+          {section !== "Overview" && (
+            <ConnectedSection
+              section={section}
+              context={context}
+              workspacesChanged={workspaces.reload}
+            />
+          )}
+        </div>
+      ) : (
+        needsWorkspace &&
+        !workspaces.loading &&
+        !workspaces.error &&
+        !workspace && (
+          <Empty title="No workspace available">
+            Create or join a workspace after verifying your email.
+          </Empty>
+        )
+      )}
+      {section === "More modules" && (
+        <div className="page-stack">
+          <div className="module-grid">
+            {[
+              ["Policies", "Rules and supported device enforcement."],
+              [
+                "Network Security",
+                "Advanced analysis beyond the inventory and health events in Networks.",
+              ],
+              [
+                "Insights",
+                "Digital wellbeing summaries based on authorized observations.",
+              ],
+            ].map(([title, description]) => (
+              <Card key={title} title={title}>
+                <span className="badge">Planned</span>
+                <p>{description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function ConnectedSection({
   section,
   context,
   workspacesChanged,
 }: {
-  section: Section;
+  section: WorkspaceSection;
   context: PageContext;
   workspacesChanged: () => void;
 }) {

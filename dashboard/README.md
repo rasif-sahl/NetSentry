@@ -82,7 +82,7 @@ Phase 16 adds account email opt-in and an email rule channel with visible delive
 
 ## Public product homepage
 
-The approved storytelling homepage uses Tailwind CSS 4 and local product UI assets. Dashboard, Android, iOS and desktop showcases stay upright and aligned; previews can be enlarged and desktop screens can be switched. Captions identify empty/synthetic states and native release limitations. The homepage makes no monitoring API requests. Sign in opens `/app`; verification/reset URLs are unchanged, and old `/?view=…` workspace bookmarks redirect with their queries intact.
+The approved storytelling homepage uses Tailwind CSS 4 and local product UI assets. Dashboard, Android, iOS and desktop showcases stay upright and aligned; previews can be enlarged and desktop screens can be switched. Captions identify empty/synthetic states and native release limitations. The homepage makes no monitoring API requests. Sign in opens `/app`; verification/reset URLs are unchanged, and old `/?view=…` and `/app?view=…` bookmarks redirect to their dedicated workspace routes and preserve other query parameters.
 
 Run `npm --prefix dashboard run test:homepage` after building to check the public page without a test database. Set `PLAYWRIGHT_CHROME_EXECUTABLE` to an existing browser when needed. See [public website architecture](../docs/architecture/public-website.md) and [validation](../docs/validation/public-homepage.md). Other legal and download pages remain separate work.
 
