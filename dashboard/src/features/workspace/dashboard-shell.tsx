@@ -593,9 +593,11 @@ function WorkspaceTabs({ slug, tab }: { slug: WorkspaceSlug; tab?: string }) {
 export function WorkspacePage({
   slug,
   tab,
+  networkId,
 }: {
   slug: WorkspaceSlug;
   tab?: string;
+  networkId?: string;
 }) {
   const state = useContext(WorkspaceContext);
   if (!state) throw new Error("Workspace page requires its layout.");
@@ -758,6 +760,7 @@ export function WorkspacePage({
             <ConnectedSection
               section={section}
               tab={selectedTab}
+              networkId={networkId}
               context={context}
               location={location}
               changeLocation={changeLocation}
@@ -804,6 +807,7 @@ export function WorkspacePage({
 function ConnectedSection({
   section,
   tab,
+  networkId,
   context,
   workspacesChanged,
   location,
@@ -811,6 +815,7 @@ function ConnectedSection({
 }: {
   section: WorkspaceSection;
   tab: string;
+  networkId?: string;
   context: PageContext;
   workspacesChanged: () => void;
   location: string;
@@ -832,7 +837,8 @@ function ConnectedSection({
     return <DeveloperPanel {...context} tab={tab} />;
   if (section === "Devices") return <DevicesPanel {...context} />;
   if (section === "Usage & reports") return <ReportsPanel {...context} />;
-  if (section === "Networks") return <NetworksPanel {...context} tab={tab} />;
+  if (section === "Networks")
+    return <NetworksPanel {...context} tab={tab} networkId={networkId} />;
   if (section === "Alerts") return <AlertsPanel {...context} tab={tab} />;
   if (section === "Team")
     return (

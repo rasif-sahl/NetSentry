@@ -1,5 +1,6 @@
 "use client";
 import { NetworkMonitoring } from "./network-monitoring";
+import { NetworkDetail } from "./network-detail";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { UsageNetwork } from "@/shared/types";
@@ -21,8 +22,8 @@ export function NetworksPanel({
   permissions,
   reloadDevices,
   tab,
-  ...rest
-}: PageContext & { tab: string }) {
+  networkId,
+}: PageContext & { tab: string; networkId?: string }) {
   const path = `/workspaces/${workspace.id}/monitoring`;
   const networks = useResource<UsageNetwork[]>(
     tab === "labels" ? `${path}/networks` : null,
@@ -31,20 +32,16 @@ export function NetworksPanel({
   const ownDevices = devices.filter(
     (d) => d.registeredById === user.id && d.state === "ACTIVE",
   );
+  if (tab === "monitoring") {
+    const context = { workspace, user, devices, permissions, reloadDevices };
+    return networkId ? (
+      <NetworkDetail key={networkId} context={context} networkId={networkId} />
+    ) : (
+      <NetworkMonitoring {...context} />
+    );
+  }
   return (
     <>
-      {tab === "monitoring" && (
-        <>
-          <NetworkMonitoring
-            {...rest}
-            workspace={workspace}
-            user={user}
-            devices={devices}
-            permissions={permissions}
-            reloadDevices={reloadDevices}
-          />
-        </>
-      )}
       {tab === "labels" && (
         <>
           <Notice>

@@ -1423,6 +1423,9 @@ test("network inventory exposes uncertain observations and editable labels witho
   await login(page);
   await page.getByRole("link", { name: "Networks", exact: true }).click();
   await openTab(page, "Monitoring");
+  await page
+    .getByRole("link", { name: "Synthetic lab network", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Observed devices", exact: true }),
   ).toBeVisible();
@@ -1472,6 +1475,12 @@ test("network viewers cannot grant collectors or configure router secrets", asyn
   await page.getByRole("link", { name: "Networks", exact: true }).click();
   await openTab(page, "Monitoring");
   await expect(
+    page.getByRole("button", { name: "Add network", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("link", { name: "Synthetic lab network", exact: true })
+    .click();
+  await expect(
     page.getByRole("heading", { name: "Observed devices", exact: true }),
   ).toBeVisible();
   await expect(
@@ -1481,6 +1490,66 @@ test("network viewers cannot grant collectors or configure router secrets", asyn
     0,
   );
   await expect(page.getByLabel("Trust label")).toHaveCount(0);
+});
+
+test("monitored networks can be added in a dialog and opened at a dedicated URL", async ({
+  page,
+}) => {
+  await login(page);
+  await page.getByRole("link", { name: "Networks", exact: true }).click();
+  await openTab(page, "Monitoring");
+  await page.setViewportSize({ width: 320, height: 760 });
+  const add = page.getByRole("button", { name: "Add network", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Add network" });
+  await add.click();
+  await expect(
+    dialog.getByLabel("Network name", { exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(add).toBeFocused();
+  await add.click();
+  await dialog
+    .getByLabel("Network name", { exact: true })
+    .fill("Browser network");
+  await dialog
+    .getByLabel("Private IPv4 subnets", { exact: true })
+    .fill("192.168.52.0/24");
+  await dialog
+    .getByRole("button", { name: "Add network", exact: true })
+    .click();
+  await expect(dialog).toBeHidden();
+  const table = page.getByRole("table", { name: "Monitored networks" });
+  const row = table.getByRole("row").filter({ hasText: "Browser network" });
+  await expect(row).toContainText("192.168.52.0/24");
+  const detail = row.getByRole("link", {
+    name: "Browser network",
+    exact: true,
+  });
+  const href = (await detail.getAttribute("href"))!;
+  await detail.press("Enter");
+  await expect(page).toHaveURL(href);
+  await expect(
+    page.getByRole("heading", { name: "Browser network", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("No collectors assigned", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Network details sections" }),
+  ).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+    .toBe(320);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Browser network", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("link", { name: "Back to monitored networks", exact: true })
+    .click();
+  await expect(page).toHaveURL("/app/networks/monitoring");
+  await expect(row).toBeVisible();
 });
 
 test("child time requests require an assigned guardian decision and never claim applied restrictions", async ({

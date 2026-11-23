@@ -81,6 +81,10 @@ export function workspaceHref(slug: WorkspaceSlug, tab?: string) {
     : `/app/${slug}`;
 }
 
+export function networkDetailHref(networkId: string) {
+  return `${workspaceHref("networks", "monitoring")}/${encodeURIComponent(networkId)}`;
+}
+
 export function legacyWorkspaceHref(view: string) {
   const normalized = view.trim().toLowerCase();
   for (const slug of Object.keys(workspaceSections)) {

@@ -45,7 +45,7 @@ export function NetworkInventory({
       <Field label="Search inventory">
         <input value={search} onChange={(e) => setSearch(e.target.value)} />
       </Field>
-      <label className="check">
+      <label className="check mt-3">
         <input
           type="checkbox"
           checked={archived}
@@ -59,7 +59,9 @@ export function NetworkInventory({
         do not enforce access.
       </p>
       {!view.endpoints.length && (
-        <Empty title="No passive neighbor observations yet" />
+        <div className="mt-4">
+          <Empty title="No passive neighbor observations yet" />
+        </div>
       )}
       {view.endpoints
         .filter(
@@ -70,7 +72,7 @@ export function NetworkInventory({
               .includes(search.toLowerCase()),
         )
         .map((e) => (
-          <details key={e.id}>
+          <details key={e.id} className="mt-3">
             <summary>
               {e.name || e.mac || "Address-only observation"} ·{" "}
               {e.presence.replaceAll("_", " ")} · {e.trust}
