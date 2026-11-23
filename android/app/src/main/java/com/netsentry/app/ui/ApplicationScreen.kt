@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -88,7 +86,7 @@ internal fun ApplicationScreen(
             Text("Device")
             if (state.devices.isEmpty()) Text("No devices available.")
             state.devices.forEach { phone ->
-                OutlinedButton(
+                SecondaryActionButton(
                     onClick = { draftDevice = phone.getString("id") },
                     enabled = !model.busy,
                 ) {
@@ -113,18 +111,18 @@ internal fun ApplicationScreen(
     }
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(AppSpacing.screen),
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.section),
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.section)) {
                 header()
                 if (section != "Application usage") {
                     Text(
                         "Choose a device and load its application report for categories or timeline evidence."
                     )
                 }
-                OutlinedButton(onClick = { filtersOpen = true }, enabled = !model.busy) {
+                SecondaryActionButton(onClick = { filtersOpen = true }, enabled = !model.busy) {
                     Text("Report filters")
                 }
                 if (section == "Application usage")
@@ -153,7 +151,7 @@ internal fun ApplicationScreen(
                                     "${insight.optString("code")}: ${insight.optString("applicationId")} · ${insight.optDouble("seconds")}s. ${insight.optString("evidence")}"
                                 )
                             }
-                            Button(
+                            PrimaryActionButton(
                                 onClick = { model.exportApplications() },
                                 enabled = !model.busy,
                             ) {
@@ -223,7 +221,7 @@ internal fun ApplicationScreen(
             }
         if (section != "Application usage")
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.section)) {
                     if (section == "Categories & corrections")
                         Panel("Categories and custom corrections") {
                             Text(

@@ -1,6 +1,5 @@
 package com.netsentry.app.ui
 
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.netsentry.app.data.Repository
@@ -15,7 +14,7 @@ private fun SubscriptionContent(state: Repository.View, model: PersonalViewModel
     Text(
         "Subscription details are read-only. Purchases are currently unavailable. Your existing device permissions and monitoring settings apply."
     )
-    Button(
+    SecondaryActionButton(
         onClick = { model.run("Subscription status refreshed") { refreshSubscription() } },
         enabled = !model.busy,
     ) {

@@ -1,8 +1,8 @@
 package com.netsentry.app.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,14 +23,14 @@ private fun FamilyContent(state: Repository.View, model: PersonalViewModel, sect
     Text(
         "Use a Family workspace. Owners/admins create profiles and invite guardians from the web dashboard. Guardian membership alone does not grant access to a child."
     )
-    Button(
+    SecondaryActionButton(
         onClick = { model.run("Family observations refreshed") { refreshFamily() } },
         enabled = !model.busy,
     ) {
         Text("Refresh family")
     }
     state.familyOverview?.getJSONArray("profiles")?.objects()?.forEach { p ->
-        OutlinedButton(
+        SecondaryActionButton(
             onClick = { model.run("Child selected") { refreshFamily(p.getString("id")) } },
             enabled = !model.busy,
         ) {
@@ -42,7 +42,7 @@ private fun FamilyContent(state: Repository.View, model: PersonalViewModel, sect
     )
     if (section == "Wellbeing reports & policy status") {
         Text(state.familySync)
-        Button(
+        PrimaryActionButton(
             onClick = { model.run("Phone policy status checked") { checkFamilyPolicy() } },
             enabled = !model.busy && state.ownDevice != null,
         ) {
@@ -53,7 +53,8 @@ private fun FamilyContent(state: Repository.View, model: PersonalViewModel, sect
         state.devices
             .filter { it.optString("registeredById") == state.profile?.optString("id") }
             .forEach { d ->
-                OutlinedButton(
+                SecondaryActionButton(
+                    destructive = true,
                     onClick = {
                         model.run("Your device family sharing was withdrawn") {
                             withdrawOwnFamily(d.getString("id"))
@@ -97,7 +98,7 @@ private fun FamilyContent(state: Repository.View, model: PersonalViewModel, sect
             { accepted = it },
             enabled = !model.busy,
         )
-        Button(
+        PrimaryActionButton(
             onClick = { model.run("Family sharing consent recorded") { consentFamily() } },
             enabled = !model.busy && accepted && state.ownDevice != null,
         ) {
@@ -105,7 +106,8 @@ private fun FamilyContent(state: Repository.View, model: PersonalViewModel, sect
         }
         detail.getJSONArray("devices").objects().forEach { d ->
             Text("${d.getString("name")}: ${d.getString("enforcement")} (device report)")
-            OutlinedButton(
+            SecondaryActionButton(
+                destructive = true,
                 onClick = {
                     model.run("Family sharing withdrawn") {
                         withdrawFamily(d.getString("deviceId"))
@@ -150,7 +152,7 @@ private fun FamilyContent(state: Repository.View, model: PersonalViewModel, sect
                     requestId = UUID.randomUUID().toString()
                 },
             )
-            Button(
+            PrimaryActionButton(
                 onClick = {
                     val id = requestId
                     val requestedMinutes = minutes.toInt()
@@ -166,7 +168,8 @@ private fun FamilyContent(state: Repository.View, model: PersonalViewModel, sect
             }
         }
         detail.getJSONArray("requests").objects().forEach { r ->
-            Column {
+            HorizontalDivider()
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.action)) {
                 Text(
                     "${r.getString("reason")} · ${r.getInt("minutes")} minutes · ${r.getString("state").replace('_', ' ')}"
                 )
@@ -175,7 +178,7 @@ private fun FamilyContent(state: Repository.View, model: PersonalViewModel, sect
                         else if (detail.getBoolean("canRequest")) listOf("cancelled")
                         else emptyList())
                         .forEach { decision ->
-                            OutlinedButton(
+                            SecondaryActionButton(
                                 onClick = {
                                     model.run("Decision recorded") {
                                         decideFamily(r.getString("id"), decision)

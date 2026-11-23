@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -19,10 +20,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +49,59 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.netsentry.app.R
+
+internal object AppSpacing {
+    val screen = 20.dp
+    val card = 16.dp
+    val section = 12.dp
+    val action = 8.dp
+    val touch = 48.dp
+}
+
+@Composable
+internal fun PrimaryActionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = AppSpacing.touch),
+        enabled = enabled,
+        content = content,
+    )
+}
+
+@Composable
+internal fun SecondaryActionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    destructive: Boolean = false,
+    content: @Composable RowScope.() -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = AppSpacing.touch),
+        enabled = enabled,
+        colors =
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = if (destructive) scheme.error else scheme.primary
+            ),
+        border =
+            BorderStroke(
+                1.dp,
+                when {
+                    !enabled -> scheme.onSurface.copy(alpha = 0.12f)
+                    destructive -> scheme.error
+                    else -> scheme.outline
+                },
+            ),
+        content = content,
+    )
+}
 
 // Small code-native icons keep the dock consistent with the design without bitmap assets.
 private fun dockIcon(
@@ -208,7 +264,7 @@ internal fun NavigationCard(label: String, onClick: () -> Unit) {
         Row(
             Modifier.heightIn(min = 56.dp).padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.section),
         ) {
             Text(
                 label,
@@ -255,8 +311,8 @@ internal fun ReportFilterSheet(
         Column(
             Modifier.fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(start = AppSpacing.screen, end = AppSpacing.screen, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.section),
         ) {
             Text(
                 title,
@@ -264,9 +320,20 @@ internal fun ReportFilterSheet(
                 style = MaterialTheme.typography.titleLarge,
             )
             fields()
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onDismiss) { Text("Cancel") }
-                Button(onClick = onApply, enabled = canApply) { Text("Apply filters") }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.action, Alignment.End),
+            ) {
+                SecondaryActionButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                    Text("Cancel")
+                }
+                PrimaryActionButton(
+                    onClick = onApply,
+                    enabled = canApply,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("Apply filters")
+                }
             }
         }
     }
