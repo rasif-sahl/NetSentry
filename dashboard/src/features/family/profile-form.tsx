@@ -1,7 +1,7 @@
 "use client";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import type { Member, UsageNetwork } from "@/shared/types";
-import { ActionForm, Field, text } from "@/shared/ui/common";
+import { Field, text } from "@/shared/ui/common";
 import { familyConsent, FamilyConsent } from "./family-consent";
 import type { Profile } from "./types";
 
@@ -16,9 +16,9 @@ export function ProfileForm({
   networks: UsageNetwork[];
   action: (input: unknown) => Promise<void>;
 }) {
-  const Form = profile ? ActionForm : ActionFormDialog;
   return (
-    <Form
+    <ActionFormDialog
+      label={profile ? "Edit child profile" : "Create child profile"}
       submit={
         profile
           ? "Save profile and renew sharing consent"
@@ -119,6 +119,6 @@ export function ProfileForm({
         Archive profile
       </label>
       <FamilyConsent />
-    </Form>
+    </ActionFormDialog>
   );
 }

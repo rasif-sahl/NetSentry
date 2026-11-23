@@ -7,7 +7,6 @@ import type { Invitation, Member } from "@/shared/types";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
@@ -84,7 +83,8 @@ export function TeamPanel({
                         !["ADMIN", "GUARDIAN"].includes(member.role)) && (
                         <details>
                           <summary>Manage member</summary>
-                          <ActionForm
+                          <ActionFormDialog
+                            label="Edit member role"
                             submit="Change member role"
                             action={async (form) => {
                               await api(
@@ -109,7 +109,7 @@ export function TeamPanel({
                               <input type="checkbox" required />I understand
                               this may revoke devices or delete queued alerts.
                             </label>
-                          </ActionForm>
+                          </ActionFormDialog>
                           <ActionButton
                             className="button danger"
                             action={async () => {
@@ -242,7 +242,8 @@ export function TeamPanel({
                 Choose an existing verified member. You will become an
                 administrator; review the new owner carefully.
               </p>
-              <ActionForm
+              <ActionFormDialog
+                label="Transfer workspace ownership"
                 submit="Transfer ownership"
                 action={async (form) => {
                   await api(`${base}/owner`, "POST", {
@@ -268,7 +269,7 @@ export function TeamPanel({
                   <input type="checkbox" required />I understand I will give up
                   workspace ownership.
                 </label>
-              </ActionForm>
+              </ActionFormDialog>
             </Card>
           )}
         </>

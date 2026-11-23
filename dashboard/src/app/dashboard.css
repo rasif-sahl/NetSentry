@@ -218,14 +218,6 @@
 .workspace-app .page-content .form-actions {
   justify-content: flex-end;
 }
-.workspace-app .settings-form > .form-fields {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-}
-.workspace-app .settings-form .form-actions {
-  margin-top: auto;
-}
 .workspace-app .field {
   display: grid;
   gap: 0.4rem;

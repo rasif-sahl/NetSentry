@@ -4,6 +4,7 @@ import { api, download } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { Retention, Session, User, Workspace } from "@/shared/types";
 import { NotificationPreferencesPanel } from "@/features/alerts/alerts-panel";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import {
   ActionButton,
   ActionForm,
@@ -28,6 +29,13 @@ type Diagnostics = {
   deliveries: { status: string; count: number }[];
   pushProviders: { android: string; ios: string };
 };
+const retentionFields = [
+  ["rawDays", "Raw observations", 90],
+  ["aggregateDays", "Aggregates and gaps", 730],
+  ["alertDays", "Alerts and deliveries", 90],
+  ["diagnosticDays", "Diagnostics", 30],
+] as const;
+
 export function SettingsPanel({
   user,
   workspace,
@@ -69,8 +77,25 @@ export function SettingsPanel({
             icon={<UserRound size={20} />}
             className="flex flex-col"
           >
-            <ActionForm
-              className="settings-form flex flex-1 flex-col"
+            <dl className="mb-4 flex-1 space-y-3">
+              <div>
+                <dt className="text-xs font-semibold text-text-secondary">
+                  Display name
+                </dt>
+                <dd>{user.displayName}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-text-secondary">
+                  Account email
+                </dt>
+                <dd className="break-all">{user.email}</dd>
+                <dd className="text-xs font-semibold text-primary-hover">
+                  {user.emailVerifiedAt ? "Verified" : "Unverified"}
+                </dd>
+              </div>
+            </dl>
+            <ActionFormDialog
+              label="Edit profile"
               submit="Update profile"
               action={async (form) => {
                 updateUser(
@@ -78,6 +103,7 @@ export function SettingsPanel({
                     displayName: text(form, "displayName"),
                   }),
                 );
+                return "Changes saved.";
               }}
             >
               <Field label="Display name">
@@ -89,28 +115,31 @@ export function SettingsPanel({
                   defaultValue={user.displayName}
                 />
               </Field>
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3">
-                <dl className="min-w-0">
-                  <dt className="text-xs font-semibold text-text-secondary">
-                    Account email
-                  </dt>
-                  <dd className="mt-1 break-all text-sm text-text">
-                    {user.email}
-                  </dd>
-                </dl>
-                <span className="rounded-full bg-surface-lavender px-2.5 py-1 text-xs font-semibold text-primary-hover">
-                  {user.emailVerifiedAt ? "Verified" : "Unverified"}
-                </span>
-              </div>
-            </ActionForm>
+            </ActionFormDialog>
           </Card>
           <Card
             title="Appearance and accessibility"
             icon={<Monitor size={20} />}
             className="flex flex-col"
           >
-            <ActionForm
-              className="settings-form flex flex-1 flex-col"
+            <dl className="mb-4 flex-1 space-y-3">
+              <div>
+                <dt className="text-xs font-semibold text-text-secondary">
+                  Color theme
+                </dt>
+                <dd className="capitalize">
+                  {(user.preferences.theme ?? "SYSTEM").toLowerCase()}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-text-secondary">
+                  Reduced motion
+                </dt>
+                <dd>{user.preferences.reducedMotion ? "On" : "Off"}</dd>
+              </div>
+            </dl>
+            <ActionFormDialog
+              label="Edit display preferences"
               submit="Save display preferences"
               action={async (form) => {
                 updateUser(
@@ -119,6 +148,7 @@ export function SettingsPanel({
                     reducedMotion: form.has("reducedMotion"),
                   }),
                 );
+                return "Changes saved.";
               }}
             >
               <fieldset>
@@ -159,7 +189,7 @@ export function SettingsPanel({
                   className="relative h-6 w-11 shrink-0 rounded-full bg-border after:absolute after:start-1 after:top-1 after:size-4 after:rounded-full after:bg-surface after:content-[''] peer-checked:bg-primary peer-checked:after:start-6 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary"
                 />
               </label>
-            </ActionForm>
+            </ActionFormDialog>
           </Card>
         </div>
       )}
@@ -327,8 +357,17 @@ export function SettingsPanel({
                         : "default policy (no override)"}
                       . Cleanup requires scheduled monitoring maintenance.
                     </small>
-                    {workspace?.role === "OWNER" ? (
-                      <ActionForm
+                    <dl className="details-grid">
+                      {retentionFields.map(([key, label]) => (
+                        <div key={key}>
+                          <dt>{label}</dt>
+                          <dd>{retention.data![key]} days</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    {workspace?.role === "OWNER" && (
+                      <ActionFormDialog
+                        label="Edit retention policy"
                         submit="Update retention policy"
                         action={async (form) => {
                           const policy = {
@@ -347,25 +386,16 @@ export function SettingsPanel({
                         }}
                       >
                         <div className="field-row">
-                          {[
-                            ["rawDays", "Raw observations", 90],
-                            ["aggregateDays", "Aggregates and gaps", 730],
-                            ["alertDays", "Alerts and deliveries", 90],
-                            ["diagnosticDays", "Diagnostics", 30],
-                          ].map(([key, label, max]) => (
+                          {retentionFields.map(([key, label, max]) => (
                             <Field label={`${label} (days)`} key={key}>
                               <input
                                 type="number"
-                                name={String(key)}
+                                name={key}
                                 required
                                 min={1}
-                                max={Number(max)}
+                                max={max}
                                 step={1}
-                                defaultValue={
-                                  retention.data![
-                                    key as keyof Retention
-                                  ] as number
-                                }
+                                defaultValue={retention.data![key]}
                               />
                             </Field>
                           ))}
@@ -374,18 +404,7 @@ export function SettingsPanel({
                           <input type="checkbox" required />I understand shorter
                           retention can permanently remove existing data.
                         </label>
-                      </ActionForm>
-                    ) : (
-                      <dl className="details-grid">
-                        {Object.entries(retention.data)
-                          .filter(([key]) => key.endsWith("Days"))
-                          .map(([key, value]) => (
-                            <div key={key}>
-                              <dt>{key}</dt>
-                              <dd>{value} days</dd>
-                            </div>
-                          ))}
-                      </dl>
+                      </ActionFormDialog>
                     )}
                   </>
                 )}

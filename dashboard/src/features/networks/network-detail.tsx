@@ -251,6 +251,7 @@ export function NetworkDetail({
                             severity: text(f, "severity"),
                           });
                           events.reload();
+                          return "Event review saved.";
                         }}
                       >
                         <Field label="Event severity">
@@ -292,7 +293,7 @@ export function NetworkDetail({
                     id="network-edit-title"
                     className="text-base font-semibold"
                   >
-                    Edit name and subnets
+                    Network configuration
                   </h2>
                   <ActionFormDialog
                     label="Edit name and subnets"

@@ -3,7 +3,6 @@ import { usePage } from "@/shared/use-page";
 import { PageControls } from "@/shared/ui/page-controls";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import {
-  ActionForm,
   Card,
   Empty,
   Field,
@@ -40,13 +39,15 @@ export function BusinessStructure({
           <div key={l.id} className="row">
             <strong>{l.name}</strong>
             {can("networks:manage") && (
-              <ActionForm
+              <ActionFormDialog
+                label="Edit location"
                 key={l.revision}
                 action={async (f) => {
                   await mutate(`/locations/${l.id}`, "PATCH", {
                     name: text(f, "name"),
                     expectedRevision: l.revision,
                   });
+                  return "Location renamed.";
                 }}
                 submit="Rename location"
               >
@@ -58,7 +59,7 @@ export function BusinessStructure({
                     defaultValue={l.name}
                   />
                 </Field>
-              </ActionForm>
+              </ActionFormDialog>
             )}
           </div>
         ))}
@@ -131,7 +132,8 @@ export function BusinessStructure({
             <strong>{d.name}</strong>
             <p>{options?.locations.find((l) => l.id === d.locationId)?.name}</p>
             {can("members:manage") && (
-              <ActionForm
+              <ActionFormDialog
+                label="Edit department"
                 key={d.revision}
                 submit="Update department"
                 action={async (f) => {
@@ -140,6 +142,7 @@ export function BusinessStructure({
                     locationId: text(f, "location"),
                     expectedRevision: d.revision,
                   });
+                  return "Department updated.";
                 }}
               >
                 <Field label={`Department name for ${d.name}`}>
@@ -154,7 +157,7 @@ export function BusinessStructure({
                   locations={options?.locations ?? []}
                   value={d.locationId}
                 />
-              </ActionForm>
+              </ActionFormDialog>
             )}
           </div>
         ))}

@@ -9,6 +9,7 @@ export function ActionFormDialog({
   primary = false,
   icon,
   action,
+  onOpen,
   onClose,
   children,
 }: {
@@ -17,6 +18,7 @@ export function ActionFormDialog({
   primary?: boolean;
   icon?: ReactNode;
   action: (form: FormData) => Promise<string | void>;
+  onOpen?: () => void;
   onClose?: () => void;
   children: ReactNode;
 }) {
@@ -44,7 +46,10 @@ export function ActionFormDialog({
         type="button"
         aria-haspopup="dialog"
         className={primary ? "button primary" : "button accent"}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          onOpen?.();
+          setOpen(true);
+        }}
       >
         {icon}
         {label}

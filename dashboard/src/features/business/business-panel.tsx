@@ -7,7 +7,6 @@ import type { Member } from "@/shared/types";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
@@ -85,10 +84,6 @@ function Organization({
   if (view.loading) return <Loading />;
   if (view.error || !view.data) return <ErrorNotice error={view.error} />;
   const data = view.data;
-  const ReportingPolicyForm = data.policy ? ActionForm : ActionFormDialog;
-  const reportingPolicyDialog = data.policy
-    ? {}
-    : { label: "Create reporting policy", primary: true };
   return (
     <div className="stack">
       <Card title="Business organization">
@@ -168,8 +163,13 @@ function Organization({
                 These checks review reported metadata. They do not verify
                 patching, encryption, legal compliance or security protection.
               </p>
-              <ReportingPolicyForm
-                {...reportingPolicyDialog}
+              <ActionFormDialog
+                label={
+                  data.policy
+                    ? "Edit reporting policy"
+                    : "Create reporting policy"
+                }
+                primary={!data.policy}
                 key={data.policy?.revision ?? 0}
                 submit="Save reporting checks"
                 action={async (f) => {
@@ -179,6 +179,7 @@ function Organization({
                     requireMonitoring: f.has("monitoring"),
                     requirePermission: f.has("permission"),
                   });
+                  return "Reporting policy saved.";
                 }}
               >
                 <Field label="Metadata stale after minutes">
@@ -207,7 +208,7 @@ function Organization({
                   />{" "}
                   Require a reported granted permission
                 </label>
-              </ReportingPolicyForm>
+              </ActionFormDialog>
             </Card>
           )}
           {can("alerts:handle") && (

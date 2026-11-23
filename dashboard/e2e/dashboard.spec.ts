@@ -164,11 +164,14 @@ test("device inventory uses reported health and capability states", async ({
   await page
     .getByRole("button", { name: "View Fixture Android", exact: true })
     .click();
-  await page.getByText("Rename this device", { exact: true }).click();
-  await page
+  const rename = page.getByRole("dialog", { name: "Rename this device" });
+  await expect(rename).toBeHidden();
+  await page.getByRole("button", { name: "Rename this device" }).click();
+  await expect(rename.getByLabel("Device name")).toHaveValue("Fixture Android");
+  await rename
     .getByLabel("Device name", { exact: true })
     .fill("Fixture Android renamed");
-  await page
+  await rename
     .getByRole("button", { name: "Rename device", exact: true })
     .click();
   await expect(
@@ -382,26 +385,36 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     .filter({ hasText: "20,000,000 bytes" });
   await expect(created).toBeVisible();
   await expect(created).toContainText("estimated");
-  await created.getByRole("button", { name: "Edit rule", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Cancel editing", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Create rule", exact: true }),
-  ).toBeVisible();
-  await created.getByRole("button", { name: "Edit rule", exact: true }).click();
-  await expect(page.getByLabel("Threshold data quality")).toHaveValue(
+  const editRule = created.getByRole("button", {
+    name: "Edit rule",
+    exact: true,
+  });
+  const ruleDialog = page.getByRole("dialog", { name: "Edit rule" });
+  await editRule.click();
+  await expect(ruleDialog.getByLabel("Rule type")).toBeFocused();
+  await ruleDialog
+    .getByLabel("Severity", { exact: true })
+    .selectOption("critical");
+  await page.keyboard.press("Escape");
+  await expect(ruleDialog).toBeHidden();
+  await expect(editRule).toBeFocused();
+  await editRule.click();
+  await expect(ruleDialog.getByLabel("Threshold data quality")).toHaveValue(
     "estimated",
   );
-  await page.getByLabel("Severity", { exact: true }).selectOption("critical");
-  await page
+  await expect(
+    ruleDialog.getByLabel("Severity", { exact: true }),
+  ).not.toHaveValue("critical");
+  await ruleDialog
+    .getByLabel("Severity", { exact: true })
+    .selectOption("critical");
+  await ruleDialog
     .getByLabel(
       "I understand that editing removes this rule’s previous alert and delivery history.",
     )
     .check();
-  await page
-    .getByRole("button", { name: "Update alert rule", exact: true })
-    .click();
+  await ruleDialog.getByRole("button", { name: "Update alert rule" }).click();
+  await expect(ruleDialog).toBeHidden();
   await expect(
     page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" }),
   ).toContainText("critical");
@@ -409,15 +422,25 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" }),
   ).toContainText("estimated");
   await openTab(page, "Preferences");
-  await page.getByLabel("In-app notifications", { exact: true }).uncheck();
-  await page
+  const editPreferences = page.getByRole("button", {
+    name: "Edit notification preferences",
+  });
+  const preferences = page.getByRole("dialog", {
+    name: "Edit notification preferences",
+  });
+  await editPreferences.click();
+  await preferences
+    .getByLabel("In-app notifications", { exact: true })
+    .uncheck();
+  await preferences
     .getByRole("button", { name: "Save notification preferences", exact: true })
     .click();
   await expect(
     page.getByText("Changes saved.", { exact: true }).last(),
   ).toBeVisible();
-  await page.getByLabel("In-app notifications", { exact: true }).check();
-  await page
+  await editPreferences.click();
+  await preferences.getByLabel("In-app notifications", { exact: true }).check();
+  await preferences
     .getByRole("button", { name: "Save notification preferences", exact: true })
     .click();
 });
@@ -726,13 +749,18 @@ test("team invitations bind a recipient and management changes take effect", asy
     .getByRole("listitem")
     .filter({ hasText: data.accounts.recovery.email });
   await member.getByText("Manage member", { exact: true }).click();
-  await member.getByLabel("Role for Fixture recovery").selectOption("VIEWER");
-  await member
+  await member.getByRole("button", { name: "Edit member role" }).click();
+  const roleDialog = page.getByRole("dialog", { name: "Edit member role" });
+  await roleDialog
+    .getByLabel("Role for Fixture recovery")
+    .selectOption("VIEWER");
+  await roleDialog
     .getByLabel("I understand this may revoke devices or delete queued alerts.")
     .check();
-  await member
+  await roleDialog
     .getByRole("button", { name: "Change member role", exact: true })
     .click();
+  await expect(roleDialog).toBeHidden();
   await expect(member).toContainText("VIEWER");
   page.once("dialog", (dialog) => dialog.accept());
   await member
@@ -871,9 +899,18 @@ test("a verified user can create and switch to a new workspace", async ({
     .getByRole("button", { name: "Save reporting checks" })
     .click();
   await expect(reportingPolicy).toBeHidden();
-  await expect(page.getByLabel("Metadata stale after minutes")).toHaveValue(
-    "720",
-  );
+  await page.getByRole("button", { name: "Edit reporting policy" }).click();
+  const editPolicy = page.getByRole("dialog", {
+    name: "Edit reporting policy",
+  });
+  await expect(
+    editPolicy.getByLabel("Metadata stale after minutes"),
+  ).toHaveValue("720");
+  await editPolicy.getByLabel("Metadata stale after minutes").fill("780");
+  await editPolicy
+    .getByRole("button", { name: "Save reporting checks" })
+    .click();
+  await expect(editPolicy).toBeHidden();
   await page.getByRole("link", { name: "Team", exact: true }).click();
   await openTab(page, "Workspaces");
   await page.setViewportSize({ width: 320, height: 760 });
@@ -920,10 +957,10 @@ test("profile, appearance, retention, sessions and personal export use the backe
   });
   const viewport = page.viewportSize()!;
   const profileAction = await profileCard
-    .getByRole("button", { name: "Update profile" })
+    .getByRole("button", { name: "Edit profile" })
     .boundingBox();
   const appearanceAction = await appearanceCard
-    .getByRole("button", { name: "Save display preferences" })
+    .getByRole("button", { name: "Edit display preferences" })
     .boundingBox();
   expect(profileAction!.y).toBeCloseTo(appearanceAction!.y, 0);
   await expect(
@@ -940,30 +977,45 @@ test("profile, appearance, retention, sessions and personal export use the backe
     320,
   );
   await page.setViewportSize(viewport);
-  await page
+  const editProfile = page.getByRole("button", { name: "Edit profile" });
+  const profileDialog = page.getByRole("dialog", { name: "Edit profile" });
+  await editProfile.click();
+  await profileDialog
     .getByLabel("Display name", { exact: true })
     .fill("Fixture owner updated");
-  await page
+  await profileDialog
     .getByRole("button", { name: "Update profile", exact: true })
     .click();
   await expect(page.locator(".sidebar-profile")).toContainText(
     "Fixture owner updated",
   );
-  await page.getByText("Dark", { exact: true }).click();
+  await expect(profileDialog).toBeHidden();
+  await expect(editProfile).toBeFocused();
+  const editDisplay = page.getByRole("button", {
+    name: "Edit display preferences",
+  });
+  const displayDialog = page.getByRole("dialog", {
+    name: "Edit display preferences",
+  });
+  await editDisplay.click();
+  await displayDialog.getByText("Dark", { exact: true }).click();
   await expect(
-    page.getByRole("radio", { name: "Dark", exact: true }),
+    displayDialog.getByRole("radio", { name: "Dark", exact: true }),
   ).toBeChecked();
-  await page.getByText("Reduce motion", { exact: true }).click();
+  await displayDialog.getByText("Reduce motion", { exact: true }).click();
   await expect(
-    page.getByRole("switch", { name: "Reduce motion" }),
+    displayDialog.getByRole("switch", { name: "Reduce motion" }),
   ).toBeChecked();
-  await page
+  await displayDialog
     .getByRole("button", { name: "Save display preferences", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(displayDialog).toBeHidden();
+  await editDisplay.click();
   await expect(
-    page.getByRole("radio", { name: "Dark", exact: true }),
+    displayDialog.getByRole("radio", { name: "Dark", exact: true }),
   ).toBeChecked();
+  await page.keyboard.press("Escape");
   await expect(page.locator("html")).toHaveAttribute(
     "data-reduced-motion",
     "true",
@@ -974,16 +1026,22 @@ test("profile, appearance, retention, sessions and personal export use the backe
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await openTab(page, "Workspace");
-  await page.getByLabel("Raw observations (days)", { exact: true }).fill("20");
-  await page
+  const retentionDialog = page.getByRole("dialog", {
+    name: "Edit retention policy",
+  });
+  await page.getByRole("button", { name: "Edit retention policy" }).click();
+  await retentionDialog
+    .getByLabel("Raw observations (days)", { exact: true })
+    .fill("20");
+  await retentionDialog
     .getByLabel("Aggregates and gaps (days)", { exact: true })
     .fill("300");
-  await page
+  await retentionDialog
     .getByLabel(
       "I understand shorter retention can permanently remove existing data.",
     )
     .check();
-  await page
+  await retentionDialog
     .getByRole("button", { name: "Update retention policy", exact: true })
     .click();
   await expect(page.getByText(/Retention policy updated/)).toBeVisible();
@@ -1290,12 +1348,15 @@ test("consent, pause, revocation and erasure are explicit device actions", async
   await page
     .getByRole("button", { name: "View Fixture iOS", exact: true })
     .click();
-  await page.getByText("Review monitoring consent", { exact: true }).click();
-  await page.getByLabel("Network usage", { exact: true }).check();
-  await page
+  await page.getByRole("button", { name: "Review monitoring consent" }).click();
+  const consentDialog = page.getByRole("dialog", {
+    name: "Review monitoring consent",
+  });
+  await consentDialog.getByLabel("Network usage", { exact: true }).check();
+  await consentDialog
     .getByLabel("I understand and accept this monitoring disclosure.")
     .check();
-  await page
+  await consentDialog
     .getByRole("button", { name: "Grant selected consent", exact: true })
     .click();
   await expect(page.getByText(/Consent recorded/)).toBeVisible();
@@ -1543,10 +1604,12 @@ test("signing out or changing accounts clears other tabs instead of mixing user 
     await held;
     await route.fulfill({ response });
   });
-  await page
+  await page.getByRole("button", { name: "Edit profile" }).click();
+  const profileDialog = page.getByRole("dialog", { name: "Edit profile" });
+  await profileDialog
     .getByLabel("Display name", { exact: true })
     .fill("Delayed fixture profile");
-  await page
+  await profileDialog
     .getByRole("button", { name: "Update profile", exact: true })
     .click();
   await receivedResponse;
@@ -1661,7 +1724,7 @@ test("developer commands show pending/cancelled outcomes and keep viewers read-o
       tab.getByRole("button", { name: "Request force-stop", exact: true }),
     ).toBeDisabled();
     await expect(
-      tab.getByText("Sharing and controller grants", { exact: true }),
+      tab.getByRole("button", { name: "Edit sharing and controller grants" }),
     ).toHaveCount(0);
   } finally {
     await viewer.close();
@@ -1721,12 +1784,14 @@ test("network inventory exposes uncertain observations and editable labels witho
   await expect(
     endpoint.getByText(/Cached sightings reflect observations/),
   ).toBeVisible();
-  await endpoint
+  await endpoint.getByRole("button", { name: "Edit device labels" }).click();
+  const labels = page.getByRole("dialog", { name: "Edit device labels" });
+  await labels
     .getByLabel("Device label", { exact: true })
     .fill("Browser synthetic workstation");
-  await endpoint.getByLabel("Trust label").selectOption("blocked_label");
-  await endpoint
-    .getByRole("button", { name: "Save changes", exact: true })
+  await labels.getByLabel("Trust label").selectOption("blocked_label");
+  await labels
+    .getByRole("button", { name: "Save device labels", exact: true })
     .click();
   await expect(
     page.getByText("Inventory labels saved.", { exact: false }),
@@ -1851,10 +1916,15 @@ test("monitored networks can be added in a dialog and opened at a dedicated URL"
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBe(320);
   await page.setViewportSize({ width: 1280, height: 900 });
-  expect((await devices.boundingBox())!.y).toBeCloseTo(
-    (await collector.boundingBox())!.y,
-    0,
-  );
+  await expect
+    .poll(async () => {
+      const [deviceBounds, collectorBounds] = await Promise.all([
+        devices.boundingBox(),
+        collector.boundingBox(),
+      ]);
+      return deviceBounds!.y - collectorBounds!.y;
+    })
+    .toBeCloseTo(0, 0);
   await page.setViewportSize({ width: 320, height: 760 });
   const assign = page.getByRole("button", {
     name: "Assign collector",
@@ -1887,9 +1957,14 @@ test("monitored networks can be added in a dialog and opened at a dedicated URL"
       .filter({ hasText: "Synthetic network collector" }),
   ).toBeVisible();
   await page.getByText("Network settings", { exact: true }).click();
-  await expect(
-    page.getByLabel("Updated network name", { exact: true }),
-  ).toHaveValue("Browser network");
+  await page.getByRole("button", { name: "Edit name and subnets" }).click();
+  const networkSettings = page.getByRole("dialog", {
+    name: "Edit name and subnets",
+  });
+  await expect(networkSettings.getByLabel("Updated network name")).toHaveValue(
+    "Browser network",
+  );
+  await networkSettings.getByRole("button", { name: "Close dialog" }).click();
   await page.reload();
   await expect(
     page.getByRole("heading", {
@@ -1987,9 +2062,8 @@ test("family viewers cannot see child profiles and policy edits require explicit
   ).toBeVisible();
   await login(page, "owner");
   await page.getByRole("link", { name: "Family", exact: true }).click();
-  const policy = page.locator("section.card").filter({
-    has: page.getByRole("heading", { name: "Family policy", exact: true }),
-  });
+  await page.getByRole("button", { name: "Edit family policy" }).click();
+  const policy = page.getByRole("dialog", { name: "Edit family policy" });
   await policy
     .getByLabel("Daily observed screen-time allowance (minutes)", {
       exact: true,
@@ -2044,6 +2118,27 @@ test("family viewers cannot see child profiles and policy edits require explicit
     .click();
   await expect(firstPolicy).toBeHidden();
   await expect(page.getByText(/Revision 1 · timezone/)).toBeVisible();
+  await page
+    .getByText("Edit profile, guardian grants or archive", { exact: true })
+    .click();
+  await page.getByRole("button", { name: "Edit child profile" }).click();
+  const editChild = page.getByRole("dialog", { name: "Edit child profile" });
+  await expect(editChild.getByLabel("Child display name")).toHaveValue(
+    "New policy profile",
+  );
+  await editChild
+    .getByLabel("Child display name")
+    .fill("Updated policy profile");
+  await editChild.getByRole("checkbox", { name: consent }).check();
+  await editChild
+    .getByRole("button", { name: "Save profile and renew sharing consent" })
+    .click();
+  await expect(editChild).toBeHidden();
+  await expect(
+    page.getByRole("heading", {
+      name: "Updated policy profile · family overview",
+    }),
+  ).toBeVisible();
 });
 
 test("Business roles review organization structure and employees explicitly accept sharing", async ({
@@ -2073,6 +2168,21 @@ test("Business roles review organization structure and employees explicitly acce
   await expect(locationDialog).toBeHidden();
   await expect(
     page.locator("strong").filter({ hasText: /^Browser Business location$/ }),
+  ).toBeVisible();
+  const newLocation = page.locator(".row").filter({
+    has: page.getByText("Browser Business location", { exact: true }),
+  });
+  await newLocation.getByRole("button", { name: "Edit location" }).click();
+  const editLocation = page.getByRole("dialog", { name: "Edit location" });
+  const locationName = editLocation.getByLabel(
+    "Name for Browser Business location",
+  );
+  await expect(locationName).toHaveValue("Browser Business location");
+  await locationName.fill("Renamed browser location");
+  await editLocation.getByRole("button", { name: "Rename location" }).click();
+  await expect(editLocation).toBeHidden();
+  await expect(
+    page.locator("strong").filter({ hasText: /^Renamed browser location$/ }),
   ).toBeVisible();
   await page
     .getByRole("heading", { name: "Network device departments", exact: true })
@@ -2269,20 +2379,34 @@ test("email alert opt-in stays visibly disabled and saved themes follow account 
   await page
     .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
-  await page.getByText("Dark", { exact: true }).click();
-  await page
+  await page.getByRole("button", { name: "Edit display preferences" }).click();
+  const display = page.getByRole("dialog", {
+    name: "Edit display preferences",
+  });
+  await display.getByText("Dark", { exact: true }).click();
+  await display
     .getByRole("button", { name: "Save display preferences", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await openTab(page, "Notifications");
-  await page.getByLabel("Opt in to email alerts (delivery disabled)").check();
-  await page
+  const editNotifications = page.getByRole("button", {
+    name: "Edit notification preferences",
+  });
+  const notifications = page.getByRole("dialog", {
+    name: "Edit notification preferences",
+  });
+  await editNotifications.click();
+  await notifications
+    .getByLabel("Opt in to email alerts (delivery disabled)")
+    .check();
+  await notifications
     .getByRole("button", { name: "Save notification preferences", exact: true })
     .click();
   await page.reload();
   await expect(page).toHaveURL("/app/settings/notifications");
+  await editNotifications.click();
   await expect(
-    page.getByLabel("Opt in to email alerts (delivery disabled)"),
+    notifications.getByLabel("Opt in to email alerts (delivery disabled)"),
   ).toBeChecked();
   await expect(
     page.getByText(
@@ -2290,8 +2414,10 @@ test("email alert opt-in stays visibly disabled and saved themes follow account 
     ),
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await page.getByLabel("Opt in to email alerts (delivery disabled)").uncheck();
-  await page
+  await notifications
+    .getByLabel("Opt in to email alerts (delivery disabled)")
+    .uncheck();
+  await notifications
     .getByRole("button", { name: "Save notification preferences", exact: true })
     .click();
 });

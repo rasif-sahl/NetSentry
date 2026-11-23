@@ -1,4 +1,5 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { useState } from "react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
@@ -8,7 +9,6 @@ import { ChildPanel } from "./child-panel";
 import { ProfileForm } from "./profile-form";
 import type { Profile } from "./types";
 import {
-  ActionForm,
   Card,
   Field,
   Notice,
@@ -65,14 +65,9 @@ export function FamilyPanel(context: PageContext & { tab: string }) {
       {tab === "sharing" && (
         <Card title="Family-sharing disclosure">
           <p>{family.data?.disclosure.text}</p>
-          <details>
-            <summary>Withdraw sharing on your own device</summary>
-            <p>
-              You can withdraw family sharing for a device you own even if a
-              guardian profile grant has been removed. Personal measurements
-              remain separate.
-            </p>
-            <ActionForm
+          <div className="mt-3">
+            <ActionFormDialog
+              label="Withdraw device sharing"
               submit="Withdraw your device's family sharing"
               action={async (f) => {
                 await api(
@@ -83,6 +78,11 @@ export function FamilyPanel(context: PageContext & { tab: string }) {
                 return "Your device sharing was withdrawn. Refresh any open child profile.";
               }}
             >
+              <p>
+                You can withdraw family sharing for a device you own even if a
+                guardian profile grant has been removed. Personal measurements
+                remain separate.
+              </p>
               <Field label="Your device for family withdrawal">
                 <select name="ownDeviceId" required>
                   <option value="">Choose your device</option>
@@ -95,8 +95,8 @@ export function FamilyPanel(context: PageContext & { tab: string }) {
                     ))}
                 </select>
               </Field>
-            </ActionForm>
-          </details>
+            </ActionFormDialog>
+          </div>
         </Card>
       )}
       {tab === "profiles" && (

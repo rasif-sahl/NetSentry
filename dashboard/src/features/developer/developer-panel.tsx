@@ -196,60 +196,54 @@ function ComputerPanel({
         <p>Native remote capabilities have not been reported as available.</p>
       )}
       {c.canManage && permissions.includes("services:control") && (
-        <details>
-          <summary>Sharing and controller grants</summary>
-          <ActionFormDialog
-            label="Edit sharing and controller grants"
-            key={`${c.sharingAllowed}/${c.controllers.join()}`}
-            submit="Save developer sharing policy"
-            action={async (form) => {
-              await api(`${base}/developer-policy`, "PATCH", {
-                sharingAllowed: form.get("sharing") === "on",
-                controllers:
-                  form.get("sharing") === "on"
-                    ? form.getAll("controllers")
-                    : [],
-                accepted: form.get("accepted") === "on",
-                disclosureVersion: "developer-sharing-v1",
-              });
-              refresh();
-              history.reload();
-              return "Policy updated. Current pending commands are invalidated; the agent must publish a fresh report.";
-            }}
-          >
-            <Notice>
-              This shares up to 32 service summaries with workspace viewers.
-              Controllers must additionally have an owner/admin role and
-              explicit consent on the computer. No arbitrary shell command can
-              be sent.
-            </Notice>
-            <Field label="Allow service sharing">
-              <input
-                type="checkbox"
-                name="sharing"
-                defaultChecked={c.sharingAllowed}
-              />
-            </Field>
-            {members
-              .filter((m) => ["OWNER", "ADMIN"].includes(m.role))
-              .map((m) => (
-                <Field
-                  key={m.userId}
-                  label={`Allow ${m.displayName} (${m.role}) to request shutdown`}
-                >
-                  <input
-                    type="checkbox"
-                    name="controllers"
-                    value={m.userId}
-                    defaultChecked={c.controllers.includes(m.userId)}
-                  />
-                </Field>
-              ))}
-            <Field label="I accept developer-sharing-v1">
-              <input type="checkbox" name="accepted" required />
-            </Field>
-          </ActionFormDialog>
-        </details>
+        <ActionFormDialog
+          label="Edit sharing and controller grants"
+          key={`${c.sharingAllowed}/${c.controllers.join()}`}
+          submit="Save developer sharing policy"
+          action={async (form) => {
+            await api(`${base}/developer-policy`, "PATCH", {
+              sharingAllowed: form.get("sharing") === "on",
+              controllers:
+                form.get("sharing") === "on" ? form.getAll("controllers") : [],
+              accepted: form.get("accepted") === "on",
+              disclosureVersion: "developer-sharing-v1",
+            });
+            refresh();
+            history.reload();
+            return "Policy updated. Current pending commands are invalidated; the agent must publish a fresh report.";
+          }}
+        >
+          <Notice>
+            This shares up to 32 service summaries with workspace viewers.
+            Controllers must additionally have an owner/admin role and explicit
+            consent on the computer. No arbitrary shell command can be sent.
+          </Notice>
+          <Field label="Allow service sharing">
+            <input
+              type="checkbox"
+              name="sharing"
+              defaultChecked={c.sharingAllowed}
+            />
+          </Field>
+          {members
+            .filter((m) => ["OWNER", "ADMIN"].includes(m.role))
+            .map((m) => (
+              <Field
+                key={m.userId}
+                label={`Allow ${m.displayName} (${m.role}) to request shutdown`}
+              >
+                <input
+                  type="checkbox"
+                  name="controllers"
+                  value={m.userId}
+                  defaultChecked={c.controllers.includes(m.userId)}
+                />
+              </Field>
+            ))}
+          <Field label="I accept developer-sharing-v1">
+            <input type="checkbox" name="accepted" required />
+          </Field>
+        </ActionFormDialog>
       )}
       {!c.services.length && (
         <Empty

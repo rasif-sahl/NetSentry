@@ -3,7 +3,6 @@ import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import {
-  ActionForm,
   ActionButton,
   Card,
   Field,
@@ -306,34 +305,36 @@ export function OperationsPanel({ tab }: { tab: string }) {
                 offline action.
               </Notice>
               {users.data?.map((u) => (
-                <ActionForm
-                  key={u.id + u.status}
-                  submit="Update account status"
-                  reset
-                  action={async (f) => {
-                    if (
-                      !window.confirm(
-                        `Change account status for ${u.displayName}?`,
-                      )
-                    )
-                      return "No change made.";
-                    await mutate(`/users/${u.id}/status`, {
-                      status: text(f, "status"),
-                      password: String(f.get("password") ?? ""),
-                    });
-                  }}
-                >
+                <div className="row" key={u.id}>
                   <p>
                     {u.displayName} · {u.status}
                   </p>
-                  <Field label={`Status for ${u.displayName}`}>
-                    <select name="status" defaultValue={u.status}>
-                      <option value="ACTIVE">ACTIVE</option>
-                      <option value="SUSPENDED">SUSPENDED</option>
-                    </select>
-                  </Field>
-                  <Password />
-                </ActionForm>
+                  <ActionFormDialog
+                    label="Edit account status"
+                    submit="Update account status"
+                    action={async (f) => {
+                      if (
+                        !window.confirm(
+                          `Change account status for ${u.displayName}?`,
+                        )
+                      )
+                        return "No change made.";
+                      await mutate(`/users/${u.id}/status`, {
+                        status: text(f, "status"),
+                        password: String(f.get("password") ?? ""),
+                      });
+                      return "Account status updated.";
+                    }}
+                  >
+                    <Field label={`Status for ${u.displayName}`}>
+                      <select name="status" defaultValue={u.status}>
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="SUSPENDED">SUSPENDED</option>
+                      </select>
+                    </Field>
+                    <Password />
+                  </ActionFormDialog>
+                </div>
               ))}
             </Card>
           )}

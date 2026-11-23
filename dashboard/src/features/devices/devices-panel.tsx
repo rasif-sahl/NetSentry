@@ -1,4 +1,5 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { usePage } from "@/shared/use-page";
 import { PageControls } from "@/shared/ui/page-controls";
 import { useDeferredValue, useState } from "react";
@@ -8,7 +9,6 @@ import type { Device, DeviceEvent, Disclosures } from "@/shared/types";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
@@ -132,27 +132,26 @@ export function DevicesPanel({ user, workspace, permissions }: PageContext) {
             ))}
           </dl>
           {canManage && (
-            <details>
-              <summary>Rename this device</summary>
-              <ActionForm
-                action={async (form) => {
-                  await api(`/devices/${device.id}`, "PATCH", {
-                    name: text(form, "name"),
-                  });
-                  reloadDevices();
-                }}
-                submit="Rename device"
-              >
-                <Field label="Device name">
-                  <input
-                    name="name"
-                    defaultValue={device.name}
-                    required
-                    maxLength={100}
-                  />
-                </Field>
-              </ActionForm>
-            </details>
+            <ActionFormDialog
+              label="Rename this device"
+              action={async (form) => {
+                await api(`/devices/${device.id}`, "PATCH", {
+                  name: text(form, "name"),
+                });
+                reloadDevices();
+                return "Device renamed.";
+              }}
+              submit="Rename device"
+            >
+              <Field label="Device name">
+                <input
+                  name="name"
+                  defaultValue={device.name}
+                  required
+                  maxLength={100}
+                />
+              </Field>
+            </ActionFormDialog>
           )}
           <h3>Reported capabilities</h3>
           {device.capabilityReport?.capabilities.length ? (
@@ -199,11 +198,11 @@ export function DevicesPanel({ user, workspace, permissions }: PageContext) {
             </Empty>
           )}
           {owner && device.state === "ACTIVE" && (
-            <details>
-              <summary>Review monitoring consent</summary>
+            <>
               <ErrorNotice error={disclosures.error} />
               {disclosures.data && (
-                <ActionForm
+                <ActionFormDialog
+                  label="Review monitoring consent"
                   key={disclosures.data.monitoring.version}
                   submit="Grant selected consent"
                   action={async (form) => {
@@ -250,9 +249,9 @@ export function DevicesPanel({ user, workspace, permissions }: PageContext) {
                     <input type="checkbox" required />I understand and accept
                     this monitoring disclosure.
                   </label>
-                </ActionForm>
+                </ActionFormDialog>
               )}
-            </details>
+            </>
           )}
           {canManage && (
             <div className="button-row">

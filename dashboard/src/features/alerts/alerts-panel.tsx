@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
 import { usePage } from "@/shared/use-page";
@@ -10,7 +10,6 @@ import { metrics, exactValue } from "@/shared/usage";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
@@ -33,50 +32,60 @@ export function NotificationPreferencesPanel() {
       <ErrorNotice error={preference.error} />
       {preference.loading && <Loading />}
       {preference.data && (
-        <ActionForm
-          submit="Save notification preferences"
-          action={async (form) => {
-            await api("/notifications/preferences", "PATCH", {
-              inApp: form.has("inApp"),
-              push: form.has("push"),
-              email: form.has("email"),
-            });
-            preference.reload();
-          }}
-        >
-          <label className="check">
-            <input
-              type="checkbox"
-              name="inApp"
-              defaultChecked={preference.data.inApp}
-            />
-            In-app notifications
-          </label>
-          <label className="check">
-            <input
-              type="checkbox"
-              name="push"
-              defaultChecked={preference.data.push}
-            />
-            Push preference (delivery unavailable until providers and native
-            clients are configured)
-          </label>
-          <label className="check">
-            <input
-              type="checkbox"
-              name="email"
-              defaultChecked={preference.data.email}
-            />
-            Opt in to email alerts (delivery disabled)
-          </label>
-          <small>
-            Email alert delivery is disabled. Saving preferences sends no email.
-          </small>
-          <small>
-            Quiet hours and your current preferences are checked when an alert
-            is delivered.
-          </small>
-        </ActionForm>
+        <>
+          <p className="mb-3">
+            In-app {preference.data.inApp ? "on" : "off"} · Push preference{" "}
+            {preference.data.push ? "on" : "off"} · Email opt-in{" "}
+            {preference.data.email ? "on" : "off"}
+          </p>
+          <ActionFormDialog
+            label="Edit notification preferences"
+            submit="Save notification preferences"
+            action={async (form) => {
+              await api("/notifications/preferences", "PATCH", {
+                inApp: form.has("inApp"),
+                push: form.has("push"),
+                email: form.has("email"),
+              });
+              preference.reload();
+              return "Changes saved.";
+            }}
+          >
+            <label className="check">
+              <input
+                type="checkbox"
+                name="inApp"
+                defaultChecked={preference.data.inApp}
+              />
+              In-app notifications
+            </label>
+            <label className="check">
+              <input
+                type="checkbox"
+                name="push"
+                defaultChecked={preference.data.push}
+              />
+              Push preference (delivery unavailable until providers and native
+              clients are configured)
+            </label>
+            <label className="check">
+              <input
+                type="checkbox"
+                name="email"
+                defaultChecked={preference.data.email}
+              />
+              Opt in to email alerts (delivery disabled)
+            </label>
+            <small>
+              Email alert delivery is disabled. Saving preferences sends no
+              email.
+            </small>
+            <small>
+              Quiet hours and your current preferences are checked when an alert
+              is delivered.
+            </small>
+          </ActionFormDialog>
+        </>
       )}
     </Card>
   );
@@ -99,16 +108,15 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
   const networks = useResource<UsageNetwork[]>(
     tab === "rules" ? `${base}/networks` : null,
   );
-  const [editing, setEditing] = useState<AlertRule>();
   const [saved, setSaved] = useState(false);
-  const editor = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (editing) editor.current?.focus();
-  }, [editing]);
   function reload() {
     rules.reload();
     alerts.reload();
     notifications.reload();
+  }
+  function ruleSaved() {
+    setSaved(true);
+    reload();
   }
   return (
     <>
@@ -171,43 +179,14 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
               pass.
             </Notice>
           )}
-          {!editing ? (
-            <div className="button-row align-end workflow-actions">
-              <RuleEditor
-                context={context}
-                networks={networks.data ?? []}
-                saved={() => {
-                  setSaved(true);
-                  reload();
-                }}
-              />
-            </div>
-          ) : (
-            <div ref={editor} tabIndex={-1}>
-              <Card title="Edit alert rule">
-                <RuleEditor
-                  key={editing.id}
-                  context={context}
-                  networks={networks.data ?? []}
-                  initial={editing}
-                  saved={() => {
-                    setEditing(undefined);
-                    setSaved(true);
-                    reload();
-                  }}
-                />
-                <div className="button-row align-end">
-                  <button
-                    type="button"
-                    className="button accent"
-                    onClick={() => setEditing(undefined)}
-                  >
-                    Cancel editing
-                  </button>
-                </div>
-              </Card>
-            </div>
-          )}
+          <div className="button-row align-end workflow-actions">
+            <RuleEditor
+              context={context}
+              networks={networks.data ?? []}
+              onOpen={() => setSaved(false)}
+              saved={ruleSaved}
+            />
+          </div>
           <Card title="Your alert rules">
             <ErrorNotice error={rules.error} />
             {rules.loading && <Loading />}
@@ -235,15 +214,13 @@ export function AlertsPanel(context: PageContext & { tab: string }) {
                           : ""}
                       </small>
                     </div>
-                    <button
-                      className="button"
-                      onClick={() => {
-                        setSaved(false);
-                        setEditing(rule);
-                      }}
-                    >
-                      Edit rule
-                    </button>
+                    <RuleEditor
+                      context={context}
+                      networks={networks.data ?? []}
+                      initial={rule}
+                      onOpen={() => setSaved(false)}
+                      saved={ruleSaved}
+                    />
                     <ActionButton
                       action={async () => {
                         await api(`${base}/rules/${rule.id}`, "DELETE", {});
@@ -355,11 +332,13 @@ function RuleEditor({
   context,
   networks,
   initial,
+  onOpen,
   saved,
 }: {
   context: PageContext;
   networks: UsageNetwork[];
   initial?: AlertRule;
+  onOpen: () => void;
   saved: () => void;
 }) {
   const config = initial?.config;
@@ -374,21 +353,16 @@ function RuleEditor({
     : context.devices.filter(
         (device) => device.registeredById === context.user.id,
       );
-  const Form = initial ? ActionForm : ActionFormDialog;
-  const dialog = initial
-    ? {}
-    : {
-        label: "Create rule",
-        primary: true,
-        onClose: () => {
-          setKind("threshold");
-          setMetric("mobile_data_bytes");
-          setQuiet(false);
-        },
-      };
   return (
-    <Form
-      {...dialog}
+    <ActionFormDialog
+      label={initial ? "Edit rule" : "Create rule"}
+      primary={!initial}
+      onOpen={() => {
+        setKind(config?.kind ?? "threshold");
+        setMetric(config?.metric ?? "mobile_data_bytes");
+        setQuiet(!!config?.quietHours);
+        onOpen();
+      }}
       submit={initial ? "Update alert rule" : "Create alert rule"}
       action={async (form) => {
         const input = {
@@ -641,6 +615,6 @@ function RuleEditor({
           this rule’s previous alert and delivery history.
         </label>
       )}
-    </Form>
+    </ActionFormDialog>
   );
 }

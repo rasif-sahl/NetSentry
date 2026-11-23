@@ -2,7 +2,6 @@
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Field,
   Notice,
@@ -45,7 +44,12 @@ export function EmployeeAccess({
             </p>
             {can("members:manage") && (
               <>
-                <ActionForm
+                <ActionFormDialog
+                  label={
+                    e.offboardedAt
+                      ? "Restore employee"
+                      : "Edit employee department"
+                  }
                   key={e.revision}
                   submit={
                     e.offboardedAt
@@ -66,7 +70,7 @@ export function EmployeeAccess({
                     departments={options?.departments ?? []}
                     value={e.departmentId ?? ""}
                   />
-                </ActionForm>
+                </ActionFormDialog>
                 {!e.offboardedAt && e.userId !== userId && (
                   <ActionButton
                     confirm={`Offboard ${e.displayName}? This removes organization membership, revokes organization device/agent credentials and ends sharing. Personal data and unrelated organizations are preserved.`}

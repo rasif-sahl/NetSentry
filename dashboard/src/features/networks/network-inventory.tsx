@@ -115,7 +115,7 @@ export function NetworkInventory({
             <>
               <ActionFormDialog
                 label="Edit device labels"
-                submit="Save changes"
+                submit="Save device labels"
                 action={async (f) => {
                   await api(`${path}/endpoints/${e.id}`, "PATCH", {
                     name: text(f, "name"),
