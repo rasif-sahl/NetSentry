@@ -15,16 +15,30 @@ async function login(page: Page, account = "owner") {
   await expect(
     page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("Active workspace")).not.toHaveValue("");
-  await page.getByLabel("Active workspace").selectOption(data.workspaceId);
-  await expect(page.getByLabel("Active workspace")).toHaveValue(
-    data.workspaceId,
-  );
+  await selectWorkspace(page, data.workspaceId);
   await expect(
     page.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
   return data;
 }
+async function selectWorkspace(page: Page, id: string) {
+  const trigger = page
+    .getByRole("banner")
+    .getByRole("button", { name: /^Active workspace/ });
+  await trigger.click();
+  const choices = page.getByRole("group", { name: "Switch workspace" });
+  await choices.locator(`button[data-workspace-id="${id}"]`).click();
+  await expect(trigger).toHaveAttribute("data-workspace-id", id);
+  await expect(trigger).toHaveAttribute("aria-busy", "false");
+}
+async function openTab(page: Page, name: string) {
+  const tab = page
+    .getByRole("navigation", { name: / sections$/ })
+    .getByRole("link", { name, exact: true });
+  await tab.click();
+  await expect(tab).toHaveAttribute("aria-current", "page");
+}
+
 test("sign in, restore an HTTP-only session and sign out", async ({
   page,
   context,
@@ -106,15 +120,36 @@ test("device inventory uses reported health and capability states", async ({
     "flex-end",
   );
   await details.press("Enter");
-  await expect(page).toHaveURL(/\/app\?view=Devices$/);
+  await expect(page).toHaveURL(/\/app\/devices$/);
   await expect(
     page.getByRole("heading", { name: "Device inventory" }),
   ).toBeVisible();
-  await page.getByLabel("Find a device").fill("no-such-fixture");
+  const search = page.getByLabel("Find a device");
+  await search.fill("no-such-fixture");
   await expect(
     page.getByText("No matching devices", { exact: true }),
   ).toBeVisible();
-  await page.getByLabel("Find a device").fill("");
+  const inventory = page.locator(".card").filter({
+    has: page.getByRole("heading", { name: "Device inventory", exact: true }),
+  });
+  const viewport = page.viewportSize()!;
+  for (const width of [viewport.width, 390]) {
+    await page.setViewportSize({ width, height: viewport.height });
+    const inputBounds = await search.boundingBox();
+    const emptyBounds = await inventory.locator(".empty").boundingBox();
+    expect(
+      emptyBounds!.y - (inputBounds!.y + inputBounds!.height),
+    ).toBeGreaterThanOrEqual(12);
+  }
+  await page.setViewportSize(viewport);
+  await search.fill("");
+  const list = inventory.getByRole("list");
+  await expect(list).toBeVisible();
+  const inputBounds = await search.boundingBox();
+  const listBounds = await list.boundingBox();
+  expect(
+    listBounds!.y - (inputBounds!.y + inputBounds!.height),
+  ).toBeGreaterThanOrEqual(12);
   await page
     .getByRole("button", { name: "View Fixture iOS", exact: true })
     .click();
@@ -129,11 +164,14 @@ test("device inventory uses reported health and capability states", async ({
   await page
     .getByRole("button", { name: "View Fixture Android", exact: true })
     .click();
-  await page.getByText("Rename this device", { exact: true }).click();
-  await page
+  const rename = page.getByRole("dialog", { name: "Rename this device" });
+  await expect(rename).toBeHidden();
+  await page.getByRole("button", { name: "Rename this device" }).click();
+  await expect(rename.getByLabel("Device name")).toHaveValue("Fixture Android");
+  await rename
     .getByLabel("Device name", { exact: true })
     .fill("Fixture Android renamed");
-  await page
+  await rename
     .getByRole("button", { name: "Rename device", exact: true })
     .click();
   await expect(
@@ -177,20 +215,20 @@ test("reports show real measured/estimated values, export and isolate workspace 
   expect(await readFile((await downloaded.path())!, "utf8")).toContain(
     '"measured","estimated"',
   );
-  await page.getByLabel("Active workspace").selectOption(data.emptyId);
+  await selectWorkspace(page, data.emptyId);
   await expect(
     page.getByText("No observations in this period", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("10,485,760 bytes", { exact: true })).toHaveCount(
     0,
   );
-  await page.getByLabel("Active workspace").selectOption(data.workspaceId);
+  await selectWorkspace(page, data.workspaceId);
 });
 test("viewers cannot expose another device report or monitoring controls", async ({
   page,
 }) => {
   const data = await login(page, "viewer");
-  await page.getByRole("button", { name: "Devices", exact: true }).click();
+  await page.getByRole("link", { name: "Devices", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Device inventory" }),
   ).toBeVisible();
@@ -198,7 +236,7 @@ test("viewers cannot expose another device report or monitoring controls", async
     page.getByRole("button", { name: "Pause monitoring", exact: true }),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Usage & reports", exact: true })
+    .getByRole("link", { name: "Usage & reports", exact: true })
     .click();
   await expect(
     page.getByText("No observations in this period", { exact: true }),
@@ -218,7 +256,7 @@ test("report failures have a recoverable error state", async ({ page }) => {
     }),
   );
   await page
-    .getByRole("button", { name: "Usage & reports", exact: true })
+    .getByRole("link", { name: "Usage & reports", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "Synthetic connection failure" }),
@@ -248,12 +286,12 @@ test("account settings and Operations stay available during an inventory outage"
     page.getByRole("alert").filter({ hasText: "Synthetic inventory outage" }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Your profile", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Operations", exact: true }).click();
+  await page.getByRole("link", { name: "Operations", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Platform operations", exact: true }),
   ).toBeVisible();
@@ -261,14 +299,27 @@ test("account settings and Operations stay available during an inventory outage"
 
 test("manual network labels are explicit and editable", async ({ page }) => {
   await login(page);
-  await page.getByRole("button", { name: "Networks", exact: true }).click();
+  await page.getByRole("link", { name: "Networks", exact: true }).click();
   await expect(
     page.getByRole("listitem").getByText("Fixture home label", { exact: true }),
   ).toBeVisible();
-  await page.getByLabel("Network label name").fill("Browser fixture label");
-  await page
+  const addLabel = page.getByRole("button", {
+    name: "Create network label",
+    exact: true,
+  });
+  await addLabel.click();
+  const labelDialog = page.getByRole("dialog", {
+    name: "Create network label",
+    exact: true,
+  });
+  await labelDialog
+    .getByLabel("Network label name")
+    .fill("Browser fixture label");
+  await labelDialog
     .getByRole("button", { name: "Create network label", exact: true })
     .click();
+  await expect(labelDialog).toBeHidden();
+  await expect(addLabel).toBeFocused();
   await expect(
     page
       .getByRole("listitem")
@@ -287,13 +338,35 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     page.getByRole("heading", { name: "In-app notifications", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("threshold · warning", { exact: true }).first(),
+    page.getByText("threshold · measured · warning", { exact: true }).first(),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Acknowledge notification", exact: true })
     .first()
     .click();
   await expect(page.getByText(/Acknowledged/).first()).toBeVisible();
+  await expect(page).toHaveURL("/app/alerts");
+  await expect(
+    page.getByRole("heading", { name: "Your alert rules" }),
+  ).toHaveCount(0);
+  await openTab(page, "History");
+  await expect(page).toHaveURL("/app/alerts/history");
+  await expect(
+    page.getByRole("heading", { name: "Alert history and delivery" }),
+  ).toBeVisible();
+  await page.goBack();
+  await expect(
+    page.getByRole("heading", { name: "In-app notifications" }),
+  ).toBeVisible();
+  await openTab(page, "Rules");
+  await expect(page).toHaveURL("/app/alerts/rules");
+  await expect(
+    page.getByRole("heading", { name: "Create an alert rule" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Create rule", exact: true }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Create rule", exact: true }),
+  ).toBeVisible();
   await page.getByLabel("Rule device").selectOption(data.deviceId);
   await expect(page.getByLabel("Threshold data quality")).toHaveValue(
     "measured",
@@ -312,41 +385,62 @@ test("alerts expose delivery, acknowledgement and editable quiet-hour rules", as
     .filter({ hasText: "20,000,000 bytes" });
   await expect(created).toBeVisible();
   await expect(created).toContainText("estimated");
-  await created.getByRole("button", { name: "Edit rule", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Cancel editing", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Create an alert rule", exact: true }),
-  ).toBeVisible();
-  await created.getByRole("button", { name: "Edit rule", exact: true }).click();
-  await expect(page.getByLabel("Threshold data quality")).toHaveValue(
+  const editRule = created.getByRole("button", {
+    name: "Edit rule",
+    exact: true,
+  });
+  const ruleDialog = page.getByRole("dialog", { name: "Edit rule" });
+  await editRule.click();
+  await expect(ruleDialog.getByLabel("Rule type")).toBeFocused();
+  await ruleDialog
+    .getByLabel("Severity", { exact: true })
+    .selectOption("critical");
+  await page.keyboard.press("Escape");
+  await expect(ruleDialog).toBeHidden();
+  await expect(editRule).toBeFocused();
+  await editRule.click();
+  await expect(ruleDialog.getByLabel("Threshold data quality")).toHaveValue(
     "estimated",
   );
-  await page.getByLabel("Severity", { exact: true }).selectOption("critical");
-  await page
+  await expect(
+    ruleDialog.getByLabel("Severity", { exact: true }),
+  ).not.toHaveValue("critical");
+  await ruleDialog
+    .getByLabel("Severity", { exact: true })
+    .selectOption("critical");
+  await ruleDialog
     .getByLabel(
       "I understand that editing removes this rule’s previous alert and delivery history.",
     )
     .check();
-  await page
-    .getByRole("button", { name: "Update alert rule", exact: true })
-    .click();
+  await ruleDialog.getByRole("button", { name: "Update alert rule" }).click();
+  await expect(ruleDialog).toBeHidden();
   await expect(
     page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" }),
   ).toContainText("critical");
   await expect(
     page.getByRole("listitem").filter({ hasText: "20,000,000 bytes" }),
   ).toContainText("estimated");
-  await page.getByLabel("In-app notifications", { exact: true }).uncheck();
-  await page
+  await openTab(page, "Preferences");
+  const editPreferences = page.getByRole("button", {
+    name: "Edit notification preferences",
+  });
+  const preferences = page.getByRole("dialog", {
+    name: "Edit notification preferences",
+  });
+  await editPreferences.click();
+  await preferences
+    .getByLabel("In-app notifications", { exact: true })
+    .uncheck();
+  await preferences
     .getByRole("button", { name: "Save notification preferences", exact: true })
     .click();
   await expect(
     page.getByText("Changes saved.", { exact: true }).last(),
   ).toBeVisible();
-  await page.getByLabel("In-app notifications", { exact: true }).check();
-  await page
+  await editPreferences.click();
+  await preferences.getByLabel("In-app notifications", { exact: true }).check();
+  await preferences
     .getByRole("button", { name: "Save notification preferences", exact: true })
     .click();
 });
@@ -376,20 +470,230 @@ test("expired access cookies refresh safely across browser tabs", async ({
   ).toHaveLength(1);
 });
 
+test("sign out revokes the server session after the access cookie expires", async ({
+  page,
+  context,
+}) => {
+  await login(page);
+  const refresh = (await context.cookies()).find(
+    (cookie) => cookie.name === "netsentry_refresh",
+  )!;
+  expect(refresh).toBeDefined();
+  await context.clearCookies({ name: "netsentry_access" });
+  const [logout] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.url().endsWith("/api/backend/auth/logout/refresh"),
+    ),
+    page.getByRole("button", { name: "Sign out", exact: true }).click(),
+  ]);
+  expect(logout.status()).toBe(201);
+  await expect(
+    page.getByText("You have signed out.", { exact: true }),
+  ).toBeVisible();
+  expect(
+    (await context.cookies()).filter(({ name }) =>
+      name.startsWith("netsentry_"),
+    ),
+  ).toHaveLength(0);
+
+  // The isolated fixture verifies server revocation independently of cookie clearing.
+  const result = await page.request.post(
+    "http://127.0.0.1:54110/api/v1/auth/refresh",
+    {
+      data: { refreshToken: refresh.value },
+    },
+  );
+  expect(result.status()).toBe(401);
+});
+
+test("alert pages include older delivered notifications and keep tied timestamps stable", async ({
+  page,
+}) => {
+  const data = await login(page);
+  await selectWorkspace(page, data.pagingWorkspaceId);
+  await page.getByRole("link", { name: "Alerts", exact: true }).click();
+  const inbox = page.getByRole("navigation", { name: "Notifications pages" });
+  const notifications = page.getByRole("button", {
+    name: "Acknowledge notification",
+    exact: true,
+  });
+  await expect(notifications).toHaveCount(25);
+  await inbox.getByRole("button", { name: "Next" }).click();
+  await expect(notifications).toHaveCount(5);
+  await expect(inbox.getByRole("button", { name: "Next" })).toBeDisabled();
+  await inbox.getByRole("button", { name: "Previous" }).click();
+  await expect(notifications).toHaveCount(25);
+
+  const path = `/api/backend/workspaces/${data.pagingWorkspaceId}/monitoring/alerts/page?limit=100`;
+  const first = await page.request.get(path);
+  expect(first.ok()).toBeTruthy();
+  const firstPage = await first.json();
+  const second = await page.request.get(
+    `${path}&cursor=${encodeURIComponent(firstPage.nextCursor)}`,
+  );
+  expect(second.ok()).toBeTruthy();
+  const secondPage = await second.json();
+  expect(firstPage.items).toHaveLength(100);
+  expect(secondPage.items).toHaveLength(30);
+  expect(
+    new Set([...firstPage.items, ...secondPage.items].map((item) => item.id))
+      .size,
+  ).toBe(130);
+  expect(secondPage.nextCursor).toBeNull();
+});
+
+test("inventory and retained history pages reach records beyond their previous limits", async ({
+  page,
+}) => {
+  const data = await login(page);
+  const f = data.inventoryPageFixture;
+  const base = `/api/backend/workspaces/${f.workspaceId}`;
+  const network = `${base}/networks/${f.networkId}`;
+  async function read(path: string, limit: number, cursor?: string) {
+    const url = new URL(path, "http://127.0.0.1:54111");
+    url.searchParams.set("limit", String(limit));
+    if (cursor) url.searchParams.set("cursor", cursor);
+    const response = await page.request.get(url.pathname + url.search);
+    expect(response.ok(), await response.text()).toBeTruthy();
+    return response.json();
+  }
+  async function verifyPages(path: string, total: number, limit = 100) {
+    const ids: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const result = await read(path, limit, cursor);
+      expect(result.items.length).toBeLessThanOrEqual(limit);
+      ids.push(
+        ...result.items.map(
+          (item: { id?: string; networkId?: string }) =>
+            item.id ?? item.networkId!,
+        ),
+      );
+      expect(ids.length).toBeLessThanOrEqual(total);
+      cursor = result.nextCursor ?? undefined;
+    } while (cursor);
+    expect(ids).toHaveLength(total);
+    expect(new Set(ids).size).toBe(total);
+  }
+
+  await verifyPages(`${base}/devices/page`, 27, 25);
+  await verifyPages(`${base}/networks/page`, 27, 25);
+  await verifyPages(`${network}/devices/page`, 204);
+  await verifyPages(
+    `${network}/devices/page?archived=true&search=Paged+endpoint+205`,
+    1,
+  );
+  await verifyPages(
+    `${base}/business/endpoints/page?locationId=${f.locationId}`,
+    205,
+  );
+  await verifyPages(
+    `${base}/business/endpoints/page?locationId=${f.unusedLocationId}`,
+    0,
+  );
+  // Creating the monitored network contributes its own event alongside the seeded history.
+  await verifyPages(`${network}/events/page`, 106);
+  await verifyPages(`${network}/devices/${f.endpointId}/presence/page`, 105);
+  await verifyPages(`${base}/billing/payments/page`, 102);
+  await verifyPages(`${base}/billing/requests/page`, 27, 20);
+  await verifyPages(
+    `/api/backend/workspaces/${data.workspaceId}/agents/${data.developerAgentId}/commands/page`,
+    27,
+    25,
+  );
+  expect(
+    (await page.request.get(`${base}/devices/page?limit=101`)).status(),
+  ).toBe(400);
+  expect(
+    (await page.request.get(`${base}/devices/page?cursor=invalid`)).status(),
+  ).toBe(400);
+  expect(
+    (
+      await page.request.get(
+        `/api/backend/workspaces/${data.workspaceId}/networks/${f.networkId}/events/page`,
+      )
+    ).status(),
+  ).toBe(403);
+
+  const networkList = `${base}/networks/page`;
+  const before = await read(networkList, 25);
+  const createdNetwork = await page.request.post(`${base}/networks`, {
+    headers: {
+      origin: "http://127.0.0.1:54111",
+      "x-netsentry-user": data.accounts.owner.id,
+    },
+    data: { name: "Added between pages", cidrs: ["192.168.78.0/24"] },
+  });
+  expect(createdNetwork.ok(), await createdNetwork.text()).toBeTruthy();
+  const added = await createdNetwork.json();
+  const after = await read(networkList, 25, before.nextCursor);
+  expect(after.items).toHaveLength(2);
+  expect(
+    new Set([...before.items, ...after.items].map((item) => item.networkId))
+      .size,
+  ).toBe(27);
+  expect((await read(networkList, 25)).items[0].networkId).toBe(
+    added.networkId,
+  );
+
+  await selectWorkspace(page, f.workspaceId);
+  await page.getByRole("link", { name: "Devices", exact: true }).click();
+  await page.setViewportSize({ width: 320, height: 760 });
+  await page
+    .getByRole("button", { name: "View Paged device 1", exact: true })
+    .click();
+  const controls = page.getByRole("navigation", {
+    name: "Device inventory pages",
+  });
+  await controls.getByRole("button", { name: "Next" }).click();
+  await expect(
+    page.getByRole("button", { name: "View Paged device 27", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Paged device 1", exact: true }),
+  ).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+    .toBe(320);
+  await page.getByLabel("Find a device").fill("Paged device 27");
+  await expect(controls).toHaveCount(0);
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "Paged device 27" }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByRole("button", { name: "View Paged device 26", exact: true }),
+  ).toHaveCount(0);
+});
+
 test("team invitations bind a recipient and management changes take effect", async ({
   page,
   browser,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Team", exact: true }).click();
+  await page.getByRole("link", { name: "Team", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Workspace members", exact: true }),
   ).toBeVisible();
-  await page.getByLabel("Recipient email").fill(data.accounts.recovery.email);
-  await page.getByLabel("Invitation role").selectOption("MEMBER");
-  await page
+  const createInvitation = page.getByRole("button", {
+    name: "Create invitation",
+    exact: true,
+  });
+  await createInvitation.click();
+  const createInvitationDialog = page.getByRole("dialog", {
+    name: "Create invitation",
+    exact: true,
+  });
+  await createInvitationDialog
+    .getByLabel("Recipient email")
+    .fill(data.accounts.recovery.email);
+  await createInvitationDialog
+    .getByLabel("Invitation role")
+    .selectOption("MEMBER");
+  await createInvitationDialog
     .getByRole("button", { name: "Create invitation", exact: true })
     .click();
+  await expect(createInvitationDialog).toBeHidden();
+  await expect(createInvitation).toBeFocused();
   const token = await page.getByTestId("invitation-token").innerText();
   await page.getByRole("button", { name: "Hide token", exact: true }).click();
   await expect(page.getByTestId("invitation-token")).toHaveCount(0);
@@ -402,24 +706,39 @@ test("team invitations bind a recipient and management changes take effect", asy
   await expect(
     guest.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
-  await guest.getByRole("button", { name: "Team", exact: true }).click();
-  await guest.getByLabel("Invitation token").fill(token);
-  await guest
+  await guest.getByRole("link", { name: "Team", exact: true }).click();
+  await openTab(guest, "Workspaces");
+  const invitationTrigger = guest.getByRole("button", {
+    name: "Accept invitation",
+    exact: true,
+  });
+  const invitationDialog = guest.getByRole("dialog", {
+    name: "Accept invitation",
+  });
+  await expect(invitationDialog).toBeHidden();
+  await invitationTrigger.click();
+  await expect(invitationDialog.getByLabel("Invitation token")).toBeFocused();
+  await invitationDialog.getByLabel("Invitation token").fill(token);
+  await invitationDialog
     .getByRole("button", { name: "Accept invitation", exact: true })
     .click();
   await expect(guest.getByText(/Invitation accepted/)).toBeVisible();
-  await guest.getByLabel("Active workspace").selectOption(data.workspaceId);
-  await expect(guest.getByLabel("Active workspace")).toHaveValue(
-    data.workspaceId,
-  );
+  await expect(invitationDialog).toBeHidden();
+  await expect(invitationTrigger).toBeFocused();
+  await expect(
+    guest
+      .getByRole("list", { name: "Your workspaces" })
+      .getByText("Fixture family", { exact: true }),
+  ).toBeVisible();
+  await selectWorkspace(guest, data.workspaceId);
   await expect(
     guest.getByRole("heading", { name: "Invite someone", exact: true }),
   ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Refresh workspace", exact: true })
     .click();
-  await page.getByRole("button", { name: "Overview", exact: true }).click();
-  await page.getByRole("button", { name: "Team", exact: true }).click();
+  await page.getByRole("link", { name: "Overview", exact: true }).click();
+  await page.getByRole("link", { name: "Team", exact: true }).click();
   const members = page.locator("section").filter({
     has: page.getByRole("heading", {
       name: "Workspace members",
@@ -430,13 +749,18 @@ test("team invitations bind a recipient and management changes take effect", asy
     .getByRole("listitem")
     .filter({ hasText: data.accounts.recovery.email });
   await member.getByText("Manage member", { exact: true }).click();
-  await member.getByLabel("Role for Fixture recovery").selectOption("VIEWER");
-  await member
+  await member.getByRole("button", { name: "Edit member role" }).click();
+  const roleDialog = page.getByRole("dialog", { name: "Edit member role" });
+  await roleDialog
+    .getByLabel("Role for Fixture recovery")
+    .selectOption("VIEWER");
+  await roleDialog
     .getByLabel("I understand this may revoke devices or delete queued alerts.")
     .check();
-  await member
+  await roleDialog
     .getByRole("button", { name: "Change member role", exact: true })
     .click();
+  await expect(roleDialog).toBeHidden();
   await expect(member).toContainText("VIEWER");
   page.once("dialog", (dialog) => dialog.accept());
   await member
@@ -455,27 +779,161 @@ test("a verified user can create and switch to a new workspace", async ({
   page,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Team", exact: true }).click();
-  await page
-    .getByLabel("Workspace name", { exact: true })
-    .fill("Browser-created workspace");
-  await page
+  await page.getByRole("link", { name: "Team", exact: true }).click();
+  await openTab(page, "Workspaces");
+  const list = page.getByRole("list", { name: "Your workspaces" });
+  await expect(list.getByText("My Network", { exact: true })).toBeVisible();
+  const family = list
+    .getByRole("listitem")
+    .filter({ hasText: "Fixture family" });
+  await expect(family).toContainText(/family · owner · America\/New_York/);
+  await expect(
+    family.getByRole("button", { name: "Active workspace: Fixture family" }),
+  ).toHaveAttribute("aria-current", "true");
+  const createTrigger = page.getByRole("button", {
+    name: "Create workspace",
+    exact: true,
+  });
+  const acceptTrigger = page.getByRole("button", {
+    name: "Accept invitation",
+    exact: true,
+  });
+  const workspaceTitle = page.getByRole("heading", {
+    name: "Your workspaces",
+    exact: true,
+  });
+  await expect(workspaceTitle).toBeVisible();
+  const titleBounds = (await workspaceTitle.boundingBox())!;
+  const createBounds = (await createTrigger.boundingBox())!;
+  const acceptBounds = (await acceptTrigger.boundingBox())!;
+  expect(createBounds.x).toBeGreaterThanOrEqual(
+    titleBounds.x + titleBounds.width,
+  );
+  expect(acceptBounds.x).toBeGreaterThan(createBounds.x);
+  expect(createBounds.y).toBe(acceptBounds.y);
+  expect(titleBounds.y + titleBounds.height / 2).toBeCloseTo(
+    createBounds.y + createBounds.height / 2,
+    0,
+  );
+  const createDialog = page.getByRole("dialog", { name: "Create workspace" });
+  const workspaceName = createDialog.getByLabel("Workspace name", {
+    exact: true,
+  });
+  await expect(createDialog).toBeHidden();
+  await createTrigger.press("Enter");
+  await expect(workspaceName).toBeFocused();
+  await workspaceName.fill("Discard this draft");
+  await page.keyboard.press("Escape");
+  await expect(createDialog).toBeHidden();
+  await expect(createTrigger).toBeFocused();
+  await createTrigger.click();
+  await expect(workspaceName).toHaveValue("");
+  await workspaceName.fill("Browser-created workspace");
+  await createDialog
     .getByLabel("Workspace type", { exact: true })
     .selectOption("BUSINESS");
-  await page
+  await createDialog
     .getByLabel("Workspace timezone", { exact: true })
     .fill("Asia/Colombo");
-  await page
+  await createDialog
     .getByRole("button", { name: "Create workspace", exact: true })
     .click();
   await expect(page.getByText(/Workspace created/)).toBeVisible();
-  await page
-    .getByLabel("Active workspace")
-    .selectOption({ label: "Browser-created workspace · business" });
+  await expect(createDialog).toBeHidden();
+  await expect(createTrigger).toBeFocused();
+  await expect(
+    list.getByText("Browser-created workspace", { exact: true }),
+  ).toBeVisible();
+  const viewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 320, height: 760 });
+  const trigger = page
+    .getByRole("banner")
+    .getByRole("button", { name: /^Active workspace/ });
+  await trigger.focus();
+  await trigger.press("Enter");
+  const choices = page.getByRole("group", { name: "Switch workspace" });
+  await expect(choices).toBeVisible();
+  await expect(choices.getByRole("button", { pressed: true })).toBeFocused();
+  const menuBounds = (await choices.boundingBox())!;
+  expect(menuBounds.x).toBeGreaterThanOrEqual(0);
+  expect(menuBounds.x + menuBounds.width).toBeLessThanOrEqual(320);
+  await page.keyboard.press("Escape");
+  await expect(choices).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await trigger.press("Enter");
+  const created = choices.getByRole("button", {
+    name: "Browser-created workspace, business",
+    exact: true,
+  });
+  await expect(created).toBeVisible();
+  await page.keyboard.press("End");
+  await expect(created).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveAccessibleName(
+    "Active workspace: Browser-created workspace, business",
+  );
+  await expect(trigger).toHaveAttribute("aria-busy", "false");
+  await expect(choices).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await page.setViewportSize(viewport);
+  await page.reload();
+  await expect(trigger).toHaveAccessibleName(
+    "Active workspace: Browser-created workspace, business",
+  );
+  await trigger.click();
+  await expect(created).toHaveAttribute("aria-pressed", "true");
+  await page.locator(".topbar").click({ position: { x: 1, y: 1 } });
+  await expect(choices).toBeHidden();
   await expect(
     page.getByText("Asia/Colombo", { exact: true }).first(),
   ).toBeVisible();
-  await page.getByLabel("Active workspace").selectOption(data.workspaceId);
+  await page.getByRole("link", { name: "Business", exact: true }).click();
+  await openTab(page, "Activity");
+  const reportingPolicy = page.getByRole("dialog", {
+    name: "Create reporting policy",
+  });
+  await expect(reportingPolicy).toBeHidden();
+  await page.getByRole("button", { name: "Create reporting policy" }).click();
+  await reportingPolicy.getByLabel("Metadata stale after minutes").fill("720");
+  await reportingPolicy
+    .getByRole("button", { name: "Save reporting checks" })
+    .click();
+  await expect(reportingPolicy).toBeHidden();
+  await page.getByRole("button", { name: "Edit reporting policy" }).click();
+  const editPolicy = page.getByRole("dialog", {
+    name: "Edit reporting policy",
+  });
+  await expect(
+    editPolicy.getByLabel("Metadata stale after minutes"),
+  ).toHaveValue("720");
+  await editPolicy.getByLabel("Metadata stale after minutes").fill("780");
+  await editPolicy
+    .getByRole("button", { name: "Save reporting checks" })
+    .click();
+  await expect(editPolicy).toBeHidden();
+  await page.getByRole("link", { name: "Team", exact: true }).click();
+  await openTab(page, "Workspaces");
+  await page.setViewportSize({ width: 320, height: 760 });
+  const switchToFamily = family.getByRole("button", {
+    name: "Switch to Fixture family",
+  });
+  await switchToFamily.click();
+  await expect(trigger).toHaveAttribute("data-workspace-id", data.workspaceId);
+  await expect(
+    family.getByRole("button", { name: "Active workspace: Fixture family" }),
+  ).toBeFocused();
+  const narrowTitle = (await workspaceTitle.boundingBox())!;
+  const narrowCreate = (await createTrigger.boundingBox())!;
+  const narrowAccept = (await acceptTrigger.boundingBox())!;
+  expect(narrowCreate.y).toBeGreaterThan(narrowTitle.y);
+  expect(narrowAccept.x + narrowAccept.width).toBeLessThanOrEqual(320);
+  await createTrigger.click();
+  await expect(createDialog).toBeVisible();
+  const dialogBounds = (await createDialog.boundingBox())!;
+  expect(dialogBounds.x).toBeGreaterThanOrEqual(0);
+  expect(dialogBounds.x + dialogBounds.width).toBeLessThanOrEqual(320);
+  await createDialog.getByRole("button", { name: "Close dialog" }).click();
+  await expect(createTrigger).toBeFocused();
 });
 
 test("profile, appearance, retention, sessions and personal export use the backend", async ({
@@ -483,26 +941,81 @@ test("profile, appearance, retention, sessions and personal export use the backe
 }) => {
   const data = await login(page);
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Your profile", exact: true }),
   ).toBeVisible();
-  await page
+  const profileCard = page.locator(".card").filter({
+    has: page.getByRole("heading", { name: "Your profile", exact: true }),
+  });
+  const appearanceCard = page.locator(".card").filter({
+    has: page.getByRole("heading", {
+      name: "Appearance and accessibility",
+      exact: true,
+    }),
+  });
+  const viewport = page.viewportSize()!;
+  const profileAction = await profileCard
+    .getByRole("button", { name: "Edit profile" })
+    .boundingBox();
+  const appearanceAction = await appearanceCard
+    .getByRole("button", { name: "Edit display preferences" })
+    .boundingBox();
+  expect(profileAction!.y).toBeCloseTo(appearanceAction!.y, 0);
+  await expect(
+    profileCard.getByText("Verified", { exact: true }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 760 });
+  const mobileProfile = (await profileCard.boundingBox())!;
+  const mobileAppearance = (await appearanceCard.boundingBox())!;
+  expect(mobileAppearance.x).toBe(mobileProfile.x);
+  expect(mobileAppearance.y).toBeGreaterThan(
+    mobileProfile.y + mobileProfile.height,
+  );
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    320,
+  );
+  await page.setViewportSize(viewport);
+  const editProfile = page.getByRole("button", { name: "Edit profile" });
+  const profileDialog = page.getByRole("dialog", { name: "Edit profile" });
+  await editProfile.click();
+  await profileDialog
     .getByLabel("Display name", { exact: true })
     .fill("Fixture owner updated");
-  await page
+  await profileDialog
     .getByRole("button", { name: "Update profile", exact: true })
     .click();
   await expect(page.locator(".sidebar-profile")).toContainText(
     "Fixture owner updated",
   );
-  await page.getByLabel("Color theme").selectOption("DARK");
-  await page.getByLabel("Reduce motion", { exact: true }).check();
-  await page
+  await expect(profileDialog).toBeHidden();
+  await expect(editProfile).toBeFocused();
+  const editDisplay = page.getByRole("button", {
+    name: "Edit display preferences",
+  });
+  const displayDialog = page.getByRole("dialog", {
+    name: "Edit display preferences",
+  });
+  await editDisplay.click();
+  await displayDialog.getByText("Dark", { exact: true }).click();
+  await expect(
+    displayDialog.getByRole("radio", { name: "Dark", exact: true }),
+  ).toBeChecked();
+  await displayDialog.getByText("Reduce motion", { exact: true }).click();
+  await expect(
+    displayDialog.getByRole("switch", { name: "Reduce motion" }),
+  ).toBeChecked();
+  await displayDialog
     .getByRole("button", { name: "Save display preferences", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(displayDialog).toBeHidden();
+  await editDisplay.click();
+  await expect(
+    displayDialog.getByRole("radio", { name: "Dark", exact: true }),
+  ).toBeChecked();
+  await page.keyboard.press("Escape");
   await expect(page.locator("html")).toHaveAttribute(
     "data-reduced-motion",
     "true",
@@ -512,16 +1025,23 @@ test("profile, appearance, retention, sessions and personal export use the backe
     page.getByRole("heading", { name: "Settings & privacy", exact: true }),
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await page.getByLabel("Raw observations (days)", { exact: true }).fill("20");
-  await page
+  await openTab(page, "Workspace");
+  const retentionDialog = page.getByRole("dialog", {
+    name: "Edit retention policy",
+  });
+  await page.getByRole("button", { name: "Edit retention policy" }).click();
+  await retentionDialog
+    .getByLabel("Raw observations (days)", { exact: true })
+    .fill("20");
+  await retentionDialog
     .getByLabel("Aggregates and gaps (days)", { exact: true })
     .fill("300");
-  await page
+  await retentionDialog
     .getByLabel(
       "I understand shorter retention can permanently remove existing data.",
     )
     .check();
-  await page
+  await retentionDialog
     .getByRole("button", { name: "Update retention policy", exact: true })
     .click();
   await expect(page.getByText(/Retention policy updated/)).toBeVisible();
@@ -529,6 +1049,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
     `/api/backend/workspaces/${data.workspaceId}/monitoring/retention`,
   );
   expect((await policy.json()).rawDays).toBe(20);
+  await openTab(page, "Privacy");
   await page
     .getByLabel("Current password for export", { exact: true })
     .fill(data.password);
@@ -545,6 +1066,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
   expect(JSON.stringify(exported)).not.toMatch(
     /credentialHash|payloadHash|refreshToken/,
   );
+  await openTab(page, "Sessions");
   page.once("dialog", (dialog) => dialog.accept());
   await page
     .getByRole("button", { name: "Sign out other sessions", exact: true })
@@ -555,6 +1077,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
       (session: { revokedAt: string | null }) => !!session.revokedAt,
     ),
   ).toBeTruthy();
+  await openTab(page, "Privacy");
   await page
     .getByText("Review permanent account deletion", { exact: true })
     .click();
@@ -648,13 +1171,21 @@ test("registration and password-confirmed account deletion clear the browser ses
 }) => {
   await page.goto("/app");
   await page
-    .getByRole("button", { name: "Create an account", exact: true })
+    .getByRole("link", { name: "Create an account", exact: true })
     .click();
-  await page.getByLabel("Your name").fill("Disposable browser fixture");
-  await page
+  await expect(page).toHaveURL("/register");
+  const registration = page.getByRole("main");
+  await expect(
+    registration.getByRole("heading", { name: "Create your account" }),
+  ).toBeVisible();
+  await expect(
+    registration.getByRole("link", { name: "Back to sign in" }),
+  ).toHaveAttribute("href", "/app");
+  await registration.getByLabel("Your name").fill("Disposable browser fixture");
+  await registration
     .getByLabel("Email address")
     .fill("disposable@dashboard.example.invalid");
-  const password = page.getByLabel("Password", { exact: true });
+  const password = registration.getByLabel("Password", { exact: true });
   const showPassword = page.getByRole("button", {
     name: "Show password",
     exact: true,
@@ -672,9 +1203,10 @@ test("registration and password-confirmed account deletion clear the browser ses
   await hidePassword.press("Enter");
   await expect(password).toHaveAttribute("type", "password");
   await expect(password).toHaveValue("disposable-fixture-password-123");
-  await page
+  await registration
     .getByRole("button", { name: "Create account", exact: true })
     .click();
+  await expect(page).toHaveURL("/app");
   await expect(
     page.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
@@ -779,8 +1311,10 @@ test("registration and password-confirmed account deletion clear the browser ses
   );
   await page.setViewportSize(viewport);
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
+  await expect(page.getByText("Unverified", { exact: true })).toBeVisible();
+  await openTab(page, "Privacy");
   await page
     .getByText("Review permanent account deletion", { exact: true })
     .click();
@@ -810,16 +1344,19 @@ test("consent, pause, revocation and erasure are explicit device actions", async
   page,
 }) => {
   await login(page);
-  await page.getByRole("button", { name: "Devices", exact: true }).click();
+  await page.getByRole("link", { name: "Devices", exact: true }).click();
   await page
     .getByRole("button", { name: "View Fixture iOS", exact: true })
     .click();
-  await page.getByText("Review monitoring consent", { exact: true }).click();
-  await page.getByLabel("Network usage", { exact: true }).check();
-  await page
+  await page.getByRole("button", { name: "Review monitoring consent" }).click();
+  const consentDialog = page.getByRole("dialog", {
+    name: "Review monitoring consent",
+  });
+  await consentDialog.getByLabel("Network usage", { exact: true }).check();
+  await consentDialog
     .getByLabel("I understand and accept this monitoring disclosure.")
     .check();
-  await page
+  await consentDialog
     .getByRole("button", { name: "Grant selected consent", exact: true })
     .click();
   await expect(page.getByText(/Consent recorded/)).toBeVisible();
@@ -863,8 +1400,8 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
   await page
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
-  await page.getByRole("button", { name: "More modules", exact: true }).click();
-  await expect(page).toHaveURL(/\/app\?view=More\+modules$/);
+  await page.getByRole("link", { name: "More modules", exact: true }).click();
+  await expect(page).toHaveURL(/\/app\/more-modules$/);
   await expect(
     page.getByRole("heading", { name: "Network Security", exact: true }),
   ).toBeVisible();
@@ -895,7 +1432,7 @@ test("dashboard sections share compact card spacing and action buttons on mobile
   const sections = [
     ["Devices", "Device inventory", "View Fixture iOS"],
     ["Usage & reports", "Usage over time", "Download CSV"],
-    ["Alerts", "In-app notifications", "Edit rule"],
+    ["Alerts", "In-app notifications"],
     ["Networks", "Network labels"],
     ["Developer Tools", "Paired developer computers", "Refresh computers"],
     ["Family", "Your family profiles"],
@@ -910,9 +1447,7 @@ test("dashboard sections share compact card spacing and action buttons on mobile
   for (const [section, heading, action] of sections) {
     await test.step(section, async () => {
       if (section === "Business") {
-        await page
-          .getByLabel("Active workspace")
-          .selectOption(data.business.workspaceId);
+        await selectWorkspace(page, data.business.workspaceId);
         await expect(page.locator("#dashboard-content .eyebrow")).toContainText(
           "BUSINESS",
         );
@@ -920,32 +1455,120 @@ test("dashboard sections share compact card spacing and action buttons on mobile
       await page
         .getByRole("button", { name: "Open navigation", exact: true })
         .click();
-      await page.getByRole("button", { name: section, exact: true }).click();
+      await page.getByRole("link", { name: section, exact: true }).click();
       await page.mouse.move(2, 2);
       await expect(
         page.getByRole("heading", { name: heading, exact: true }),
       ).toBeVisible();
       const main = page.getByRole("main");
-      await expect(main.locator(".card > h2").first()).toHaveCSS(
-        "margin-bottom",
-        "12px",
-      );
-      for (const width of [320, 390]) {
+      const hasRefreshHeader = section === "Developer Tools";
+      const cardHeader = main.locator(".card-heading").filter({
+        has: page.getByRole("heading", { name: heading, exact: true }),
+      });
+      await expect(cardHeader).toHaveCSS("margin-bottom", "12px");
+      await expect(cardHeader).toHaveCSS("border-bottom-width", "1px");
+      for (const width of hasRefreshHeader ? [1280, 320, 390] : [320, 390]) {
         await page.setViewportSize({ width, height: 760 });
-        expect(
-          await page.evaluate(() => document.documentElement.scrollWidth),
-        ).toBe(width);
+        await expect
+          .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+          .toBe(width);
         if (action) {
           const button = main
             .getByRole("button", { name: action, exact: true })
             .first();
-          await expect(button).toHaveCSS("background-color", actionBackground);
-          expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(
-            44,
-          );
+          if (width <= 650)
+            await expect(button).toHaveCSS(
+              "background-color",
+              actionBackground,
+            );
+          await expect
+            .poll(() =>
+              button.evaluate(
+                (element) => element.getBoundingClientRect().height,
+              ),
+            )
+            .toBeGreaterThanOrEqual(44);
+          if (hasRefreshHeader) {
+            await expect
+              .poll(() =>
+                cardHeader.evaluate((header) => {
+                  const title = header
+                    .querySelector("h2")!
+                    .getBoundingClientRect();
+                  const action = header
+                    .querySelector("button")!
+                    .getBoundingClientRect();
+                  const inset = parseFloat(
+                    getComputedStyle(header).paddingRight,
+                  );
+                  const rightEdge =
+                    header.getBoundingClientRect().right - inset;
+                  return (
+                    action.left > title.right &&
+                    Math.abs(action.right - rightEdge) < 1 &&
+                    Math.abs(
+                      action.top +
+                        action.height / 2 -
+                        title.top -
+                        title.height / 2,
+                    ) < 1
+                  );
+                }),
+              )
+              .toBe(true);
+          }
         }
       }
     });
+  }
+});
+
+test("mobile workflow tabs deep-link within the same dashboard layout", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  await login(page);
+  await page.goto("/app/alerts");
+  const alertTabs = page.getByRole("navigation", { name: "Alerts sections" });
+  await expect(
+    alertTabs.getByRole("link", { name: "Notifications" }),
+  ).toHaveAttribute("aria-current", "page");
+  const tabWidths = await alertTabs.evaluate((element) => ({
+    total: element.scrollWidth,
+    visible: element.clientWidth,
+  }));
+  expect(tabWidths.total).toBe(tabWidths.visible);
+  await openTab(page, "Preferences");
+  await expect(
+    page.getByRole("heading", { name: "Notification preferences" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "In-app notifications" }),
+  ).toHaveCount(0);
+  await expect(page).toHaveURL("/app/alerts/preferences");
+  await page.reload();
+  await expect(
+    alertTabs.getByRole("link", { name: "Preferences" }),
+  ).toHaveAttribute("aria-current", "page");
+
+  for (const [path, tabLabel, heading] of [
+    ["developer-tools/sharing", "Sharing", "Service-sharing disclosure"],
+    ["family/sharing", "Sharing", "Family-sharing disclosure"],
+    ["operations/audit", "Audit", "Operator audit review"],
+    ["settings/sessions", "Sessions", "Account sessions"],
+  ]) {
+    await page.goto(`/app/${path}`);
+    await expect(
+      page.getByRole("heading", { name: heading, exact: true }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByRole("navigation", { name: / sections$/ })
+        .getByRole("link", { name: tabLabel, exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(320);
   }
 });
 
@@ -969,7 +1592,7 @@ test("signing out or changing accounts clears other tabs instead of mixing user 
     received = resolve;
   });
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
   await page.route("**/api/backend/auth/me", async (route) => {
     if (route.request().method() !== "PATCH") {
@@ -981,10 +1604,12 @@ test("signing out or changing accounts clears other tabs instead of mixing user 
     await held;
     await route.fulfill({ response });
   });
-  await page
+  await page.getByRole("button", { name: "Edit profile" }).click();
+  const profileDialog = page.getByRole("dialog", { name: "Edit profile" });
+  await profileDialog
     .getByLabel("Display name", { exact: true })
     .fill("Delayed fixture profile");
-  await page
+  await profileDialog
     .getByRole("button", { name: "Update profile", exact: true })
     .click();
   await receivedResponse;
@@ -1004,7 +1629,7 @@ test("signing out or changing accounts clears other tabs instead of mixing user 
     data.accounts.viewer.email,
   );
   await page
-    .getByRole("button", { name: "Usage & reports", exact: true })
+    .getByRole("link", { name: "Usage & reports", exact: true })
     .click();
   await expect(
     page.getByText("No observations in this period", { exact: true }),
@@ -1044,7 +1669,7 @@ test("developer commands show pending/cancelled outcomes and keep viewers read-o
 }) => {
   await login(page);
   await page
-    .getByRole("button", { name: "Developer Tools", exact: true })
+    .getByRole("link", { name: "Developer Tools", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Paired developer computers" }),
@@ -1087,7 +1712,7 @@ test("developer commands show pending/cancelled outcomes and keep viewers read-o
   try {
     await login(tab, "viewer");
     await tab
-      .getByRole("button", { name: "Developer Tools", exact: true })
+      .getByRole("link", { name: "Developer Tools", exact: true })
       .click();
     await expect(
       tab.getByText("Fixture remote project · Node.js", { exact: true }),
@@ -1099,7 +1724,7 @@ test("developer commands show pending/cancelled outcomes and keep viewers read-o
       tab.getByRole("button", { name: "Request force-stop", exact: true }),
     ).toBeDisabled();
     await expect(
-      tab.getByText("Sharing and controller grants", { exact: true }),
+      tab.getByRole("button", { name: "Edit sharing and controller grants" }),
     ).toHaveCount(0);
   } finally {
     await viewer.close();
@@ -1110,7 +1735,9 @@ test("missing-report rules preserve their device scope and seconds threshold", a
   page,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Alerts", exact: true }).click();
+  await page.getByRole("link", { name: "Alerts", exact: true }).click();
+  await openTab(page, "Rules");
+  await page.getByRole("button", { name: "Create rule", exact: true }).click();
   await page.getByLabel("Rule type").selectOption("not_reporting");
   await page.getByLabel("Rule device").selectOption(data.deviceId);
   await page.getByLabel("Reporting/heartbeat threshold (seconds)").fill("600");
@@ -1132,7 +1759,11 @@ test("network inventory exposes uncertain observations and editable labels witho
   page,
 }) => {
   await login(page);
-  await page.getByRole("button", { name: "Networks", exact: true }).click();
+  await page.getByRole("link", { name: "Networks", exact: true }).click();
+  await openTab(page, "Monitoring");
+  await page
+    .getByRole("link", { name: "Synthetic lab network", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Observed devices", exact: true }),
   ).toBeVisible();
@@ -1148,13 +1779,19 @@ test("network inventory exposes uncertain observations and editable labels witho
   const endpoint = page.locator("details").filter({
     has: page.locator("summary").filter({ hasText: "02:00:00:40:00:01" }),
   });
-  await endpoint.locator("summary").click();
-  await endpoint
+  await endpoint.locator(":scope > summary").click();
+  await endpoint.getByText("Observed spans", { exact: true }).click();
+  await expect(
+    endpoint.getByText(/Cached sightings reflect observations/),
+  ).toBeVisible();
+  await endpoint.getByRole("button", { name: "Edit device labels" }).click();
+  const labels = page.getByRole("dialog", { name: "Edit device labels" });
+  await labels
     .getByLabel("Device label", { exact: true })
     .fill("Browser synthetic workstation");
-  await endpoint.getByLabel("Trust label").selectOption("blocked_label");
-  await endpoint
-    .getByRole("button", { name: "Save changes", exact: true })
+  await labels.getByLabel("Trust label").selectOption("blocked_label");
+  await labels
+    .getByRole("button", { name: "Save device labels", exact: true })
     .click();
   await expect(
     page.getByText("Inventory labels saved.", { exact: false }),
@@ -1179,7 +1816,14 @@ test("network viewers cannot grant collectors or configure router secrets", asyn
   page,
 }) => {
   await login(page, "viewer");
-  await page.getByRole("button", { name: "Networks", exact: true }).click();
+  await page.getByRole("link", { name: "Networks", exact: true }).click();
+  await openTab(page, "Monitoring");
+  await expect(
+    page.getByRole("button", { name: "Add network", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("link", { name: "Synthetic lab network", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Observed devices", exact: true }),
   ).toBeVisible();
@@ -1192,12 +1836,158 @@ test("network viewers cannot grant collectors or configure router secrets", asyn
   await expect(page.getByLabel("Trust label")).toHaveCount(0);
 });
 
+test("monitored networks can be added in a dialog and opened at a dedicated URL", async ({
+  page,
+}) => {
+  await login(page);
+  await page.getByRole("link", { name: "Networks", exact: true }).click();
+  await openTab(page, "Monitoring");
+  await page.setViewportSize({ width: 320, height: 760 });
+  const add = page.getByRole("button", { name: "Add network", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Add network" });
+  await add.click();
+  await expect(
+    dialog.getByLabel("Network name", { exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(add).toBeFocused();
+  await add.click();
+  await dialog
+    .getByLabel("Network name", { exact: true })
+    .fill("Browser network");
+  await dialog
+    .getByLabel("Private IPv4 subnets", { exact: true })
+    .fill("192.168.52.0/31");
+  const submitNetwork = dialog.getByRole("button", {
+    name: "Add network",
+    exact: true,
+  });
+  await submitNetwork.click();
+  await expect(dialog.getByRole("alert")).toContainText("RFC1918");
+  await expect(dialog.getByLabel("Network name", { exact: true })).toHaveValue(
+    "Browser network",
+  );
+  await dialog
+    .getByLabel("Private IPv4 subnets", { exact: true })
+    .fill("192.168.52.0/24");
+  await submitNetwork.click();
+  await expect(dialog).toBeHidden();
+  const table = page.getByRole("table", { name: "Monitored networks" });
+  const row = table.getByRole("row").filter({ hasText: "Browser network" });
+  await expect(row).toContainText("192.168.52.0/24");
+  const detail = row.getByRole("link", {
+    name: "Browser network",
+    exact: true,
+  });
+  const href = (await detail.getAttribute("href"))!;
+  await detail.press("Enter");
+  await expect(page).toHaveURL(href);
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Browser network",
+      exact: true,
+    }),
+  ).toBeVisible();
+  const tabs = page.getByRole("navigation", {
+    name: "Networks sections",
+    exact: true,
+  });
+  await expect(tabs).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Refresh workspace", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("No collectors assigned", { exact: true }),
+  ).toBeVisible();
+  const collector = page.getByRole("heading", {
+    name: "Collectors",
+    exact: true,
+  });
+  const devices = page.getByRole("heading", {
+    name: "Observed devices",
+    exact: true,
+  });
+  expect((await devices.boundingBox())!.y).toBeGreaterThan(
+    (await collector.boundingBox())!.y,
+  );
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+    .toBe(320);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect
+    .poll(async () => {
+      const [deviceBounds, collectorBounds] = await Promise.all([
+        devices.boundingBox(),
+        collector.boundingBox(),
+      ]);
+      return deviceBounds!.y - collectorBounds!.y;
+    })
+    .toBeCloseTo(0, 0);
+  await page.setViewportSize({ width: 320, height: 760 });
+  const assign = page.getByRole("button", {
+    name: "Assign collector",
+    exact: true,
+  });
+  const assignment = page.getByRole("dialog", {
+    name: "Assign collector",
+    exact: true,
+  });
+  const agent = assignment.getByLabel("Network-enabled agent (owner or admin)");
+  await assign.click();
+  await expect(agent).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(assignment).toBeHidden();
+  await expect(assign).toBeFocused();
+  await assign.click();
+  await agent.selectOption({ label: "Synthetic network collector" });
+  await assignment.getByRole("checkbox").check();
+  await assignment
+    .getByRole("button", { name: "Save collector assignment", exact: true })
+    .click();
+  await expect(assignment).toBeHidden();
+  await expect(assign).toBeFocused();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Collector assigned." }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("listitem")
+      .filter({ hasText: "Synthetic network collector" }),
+  ).toBeVisible();
+  await page.getByText("Network settings", { exact: true }).click();
+  await page.getByRole("button", { name: "Edit name and subnets" }).click();
+  const networkSettings = page.getByRole("dialog", {
+    name: "Edit name and subnets",
+  });
+  await expect(networkSettings.getByLabel("Updated network name")).toHaveValue(
+    "Browser network",
+  );
+  await networkSettings.getByRole("button", { name: "Close dialog" }).click();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Browser network",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(tabs).toHaveCount(0);
+  await page
+    .getByRole("link", { name: "Back to monitored networks", exact: true })
+    .click();
+  await expect(page).toHaveURL("/app/networks/monitoring");
+  await expect(tabs).toBeVisible();
+  await expect(row).toBeVisible();
+});
+
 test("child time requests require an assigned guardian decision and never claim applied restrictions", async ({
   page,
   browser,
 }) => {
   const data = await login(page, "child");
-  await page.getByRole("button", { name: "Family", exact: true }).click();
+  await page.getByRole("link", { name: "Family", exact: true }).click();
   await expect(
     page.getByRole("heading", {
       name: "Synthetic family child · family overview",
@@ -1207,13 +1997,21 @@ test("child time requests require an assigned guardian decision and never claim 
   await expect(
     page.getByRole("button", { name: "Save requested policy", exact: true }),
   ).toHaveCount(0);
-  await page.getByLabel("Requested minutes", { exact: true }).fill("20");
-  await page
-    .getByLabel("Reason for time request", { exact: true })
-    .fill("Browser fixture homework");
   await page
     .getByRole("button", { name: "Request more time", exact: true })
     .click();
+  const timeRequest = page.getByRole("dialog", {
+    name: "Request more time",
+    exact: true,
+  });
+  await timeRequest.getByLabel("Requested minutes", { exact: true }).fill("20");
+  await timeRequest
+    .getByLabel("Reason for time request", { exact: true })
+    .fill("Browser fixture homework");
+  await timeRequest
+    .getByRole("button", { name: "Request more time", exact: true })
+    .click();
+  await expect(timeRequest).toBeHidden();
   await expect(
     page.getByText("Request recorded for an authorized guardian.", {
       exact: true,
@@ -1222,7 +2020,7 @@ test("child time requests require an assigned guardian decision and never claim 
   const guardianContext = await browser.newContext();
   const guardian = await guardianContext.newPage();
   await login(guardian, "guardian");
-  await guardian.getByRole("button", { name: "Family", exact: true }).click();
+  await guardian.getByRole("link", { name: "Family", exact: true }).click();
   const item = guardian
     .getByRole("listitem")
     .filter({ hasText: "Browser fixture homework" });
@@ -1248,7 +2046,7 @@ test("family viewers cannot see child profiles and policy edits require explicit
   page,
 }) => {
   await login(page, "viewer");
-  await page.getByRole("button", { name: "Family", exact: true }).click();
+  await page.getByRole("link", { name: "Family", exact: true }).click();
   await expect(
     page.getByText("No child profiles in your current grant", { exact: true }),
   ).toBeVisible();
@@ -1263,10 +2061,9 @@ test("family viewers cannot see child profiles and policy edits require explicit
     page.getByRole("heading", { name: "Welcome back", exact: true }),
   ).toBeVisible();
   await login(page, "owner");
-  await page.getByRole("button", { name: "Family", exact: true }).click();
-  const policy = page
-    .getByRole("heading", { name: "Family policy", exact: true })
-    .locator("..");
+  await page.getByRole("link", { name: "Family", exact: true }).click();
+  await page.getByRole("button", { name: "Edit family policy" }).click();
+  const policy = page.getByRole("dialog", { name: "Edit family policy" });
   await policy
     .getByLabel("Daily observed screen-time allowance (minutes)", {
       exact: true,
@@ -1282,6 +2079,66 @@ test("family viewers cannot see child profiles and policy edits require explicit
     .getByRole("button", { name: "Save requested policy", exact: true })
     .click();
   await expect(page.getByText(/Revision 2 · timezone/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Create child profile" }).click();
+  const profileDialog = page.getByRole("dialog", {
+    name: "Create child profile",
+  });
+  await profileDialog
+    .getByLabel("Child display name")
+    .fill("New policy profile");
+  const consent =
+    "I accept the family-sharing disclosure and have authority for this change.";
+  await profileDialog.getByRole("checkbox", { name: consent }).check();
+  await profileDialog
+    .getByRole("button", { name: "Create child profile" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "New policy profile · family overview" }),
+  ).toBeVisible();
+
+  const firstPolicy = page.getByRole("dialog", {
+    name: "Create family policy",
+  });
+  const createPolicy = page.getByRole("button", {
+    name: "Create family policy",
+  });
+  await createPolicy.click();
+  await firstPolicy.getByRole("button", { name: "Add schedule" }).click();
+  await page.keyboard.press("Escape");
+  await expect(createPolicy).toBeFocused();
+  await createPolicy.click();
+  await expect(firstPolicy.getByLabel("Schedule 1 type")).toHaveCount(0);
+  await firstPolicy
+    .getByLabel("Daily observed screen-time allowance (minutes)")
+    .fill("60");
+  await firstPolicy.getByRole("checkbox", { name: consent }).check();
+  await firstPolicy
+    .getByRole("button", { name: "Save requested policy" })
+    .click();
+  await expect(firstPolicy).toBeHidden();
+  await expect(page.getByText(/Revision 1 · timezone/)).toBeVisible();
+  await page
+    .getByText("Edit profile, guardian grants or archive", { exact: true })
+    .click();
+  await page.getByRole("button", { name: "Edit child profile" }).click();
+  const editChild = page.getByRole("dialog", { name: "Edit child profile" });
+  await expect(editChild.getByLabel("Child display name")).toHaveValue(
+    "New policy profile",
+  );
+  await editChild
+    .getByLabel("Child display name")
+    .fill("Updated policy profile");
+  await editChild.getByRole("checkbox", { name: consent }).check();
+  await editChild
+    .getByRole("button", { name: "Save profile and renew sharing consent" })
+    .click();
+  await expect(editChild).toBeHidden();
+  await expect(
+    page.getByRole("heading", {
+      name: "Updated policy profile · family overview",
+    }),
+  ).toBeVisible();
 });
 
 test("Business roles review organization structure and employees explicitly accept sharing", async ({
@@ -1289,20 +2146,43 @@ test("Business roles review organization structure and employees explicitly acce
   browser,
 }) => {
   const data = await login(page);
-  await page
-    .getByLabel("Active workspace")
-    .selectOption(data.business.workspaceId);
-  await page.getByRole("button", { name: "Business", exact: true }).click();
+  await selectWorkspace(page, data.business.workspaceId);
+  await page.getByRole("link", { name: "Business", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Business organization", exact: true }),
   ).toBeVisible();
   await expect(
     page.locator("strong").filter({ hasText: /^Fixture office$/ }),
   ).toBeVisible();
-  await page.getByLabel("New location name").fill("Browser Business location");
   await page.getByRole("button", { name: "Add location", exact: true }).click();
+  const locationDialog = page.getByRole("dialog", {
+    name: "Add location",
+    exact: true,
+  });
+  await locationDialog
+    .getByLabel("New location name")
+    .fill("Browser Business location");
+  await locationDialog
+    .getByRole("button", { name: "Add location", exact: true })
+    .click();
+  await expect(locationDialog).toBeHidden();
   await expect(
     page.locator("strong").filter({ hasText: /^Browser Business location$/ }),
+  ).toBeVisible();
+  const newLocation = page.locator(".row").filter({
+    has: page.getByText("Browser Business location", { exact: true }),
+  });
+  await newLocation.getByRole("button", { name: "Edit location" }).click();
+  const editLocation = page.getByRole("dialog", { name: "Edit location" });
+  const locationName = editLocation.getByLabel(
+    "Name for Browser Business location",
+  );
+  await expect(locationName).toHaveValue("Browser Business location");
+  await locationName.fill("Renamed browser location");
+  await editLocation.getByRole("button", { name: "Rename location" }).click();
+  await expect(editLocation).toBeHidden();
+  await expect(
+    page.locator("strong").filter({ hasText: /^Renamed browser location$/ }),
   ).toBeVisible();
   await page
     .getByRole("heading", { name: "Network device departments", exact: true })
@@ -1313,17 +2193,38 @@ test("Business roles review organization structure and employees explicitly acce
       .filter({ hasText: /^Synthetic office printer$/ }),
   });
   await observed
-    .getByLabel("Department", { exact: true })
-    .selectOption(data.business.departmentId);
-  await observed
     .getByRole("button", {
       name: "Assign network device department",
       exact: true,
     })
     .click();
+  const departmentDialog = page.getByRole("dialog", {
+    name: "Assign network device department",
+    exact: true,
+  });
+  await departmentDialog
+    .getByLabel("Department", { exact: true })
+    .selectOption(data.business.departmentId);
+  await departmentDialog
+    .getByRole("button", {
+      name: "Assign network device department",
+      exact: true,
+    })
+    .click();
+  await expect(departmentDialog).toBeHidden();
   await expect(
     observed.getByText(/Synthetic business LAN · Fixture engineering/),
   ).toBeVisible();
+  const location = page.getByRole("combobox", {
+    name: "Business location",
+    exact: true,
+  });
+  const [locationId] = await location.selectOption({ label: "Fixture office" });
+  await openTab(page, "Reports");
+  await expect(
+    page.getByRole("heading", { name: "Organization usage reports" }),
+  ).toBeVisible();
+  await expect(location).toHaveValue(locationId);
   await page
     .getByRole("button", { name: "Load organization report", exact: true })
     .click();
@@ -1336,19 +2237,19 @@ test("Business roles review organization structure and employees explicitly acce
   await employee.getByLabel("Email address").fill(data.accounts.employee.email);
   await employee.getByLabel("Password", { exact: true }).fill(data.password);
   await employee.getByRole("button", { name: "Sign in", exact: true }).click();
-  await employee
-    .getByLabel("Active workspace")
-    .selectOption(data.business.workspaceId);
-  await employee.getByRole("button", { name: "Business", exact: true }).click();
+  await selectWorkspace(employee, data.business.workspaceId);
+  await employee.getByRole("link", { name: "Business", exact: true }).click();
   await expect(
     employee.getByRole("button", { name: "Add location", exact: true }),
   ).toHaveCount(0);
+  await openTab(employee, "Reports");
   await expect(
     employee.getByRole("heading", {
       name: "Organization usage reports",
       exact: true,
     }),
   ).toHaveCount(0);
+  await openTab(employee, "People");
   employee.once("dialog", (dialog) => dialog.accept());
   await employee
     .getByRole("button", { name: "Accept organization sharing", exact: true })
@@ -1372,10 +2273,9 @@ test("Business roles review organization structure and employees explicitly acce
     .fill(data.accounts.businessAnalyst.email);
   await analyst.getByLabel("Password", { exact: true }).fill(data.password);
   await analyst.getByRole("button", { name: "Sign in", exact: true }).click();
-  await analyst
-    .getByLabel("Active workspace")
-    .selectOption(data.business.workspaceId);
-  await analyst.getByRole("button", { name: "Business", exact: true }).click();
+  await selectWorkspace(analyst, data.business.workspaceId);
+  await analyst.getByRole("link", { name: "Business", exact: true }).click();
+  await openTab(analyst, "Reports");
   await expect(
     analyst.getByRole("heading", {
       name: "Organization usage reports",
@@ -1393,7 +2293,7 @@ test("sandbox billing is owner-only and operator flags require separate authorit
   browser,
 }) => {
   const data = await login(page);
-  await page.getByRole("button", { name: "Subscription", exact: true }).click();
+  await page.getByRole("link", { name: "Subscription", exact: true }).click();
   await expect(
     page.getByRole("heading", {
       name: "Subscription and editions",
@@ -1413,6 +2313,14 @@ test("sandbox billing is owner-only and operator flags require separate authorit
   await page
     .getByRole("button", { name: "Prepare sandbox plan change", exact: true })
     .click();
+  const planChange = page.getByRole("dialog", {
+    name: "Prepare sandbox plan change",
+    exact: true,
+  });
+  await planChange
+    .getByRole("button", { name: "Prepare sandbox plan change", exact: true })
+    .click();
+  await expect(planChange).toBeHidden();
   page.once("dialog", (d) => d.accept());
   await page
     .getByRole("button", { name: "Simulate sandbox payment", exact: true })
@@ -1420,30 +2328,33 @@ test("sandbox billing is owner-only and operator flags require separate authorit
   await expect(
     page.getByText(/Edition: family · status: active/),
   ).toBeVisible();
+  await openTab(page, "Payment history");
   await expect(page.getByText(/TST test minor units/)).toBeVisible();
-  await page.getByRole("button", { name: "Operations", exact: true }).click();
+  await page.getByRole("link", { name: "Operations", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Platform operations", exact: true }),
   ).toBeVisible();
-  await page
+  await openTab(page, "Administration");
+  const featureDialog = page.getByRole("dialog", { name: "Configure feature" });
+  await expect(featureDialog).toBeHidden();
+  await page.getByRole("button", { name: "Configure feature" }).click();
+  await featureDialog
     .getByLabel("Feature key", { exact: true })
     .selectOption("developer");
-  await page
+  await featureDialog
     .getByLabel("Confirm operator password", { exact: true })
-    .first()
     .fill(data.password);
-  await page
+  await featureDialog
     .getByRole("button", { name: "Save feature setting", exact: true })
     .click();
+  await expect(featureDialog).toBeHidden();
   await expect(
     page.getByText(/developer · Disabled · revision 1/),
   ).toBeVisible();
   const context = await browser.newContext();
   const viewer = await context.newPage();
   await login(viewer, "viewer");
-  await viewer
-    .getByRole("button", { name: "Subscription", exact: true })
-    .click();
+  await viewer.getByRole("link", { name: "Subscription", exact: true }).click();
   await expect(
     viewer.getByRole("heading", {
       name: "Subscription and editions",
@@ -1453,7 +2364,7 @@ test("sandbox billing is owner-only and operator flags require separate authorit
   await expect(
     viewer.getByRole("button", { name: "Start sandbox trial", exact: true }),
   ).toHaveCount(0);
-  await viewer.getByRole("button", { name: "Operations", exact: true }).click();
+  await viewer.getByRole("link", { name: "Operations", exact: true }).click();
   await expect(
     viewer.getByText(/Workspace ownership does not grant/),
   ).toBeVisible();
@@ -1466,23 +2377,36 @@ test("email alert opt-in stays visibly disabled and saved themes follow account 
 }) => {
   await login(page);
   await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
+    .getByRole("link", { name: "Settings & privacy", exact: true })
     .click();
-  await page.getByLabel("Color theme").selectOption("DARK");
-  await page
+  await page.getByRole("button", { name: "Edit display preferences" }).click();
+  const display = page.getByRole("dialog", {
+    name: "Edit display preferences",
+  });
+  await display.getByText("Dark", { exact: true }).click();
+  await display
     .getByRole("button", { name: "Save display preferences", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await page.getByLabel("Opt in to email alerts (delivery disabled)").check();
-  await page
+  await openTab(page, "Notifications");
+  const editNotifications = page.getByRole("button", {
+    name: "Edit notification preferences",
+  });
+  const notifications = page.getByRole("dialog", {
+    name: "Edit notification preferences",
+  });
+  await editNotifications.click();
+  await notifications
+    .getByLabel("Opt in to email alerts (delivery disabled)")
+    .check();
+  await notifications
     .getByRole("button", { name: "Save notification preferences", exact: true })
     .click();
   await page.reload();
-  await page
-    .getByRole("button", { name: "Settings & privacy", exact: true })
-    .click();
+  await expect(page).toHaveURL("/app/settings/notifications");
+  await editNotifications.click();
   await expect(
-    page.getByLabel("Opt in to email alerts (delivery disabled)"),
+    notifications.getByLabel("Opt in to email alerts (delivery disabled)"),
   ).toBeChecked();
   await expect(
     page.getByText(
@@ -1490,8 +2414,10 @@ test("email alert opt-in stays visibly disabled and saved themes follow account 
     ),
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await page.getByLabel("Opt in to email alerts (delivery disabled)").uncheck();
-  await page
+  await notifications
+    .getByLabel("Opt in to email alerts (delivery disabled)")
+    .uncheck();
+  await notifications
     .getByRole("button", { name: "Save notification preferences", exact: true })
     .click();
 });

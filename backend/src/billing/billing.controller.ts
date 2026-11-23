@@ -1,6 +1,8 @@
+import { PageQuery } from '../common/pagination';
 import {
   Controller,
   Get,
+  Query,
   Post,
   Param,
   Body,
@@ -35,8 +37,23 @@ export class BillingController {
   @Get() view(
     @CurrentUser() u: RequestUser,
     @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Query('summary') summary?: string,
   ) {
-    return this.billing.overview(u.userId, w);
+    return this.billing.overview(u.userId, w, summary === 'true');
+  }
+  @Get('payments/page') paymentPage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Query() query: PageQuery,
+  ) {
+    return this.billing.paymentPage(u.userId, w, query);
+  }
+  @Get('requests/page') pendingRequestPage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Query() query: PageQuery,
+  ) {
+    return this.billing.pendingRequestPage(u.userId, w, query);
   }
   @Post('trial') trial(
     @CurrentUser() u: RequestUser,

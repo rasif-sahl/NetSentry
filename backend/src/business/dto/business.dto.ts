@@ -77,5 +77,6 @@ export class EndpointDepartmentDto {
   @IsOptional() @IsUUID() departmentId?: string;
 }
 export class BusinessScopeQuery {
+  @IsOptional() @IsIn(['true']) omitEndpoints?: string;
   @IsOptional() @IsUUID() locationId?: string;
 }

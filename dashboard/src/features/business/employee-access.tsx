@@ -1,7 +1,7 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Field,
   Notice,
@@ -44,7 +44,12 @@ export function EmployeeAccess({
             </p>
             {can("members:manage") && (
               <>
-                <ActionForm
+                <ActionFormDialog
+                  label={
+                    e.offboardedAt
+                      ? "Restore employee"
+                      : "Edit employee department"
+                  }
                   key={e.revision}
                   submit={
                     e.offboardedAt
@@ -65,7 +70,7 @@ export function EmployeeAccess({
                     departments={options?.departments ?? []}
                     value={e.departmentId ?? ""}
                   />
-                </ActionForm>
+                </ActionFormDialog>
                 {!e.offboardedAt && e.userId !== userId && (
                   <ActionButton
                     confirm={`Offboard ${e.displayName}? This removes organization membership, revokes organization device/agent credentials and ends sharing. Personal data and unrelated organizations are preserved.`}
@@ -83,9 +88,9 @@ export function EmployeeAccess({
           </div>
         ))}
         {can("members:manage") && (
-          <ActionForm
-            reset
+          <ActionFormDialog
             submit="Enrol employee"
+            primary
             action={async (f) => {
               await mutate("/employees", "POST", {
                 userId: text(f, "member"),
@@ -93,6 +98,7 @@ export function EmployeeAccess({
                   ? { departmentId: text(f, "department") }
                   : {}),
               });
+              return "Employee enrolled.";
             }}
           >
             <Field label="Organization member">
@@ -108,7 +114,7 @@ export function EmployeeAccess({
               </select>
             </Field>
             <DepartmentField departments={options?.departments ?? []} />
-          </ActionForm>
+          </ActionFormDialog>
         )}
       </Card>
       <Card title="Device assignment and employee sharing">
@@ -137,8 +143,7 @@ export function EmployeeAccess({
                   : "Sharing unavailable or awaiting acceptance"}
               </p>
               {can("devices:manage") && (
-                <ActionForm
-                  key={a?.revision ?? 0}
+                <ActionFormDialog
                   submit="Assign employee device"
                   action={async (f) => {
                     await mutate(`/devices/${d.id}/assignment`, "POST", {
@@ -166,7 +171,7 @@ export function EmployeeAccess({
                         ))}
                     </select>
                   </Field>
-                </ActionForm>
+                </ActionFormDialog>
               )}
               {a && e?.userId === userId && d.state === "ACTIVE" && (
                 <ActionButton

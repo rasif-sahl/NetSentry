@@ -1,6 +1,7 @@
 package com.netsentry.app.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -38,6 +40,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.netsentry.app.R
 
 // Small code-native icons keep the dock consistent with the design without bitmap assets.
 private fun dockIcon(
@@ -146,6 +149,15 @@ internal fun FloatingNavigation(selected: String, onSelect: (String) -> Unit) {
             }
         }
     }
+}
+
+@Composable
+internal fun AccountBrand() {
+    Image(
+        painter = painterResource(R.drawable.netsentry_logo),
+        contentDescription = "NetSentry",
+        modifier = Modifier.size(width = 167.dp, height = 48.dp).semantics { heading() },
+    )
 }
 
 @Composable

@@ -1,3 +1,4 @@
+import { PageQuery, selectPage } from '../common/pagination';
 import { User, AccountStatus } from '../users/entity/user.entity';
 import {
   BadRequestException,
@@ -210,7 +211,12 @@ export class AlertService {
       };
     });
   }
-  list(userId: string, workspaceId: string, notifications = false) {
+  list(
+    userId: string,
+    workspaceId: string,
+    notifications = false,
+    page?: PageQuery,
+  ) {
     return this.source.transaction(async (manager) => {
       await this.rulesContext(manager, userId, workspaceId);
       const rules = await manager.findBy(AlertRule, { userId, workspaceId });
@@ -223,26 +229,41 @@ export class AlertService {
           if (!(error instanceof ForbiddenException)) throw error;
         }
       }
-      if (!allowed.length) return [];
-      const alerts = await manager.find(AlertOccurrence, {
-        where: { ruleId: In(allowed) },
-        order: { createdAt: 'DESC' },
-        take: 100,
-      });
-      const rows = [];
-      for (const alert of alerts) {
-        const deliveries = await manager.findBy(NotificationDelivery, {
-          alertId: alert.id,
-        });
-        if (
-          !notifications ||
-          deliveries.some(
-            (d) => d.channel === 'in_app' && d.status === 'delivered',
-          )
-        )
-          rows.push(Object.assign({}, alert, { deliveries }));
+      if (!allowed.length) return page ? { items: [], nextCursor: null } : [];
+      const matching = manager
+        .createQueryBuilder(AlertOccurrence, 'a')
+        .where('a."ruleId" IN (:...allowed)', { allowed });
+      if (notifications) {
+        matching.andWhere(`EXISTS (
+          SELECT 1 FROM notification_deliveries d
+          WHERE d."alertId" = a.id AND d.channel = 'in_app' AND d.status = 'delivered'
+        )`);
       }
-      return rows;
+      const paged = page
+        ? await selectPage(matching, page, { timestamp: 'createdAt' })
+        : undefined;
+      const alerts =
+        paged?.items ??
+        (await matching
+          .orderBy('a."createdAt"', 'DESC')
+          .addOrderBy('a.id', 'DESC')
+          .limit(100)
+          .getMany());
+      const deliveries = alerts.length
+        ? await manager.findBy(NotificationDelivery, {
+            alertId: In(alerts.map((alert) => alert.id)),
+          })
+        : [];
+      const byAlert = new Map<string, NotificationDelivery[]>();
+      for (const delivery of deliveries) {
+        const items = byAlert.get(delivery.alertId);
+        if (items) items.push(delivery);
+        else byAlert.set(delivery.alertId, [delivery]);
+      }
+      const items = alerts.map((alert) =>
+        Object.assign({}, alert, { deliveries: byAlert.get(alert.id) ?? [] }),
+      );
+      return paged ? { items, nextCursor: paged.nextCursor } : items;
     });
   }
   acknowledge(userId: string, workspaceId: string, id: string) {

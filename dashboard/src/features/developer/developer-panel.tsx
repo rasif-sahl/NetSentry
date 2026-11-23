@@ -1,5 +1,9 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
+import { usePage } from "@/shared/use-page";
+import { PageControls } from "@/shared/ui/page-controls";
 import { useEffect, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { Member } from "@/shared/types";
@@ -58,21 +62,30 @@ type Command = {
   startedAt: string | null;
   audit: { id: string; event: string; outcome: string; occurredAt: string }[];
 };
-export function DeveloperPanel(context: PageContext) {
+export function DeveloperPanel(context: PageContext & { tab: string }) {
+  const { tab } = context;
   const path = `/workspaces/${context.workspace.id}`;
-  const resource = useResource<Computer[]>(`${path}/developer`);
-  const disclosure = useResource<{ version: string; text: string }>(
-    "/agents/developer-disclosure",
+  const resource = useResource<Computer[]>(
+    tab === "computers" ? `${path}/developer` : null,
   );
-  const members = useResource<Member[]>(`${path}/members`);
+  const disclosure = useResource<{ version: string; text: string }>(
+    tab === "sharing" ? "/agents/developer-disclosure" : null,
+  );
+  const members = useResource<Member[]>(
+    tab === "computers" ? `${path}/members` : null,
+  );
   const reloadComputers = resource.reload;
   useEffect(() => {
     const id = setInterval(() => {
-      if (document.visibilityState === "visible" && navigator.onLine)
+      if (
+        tab === "computers" &&
+        document.visibilityState === "visible" &&
+        navigator.onLine
+      )
         reloadComputers();
     }, 5000);
     return () => clearInterval(id);
-  }, [reloadComputers]);
+  }, [reloadComputers, tab]);
   return (
     <>
       <Notice>
@@ -81,35 +94,51 @@ export function DeveloperPanel(context: PageContext) {
         Acceptance is not confirmed shutdown; inspect the recorded outcome.
         Android/iOS UI and physical-device checks remain later phases.
       </Notice>
-      <details>
-        <summary>Service-sharing disclosure</summary>
-        <ErrorNotice error={disclosure.error} />
-        <p>{disclosure.data?.text || "Loading disclosure…"}</p>
-      </details>
-      <Card title="Paired developer computers">
-        <button className="button" onClick={() => resource.reload()}>
-          Refresh computers
-        </button>
-        <ErrorNotice error={resource.error} />
-        {resource.loading && <Loading />}
-        {resource.data?.length === 0 && (
-          <Empty title="No paired computers">
-            Pair the Go agent with the desktop first. Then enable sharing
-            locally and grant workspace access here.
-          </Empty>
-        )}
-        {resource.data?.map((computer) => (
-          <ComputerPanel
-            key={`${context.workspace.id}/${computer.id}`}
-            computer={computer}
-            path={path}
-            userId={context.user.id}
-            members={members.data || []}
-            permissions={context.permissions}
-            refresh={resource.reload}
-          />
-        ))}
-      </Card>
+      {tab === "sharing" && (
+        <Card title="Service-sharing disclosure">
+          <ErrorNotice error={disclosure.error} />
+          <p>{disclosure.data?.text || "Loading disclosure…"}</p>
+        </Card>
+      )}
+      {tab === "computers" && (
+        <Card
+          title="Paired developer computers"
+          headingAction={
+            <button
+              type="button"
+              aria-label="Refresh computers"
+              className="button max-[650px]:size-11 max-[650px]:px-0!"
+              onClick={resource.reload}
+            >
+              <span className="max-[650px]:hidden">Refresh computers</span>
+              <RefreshCw
+                aria-hidden="true"
+                className="hidden size-4 max-[650px]:block"
+              />
+            </button>
+          }
+        >
+          <ErrorNotice error={resource.error} />
+          {resource.loading && <Loading />}
+          {resource.data?.length === 0 && (
+            <Empty title="No paired computers">
+              Pair the Go agent with the desktop first. Then enable sharing
+              locally and grant workspace access here.
+            </Empty>
+          )}
+          {resource.data?.map((computer) => (
+            <ComputerPanel
+              key={`${context.workspace.id}/${computer.id}`}
+              computer={computer}
+              path={path}
+              userId={context.user.id}
+              members={members.data || []}
+              permissions={context.permissions}
+              refresh={resource.reload}
+            />
+          ))}
+        </Card>
+      )}
     </>
   );
 }
@@ -129,7 +158,7 @@ function ComputerPanel({
   refresh: () => void;
 }) {
   const base = `${path}/agents/${c.id}`;
-  const history = useResource<Command[]>(`${base}/commands`);
+  const history = usePage<Command>(`${base}/commands/page`);
   const [selected, setSelected] = useState<{
     target: Service;
     mode: "graceful" | "force";
@@ -167,59 +196,54 @@ function ComputerPanel({
         <p>Native remote capabilities have not been reported as available.</p>
       )}
       {c.canManage && permissions.includes("services:control") && (
-        <details>
-          <summary>Sharing and controller grants</summary>
-          <ActionForm
-            key={`${c.sharingAllowed}/${c.controllers.join()}`}
-            submit="Save developer sharing policy"
-            action={async (form) => {
-              await api(`${base}/developer-policy`, "PATCH", {
-                sharingAllowed: form.get("sharing") === "on",
-                controllers:
-                  form.get("sharing") === "on"
-                    ? form.getAll("controllers")
-                    : [],
-                accepted: form.get("accepted") === "on",
-                disclosureVersion: "developer-sharing-v1",
-              });
-              refresh();
-              history.reload();
-              return "Policy updated. Current pending commands are invalidated; the agent must publish a fresh report.";
-            }}
-          >
-            <Notice>
-              This shares up to 32 service summaries with workspace viewers.
-              Controllers must additionally have an owner/admin role and
-              explicit consent on the computer. No arbitrary shell command can
-              be sent.
-            </Notice>
-            <Field label="Allow service sharing">
-              <input
-                type="checkbox"
-                name="sharing"
-                defaultChecked={c.sharingAllowed}
-              />
-            </Field>
-            {members
-              .filter((m) => ["OWNER", "ADMIN"].includes(m.role))
-              .map((m) => (
-                <Field
-                  key={m.userId}
-                  label={`Allow ${m.displayName} (${m.role}) to request shutdown`}
-                >
-                  <input
-                    type="checkbox"
-                    name="controllers"
-                    value={m.userId}
-                    defaultChecked={c.controllers.includes(m.userId)}
-                  />
-                </Field>
-              ))}
-            <Field label="I accept developer-sharing-v1">
-              <input type="checkbox" name="accepted" required />
-            </Field>
-          </ActionForm>
-        </details>
+        <ActionFormDialog
+          label="Edit sharing and controller grants"
+          key={`${c.sharingAllowed}/${c.controllers.join()}`}
+          submit="Save developer sharing policy"
+          action={async (form) => {
+            await api(`${base}/developer-policy`, "PATCH", {
+              sharingAllowed: form.get("sharing") === "on",
+              controllers:
+                form.get("sharing") === "on" ? form.getAll("controllers") : [],
+              accepted: form.get("accepted") === "on",
+              disclosureVersion: "developer-sharing-v1",
+            });
+            refresh();
+            history.reload();
+            return "Policy updated. Current pending commands are invalidated; the agent must publish a fresh report.";
+          }}
+        >
+          <Notice>
+            This shares up to 32 service summaries with workspace viewers.
+            Controllers must additionally have an owner/admin role and explicit
+            consent on the computer. No arbitrary shell command can be sent.
+          </Notice>
+          <Field label="Allow service sharing">
+            <input
+              type="checkbox"
+              name="sharing"
+              defaultChecked={c.sharingAllowed}
+            />
+          </Field>
+          {members
+            .filter((m) => ["OWNER", "ADMIN"].includes(m.role))
+            .map((m) => (
+              <Field
+                key={m.userId}
+                label={`Allow ${m.displayName} (${m.role}) to request shutdown`}
+              >
+                <input
+                  type="checkbox"
+                  name="controllers"
+                  value={m.userId}
+                  defaultChecked={c.controllers.includes(m.userId)}
+                />
+              </Field>
+            ))}
+          <Field label="I accept developer-sharing-v1">
+            <input type="checkbox" name="accepted" required />
+          </Field>
+        </ActionFormDialog>
       )}
       {!c.services.length && (
         <Empty
@@ -254,7 +278,7 @@ function ComputerPanel({
                 descendants
               </small>
             </div>
-            <div className="actions">
+            <div className="flex flex-wrap justify-end gap-2">
               <button
                 className="button"
                 disabled={
@@ -326,6 +350,7 @@ function ComputerPanel({
                   mode: selected.mode,
                   includeChildren: form.get("children") === "on",
                 });
+                history.reset();
                 history.reload();
                 return `Command ${result.state}. Refresh command history for the agent-confirmed outcome; do not assume shutdown.`;
               }}
@@ -355,6 +380,7 @@ function ComputerPanel({
         Refresh commands
       </button>
       <ErrorNotice error={history.error} />
+      {history.loading && <Loading />}
       {history.data?.length === 0 && <p>No remote commands yet.</p>}
       <ul className="item-list">
         {history.data?.map((command) => (
@@ -401,6 +427,7 @@ function ComputerPanel({
           </li>
         ))}
       </ul>
+      <PageControls label={`${c.name} command history`} page={history} />
     </article>
   );
 }

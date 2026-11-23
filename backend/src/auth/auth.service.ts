@@ -104,7 +104,7 @@ export class AuthService {
     });
   }
 
-  async refresh(refreshToken: string) {
+  private async verifyRefreshToken(refreshToken: string) {
     const payload = await this.jwt
       .verifyAsync<{ sub: string; sid: string; type: string }>(refreshToken, {
         secret: this.config.getOrThrow('JWT_REFRESH_TOKEN_SECRET'),
@@ -114,35 +114,93 @@ export class AuthService {
       });
     if (payload.type !== 'refresh')
       throw new UnauthorizedException('Invalid refresh token.');
-    return this.dataSource.transaction(async (manager) => {
-      const user = await manager.findOne(User, {
-        where: { id: payload.sub, status: AccountStatus.ACTIVE },
-        lock: { mode: 'pessimistic_write' },
-      });
-      if (!user) throw new UnauthorizedException('Session expired.');
-      const session = await manager
-        .getRepository(Session)
-        .createQueryBuilder('session')
-        .addSelect('session.refreshTokenHash')
-        .where('session.id = :id AND session.userId = :userId', {
-          id: payload.sid,
-          userId: user.id,
-        })
-        .setLock('pessimistic_write')
-        .getOne();
-      if (
-        !session ||
-        session.revokedAt ||
-        session.expiresAt <= new Date() ||
-        session.refreshTokenHash !== hashToken(refreshToken)
-      )
-        throw new UnauthorizedException('Refresh session expired or reused.');
+    return payload;
+  }
+
+  private async lockUser(manager: EntityManager, id: string) {
+    const user = await manager.findOne(User, {
+      where: { id, status: AccountStatus.ACTIVE },
+      lock: { mode: 'pessimistic_write' },
+    });
+    if (!user) throw new UnauthorizedException('Session expired.');
+    return user;
+  }
+
+  private async findRefreshSession(
+    manager: EntityManager,
+    payload: { sub: string; sid: string },
+    refreshToken: string,
+  ) {
+    const session = await manager
+      .getRepository(Session)
+      .createQueryBuilder('session')
+      .addSelect('session.refreshTokenHash')
+      .where('session.id = :id AND session.userId = :userId', {
+        id: payload.sid,
+        userId: payload.sub,
+      })
+      .getOne();
+    if (
+      !session ||
+      session.expiresAt <= new Date() ||
+      session.refreshTokenHash !== hashToken(refreshToken)
+    )
+      throw new UnauthorizedException('Refresh session expired.');
+    return session;
+  }
+
+  private async revokeFamily(manager: EntityManager, session: Session) {
+    await manager.update(
+      Session,
+      {
+        userId: session.userId,
+        familyId: session.familyId,
+        revokedAt: IsNull(),
+      },
+      { revokedAt: new Date() },
+    );
+  }
+
+  async refresh(refreshToken: string) {
+    const payload = await this.verifyRefreshToken(refreshToken);
+    const renewed = await this.dataSource.transaction(async (manager) => {
+      const user = await this.lockUser(manager, payload.sub);
+      const session = await this.findRefreshSession(
+        manager,
+        payload,
+        refreshToken,
+      );
+      if (session.revokedAt) {
+        await this.revokeFamily(manager, session);
+        return null;
+      }
       session.revokedAt = new Date();
       await manager.save(session);
-      return this.issueSession(manager, user, {
-        userAgent: session.userAgent ?? undefined,
-        ipAddress: session.ipAddress ?? undefined,
-      });
+      return this.issueSession(
+        manager,
+        user,
+        {
+          userAgent: session.userAgent ?? undefined,
+          ipAddress: session.ipAddress ?? undefined,
+        },
+        session.familyId,
+      );
+    });
+    // Reject after the transaction commits so reuse revocation persists.
+    if (!renewed) throw new UnauthorizedException('Refresh session reused.');
+    return renewed;
+  }
+
+  async logoutWithRefreshToken(refreshToken: string) {
+    const payload = await this.verifyRefreshToken(refreshToken);
+    await this.dataSource.transaction(async (manager) => {
+      await this.lockUser(manager, payload.sub);
+      const session = await this.findRefreshSession(
+        manager,
+        payload,
+        refreshToken,
+      );
+      await this.revokeFamily(manager, session);
     });
   }
 
@@ -198,16 +256,29 @@ export class AuthService {
     });
   }
   async revokeSession(userId: string, sessionId: string) {
-    await this.sessions.update(
-      { id: sessionId, userId },
-      { revokedAt: new Date() },
-    );
+    await this.dataSource.transaction(async (manager) => {
+      await this.lockUser(manager, userId);
+      const session = await manager.findOneBy(Session, {
+        id: sessionId,
+        userId,
+      });
+      if (session) await this.revokeFamily(manager, session);
+    });
   }
   async revokeOthers(userId: string, sessionId: string) {
-    await this.sessions.update(
-      { userId, id: Not(sessionId), revokedAt: IsNull() },
-      { revokedAt: new Date() },
-    );
+    await this.dataSource.transaction(async (manager) => {
+      await this.lockUser(manager, userId);
+      const session = await manager.findOneBy(Session, {
+        id: sessionId,
+        userId,
+      });
+      if (!session) throw new UnauthorizedException('Session expired.');
+      await manager.update(
+        Session,
+        { userId, familyId: Not(session.familyId), revokedAt: IsNull() },
+        { revokedAt: new Date() },
+      );
+    });
     return { revoked: true };
   }
 
@@ -215,6 +286,7 @@ export class AuthService {
     manager: EntityManager,
     user: User,
     metadata: SessionMetadata,
+    familyId?: string,
   ) {
     const sessionId = randomUUID();
     const days = this.config.get<number>('JWT_REFRESH_TOKEN_TTL_DAYS', 30);
@@ -235,6 +307,7 @@ export class AuthService {
     await manager.save(
       manager.create(Session, {
         id: sessionId,
+        familyId: familyId ?? sessionId,
         userId: user.id,
         refreshTokenHash: hashToken(refreshToken),
         expiresAt: new Date(Date.now() + days * 86400000),

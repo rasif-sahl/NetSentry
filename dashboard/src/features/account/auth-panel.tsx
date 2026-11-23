@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { api, beginSession } from "@/shared/api";
@@ -41,7 +42,12 @@ export function AuthPanel({
     <main className="auth-layout">
       <div className="auth-story">
         <Link className="brand" href="/">
-          ◈ NetSentry
+          <Image
+            src="/brand/netsentry-logo.svg"
+            alt="NetSentry"
+            width={223}
+            height={64}
+          />
         </Link>
         <p className="eyebrow">YOUR WORKSPACE, IN VIEW</p>
         <h1>
@@ -177,14 +183,13 @@ export function AuthPanel({
           )}
         </ActionForm>
         <nav className="auth-links" aria-label="Account options">
-          {mode !== "login" && (
+          {mode === "register" && <Link href="/app">Back to sign in</Link>}
+          {mode !== "login" && mode !== "register" && (
             <button onClick={() => setMode("login")}>Back to sign in</button>
           )}
           {mode === "login" && (
             <>
-              <button onClick={() => setMode("register")}>
-                Create an account
-              </button>
+              <Link href="/register">Create an account</Link>
               <button onClick={() => setMode("forgot")}>
                 Forgot password?
               </button>

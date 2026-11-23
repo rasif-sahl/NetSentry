@@ -1,3 +1,5 @@
+import { IsIn, IsOptional } from 'class-validator';
+import { PageQuery, SearchPageQuery } from '../common/pagination';
 import {
   Body,
   Controller,
@@ -26,6 +28,11 @@ import {
   NetworkEventDto,
   CompatibilityDto,
 } from './dto/network.dto';
+class NetworkInventoryQuery extends SearchPageQuery {
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  archived?: string;
+}
 @Controller({ path: 'networks', version: '1' })
 export class NetworkDisclosureController {
   @Get('disclosure') disclosure() {
@@ -42,6 +49,44 @@ export class NetworkController {
   ) {
     return this.networks.list(u.userId, w);
   }
+  @Get('page') listPage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Query() query: SearchPageQuery,
+  ) {
+    return this.networks.listPage(u.userId, w, query);
+  }
+  @Get(':networkId/devices/page') devicesPage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Param('networkId', ParseUUIDPipe) id: string,
+    @Query() query: NetworkInventoryQuery,
+  ) {
+    return this.networks.inventoryPage(
+      u.userId,
+      w,
+      id,
+      query,
+      query.archived === 'true',
+    );
+  }
+  @Get(':networkId/events/page') eventPage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Param('networkId', ParseUUIDPipe) id: string,
+    @Query() query: PageQuery,
+  ) {
+    return this.networks.eventPage(u.userId, w, id, query);
+  }
+  @Get(':networkId/devices/:endpointId/presence/page') presencePage(
+    @CurrentUser() u: RequestUser,
+    @Param('workspaceId', ParseUUIDPipe) w: string,
+    @Param('networkId', ParseUUIDPipe) id: string,
+    @Param('endpointId', ParseUUIDPipe) endpointId: string,
+    @Query() query: PageQuery,
+  ) {
+    return this.networks.presencePage(u.userId, w, id, endpointId, query);
+  }
   @Post() create(
     @CurrentUser() u: RequestUser,
     @Param('workspaceId', ParseUUIDPipe) w: string,
@@ -55,8 +100,9 @@ export class NetworkController {
     @Param('networkId', ParseUUIDPipe) id: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('summary') summary?: string,
   ) {
-    return this.networks.view(u.userId, w, id, from, to);
+    return this.networks.view(u.userId, w, id, from, to, summary === 'true');
   }
   @Patch(':networkId') update(
     @CurrentUser() u: RequestUser,

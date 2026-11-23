@@ -13,6 +13,9 @@ import { User } from '../../users/entity/user.entity';
 @Entity('sessions')
 export class Session {
   @PrimaryGeneratedColumn('uuid') id!: string;
+  @Index('IDX_sessions_familyId')
+  @Column('uuid')
+  familyId!: string;
   @Index()
   @Column('uuid')
   userId!: string;

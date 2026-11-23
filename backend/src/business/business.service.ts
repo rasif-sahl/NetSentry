@@ -1,3 +1,9 @@
+import {
+  pageLimit,
+  pageResult,
+  readCursor,
+  SearchPageQuery,
+} from '../common/pagination';
 import { assertFeature } from '../billing/other/policy';
 import {
   BadRequestException,
@@ -197,7 +203,40 @@ export class BusinessService {
       return row;
     });
   }
-  overview(uid: string, wid: string, locationId?: string) {
+  endpointPage(
+    uid: string,
+    wid: string,
+    query: SearchPageQuery,
+    locationId?: string,
+  ) {
+    return this.source.transaction(async (m) => {
+      const { member } = await this.context(m, uid, wid);
+      if (!roleAllows(member.role, P.READ_NETWORKS))
+        throw new ForbiddenException('Network access is required.');
+      if (locationId) await this.location(m, wid, locationId);
+      const cursor = readCursor(query);
+      const rows = await m.query<{ id: string }[]>(
+        `SELECT e.id,e.name,e."networkId",n.name AS "networkName",a."departmentId",coalesce(a.revision,0)::int AS revision FROM network_endpoints e JOIN usage_networks n ON n.id=e."networkId" LEFT JOIN business_endpoint_departments a ON a."endpointId"=e.id LEFT JOIN business_network_locations l ON l."networkId"=n.id WHERE n."workspaceId"=$1 AND ($2::uuid IS NULL OR l."locationId"=$2) AND ($3::uuid IS NULL OR e.id > $3::uuid)
+        AND ($4::text = '' OR strpos(lower(e.name || ' ' || n.name), lower($4)) > 0)
+        ORDER BY e.id LIMIT $5`,
+        [
+          wid,
+          locationId ?? null,
+          cursor?.id ?? null,
+          query.search?.trim() ?? '',
+          pageLimit(query) + 1,
+        ],
+      );
+      return pageResult(rows, query, (row) => ({ id: row.id }));
+    });
+  }
+
+  overview(
+    uid: string,
+    wid: string,
+    locationId?: string,
+    omitEndpoints = false,
+  ) {
     return this.source.transaction(async (m) => {
       const { workspace, member } = await this.context(m, uid, wid);
       if (locationId) await this.location(m, wid, locationId);
@@ -254,12 +293,13 @@ export class BusinessService {
             [wid, locationId ?? null],
           )
         : [];
-      const endpoints = roleAllows(member.role, P.READ_NETWORKS)
-        ? await m.query(
-            `SELECT e.id,e.name,e."networkId",n.name AS "networkName",a."departmentId",coalesce(a.revision,0)::int AS revision FROM network_endpoints e JOIN usage_networks n ON n.id=e."networkId" LEFT JOIN business_endpoint_departments a ON a."endpointId"=e.id LEFT JOIN business_network_locations l ON l."networkId"=n.id WHERE n."workspaceId"=$1 AND ($2::uuid IS NULL OR l."locationId"=$2) ORDER BY e.id LIMIT 201`,
-            [wid, locationId ?? null],
-          )
-        : [];
+      const endpoints =
+        !omitEndpoints && roleAllows(member.role, P.READ_NETWORKS)
+          ? await m.query(
+              `SELECT e.id,e.name,e."networkId",n.name AS "networkName",a."departmentId",coalesce(a.revision,0)::int AS revision FROM network_endpoints e JOIN usage_networks n ON n.id=e."networkId" LEFT JOIN business_endpoint_departments a ON a."endpointId"=e.id LEFT JOIN business_network_locations l ON l."networkId"=n.id WHERE n."workspaceId"=$1 AND ($2::uuid IS NULL OR l."locationId"=$2) ORDER BY e.id LIMIT 201`,
+              [wid, locationId ?? null],
+            )
+          : [];
       return {
         endpoints: endpoints.slice(0, 200),
         moreEndpoints: endpoints.length > 200,

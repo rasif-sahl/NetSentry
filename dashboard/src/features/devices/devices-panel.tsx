@@ -1,32 +1,44 @@
 "use client";
-import { useState } from "react";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
+import { usePage } from "@/shared/use-page";
+import { PageControls } from "@/shared/ui/page-controls";
+import { useDeferredValue, useState } from "react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
-import type { DeviceEvent, Disclosures } from "@/shared/types";
+import type { Device, DeviceEvent, Disclosures } from "@/shared/types";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
   Field,
+  Loading,
   Notice,
   formatTime,
   text,
 } from "@/shared/ui/common";
-export function DevicesPanel({
-  user,
-  devices,
-  permissions,
-  reloadDevices,
-}: PageContext) {
+export function DevicesPanel({ user, workspace, permissions }: PageContext) {
   const [selected, setSelected] = useState("");
   const [search, setSearch] = useState("");
-  const filtered = devices.filter((d) =>
-    `${d.name} ${d.platform}`.toLowerCase().includes(search.toLowerCase()),
+  const query = useDeferredValue(search.trim());
+  const page = usePage<Device>(
+    `/workspaces/${workspace.id}/devices/page?search=${encodeURIComponent(query)}`,
+    true,
   );
-  const device = devices.find((d) => d.id === selected) ?? devices[0];
+  const selectedOnPage = page.data?.find((item) => item.id === selected);
+  const selectedDetail = useResource<Device>(
+    selected && !selectedOnPage ? `/devices/${selected}` : null,
+    true,
+  );
+  const device =
+    selectedOnPage ??
+    selectedDetail.data ??
+    (!selected ? page.data?.[0] : undefined);
+  function reloadDevices() {
+    page.reload();
+    selectedDetail.reload();
+  }
   const owner = device?.registeredById === user.id;
   const canManage = owner || permissions.includes("devices:manage");
   const disclosures = useResource<Disclosures>("/privacy/disclosures");
@@ -41,51 +53,58 @@ export function DevicesPanel({
   return (
     <>
       <Card title="Device inventory">
-        <Field label="Find a device">
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name or platform"
-          />
-        </Field>
-        {filtered.length ? (
-          <ul className="item-list">
-            {filtered.map((item) => (
-              <li key={item.id}>
-                <div>
-                  <strong>{item.name}</strong>
-                  <small>
-                    {item.platform} · {item.state.toLowerCase()} · last reported{" "}
-                    {formatTime(item.lastSeenAt)}
-                  </small>
-                </div>
-                <span className="badge">
-                  {item.monitoringEnabled
-                    ? "Consent enabled"
-                    : "Monitoring paused"}
-                </span>
-                <button
-                  className="button"
-                  onClick={() => setSelected(item.id)}
-                  aria-pressed={device?.id === item.id}
-                >
-                  View {item.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <Empty
-            title={
-              devices.length ? "No matching devices" : "No registered devices"
-            }
-          >
-            Pair an installation through a supported native client. Browser
-            access does not enroll or certify this computer.
-          </Empty>
-        )}
+        <div className="page-stack">
+          <Field label="Find a device">
+            <input
+              type="search"
+              value={search}
+              maxLength={200}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by name or platform"
+            />
+          </Field>
+          <ErrorNotice error={page.error} />
+          {page.loading && <Loading />}
+          {page.data?.length ? (
+            <ul className="item-list">
+              {page.data.map((item) => (
+                <li key={item.id}>
+                  <div>
+                    <strong>{item.name}</strong>
+                    <small>
+                      {item.platform} · {item.state.toLowerCase()} · last
+                      reported {formatTime(item.lastSeenAt)}
+                    </small>
+                  </div>
+                  <span className="badge">
+                    {item.monitoringEnabled
+                      ? "Consent enabled"
+                      : "Monitoring paused"}
+                  </span>
+                  <button
+                    className="button"
+                    onClick={() => setSelected(item.id)}
+                    aria-pressed={device?.id === item.id}
+                  >
+                    View {item.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            page.data && (
+              <Empty
+                title={query ? "No matching devices" : "No registered devices"}
+              >
+                Pair an installation through a supported native client. Browser
+                access does not enroll or certify this computer.
+              </Empty>
+            )
+          )}
+          <PageControls label="Device inventory" page={page} />
+        </div>
       </Card>
+      <ErrorNotice error={selectedDetail.error} />
       {device && (
         <Card title={device.name} key={device.id}>
           <p>
@@ -113,27 +132,26 @@ export function DevicesPanel({
             ))}
           </dl>
           {canManage && (
-            <details>
-              <summary>Rename this device</summary>
-              <ActionForm
-                action={async (form) => {
-                  await api(`/devices/${device.id}`, "PATCH", {
-                    name: text(form, "name"),
-                  });
-                  reloadDevices();
-                }}
-                submit="Rename device"
-              >
-                <Field label="Device name">
-                  <input
-                    name="name"
-                    defaultValue={device.name}
-                    required
-                    maxLength={100}
-                  />
-                </Field>
-              </ActionForm>
-            </details>
+            <ActionFormDialog
+              label="Rename this device"
+              action={async (form) => {
+                await api(`/devices/${device.id}`, "PATCH", {
+                  name: text(form, "name"),
+                });
+                reloadDevices();
+                return "Device renamed.";
+              }}
+              submit="Rename device"
+            >
+              <Field label="Device name">
+                <input
+                  name="name"
+                  defaultValue={device.name}
+                  required
+                  maxLength={100}
+                />
+              </Field>
+            </ActionFormDialog>
           )}
           <h3>Reported capabilities</h3>
           {device.capabilityReport?.capabilities.length ? (
@@ -180,11 +198,11 @@ export function DevicesPanel({
             </Empty>
           )}
           {owner && device.state === "ACTIVE" && (
-            <details>
-              <summary>Review monitoring consent</summary>
+            <>
               <ErrorNotice error={disclosures.error} />
               {disclosures.data && (
-                <ActionForm
+                <ActionFormDialog
+                  label="Review monitoring consent"
                   key={disclosures.data.monitoring.version}
                   submit="Grant selected consent"
                   action={async (form) => {
@@ -231,9 +249,9 @@ export function DevicesPanel({
                     <input type="checkbox" required />I understand and accept
                     this monitoring disclosure.
                   </label>
-                </ActionForm>
+                </ActionFormDialog>
               )}
-            </details>
+            </>
           )}
           {canManage && (
             <div className="button-row">

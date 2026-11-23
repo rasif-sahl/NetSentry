@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
 
+const brandLogo = new URL(
+  "../../../assets/brand/netsentry-logo.svg",
+  import.meta.url,
+).href;
+
 export const navigation = [
   {
     label: "Overview",
@@ -148,12 +153,6 @@ export function NavigationIcon({ name }: { name: string }) {
         <path d="m9 3-1 3-3 1-2 5 2 4 3 2 1 3h6l1-3 3-2 2-4-2-5-3-1-1-3Z" />
       </>
     ),
-    shield: (
-      <>
-        <path d="m12 2 8 4v6c0 5-8 10-8 10s-8-5-8-10V6Z" />
-        <path d="m8 12 3 3 5-6" />
-      </>
-    ),
   };
   return (
     <svg
@@ -179,8 +178,7 @@ export function Sidebar({
   return (
     <aside className="desktop-sidebar">
       <a className="desktop-brand" href="#status">
-        <NavigationIcon name="shield" />
-        NetSentry
+        <img src={brandLogo} alt="NetSentry" width={223} height={64} />
       </a>
       <p className="desktop-eyebrow">DESKTOP WORKSPACE</p>
       <nav aria-label="Desktop navigation">

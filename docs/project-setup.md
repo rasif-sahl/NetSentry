@@ -54,7 +54,7 @@ openssl rand -base64 32
 | `JWT_ACCESS_TOKEN_TTL`, `JWT_REFRESH_TOKEN_TTL_DAYS` | Optional. Defaults to `15m` and `30` days. |
 | `ACCOUNT_MAIL_ENCRYPTION_KEY` | Set an independent base64-encoded 32-byte key. The API needs it even with SMTP disabled. |
 | `ROUTER_CREDENTIAL_ENCRYPTION_KEY` | Required for local router configuration. Generate it independently with `openssl rand -base64 32`. |
-| `MAIL_ENABLED`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Leave mail disabled for ordinary development. To exercise verification and password recovery, configure a test SMTP inbox, set `MAIL_ENABLED=true`, and run `npm --prefix backend run mail:deliver` to deliver queued account mail. The default SMTP port is `587`. |
+| `MAIL_ENABLED`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Optional. See [local account email setup](account-email-setup.md#local-development) to test verification and password recovery with a sandbox SMTP inbox. |
 | `BILLING_MODE`, `BILLING_ENFORCEMENT`, `BILLING_EVENT_SECRET` | Keep `disabled` and `false` for ordinary development. Set a separate secret of at least 32 characters only if using the optional local billing sandbox. |
 
 **Start the backend API**
@@ -280,9 +280,9 @@ node infra/scripts/deployment.mjs start /etc/netsentry/deployment.env
 node infra/scripts/deployment.mjs status /etc/netsentry/deployment.env
 ```
 
-The migration command applies the release's eighteen versioned migrations. Startup checks schema parity, waits for container health and checks the public HTTPS homepage and API endpoints `/api/v1/health` and `/api/v1/ready`. Open `https://PUBLIC_HOST/app` in a browser with the real hostname and verify sign-in, secure cookies and a workspace request. A failed smoke check can leave the stack running with migrations already applied. For breaking migrations, drain traffic and stop the API and maintenance worker before migration, and plan recovery against a compatible schema.
+The migration command applies the release's nineteen versioned migrations. Startup checks schema parity, waits for container health and checks the public HTTPS homepage and API endpoints `/api/v1/health` and `/api/v1/ready`. Open `https://PUBLIC_HOST/app` in a browser with the real hostname and verify sign-in, secure cookies and a workspace request. A failed smoke check can leave the stack running with migrations already applied. For breaking migrations, drain traffic and stop the API and maintenance worker before migration, and plan recovery against a compatible schema.
 
-The Compose maintenance service covers monitoring, retention, agent, network, Family, Business, account cleanup and operations tasks. Check its health with the deployment `status` command. The stack does not deliver SMTP account mail. For verification and password recovery email in production, arrange a separately operated account-mail delivery process with private SMTP credentials. Alert email and live billing remain disabled in the supplied deployment.
+The Compose maintenance service covers monitoring, retention, agent, network, Family, Business, account cleanup and operations tasks. Check its health with the deployment `status` command. To send verification and password recovery email, follow the [production account email setup](account-email-setup.md#production) for private SMTP credentials and a separate delivery job. Alert email and live billing remain disabled in the supplied deployment.
 
 ### Backup and client release
 

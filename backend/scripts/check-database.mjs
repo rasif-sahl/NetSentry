@@ -78,6 +78,11 @@ try {
   )
     await source.undoLastMigration();
   await source.undoLastMigration();
+  const [legacySession] = await source.query(
+    `INSERT INTO sessions ("userId", "refreshTokenHash", "expiresAt")
+      VALUES ($1, 'fixture-hash', now() + interval '1 day') RETURNING id`,
+    [user.id],
+  );
   const eventId = randomUUID();
   await source.query(
     `INSERT INTO measurements ("eventId","workspaceId","deviceId",generation,metric,"applicationId",quality,"sourceKind","collectorVersion",value,unit,"intervalStart","intervalEnd","collectedAt") VALUES ($1,$2,$3,1,'mobile_data_bytes','','measured','android','synthetic-1',1,'bytes','2026-11-01T00:00:00Z','2026-11-01T00:00:01Z','2026-11-01T00:00:01Z')`,
@@ -92,6 +97,15 @@ try {
     [measurementDevice.id],
   );
   await source.runMigrations();
+  const [upgradedSession] = await source.query(
+    'SELECT "familyId", "refreshTokenHash", "revokedAt" FROM sessions WHERE id=$1',
+    [legacySession.id],
+  );
+  assert.deepEqual(upgradedSession, {
+    familyId: legacySession.id,
+    refreshTokenHash: 'fixture-hash',
+    revokedAt: null,
+  });
   const { fingerprint } = require('../dist/monitoring/other/values.js');
   const backfilled = (
     await source.query(

@@ -200,12 +200,16 @@ private fun PersonalContent(model: PersonalViewModel) {
                     ?.firstOrNull { it.optString("id") == selectedWorkspaceId }
                     ?.optString("name")
             val header: @Composable () -> Unit = {
-                ScreenHeader(
-                    title = if (signedIn) destination ?: tab else "NetSentry",
-                    workspace = if (signedIn) workspaceName else null,
-                    backLabel = if (signedIn && destination != null) tab else null,
-                    onBack = { destination = null },
-                )
+                if (signedIn) {
+                    ScreenHeader(
+                        title = destination ?: tab,
+                        workspace = workspaceName,
+                        backLabel = if (destination != null) tab else null,
+                        onBack = { destination = null },
+                    )
+                } else {
+                    AccountBrand()
+                }
                 if (model.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
                 if (model.message.isNotBlank()) StatusNotice(model.message)
             }

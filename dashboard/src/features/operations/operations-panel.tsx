@@ -1,8 +1,8 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import {
-  ActionForm,
   ActionButton,
   Card,
   Field,
@@ -56,13 +56,15 @@ type View = {
   }[];
   notice: string;
 };
-export function OperationsPanel() {
+export function OperationsPanel({ tab }: { tab: string }) {
   const access = useResource<Access>("/operations/access", true),
     view = useResource<View>(access.data ? "/operations" : null, true);
   const users = useResource<
     { id: string; displayName: string; status: string }[]
   >(
-    access.data?.globalAccounts && access.data.role === "ADMIN"
+    tab === "administration" &&
+      access.data?.globalAccounts &&
+      access.data.role === "ADMIN"
       ? "/operations/users"
       : null,
   );
@@ -100,230 +102,254 @@ export function OperationsPanel() {
   }
   return (
     <div className="stack">
-      <Card title="Platform operations">
-        <Notice>{data.notice}</Notice>
-        <p>
-          {g.role} · grant expires {formatTime(g.expiresAt)}
-        </p>
-        {data.workspaces.map((w) => (
-          <div className="row" key={w.id}>
-            <strong>
-              {w.name} · {w.type}
-            </strong>
-            {data.health
-              .filter((h) => h.workspaceId === w.id)
-              .map((h) => (
-                <p key={h.workspaceId}>
-                  {h.agents} agents · {h.staleAgents} stale/missing contacts ·{" "}
-                  {h.failedJobs} failed jobs · {h.failedDeliveries} failed
-                  deliveries
-                </p>
-              ))}
-            <ActionButton action={() => diagnostics(w.id)}>
-              Export redacted diagnostics
-            </ActionButton>
-          </div>
-        ))}
-      </Card>
-      <Card title="Agent version health">
-        {data.versions.map((v, i) => (
-          <p key={i}>
-            {v.workspaceId} · {v.platform} · {v.version ?? "Unreported"} ·{" "}
-            {v.state} · {v.count}
-          </p>
-        ))}
-      </Card>
-      <Card title="Scoped subscription administration">
-        {data.subscriptions.map((s) => (
-          <p key={s.workspaceId}>
-            {s.workspaceId} · {s.plan} · {s.status}
-          </p>
-        ))}
-        <p>
-          Paid entitlement changes require authenticated billing events;
-          operator roles do not fabricate live payment.
-        </p>
-      </Card>
-      {g.role === "ADMIN" && (
-        <Card title="Feature configuration">
-          <p>
-            Disabling a feature blocks future cloud actions. Enabling it cannot
-            grant roles, consent, paid entitlements or OS authorization.
-          </p>
-          <ActionForm
-            submit="Save feature setting"
-            reset
-            action={async (f) => {
-              const wid = text(f, "workspace"),
-                key = text(f, "key"),
-                scope = text(f, "scope");
-              const old = data.flags.find(
-                (r) =>
-                  r.scope === (scope === "global" ? "global" : wid) &&
-                  r.key === key,
-              );
-              await mutate("/flags", {
-                scope,
-                workspaceId: wid,
-                key,
-                enabled: f.has("enabled"),
-                expectedRevision: old?.revision ?? 0,
-                password: String(f.get("password") ?? ""),
-              });
-            }}
-          >
-            <Field label="Feature scope">
-              <select name="scope">
-                <option value="workspace">Scoped workspace</option>
-                {g.globalCatalog && (
-                  <option value="global">Global feature setting</option>
-                )}
-              </select>
-            </Field>
-            <Field label="Workspace for setting">
-              <select name="workspace" required>
-                {data.workspaces.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Feature key">
-              <select name="key">
-                {[
-                  "network",
-                  "developer",
-                  "advanced_apps",
-                  "family",
-                  "business",
-                ].map((k) => (
-                  <option key={k}>{k}</option>
-                ))}
-              </select>
-            </Field>
-            <label>
-              <input name="enabled" type="checkbox" /> Enable subject to all
-              other gates
-            </label>
-            <Password />
-          </ActionForm>
-          <ul>
-            {data.flags.map((f) => (
-              <li key={f.scope + f.key}>
-                {f.scope} · {f.key} · {f.enabled ? "Enabled" : "Disabled"} ·
-                revision {f.revision}
-              </li>
+      {tab === "health" && (
+        <>
+          <Card title="Platform operations">
+            <Notice>{data.notice}</Notice>
+            <p>
+              {g.role} · grant expires {formatTime(g.expiresAt)}
+            </p>
+            {data.workspaces.map((w) => (
+              <div className="row" key={w.id}>
+                <strong>
+                  {w.name} · {w.type}
+                </strong>
+                {data.health
+                  .filter((h) => h.workspaceId === w.id)
+                  .map((h) => (
+                    <p key={h.workspaceId}>
+                      {h.agents} agents · {h.staleAgents} stale/missing contacts
+                      · {h.failedJobs} failed jobs · {h.failedDeliveries} failed
+                      deliveries
+                    </p>
+                  ))}
+                <ActionButton action={() => diagnostics(w.id)}>
+                  Export redacted diagnostics
+                </ActionButton>
+              </div>
             ))}
-          </ul>
-        </Card>
-      )}
-      {g.role === "ADMIN" && g.globalCatalog && (
-        <Card title="Compatibility and category records">
-          <p>
-            Records document operator evidence. They do not enable a router
-            adapter, certify hardware or change application classification
-            automatically. Do not include secrets.
-          </p>
-          <ActionForm
-            submit="Save compatibility evidence"
-            reset
-            action={async (f) => {
-              const key = text(f, "key");
-              await mutate("/compatibility", {
-                key,
-                kind: text(f, "kind"),
-                label: text(f, "label"),
-                status: text(f, "status"),
-                evidence: text(f, "evidence"),
-                expectedRevision:
-                  data.compatibility.find((c) => c.key === key)?.revision ?? 0,
-                password: String(f.get("password") ?? ""),
-              });
-            }}
-          >
-            <Field label="Compatibility key">
-              <input name="key" required pattern="[a-z0-9][a-z0-9_.-]{1,79}" />
-            </Field>
-            <Field label="Record kind">
-              <select name="kind">
-                {["router", "device", "agent", "category"].map((k) => (
-                  <option key={k}>{k}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Record label">
-              <input name="label" required maxLength={100} />
-            </Field>
-            <Field label="Evidence status">
-              <select name="status">
-                {["unverified", "candidate", "verified", "unsupported"].map(
-                  (k) => (
-                    <option key={k}>{k}</option>
-                  ),
-                )}
-              </select>
-            </Field>
-            <Field label="Evidence and limitations">
-              <input name="evidence" required maxLength={500} />
-            </Field>
-            <Password />
-          </ActionForm>
-        </Card>
-      )}
-      <Card title="Compatibility evidence">
-        {data.compatibility.map((c) => (
-          <p key={c.key}>
-            {c.label} · {c.kind} · {c.status} · {c.evidence} ·{" "}
-            {formatTime(c.checkedAt)}
-          </p>
-        ))}
-      </Card>
-      {g.role === "ADMIN" && g.globalAccounts && (
-        <Card title="Account administration">
-          <Notice>
-            Suspension revokes sessions and rejects subsequent authenticated
-            account/device/agent calls. It does not erase data or recall an
-            offline action.
-          </Notice>
-          {users.data?.map((u) => (
-            <ActionForm
-              key={u.id + u.status}
-              submit="Update account status"
-              reset
-              action={async (f) => {
-                if (
-                  !window.confirm(`Change account status for ${u.displayName}?`)
-                )
-                  return "No change made.";
-                await mutate(`/users/${u.id}/status`, {
-                  status: text(f, "status"),
-                  password: String(f.get("password") ?? ""),
-                });
-              }}
-            >
-              <p>
-                {u.displayName} · {u.status}
+          </Card>
+          <Card title="Agent version health">
+            {data.versions.map((v, i) => (
+              <p key={i}>
+                {v.workspaceId} · {v.platform} · {v.version ?? "Unreported"} ·{" "}
+                {v.state} · {v.count}
               </p>
-              <Field label={`Status for ${u.displayName}`}>
-                <select name="status" defaultValue={u.status}>
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="SUSPENDED">SUSPENDED</option>
-                </select>
-              </Field>
-              <Password />
-            </ActionForm>
+            ))}
+          </Card>
+          <Card title="Scoped subscription administration">
+            {data.subscriptions.map((s) => (
+              <p key={s.workspaceId}>
+                {s.workspaceId} · {s.plan} · {s.status}
+              </p>
+            ))}
+            <p>
+              Paid entitlement changes require authenticated billing events;
+              operator roles do not fabricate live payment.
+            </p>
+          </Card>
+        </>
+      )}
+      {tab === "administration" && (
+        <>
+          {g.role === "ADMIN" && (
+            <Card title="Feature configuration">
+              <p>
+                Disabling a feature blocks future cloud actions. Enabling it
+                cannot grant roles, consent, paid entitlements or OS
+                authorization.
+              </p>
+              <ActionFormDialog
+                label="Configure feature"
+                submit="Save feature setting"
+                primary
+                action={async (f) => {
+                  const wid = text(f, "workspace"),
+                    key = text(f, "key"),
+                    scope = text(f, "scope");
+                  const old = data.flags.find(
+                    (r) =>
+                      r.scope === (scope === "global" ? "global" : wid) &&
+                      r.key === key,
+                  );
+                  await mutate("/flags", {
+                    scope,
+                    workspaceId: wid,
+                    key,
+                    enabled: f.has("enabled"),
+                    expectedRevision: old?.revision ?? 0,
+                    password: String(f.get("password") ?? ""),
+                  });
+                  return "Feature setting saved.";
+                }}
+              >
+                <Field label="Feature scope">
+                  <select name="scope">
+                    <option value="workspace">Scoped workspace</option>
+                    {g.globalCatalog && (
+                      <option value="global">Global feature setting</option>
+                    )}
+                  </select>
+                </Field>
+                <Field label="Workspace for setting">
+                  <select name="workspace" required>
+                    {data.workspaces.map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Feature key">
+                  <select name="key">
+                    {[
+                      "network",
+                      "developer",
+                      "advanced_apps",
+                      "family",
+                      "business",
+                    ].map((k) => (
+                      <option key={k}>{k}</option>
+                    ))}
+                  </select>
+                </Field>
+                <label>
+                  <input name="enabled" type="checkbox" /> Enable subject to all
+                  other gates
+                </label>
+                <Password />
+              </ActionFormDialog>
+              <ul>
+                {data.flags.map((f) => (
+                  <li key={f.scope + f.key}>
+                    {f.scope} · {f.key} · {f.enabled ? "Enabled" : "Disabled"} ·
+                    revision {f.revision}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+          {g.role === "ADMIN" && g.globalCatalog && (
+            <Card title="Compatibility and category records">
+              <p>
+                Records document operator evidence. They do not enable a router
+                adapter, certify hardware or change application classification
+                automatically. Do not include secrets.
+              </p>
+              <ActionFormDialog
+                label="Add compatibility evidence"
+                submit="Save compatibility evidence"
+                primary
+                action={async (f) => {
+                  const key = text(f, "key");
+                  await mutate("/compatibility", {
+                    key,
+                    kind: text(f, "kind"),
+                    label: text(f, "label"),
+                    status: text(f, "status"),
+                    evidence: text(f, "evidence"),
+                    expectedRevision:
+                      data.compatibility.find((c) => c.key === key)?.revision ??
+                      0,
+                    password: String(f.get("password") ?? ""),
+                  });
+                  return "Compatibility evidence saved.";
+                }}
+              >
+                <Field label="Compatibility key">
+                  <input
+                    name="key"
+                    required
+                    pattern="[a-z0-9][a-z0-9_.-]{1,79}"
+                  />
+                </Field>
+                <Field label="Record kind">
+                  <select name="kind">
+                    {["router", "device", "agent", "category"].map((k) => (
+                      <option key={k}>{k}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Record label">
+                  <input name="label" required maxLength={100} />
+                </Field>
+                <Field label="Evidence status">
+                  <select name="status">
+                    {["unverified", "candidate", "verified", "unsupported"].map(
+                      (k) => (
+                        <option key={k}>{k}</option>
+                      ),
+                    )}
+                  </select>
+                </Field>
+                <Field label="Evidence and limitations">
+                  <input name="evidence" required maxLength={500} />
+                </Field>
+                <Password />
+              </ActionFormDialog>
+            </Card>
+          )}
+          <Card title="Compatibility evidence">
+            {data.compatibility.map((c) => (
+              <p key={c.key}>
+                {c.label} · {c.kind} · {c.status} · {c.evidence} ·{" "}
+                {formatTime(c.checkedAt)}
+              </p>
+            ))}
+          </Card>
+          {g.role === "ADMIN" && g.globalAccounts && (
+            <Card title="Account administration">
+              <Notice>
+                Suspension revokes sessions and rejects subsequent authenticated
+                account/device/agent calls. It does not erase data or recall an
+                offline action.
+              </Notice>
+              {users.data?.map((u) => (
+                <div className="row" key={u.id}>
+                  <p>
+                    {u.displayName} · {u.status}
+                  </p>
+                  <ActionFormDialog
+                    label="Edit account status"
+                    submit="Update account status"
+                    action={async (f) => {
+                      if (
+                        !window.confirm(
+                          `Change account status for ${u.displayName}?`,
+                        )
+                      )
+                        return "No change made.";
+                      await mutate(`/users/${u.id}/status`, {
+                        status: text(f, "status"),
+                        password: String(f.get("password") ?? ""),
+                      });
+                      return "Account status updated.";
+                    }}
+                  >
+                    <Field label={`Status for ${u.displayName}`}>
+                      <select name="status" defaultValue={u.status}>
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="SUSPENDED">SUSPENDED</option>
+                      </select>
+                    </Field>
+                    <Password />
+                  </ActionFormDialog>
+                </div>
+              ))}
+            </Card>
+          )}
+        </>
+      )}
+      {tab === "audit" && (
+        <Card title="Operator audit review">
+          {data.audit.map((a) => (
+            <p key={a.id}>
+              {formatTime(a.occurredAt)} · {a.action.replaceAll("_", " ")} ·{" "}
+              {a.workspaceId ?? "Operator scope"}
+            </p>
           ))}
         </Card>
       )}
-      <Card title="Operator audit review">
-        {data.audit.map((a) => (
-          <p key={a.id}>
-            {formatTime(a.occurredAt)} · {a.action.replaceAll("_", " ")} ·{" "}
-            {a.workspaceId ?? "Operator scope"}
-          </p>
-        ))}
-      </Card>
     </div>
   );
 }

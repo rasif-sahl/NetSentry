@@ -142,7 +142,9 @@ test("narrow layout keeps screens straight and navigation accessible", async ({
 
 test("existing workspace bookmarks retain their section", async ({ page }) => {
   await page.goto("/?view=alerts");
-  await expect(page).toHaveURL(/\/app\?view=alerts$/);
+  await expect(page).toHaveURL("/app/alerts");
+  await page.goto("/app?view=Usage+%26+reports&source=bookmark");
+  await expect(page).toHaveURL("/app/usage-reports?source=bookmark");
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();

@@ -156,9 +156,10 @@ export async function proxy(request: NextRequest, segments: string[]) {
       return failure(503, "The dashboard connection is not configured.");
     const refresh = request.cookies.get(refreshCookie)?.value;
     const access = request.cookies.get(accessCookie)?.value;
-    if (path === "/auth/refresh" && !refresh)
-      return failure(401, "Sign in to continue.");
-    if (!publicPaths.has(path) && path !== "/auth/refresh" && !access)
+    const refreshLogout = path === "/auth/logout/refresh";
+    const usesRefresh = path === "/auth/refresh" || refreshLogout;
+    const credential = usesRefresh ? refresh : access;
+    if (!publicPaths.has(path) && !credential)
       return failure(401, "Sign in to continue.");
     if (!publicPaths.has(path) && path !== "/auth/refresh") {
       const actor = request.headers.get("x-netsentry-user");
@@ -171,7 +172,9 @@ export async function proxy(request: NextRequest, segments: string[]) {
         let subject: unknown;
         try {
           subject = JSON.parse(
-            Buffer.from(access!.split(".")[1], "base64url").toString("utf8"),
+            Buffer.from(credential!.split(".")[1], "base64url").toString(
+              "utf8",
+            ),
           ).sub;
         } catch {
           return failure(401, "Sign in to continue.");
@@ -199,9 +202,7 @@ export async function proxy(request: NextRequest, segments: string[]) {
       }
       try {
         body = JSON.stringify(
-          path === "/auth/refresh"
-            ? { refreshToken: refresh }
-            : JSON.parse(raw || "{}"),
+          usesRefresh ? { refreshToken: refresh } : JSON.parse(raw || "{}"),
         );
       } catch {
         return failure(400, "This request contains invalid JSON.");
@@ -215,7 +216,9 @@ export async function proxy(request: NextRequest, segments: string[]) {
         "content-type": "application/json",
         "user-agent":
           request.headers.get("user-agent") ?? "NetSentry dashboard",
-        ...(access ? { authorization: `Bearer ${access}` } : {}),
+        ...(access && !usesRefresh
+          ? { authorization: `Bearer ${access}` }
+          : {}),
       },
       body,
       cache: "no-store",
@@ -277,6 +280,7 @@ export async function proxy(request: NextRequest, segments: string[]) {
     const result = response(data, upstream.status);
     if (
       path === "/auth/logout" ||
+      refreshLogout ||
       path === "/privacy/account" ||
       path === "/auth/password/reset"
     )

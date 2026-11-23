@@ -1,3 +1,4 @@
+import { SearchPageQuery, selectPage } from '../common/pagination';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
@@ -70,7 +71,7 @@ export class WorkspaceService {
     });
   }
 
-  async listDevices(userId: string, workspaceId: string) {
+  private async deviceScope(userId: string, workspaceId: string) {
     await this.access.assertPermission(
       userId,
       workspaceId,
@@ -78,19 +79,41 @@ export class WorkspaceService {
     );
     const workspace = await this.workspaces.findOneBy({ id: workspaceId });
     const member = await this.memberships.findOneBy({ workspaceId, userId });
+    return {
+      workspaceId,
+      removedAt: IsNull(),
+      ...(workspace?.type === WorkspaceType.BUSINESS &&
+      [WorkspaceRole.EMPLOYEE, WorkspaceRole.MEMBER].includes(member!.role)
+        ? { registeredById: userId }
+        : {}),
+    };
+  }
+
+  async listDevices(userId: string, workspaceId: string) {
     return (
       await this.devices.find({
-        where: {
-          workspaceId,
-          removedAt: IsNull(),
-          ...(workspace?.type === WorkspaceType.BUSINESS &&
-          [WorkspaceRole.EMPLOYEE, WorkspaceRole.MEMBER].includes(member!.role)
-            ? { registeredById: userId }
-            : {}),
-        },
+        where: await this.deviceScope(userId, workspaceId),
         order: { updatedAt: 'DESC' },
       })
     ).map(publicDevice);
+  }
+
+  async devicePage(
+    userId: string,
+    workspaceId: string,
+    query: SearchPageQuery,
+  ) {
+    const builder = this.devices
+      .createQueryBuilder('d')
+      .where(await this.deviceScope(userId, workspaceId));
+    const search = query.search?.trim();
+    if (search)
+      builder.andWhere(
+        `strpos(lower(d.name || ' ' || d.platform::text), lower(:search)) > 0`,
+        { search },
+      );
+    const page = await selectPage(builder, query, { timestamp: 'createdAt' });
+    return { ...page, items: page.items.map(publicDevice) };
   }
 
   async registerDevice(userId: string, input: RegisterDeviceDto) {

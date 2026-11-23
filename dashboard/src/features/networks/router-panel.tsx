@@ -1,8 +1,9 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
+import { Router } from "lucide-react";
 import { api } from "@/shared/api";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   Field,
@@ -33,7 +34,12 @@ export function RouterPanel({
   reload: () => void;
 }) {
   return (
-    <Card title="Router and WAN">
+    <Card
+      title="Router and WAN"
+      icon={<Router size={19} />}
+      headingAction={<span className="badge">Optional</span>}
+      className="[overflow-wrap:anywhere]"
+    >
       <p>
         Router API: <strong>{view.routerHealth}</strong> · WAN interface:{" "}
         {view.wanUp === null ? "unknown" : view.wanUp ? "up" : "down"} ·
@@ -85,18 +91,10 @@ export function RouterPanel({
         <Empty title="No router connection" />
       )}
       {canManage && (
-        <details>
-          <summary>Configure read-only OpenWrt ubus connection</summary>
-          <p>
-            Requires verified HTTPS, a literal private IPv4 /ubus URL, and a
-            dedicated router account with only session login/destroy, system
-            board, WAN status and network device status access. Self-signed
-            deployments need their CA certificate. Hardware/firmware validation
-            is pending.
-          </p>
-          <ActionForm
+        <div className="my-3 flex flex-wrap justify-end">
+          <ActionFormDialog
+            label="Configure read-only OpenWrt ubus connection"
             submit="Save encrypted router credentials"
-            reset
             action={async (f) => {
               await api(`${path}/router`, "POST", {
                 agentId: text(f, "agentId"),
@@ -115,6 +113,13 @@ export function RouterPanel({
               return "Credentials encrypted and assigned to one collector. Request a connection test after local sharing is enabled.";
             }}
           >
+            <p>
+              Requires verified HTTPS, a literal private IPv4 /ubus URL, and a
+              dedicated router account with only session login/destroy, system
+              board, WAN status and network device status access. Self-signed
+              deployments need their CA certificate. Hardware/firmware
+              validation is pending.
+            </p>
             <Field label="Assigned router collector">
               <select name="agentId" required>
                 <option value="">Choose collector</option>
@@ -167,8 +172,8 @@ export function RouterPanel({
               </Field>
             ))}
             <NetworkConsent />
-          </ActionForm>
-        </details>
+          </ActionFormDialog>
+        </div>
       )}
       <p>
         Last 24 hours, whole confirmed intervals: received{" "}

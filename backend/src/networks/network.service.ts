@@ -1,3 +1,4 @@
+import { PageQuery, SearchPageQuery, selectPage } from '../common/pagination';
 import { assertCapacity } from '../billing/other/policy';
 import {
   BadRequestException,
@@ -102,6 +103,36 @@ export class NetworkService {
           name: labels.find((label) => label.id === profile.networkId)!.name,
         }),
       );
+    });
+  }
+  async listPage(userId: string, wid: string, query: SearchPageQuery) {
+    return this.source.transaction(async (m) => {
+      await workspacePolicy(m, userId, wid, P.READ_NETWORKS);
+      const builder = m
+        .createQueryBuilder(NetworkProfile, 'profile')
+        .innerJoinAndSelect(
+          'profile.network',
+          'label',
+          'label."workspaceId" = :wid',
+          { wid },
+        );
+      const search = query.search?.trim();
+      if (search)
+        builder.andWhere(
+          `strpos(lower(label.name || ' ' || profile.cidrs::text), lower(:search)) > 0`,
+          { search },
+        );
+      const page = await selectPage(builder, query, {
+        id: 'networkId',
+        timestamp: 'createdAt',
+      });
+      return {
+        ...page,
+        items: page.items.map(({ network, ...profile }) => ({
+          ...profile,
+          name: network.name,
+        })),
+      };
     });
   }
   async save(userId: string, wid: string, input: NetworkSiteDto, id?: string) {
@@ -598,12 +629,174 @@ export class NetworkService {
       );
     });
   }
+  private async collectorSources(m: EntityManager, wid: string, id: string) {
+    const collectors = await m.findBy(NetworkCollector, { networkId: id });
+    const sources = [];
+    const freshIds: string[] = [];
+    for (const c of collectors) {
+      const agent = await m.findOneBy(Agent, { id: c.agentId });
+      const member = agent
+        ? await m.findOneBy(Membership, {
+            workspaceId: wid,
+            userId: agent.userId,
+          })
+        : null;
+      const owner = agent
+        ? await m.findOneBy(User, {
+            id: agent.userId,
+            status: AccountStatus.ACTIVE,
+          })
+        : null;
+      const valid = !!(
+        agent &&
+        owner?.emailVerifiedAt &&
+        member &&
+        roleAllows(member.role, P.MANAGE_NETWORKS) &&
+        agent.state === 'ACTIVE' &&
+        agent.modules.network &&
+        agent.generation === c.generation &&
+        c.enabled
+      );
+      const fresh =
+        valid &&
+        !!c.observedAt &&
+        Date.now() - c.observedAt.getTime() <= 150000 &&
+        !!agent?.lastSeenAt &&
+        Date.now() - agent.lastSeenAt.getTime() <= 90000;
+      if (fresh) freshIds.push(c.agentId);
+      sources.push({
+        agentId: c.agentId,
+        name: agent?.name ?? 'Unavailable agent',
+        generation: c.generation,
+        revision: c.revision,
+        enabled: c.enabled,
+        connection: fresh ? 'reporting' : valid ? 'unavailable' : 'disabled',
+        observedAt: c.observedAt,
+        interfaces: fresh ? c.interfaces : [],
+        networkId: id,
+      });
+    }
+    return { sources, freshIds };
+  }
+
+  private async inventoryRows(
+    m: EntityManager,
+    endpoints: NetworkEndpoint[],
+    freshIds: string[],
+  ) {
+    const observations =
+      freshIds.length && endpoints.length
+        ? await m.findBy(NetworkSighting, {
+            agentId: In(freshIds),
+            endpointId: In(endpoints.map((endpoint) => endpoint.id)),
+            observedAt: MoreThanOrEqual(new Date(Date.now() - 120000)),
+          })
+        : [];
+    return endpoints.map((e) =>
+      Object.assign({}, e, {
+        presence: observations.some((s) => s.endpointId === e.id)
+          ? 'recently_observed'
+          : 'not_recently_observed',
+        observations: observations
+          .filter((s) => s.endpointId === e.id)
+          .map((s) => ({
+            agentId: s.agentId,
+            address: s.address,
+            evidence: s.evidence,
+            observedAt: s.observedAt,
+          })),
+        hostname: null,
+        manufacturer: null,
+        identityConfidence: e.mac
+          ? 'network_scoped_mac_observation'
+          : 'source_scoped_address_observation',
+      }),
+    );
+  }
+
+  async inventoryPage(
+    userId: string,
+    wid: string,
+    id: string,
+    query: SearchPageQuery,
+    includeArchived: boolean,
+  ) {
+    return this.source.transaction(async (m) => {
+      await workspacePolicy(m, userId, wid, P.READ_NETWORKS);
+      await this.site(m, wid, id);
+      const { freshIds } = await this.collectorSources(m, wid, id);
+      const builder = m
+        .createQueryBuilder(NetworkEndpoint, 'e')
+        .where('e."networkId" = :id', { id });
+      if (!includeArchived) builder.andWhere('NOT e.archived');
+      const search = query.search?.trim();
+      if (search) {
+        builder.andWhere(
+          `(strpos(lower(e.name || ' ' || coalesce(e.mac, '')), lower(:search)) > 0${
+            freshIds.length
+              ? ` OR EXISTS (
+          SELECT 1 FROM network_sightings s WHERE s."endpointId" = e.id AND s."agentId" IN (:...freshIds)
+          AND s."observedAt" >= :cutoff AND strpos(lower(s.address), lower(:search)) > 0
+        )`
+              : ''
+          })`,
+          { search, freshIds, cutoff: new Date(Date.now() - 120000) },
+        );
+      }
+      const page = await selectPage(builder, query, {
+        timestamp: 'firstSeenAt',
+      });
+      return {
+        ...page,
+        items: await this.inventoryRows(m, page.items, freshIds),
+      };
+    });
+  }
+
+  async eventPage(userId: string, wid: string, id: string, query: PageQuery) {
+    return this.source.transaction(async (m) => {
+      await workspacePolicy(m, userId, wid, P.READ_NETWORKS);
+      await this.site(m, wid, id);
+      const builder = m
+        .createQueryBuilder(NetworkEvent, 'e')
+        .where('e."networkId" = :id', { id });
+      return selectPage(builder, query, { timestamp: 'occurredAt' });
+    });
+  }
+
+  async presencePage(
+    userId: string,
+    wid: string,
+    id: string,
+    endpointId: string,
+    query: PageQuery,
+  ) {
+    return this.source.transaction(async (m) => {
+      await workspacePolicy(m, userId, wid, P.READ_NETWORKS);
+      await this.site(m, wid, id);
+      if (
+        !(await m.existsBy(NetworkEndpoint, { id: endpointId, networkId: id }))
+      )
+        throw new ForbiddenException(
+          'Observed device is outside this network.',
+        );
+      const builder = m
+        .createQueryBuilder(NetworkPresence, 'p')
+        .where('p."networkId" = :id AND p."endpointId" = :endpointId', {
+          id,
+          endpointId,
+        });
+      return selectPage(builder, query, { timestamp: 'lastObservedAt' });
+    });
+  }
+
   async view(
     userId: string,
     wid: string,
     id: string,
     from?: string,
     to?: string,
+    summary = false,
   ) {
     return this.source.transaction(async (m) => {
       await workspacePolicy(m, userId, wid, P.READ_NETWORKS);
@@ -628,83 +821,15 @@ export class NetworkService {
         throw new BadRequestException(
           'Choose a valid UTC range of at most thirty days.',
         );
-      const collectors = await m.findBy(NetworkCollector, { networkId: id });
-      const sources = [];
-      const freshIds: string[] = [];
-      for (const c of collectors) {
-        const agent = await m.findOneBy(Agent, { id: c.agentId });
-        const member = agent
-          ? await m.findOneBy(Membership, {
-              workspaceId: wid,
-              userId: agent.userId,
-            })
-          : null;
-        const owner = agent
-          ? await m.findOneBy(User, {
-              id: agent.userId,
-              status: AccountStatus.ACTIVE,
-            })
-          : null;
-        const valid = !!(
-          agent &&
-          owner?.emailVerifiedAt &&
-          member &&
-          roleAllows(member.role, P.MANAGE_NETWORKS) &&
-          agent.state === 'ACTIVE' &&
-          agent.modules.network &&
-          agent.generation === c.generation &&
-          c.enabled
-        );
-        const fresh =
-          valid &&
-          !!c.observedAt &&
-          Date.now() - c.observedAt.getTime() <= 150000 &&
-          !!agent?.lastSeenAt &&
-          Date.now() - agent.lastSeenAt.getTime() <= 90000;
-        if (fresh) freshIds.push(c.agentId);
-        sources.push({
-          agentId: c.agentId,
-          name: agent?.name ?? 'Unavailable agent',
-          generation: c.generation,
-          revision: c.revision,
-          enabled: c.enabled,
-          connection: fresh ? 'reporting' : valid ? 'unavailable' : 'disabled',
-          observedAt: c.observedAt,
-          interfaces: fresh ? c.interfaces : [],
-          networkId: id,
-        });
-      }
-      const endpoints = await m.find(NetworkEndpoint, {
-        where: { networkId: id },
-        order: { firstSeenAt: 'DESC' },
-        take: 2000,
-      });
-      const observations = freshIds.length
-        ? await m.findBy(NetworkSighting, {
-            agentId: In(freshIds),
-            observedAt: MoreThanOrEqual(new Date(Date.now() - 120000)),
-          })
-        : [];
-      const inventory = endpoints.map((e) =>
-        Object.assign({}, e, {
-          presence: observations.some((s) => s.endpointId === e.id)
-            ? 'recently_observed'
-            : 'not_recently_observed',
-          observations: observations
-            .filter((s) => s.endpointId === e.id)
-            .map((s) => ({
-              agentId: s.agentId,
-              address: s.address,
-              evidence: s.evidence,
-              observedAt: s.observedAt,
-            })),
-          hostname: null,
-          manufacturer: null,
-          identityConfidence: e.mac
-            ? 'network_scoped_mac_observation'
-            : 'source_scoped_address_observation',
-        }),
-      );
+      const { sources, freshIds } = await this.collectorSources(m, wid, id);
+      const endpoints = summary
+        ? []
+        : await m.find(NetworkEndpoint, {
+            where: { networkId: id },
+            order: { firstSeenAt: 'DESC' },
+            take: 2000,
+          });
+      const inventory = await this.inventoryRows(m, endpoints, freshIds);
       const router = await m
         .getRepository(NetworkRouter)
         .createQueryBuilder('r')
@@ -774,11 +899,13 @@ export class NetworkService {
         cidrs: profile.cidrs,
         collectors: sources,
         endpoints: inventory,
-        presenceHistory: await m.find(NetworkPresence, {
-          where: { networkId: id },
-          order: { lastObservedAt: 'DESC' },
-          take: 100,
-        }),
+        presenceHistory: summary
+          ? []
+          : await m.find(NetworkPresence, {
+              where: { networkId: id },
+              order: { lastObservedAt: 'DESC' },
+              take: 100,
+            }),
         router: publicRouter(router),
         routerHealth: live ? latest.status : 'unavailable',
         wanUp: live ? latest.wanUp : null,
@@ -800,11 +927,13 @@ export class NetworkService {
           samples: rates,
           history,
         },
-        events: await m.find(NetworkEvent, {
-          where: { networkId: id },
-          order: { occurredAt: 'DESC' },
-          take: 100,
-        }),
+        events: summary
+          ? []
+          : await m.find(NetworkEvent, {
+              where: { networkId: id },
+              order: { occurredAt: 'DESC' },
+              take: 100,
+            }),
         compatibility: await m.find(NetworkCompatibility, {
           where: { networkId: id },
           order: { testedAt: 'DESC' },

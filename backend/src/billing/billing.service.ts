@@ -1,3 +1,4 @@
+import { PageQuery, selectPage } from '../common/pagination';
 import {
   Injectable,
   BadRequestException,
@@ -67,7 +68,7 @@ export class BillingService {
       return entitlements(m, wid);
     });
   }
-  overview(uid: string, wid: string) {
+  overview(uid: string, wid: string, summary = false) {
     return this.source.transaction(async (m) => {
       await workspacePolicy(m, uid, wid, P.MANAGE_BILLING);
       const e = await entitlements(m, wid);
@@ -88,21 +89,46 @@ export class BillingService {
         entitlements: e,
         catalog,
         usage,
-        payments: await m.find(Payment, {
-          where: { workspaceId: wid },
-          order: { paidAt: 'DESC' },
-          take: 100,
-        }),
-        requests: await m.find(BillingRequest, {
-          where: { workspaceId: wid },
-          order: { createdAt: 'DESC' },
-          take: 20,
-        }),
+        payments: summary
+          ? []
+          : await m.find(Payment, {
+              where: { workspaceId: wid },
+              order: { paidAt: 'DESC' },
+              take: 100,
+            }),
+        requests: summary
+          ? []
+          : await m.find(BillingRequest, {
+              where: { workspaceId: wid },
+              order: { createdAt: 'DESC' },
+              take: 20,
+            }),
         notice:
           'Provider-neutral sandbox. Amounts are synthetic test units, not offered prices. No live charge, invoice, tax calculation, external portal or mobile purchase is configured.',
       };
     });
   }
+  paymentPage(uid: string, wid: string, query: PageQuery) {
+    return this.source.transaction(async (m) => {
+      await workspacePolicy(m, uid, wid, P.MANAGE_BILLING);
+      const builder = m
+        .createQueryBuilder(Payment, 'p')
+        .where('p."workspaceId" = :wid', { wid });
+      return selectPage(builder, query, { timestamp: 'paidAt' });
+    });
+  }
+
+  pendingRequestPage(uid: string, wid: string, query: PageQuery) {
+    return this.source.transaction(async (m) => {
+      await workspacePolicy(m, uid, wid, P.MANAGE_BILLING);
+      const builder = m
+        .createQueryBuilder(BillingRequest, 'r')
+        .where('r."workspaceId" = :wid', { wid })
+        .andWhere("r.status = 'pending'");
+      return selectPage(builder, query, { timestamp: 'createdAt' });
+    });
+  }
+
   trial(uid: string, wid: string, i: PlanRequestDto) {
     this.sandbox();
     return this.source.transaction(async (m) => {

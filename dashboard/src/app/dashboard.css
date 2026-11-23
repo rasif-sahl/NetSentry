@@ -1,4 +1,5 @@
 .workspace-app {
+  --on-primary: white;
   --button-accent-border: color-mix(in srgb, var(--primary) 55%, var(--border));
   --button-accent-hover: color-mix(
     in srgb,
@@ -90,14 +91,16 @@
   line-height: 1.7;
 }
 .workspace-app .brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-weight: 800;
-  font-size: 1.35rem;
-  letter-spacing: -0.045em;
-  text-decoration: none;
-  color: var(--primary);
+  display: inline-flex;
+  align-self: flex-start;
+}
+.workspace-app .brand img {
+  width: 9.75rem;
+  height: auto;
+  color-scheme: light;
+}
+:root[data-theme="dark"] .workspace-app .brand img {
+  color-scheme: dark;
 }
 .workspace-app .eyebrow {
   display: block;
@@ -126,7 +129,7 @@
 }
 .workspace-app .button.primary {
   background: var(--primary);
-  color: white;
+  color: var(--on-primary);
   border-color: var(--primary);
 }
 .workspace-app .button.primary:hover {
@@ -159,7 +162,10 @@
   color: var(--danger);
   border-color: var(--danger);
 }
-.workspace-app .auth-links button {
+.workspace-app .auth-links :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--primary-hover);
   font-size: 0.82rem;
   font-weight: 650;
@@ -204,8 +210,13 @@
   display: grid;
   gap: 1rem;
 }
-.workspace-app .form-fields > .button {
-  justify-self: start;
+.workspace-app .card > form .form-actions {
+  margin-inline: calc(-1 * var(--card-padding));
+  border-top: 1px solid var(--border);
+  padding: var(--card-padding) var(--card-padding) 0;
+}
+.workspace-app .page-content .form-actions {
+  justify-content: flex-end;
 }
 .workspace-app .field {
   display: grid;
@@ -272,11 +283,12 @@
   max-width: 100%;
 }
 .workspace-app .card {
+  --card-padding: 1.35rem;
   min-width: 0;
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 15px;
-  padding: 1.35rem;
+  padding: var(--card-padding);
   box-shadow: 0 3px 20px #36264304;
 }
 .workspace-app .card > p + p {
@@ -335,7 +347,7 @@
   font-size: 1.6rem;
   margin-block: 0.7rem 1.8rem;
 }
-.workspace-app .auth-card .form-fields > .button {
+.workspace-app .auth-card .form-actions > .button {
   width: 100%;
   margin-top: 0.5rem;
 }
@@ -373,7 +385,8 @@
   display: grid;
   gap: 0.3rem;
 }
-.workspace-app .sidebar nav button {
+.workspace-app .sidebar nav a {
+  min-height: 44px;
   border: 0;
   text-align: left;
   background: transparent;
@@ -386,16 +399,16 @@
   font-size: 0.83rem;
   font-weight: 600;
 }
-.workspace-app .sidebar nav button svg:last-child {
+.workspace-app .sidebar nav a svg:last-child {
   margin-left: auto;
   opacity: 0;
 }
-.workspace-app .sidebar nav button:hover,
-.workspace-app .sidebar nav button[aria-current="page"] {
+.workspace-app .sidebar nav a:hover,
+.workspace-app .sidebar nav a[aria-current="page"] {
   background: var(--surface-lavender);
   color: var(--primary-hover);
 }
-.workspace-app .sidebar nav button[aria-current="page"] svg:last-child {
+.workspace-app .sidebar nav a[aria-current="page"] svg:last-child {
   opacity: 1;
 }
 .workspace-app .sidebar-profile {
@@ -436,15 +449,6 @@
   align-items: center;
   gap: 1rem;
   padding: 0.65rem 2rem;
-}
-.workspace-app .workspace-select {
-  max-width: 380px;
-  min-width: 0;
-}
-.workspace-app .workspace-select select {
-  border-color: transparent;
-  font-weight: 650;
-  font-size: 0.9rem;
 }
 .workspace-app .topbar-note {
   margin-left: auto;
@@ -535,6 +539,38 @@
   display: grid;
   gap: 1.2rem;
 }
+.workspace-app .workspace-tabs {
+  display: flex;
+  max-width: 100%;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.workspace-app .workspace-tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.85rem;
+  border-bottom: 3px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.workspace-app .workspace-tabs a:hover {
+  background: var(--surface-lavender);
+}
+.workspace-app .workspace-tabs a[aria-current="page"] {
+  border-bottom-color: var(--primary);
+  color: var(--text);
+  font-weight: 700;
+}
+.workspace-app .workspace-tabs a:focus-visible {
+  outline-offset: -3px;
+}
+.workspace-app .workflow-actions {
+  margin-top: 0;
+}
 .workspace-app .metric-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -618,6 +654,9 @@
   gap: 1rem;
 }
 .workspace-app .section-heading h2 {
+  margin: 0;
+}
+.workspace-app .card-heading h2 {
   margin: 0;
 }
 .workspace-app .details-grid {
@@ -814,9 +853,6 @@
     border-bottom: 1px solid var(--border);
     overflow-wrap: anywhere;
   }
-  .workspace-app .page-content .card > h2 {
-    margin-bottom: var(--content-gap);
-  }
   .workspace-app .page-content .item-list > li {
     gap: 0.5rem;
     padding-block: var(--content-gap);
@@ -826,8 +862,12 @@
     justify-content: flex-end;
     margin-top: var(--content-gap);
   }
-  .workspace-app .page-content .form-fields > .button {
-    justify-self: end;
+  .workspace-app .page-content .workflow-actions {
+    margin-top: 0;
+  }
+  .workspace-app .workspace-tabs a {
+    padding-inline: 0.45rem;
+    font-size: 0.8rem;
   }
   .workspace-app .page-content .card > .button {
     display: flex;
@@ -901,16 +941,13 @@
     grid-column: 1 / -1;
   }
   .workspace-app .card {
-    padding: 1.1rem;
+    --card-padding: 1.1rem;
   }
   .workspace-app .topbar {
     gap: 0.35rem;
   }
   .workspace-app .topbar-note {
     display: none;
-  }
-  .workspace-app .workspace-select {
-    flex: 1;
   }
   .workspace-app .details-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -981,6 +1018,7 @@
   padding: 1rem 0;
 }
 :root[data-theme="dark"] .workspace-app {
+  --on-primary: #261b30;
   color-scheme: dark;
   --background: #19151f;
   --surface: #241e2c;
@@ -995,9 +1033,6 @@
   --border: #463b50;
   --success-surface: #1d342e;
   --danger-surface: #452431;
-}
-:root[data-theme="dark"] .workspace-app .button.primary {
-  color: #261b30;
 }
 :root[data-theme="dark"] .workspace-app .notice.error {
   color: #ffc1d2;

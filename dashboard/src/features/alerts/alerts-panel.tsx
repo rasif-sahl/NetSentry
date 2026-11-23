@@ -1,13 +1,15 @@
 "use client";
 import { useState } from "react";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
+import { usePage } from "@/shared/use-page";
+import { PageControls } from "@/shared/ui/page-controls";
 import { useResource } from "@/shared/use-resource";
 import type { Alert, AlertRule, UsageNetwork } from "@/shared/types";
 import { metrics, exactValue } from "@/shared/usage";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
@@ -30,267 +32,299 @@ export function NotificationPreferencesPanel() {
       <ErrorNotice error={preference.error} />
       {preference.loading && <Loading />}
       {preference.data && (
-        <ActionForm
-          submit="Save notification preferences"
-          action={async (form) => {
-            await api("/notifications/preferences", "PATCH", {
-              inApp: form.has("inApp"),
-              push: form.has("push"),
-              email: form.has("email"),
-            });
-            preference.reload();
-          }}
-        >
-          <label className="check">
-            <input
-              type="checkbox"
-              name="inApp"
-              defaultChecked={preference.data.inApp}
-            />
-            In-app notifications
-          </label>
-          <label className="check">
-            <input
-              type="checkbox"
-              name="push"
-              defaultChecked={preference.data.push}
-            />
-            Push preference (delivery unavailable until providers and native
-            clients are configured)
-          </label>
-          <label className="check">
-            <input
-              type="checkbox"
-              name="email"
-              defaultChecked={preference.data.email}
-            />
-            Opt in to email alerts (delivery disabled)
-          </label>
-          <small>
-            Email alert delivery is disabled. Saving preferences sends no email.
-          </small>
-          <small>
-            Quiet hours and your current preferences are checked when an alert
-            is delivered.
-          </small>
-        </ActionForm>
+        <>
+          <p className="mb-3">
+            In-app {preference.data.inApp ? "on" : "off"} · Push preference{" "}
+            {preference.data.push ? "on" : "off"} · Email opt-in{" "}
+            {preference.data.email ? "on" : "off"}
+          </p>
+          <ActionFormDialog
+            label="Edit notification preferences"
+            submit="Save notification preferences"
+            action={async (form) => {
+              await api("/notifications/preferences", "PATCH", {
+                inApp: form.has("inApp"),
+                push: form.has("push"),
+                email: form.has("email"),
+              });
+              preference.reload();
+              return "Changes saved.";
+            }}
+          >
+            <label className="check">
+              <input
+                type="checkbox"
+                name="inApp"
+                defaultChecked={preference.data.inApp}
+              />
+              In-app notifications
+            </label>
+            <label className="check">
+              <input
+                type="checkbox"
+                name="push"
+                defaultChecked={preference.data.push}
+              />
+              Push preference (delivery unavailable until providers and native
+              clients are configured)
+            </label>
+            <label className="check">
+              <input
+                type="checkbox"
+                name="email"
+                defaultChecked={preference.data.email}
+              />
+              Opt in to email alerts (delivery disabled)
+            </label>
+            <small>
+              Email alert delivery is disabled. Saving preferences sends no
+              email.
+            </small>
+            <small>
+              Quiet hours and your current preferences are checked when an alert
+              is delivered.
+            </small>
+          </ActionFormDialog>
+        </>
       )}
     </Card>
   );
 }
-export function AlertsPanel(context: PageContext) {
-  const { workspace, devices } = context;
+export function AlertsPanel(context: PageContext & { tab: string }) {
+  const { workspace, devices, tab } = context;
   const base = `/workspaces/${workspace.id}/monitoring`;
-  const rules = useResource<AlertRule[]>(`${base}/rules`, true);
-  const alerts = useResource<Alert[]>(`${base}/alerts`, true);
-  const notifications = useResource<Alert[]>(`${base}/notifications`, true);
-  const networks = useResource<UsageNetwork[]>(`${base}/networks`);
-  const [editing, setEditing] = useState<AlertRule>();
+  const rules = useResource<AlertRule[]>(
+    tab === "rules" ? `${base}/rules` : null,
+    true,
+  );
+  const alerts = usePage<Alert>(
+    tab === "history" ? `${base}/alerts/page` : null,
+    true,
+  );
+  const notifications = usePage<Alert>(
+    tab === "notifications" ? `${base}/notifications/page` : null,
+    true,
+  );
+  const networks = useResource<UsageNetwork[]>(
+    tab === "rules" ? `${base}/networks` : null,
+  );
+  const [saved, setSaved] = useState(false);
   function reload() {
     rules.reload();
     alerts.reload();
     notifications.reload();
   }
+  function ruleSaved() {
+    setSaved(true);
+    reload();
+  }
   return (
     <>
-      <Notice>
-        In-app delivery is available. Android/iOS push providers remain
-        unavailable. Alert evaluation and delivery require scheduled monitoring
-        maintenance.
-      </Notice>
-      <Card title="In-app notifications">
-        <ErrorNotice error={notifications.error} />
-        {notifications.loading && <Loading />}
-        {notifications.data?.length ? (
-          <ul className="item-list">
-            {notifications.data.map((alert) => (
-              <li key={alert.id}>
-                <div>
-                  <strong>
-                    {alert.snapshot.kind.replaceAll("_", " ")} ·{" "}
-                    {alert.snapshot.quality ?? "health"} ·{" "}
-                    {alert.snapshot.severity}
-                  </strong>
-                  <small>
-                    {formatTime(alert.createdAt)} ·{" "}
-                    {alert.acknowledgedAt
-                      ? "Acknowledged"
-                      : "Needs acknowledgement"}
-                  </small>
-                </div>
-                {!alert.acknowledgedAt && (
-                  <ActionButton
-                    action={async () => {
-                      await api(
-                        `${base}/alerts/${alert.id}/acknowledge`,
-                        "POST",
-                        {},
-                      );
-                      reload();
-                    }}
-                  >
-                    Acknowledge notification
-                  </ActionButton>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          notifications.data && (
-            <Empty title="No delivered notifications">
-              Pending, quiet-hour or suppressed alerts can still appear in alert
-              history below.
-            </Empty>
-          )
-        )}
-      </Card>
-      <Card title={editing ? "Edit alert rule" : "Create an alert rule"}>
-        {!devices.length && (
-          <Notice>
-            Register a supported device to create device-specific rules.
-          </Notice>
-        )}
-        <RuleEditor
-          key={editing?.id ?? "new"}
-          context={context}
-          networks={networks.data ?? []}
-          initial={editing}
-          saved={() => {
-            setEditing(undefined);
-            reload();
-          }}
-        />
-        {editing && (
-          <div className="button-row align-end">
-            <button
-              type="button"
-              className="button accent"
-              onClick={() => setEditing(undefined)}
-            >
-              Cancel editing
-            </button>
+      {tab === "notifications" && (
+        <>
+          <Card title="In-app notifications">
+            <ErrorNotice error={notifications.error} />
+            {notifications.loading && <Loading />}
+            {notifications.data?.length ? (
+              <ul className="item-list">
+                {notifications.data.map((alert) => (
+                  <li key={alert.id}>
+                    <div>
+                      <strong>
+                        {alert.snapshot.kind.replaceAll("_", " ")} ·{" "}
+                        {alert.snapshot.quality ?? "health"} ·{" "}
+                        {alert.snapshot.severity}
+                      </strong>
+                      <small>
+                        {formatTime(alert.createdAt)} ·{" "}
+                        {alert.acknowledgedAt
+                          ? "Acknowledged"
+                          : "Needs acknowledgement"}
+                      </small>
+                    </div>
+                    {!alert.acknowledgedAt && (
+                      <ActionButton
+                        action={async () => {
+                          await api(
+                            `${base}/alerts/${alert.id}/acknowledge`,
+                            "POST",
+                            {},
+                          );
+                          reload();
+                        }}
+                      >
+                        Acknowledge notification
+                      </ActionButton>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              notifications.data && (
+                <Empty title="No notifications yet">
+                  Pending, quiet-hour or suppressed alerts can still appear in
+                  alert the History tab.
+                </Empty>
+              )
+            )}
+            <PageControls label="Notifications" page={notifications} />
+          </Card>
+        </>
+      )}
+      {tab === "rules" && (
+        <>
+          {saved && (
+            <Notice tone="success">
+              Rule saved. It will be checked by the next monitoring maintenance
+              pass.
+            </Notice>
+          )}
+          <div className="button-row align-end workflow-actions">
+            <RuleEditor
+              context={context}
+              networks={networks.data ?? []}
+              onOpen={() => setSaved(false)}
+              saved={ruleSaved}
+            />
           </div>
-        )}
-      </Card>
-      <Card title="Your alert rules">
-        <ErrorNotice error={rules.error} />
-        {rules.loading && <Loading />}
-        {rules.data?.length ? (
-          <ul className="item-list">
-            {rules.data.map((rule) => (
-              <li key={rule.id}>
-                <div>
-                  <strong>
-                    {rule.config.kind.replaceAll("_", " ")} ·{" "}
-                    {rule.config.severity}
-                  </strong>
-                  <small>
-                    {rule.deviceId
-                      ? (devices.find((d) => d.id === rule.deviceId)?.name ??
-                        "Device")
-                      : rule.networkId
-                        ? "Network label"
-                        : "Workspace"}{" "}
-                    · {rule.config.enabled ? "Enabled" : "Disabled"} ·{" "}
-                    {rule.config.period} · {rule.config.quality ?? "measured"}
-                    {rule.config.metric
-                      ? ` · ${exactValue(rule.config.threshold.toFixed(6), rule.config.metric)}`
-                      : ""}
-                  </small>
-                </div>
-                <button className="button" onClick={() => setEditing(rule)}>
-                  Edit rule
-                </button>
-                <ActionButton
-                  action={async () => {
-                    await api(`${base}/rules/${rule.id}`, "DELETE", {});
-                    reload();
-                  }}
-                  confirm="Delete this rule and its alert/delivery history?"
-                >
-                  Delete rule
-                </ActionButton>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          rules.data && <Empty title="No alert rules yet" />
-        )}
-      </Card>
-      <Card title="Alert history and delivery">
-        <ErrorNotice error={alerts.error} />
-        <small>
-          Latest 100 scoped occurrences. Last refreshed{" "}
-          {formatTime(alerts.updatedAt)}.
-        </small>
-        {alerts.data?.length ? (
-          <div className="page-stack">
-            {alerts.data.map((alert) => (
-              <article key={alert.id} className="alert-entry">
-                <div className="section-heading">
-                  <h3>
-                    {alert.snapshot.kind.replaceAll("_", " ")} ·{" "}
-                    {alert.snapshot.quality ?? "health"}{" "}
-                    <span className="badge">{alert.snapshot.severity}</span>
-                  </h3>
-                  {!alert.acknowledgedAt && (
+          <Card title="Your alert rules">
+            <ErrorNotice error={rules.error} />
+            {rules.loading && <Loading />}
+            {rules.data?.length ? (
+              <ul className="item-list">
+                {rules.data.map((rule) => (
+                  <li key={rule.id}>
+                    <div>
+                      <strong>
+                        {rule.config.kind.replaceAll("_", " ")} ·{" "}
+                        {rule.config.severity}
+                      </strong>
+                      <small>
+                        {rule.deviceId
+                          ? (devices.find((d) => d.id === rule.deviceId)
+                              ?.name ?? "Device")
+                          : rule.networkId
+                            ? "Network label"
+                            : "Workspace"}{" "}
+                        · {rule.config.enabled ? "Enabled" : "Disabled"} ·{" "}
+                        {rule.config.period} ·{" "}
+                        {rule.config.quality ?? "measured"}
+                        {rule.config.metric
+                          ? ` · ${exactValue(rule.config.threshold.toFixed(6), rule.config.metric)}`
+                          : ""}
+                      </small>
+                    </div>
+                    <RuleEditor
+                      context={context}
+                      networks={networks.data ?? []}
+                      initial={rule}
+                      onOpen={() => setSaved(false)}
+                      saved={ruleSaved}
+                    />
                     <ActionButton
                       action={async () => {
-                        await api(
-                          `${base}/alerts/${alert.id}/acknowledge`,
-                          "POST",
-                          {},
-                        );
+                        await api(`${base}/rules/${rule.id}`, "DELETE", {});
                         reload();
                       }}
+                      confirm="Delete this rule and its alert/delivery history?"
                     >
-                      Acknowledge alert
+                      Delete rule
                     </ActionButton>
-                  )}
-                </div>
-                <p>
-                  {formatTime(alert.createdAt)} ·{" "}
-                  {alert.resolvedAt ? "Resolved" : "Condition active"} ·{" "}
-                  {alert.acknowledgedAt ? "Acknowledged" : "Unacknowledged"}
-                </p>
-                <p>
-                  Observed value: {alert.snapshot.value ?? "Not applicable"} ·
-                  window {alert.snapshot.windowKey} ·{" "}
-                  {alert.snapshot.quality ?? "quality not recorded"}
-                </p>
-                <details>
-                  <summary>Delivery attempts</summary>
-                  <ul className="item-list">
-                    {alert.deliveries.map((delivery) => (
-                      <li key={delivery.id}>
-                        <div>
-                          <strong>
-                            {delivery.channel.replaceAll("_", " ")} ·{" "}
-                            {delivery.status}
-                          </strong>
-                          <small>
-                            {delivery.attempts} attempts · due{" "}
-                            {formatTime(delivery.dueAt)}
-                          </small>
-                          {delivery.attemptHistory.map((attempt, index) => (
-                            <small key={index}>
-                              {formatTime(attempt.at)} · {attempt.outcome}
-                              {attempt.code ? ` · ${attempt.code}` : ""}
-                            </small>
-                          ))}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              </article>
-            ))}
-          </div>
-        ) : (
-          alerts.data && <Empty title="No alerts in your history" />
-        )}
-      </Card>
-      <NotificationPreferencesPanel />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              rules.data && <Empty title="No alert rules yet" />
+            )}
+          </Card>
+        </>
+      )}
+      {tab === "history" && (
+        <>
+          <Card title="Alert history and delivery">
+            <ErrorNotice error={alerts.error} />
+            <small>Last refreshed {formatTime(alerts.updatedAt)}.</small>
+            {alerts.loading && <Loading />}
+            {alerts.data?.length ? (
+              <div className="page-stack">
+                {alerts.data.map((alert) => (
+                  <article key={alert.id} className="alert-entry">
+                    <div className="section-heading">
+                      <h3>
+                        {alert.snapshot.kind.replaceAll("_", " ")} ·{" "}
+                        {alert.snapshot.quality ?? "health"}{" "}
+                        <span className="badge">{alert.snapshot.severity}</span>
+                      </h3>
+                      {!alert.acknowledgedAt && (
+                        <ActionButton
+                          action={async () => {
+                            await api(
+                              `${base}/alerts/${alert.id}/acknowledge`,
+                              "POST",
+                              {},
+                            );
+                            reload();
+                          }}
+                        >
+                          Acknowledge alert
+                        </ActionButton>
+                      )}
+                    </div>
+                    <p>
+                      {formatTime(alert.createdAt)} ·{" "}
+                      {alert.resolvedAt ? "Resolved" : "Condition active"} ·{" "}
+                      {alert.acknowledgedAt ? "Acknowledged" : "Unacknowledged"}
+                    </p>
+                    <p>
+                      Observed value: {alert.snapshot.value ?? "Not applicable"}{" "}
+                      · window {alert.snapshot.windowKey} ·{" "}
+                      {alert.snapshot.quality ?? "quality not recorded"}
+                    </p>
+                    <details>
+                      <summary>Delivery attempts</summary>
+                      <ul className="item-list">
+                        {alert.deliveries.map((delivery) => (
+                          <li key={delivery.id}>
+                            <div>
+                              <strong>
+                                {delivery.channel.replaceAll("_", " ")} ·{" "}
+                                {delivery.status}
+                              </strong>
+                              <small>
+                                {delivery.attempts} attempts · due{" "}
+                                {formatTime(delivery.dueAt)}
+                              </small>
+                              {delivery.attemptHistory.map((attempt, index) => (
+                                <small key={index}>
+                                  {formatTime(attempt.at)} · {attempt.outcome}
+                                  {attempt.code ? ` · ${attempt.code}` : ""}
+                                </small>
+                              ))}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              alerts.data && <Empty title="No alerts in your history" />
+            )}
+            <PageControls label="Alert history" page={alerts} />
+          </Card>
+        </>
+      )}
+      {tab === "preferences" && (
+        <>
+          <Notice>
+            In-app delivery is available. Android/iOS push providers remain
+            unavailable. Alert evaluation and delivery require scheduled
+            monitoring maintenance.
+          </Notice>
+          <NotificationPreferencesPanel />
+        </>
+      )}
     </>
   );
 }
@@ -298,11 +332,13 @@ function RuleEditor({
   context,
   networks,
   initial,
+  onOpen,
   saved,
 }: {
   context: PageContext;
   networks: UsageNetwork[];
   initial?: AlertRule;
+  onOpen: () => void;
   saved: () => void;
 }) {
   const config = initial?.config;
@@ -318,7 +354,15 @@ function RuleEditor({
         (device) => device.registeredById === context.user.id,
       );
   return (
-    <ActionForm
+    <ActionFormDialog
+      label={initial ? "Edit rule" : "Create rule"}
+      primary={!initial}
+      onOpen={() => {
+        setKind(config?.kind ?? "threshold");
+        setMetric(config?.metric ?? "mobile_data_bytes");
+        setQuiet(!!config?.quietHours);
+        onOpen();
+      }}
       submit={initial ? "Update alert rule" : "Create alert rule"}
       action={async (form) => {
         const input = {
@@ -362,9 +406,13 @@ function RuleEditor({
           input,
         );
         saved();
-        return "Rule saved. It will be checked by the next monitoring maintenance pass.";
       }}
     >
+      {!context.devices.length && (
+        <Notice>
+          Register a supported device to create device-specific rules.
+        </Notice>
+      )}
       <div className="field-row">
         <Field label="Rule type">
           <select
@@ -567,6 +615,6 @@ function RuleEditor({
           this rule’s previous alert and delivery history.
         </label>
       )}
-    </ActionForm>
+    </ActionFormDialog>
   );
 }

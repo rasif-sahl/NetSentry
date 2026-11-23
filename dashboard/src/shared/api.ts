@@ -149,8 +149,17 @@ export async function signOut() {
   return sessionLock(async () => {
     let revoked = true;
     try {
-      await send("/auth/logout", "POST", {});
-    } catch {
+      await send("/auth/logout", "POST", {}).catch((error) => {
+        if (error instanceof ApiError && error.status === 401)
+          return send("/auth/logout/refresh", "POST", {});
+        throw error;
+      });
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "SESSION_CHANGED") {
+        closing = false;
+        window.location.reload();
+        throw error;
+      }
       revoked = false;
     }
     const cleared = await fetch("/api/session/clear", {

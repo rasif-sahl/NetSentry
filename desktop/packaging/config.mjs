@@ -120,6 +120,7 @@ export async function packagingConfig(mode, env = process.env) {
       : undefined,
     mac: {
       category: "public.app-category.developer-tools",
+      icon: "netsentry.icns",
       target: release
         ? [
             { target: "dmg", arch: [arch] },

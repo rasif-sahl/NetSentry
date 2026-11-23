@@ -157,6 +157,39 @@ try {
       );
   }
   const owner = accounts.owner;
+  const pagingWorkspace = await call(
+    '/workspaces',
+    'POST',
+    { name: 'Fixture pagination', type: 'FAMILY', timezone: 'UTC' },
+    owner.accessToken,
+  );
+  const pagingRule = await call(
+    `/workspaces/${pagingWorkspace.id}/monitoring/rules`,
+    'POST',
+    {
+      kind: 'threshold',
+      metric: 'mobile_data_bytes',
+      period: 'month',
+      threshold: 1,
+      severity: 'warning',
+      channels: ['in_app'],
+      enabled: true,
+    },
+    owner.accessToken,
+  );
+  await source.query(
+    `WITH inserted AS (
+       INSERT INTO alerts ("ruleId", cycle, "sourceDeviceIds", snapshot, "createdAt")
+       SELECT $1, i, '[]'::jsonb,
+         jsonb_build_object('kind','threshold','severity','warning','value',i::text,'windowKey','fixture-page'),
+         date_trunc('second', now()) - CASE WHEN i <= 30 THEN interval '1 minute' ELSE interval '0 second' END
+       FROM generate_series(1, 130) AS i RETURNING id, cycle
+     )
+     INSERT INTO notification_deliveries ("alertId", channel, status, "dueAt")
+     SELECT id, 'in_app', CASE WHEN cycle <= 30 THEN 'delivered' ELSE 'suppressed' END, now()
+     FROM inserted`,
+    [pagingRule.id],
+  );
   const workspace = await call(
     '/workspaces',
     'POST',
@@ -640,12 +673,133 @@ try {
       globalCatalog: true,
       expiresAt: new Date(Date.now() + 3600000),
     });
+  // Larger synthetic lists live in a separate organization so ordinary small-inventory checks stay representative.
+  const inventoryWorkspace = await call(
+    '/workspaces',
+    'POST',
+    { name: 'Fixture paged inventory', type: 'BUSINESS', timezone: 'UTC' },
+    owner.accessToken,
+  );
+  const inventoryBase = `/workspaces/${inventoryWorkspace.id}`;
+  const inventoryNetwork = await call(
+    `${inventoryBase}/networks`,
+    'POST',
+    { name: 'Paged office network', cidrs: ['192.168.76.0/24'] },
+    owner.accessToken,
+  );
+  const location = await call(
+    `${inventoryBase}/business/locations`,
+    'POST',
+    { name: 'Paged office', expectedRevision: 0 },
+    owner.accessToken,
+  );
+  await call(
+    `${inventoryBase}/business/networks/${inventoryNetwork.networkId}/location`,
+    'PATCH',
+    { locationId: location.id },
+    owner.accessToken,
+  );
+  const unusedLocation = await call(
+    `${inventoryBase}/business/locations`,
+    'POST',
+    { name: 'Empty location', expectedRevision: 0 },
+    owner.accessToken,
+  );
+  const inventoryAgentDefinition = {
+    ...networkDefinition,
+    installationId: randomUUID(),
+    name: 'Paged fixture collector',
+  };
+  const inventoryCode = await call(
+    `${inventoryBase}/agents/enrolments`,
+    'POST',
+    inventoryAgentDefinition,
+    owner.accessToken,
+  );
+  const inventoryAgent = await call('/agents/enrol', 'POST', {
+    token: inventoryCode.token,
+    installationId: inventoryAgentDefinition.installationId,
+    platform: 'darwin',
+  });
+  await source.query(
+    `INSERT INTO registered_devices ("installationId", "workspaceId", "registeredById", name, platform, "createdAt")
+     SELECT uuid_generate_v4()::text, $1, $2, 'Paged device ' || i, 'IOS', now() - i * interval '1 second'
+     FROM generate_series(1, 27) i`,
+    [inventoryWorkspace.id, owner.user.id],
+  );
+  await source.query(
+    `WITH labels AS (
+       INSERT INTO usage_networks ("workspaceId",name) SELECT $1, 'Paged network ' || i FROM generate_series(1,26) i RETURNING id
+     ) INSERT INTO network_profiles ("networkId", cidrs) SELECT id, '["192.168.76.0/24"]'::jsonb FROM labels`,
+    [inventoryWorkspace.id],
+  );
+  const endpoints = await source.query(
+    `INSERT INTO network_endpoints ("networkId", identity, name, "firstSeenAt", "lastSeenAt", archived)
+     SELECT $1, 'page-fixture-' || i, 'Paged endpoint ' || i, now() - i * interval '1 second', now(), i = 205
+     FROM generate_series(1,205) i RETURNING id, name`,
+    [inventoryNetwork.networkId],
+  );
+  const historyEndpoint = endpoints.find(
+    (record) => record.name === 'Paged endpoint 1',
+  ).id;
+  await source.query(
+    `INSERT INTO network_events ("networkId",kind,severity,"occurredAt")
+     SELECT $1,'collector_policy_updated','info',now() - i * interval '1 second' FROM generate_series(1,105) i`,
+    [inventoryNetwork.networkId],
+  );
+  await source.query(
+    `INSERT INTO network_presence ("networkId","agentId","endpointId",address,evidence,"firstObservedAt","lastObservedAt")
+     SELECT $1,$2,$3,'192.168.76.3','arp_cache',now() - (i + 1) * interval '1 minute',now() - i * interval '1 minute'
+     FROM generate_series(1,105) i`,
+    [inventoryNetwork.networkId, inventoryAgent.agent.id, historyEndpoint],
+  );
+  await source.query(
+    `INSERT INTO billing_payments (id,"workspaceId","amountMinor",currency,status,"paidAt")
+     SELECT uuid_generate_v4(),$1,900,'TST','paid',now() - i * interval '1 second' FROM generate_series(1,102) i`,
+    [inventoryWorkspace.id],
+  );
+  await source.query(
+    `INSERT INTO billing_requests ("workspaceId","requestId","requesterId",plan,interval,"expectedRevision",status,"createdAt")
+     SELECT $1,uuid_generate_v4(),$2,'business','monthly',0,
+       CASE WHEN i <= 21 THEN 'confirmed' ELSE 'pending' END,now() - i * interval '1 second'
+     FROM generate_series(1,48) i`,
+    [inventoryWorkspace.id, owner.user.id],
+  );
+  await source.query(
+    `INSERT INTO developer_commands ("agentId","requesterId","requestId",generation,revision,target,mode,fingerprint,state,"requestedAt","expiresAt")
+     SELECT $1,$2,uuid_generate_v4(),1,0,$3::jsonb,'graceful','fixture','expired',now() - (i + 1) * interval '1 hour',now() - i * interval '1 hour'
+     FROM generate_series(1,27) i`,
+    [
+      developerPair.agent.id,
+      owner.user.id,
+      JSON.stringify({
+        serviceId: 'a'.repeat(64),
+        observationId: randomUUID(),
+        pid: 30002,
+        startedAt: new Date(Date.now() - 30 * 3600000).toISOString(),
+        observedAt: new Date(Date.now() - 29 * 3600000).toISOString(),
+        runtime: 'Node.js',
+        project: 'Historical synthetic command',
+        ports: [3002],
+        canStop: true,
+        childCount: 0,
+      }),
+    ],
+  );
   await writeFile(
     file,
     JSON.stringify({
       password,
       workspaceId: workspace.id,
       emptyId: empty.id,
+      pagingWorkspaceId: pagingWorkspace.id,
+      inventoryPageFixture: {
+        workspaceId: inventoryWorkspace.id,
+        networkId: inventoryNetwork.networkId,
+        endpointId: historyEndpoint,
+        locationId: location.id,
+        unusedLocationId: unusedLocation.id,
+      },
       deviceId: pair.device.id,
       familyProfileId: familyProfile.id,
       business,

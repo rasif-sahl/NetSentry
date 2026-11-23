@@ -86,10 +86,10 @@
     @apply sticky top-[18px] flex h-[calc(100dvh_-_36px)] min-h-[620px] flex-col overflow-y-auto rounded-3xl border border-line bg-surface px-4 pt-6 pb-[18px] shadow-[0_8px_30px_#41304d06];
   }
   .desktop-brand {
-    @apply flex items-center gap-2.5 px-3 pb-6 text-2xl font-bold tracking-[-0.035em] text-primary no-underline;
+    @apply flex items-center px-3 pb-5;
   }
-  .desktop-brand svg {
-    @apply size-[27px] shrink-0;
+  .desktop-brand img {
+    @apply h-auto w-40;
   }
   .desktop-eyebrow {
     @apply m-0 px-3 pb-3.5 text-[10px] font-bold tracking-[0.17em] text-muted;

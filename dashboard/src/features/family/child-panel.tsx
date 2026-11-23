@@ -1,4 +1,5 @@
 "use client";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { useState } from "react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
@@ -9,7 +10,6 @@ import { PolicyForm } from "./policy-form";
 import { ProfileForm } from "./profile-form";
 import type { FamilyView } from "./types";
 import {
-  ActionForm,
   ActionButton,
   Card,
   Field,
@@ -114,7 +114,7 @@ export function ChildPanel({
                 revision and device generation.
               </Empty>
             )}
-            <ActionForm
+            <ActionFormDialog
               submit="Consent to sharing your device"
               action={async (f) => {
                 await api(`${path}/devices`, "POST", {
@@ -142,7 +142,7 @@ export function ChildPanel({
                 </select>
               </Field>
               <FamilyConsent />
-            </ActionForm>
+            </ActionFormDialog>
             {elevated && (
               <details>
                 <summary>Edit profile, guardian grants or archive</summary>
@@ -252,9 +252,8 @@ export function ChildPanel({
                 </tbody>
               </table>
             </div>
-            <ActionForm
+            <ActionFormDialog
               submit="Send insight feedback"
-              reset
               action={async (f) => {
                 await api(`${path}/feedback`, "POST", {
                   rating: text(f, "rating"),
@@ -274,7 +273,7 @@ export function ChildPanel({
               <Field label="Optional feedback note">
                 <textarea name="note" maxLength={300} />
               </Field>
-            </ActionForm>
+            </ActionFormDialog>
           </Card>
           {v.canManage && !v.profile.archived && (
             <Card title="Family policy">
@@ -386,9 +385,8 @@ function TimeRequest({
 }) {
   const [id, setId] = useState(() => crypto.randomUUID());
   return (
-    <ActionForm
+    <ActionFormDialog
       submit={direct ? "Grant temporary exception" : "Request more time"}
-      reset
       action={async (f) => {
         await send({
           id,
@@ -414,6 +412,6 @@ function TimeRequest({
       <Field label="Reason for time request">
         <input name="reason" maxLength={200} required />
       </Field>
-    </ActionForm>
+    </ActionFormDialog>
   );
 }
