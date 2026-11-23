@@ -56,6 +56,7 @@ import {
 } from "@/shared/ui/common";
 import { PageLoading } from "@/shared/ui/loading";
 import { EmailVerificationStripe } from "./email-verification-stripe";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 const BillingPanel = dynamic(
   () =>
     import("@/features/billing/billing-panel").then(
@@ -431,39 +432,29 @@ function WorkspaceShell({
           >
             <Menu />
           </button>
-          <label className="workspace-select">
-            <span className="sr-only">Active workspace</span>
-            <select
-              disabled={switching}
-              aria-label="Active workspace"
-              value={workspace?.id ?? ""}
-              onChange={async (event) => {
-                const id = event.target.value;
-                if (switchPending.current) return;
-                switchPending.current = true;
-                setSwitching(true);
-                setSelectionError(undefined);
-                try {
-                  await api(`/workspaces/${id}/select`, "POST", {});
-                  setSelected(id);
-                  setBusinessLocation(undefined);
-                  updateUser(await api<User>("/auth/me"));
-                } catch (error) {
-                  setSelectionError(error);
-                  workspaces.reload();
-                } finally {
-                  switchPending.current = false;
-                  setSwitching(false);
-                }
-              }}
-            >
-              {workspaces.data?.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.name} · {w.type.toLowerCase()}
-                </option>
-              ))}
-            </select>
-          </label>
+          <WorkspaceSwitcher
+            workspace={workspace}
+            workspaces={workspaces.data}
+            switching={switching}
+            onSelect={async (id) => {
+              if (switchPending.current) return;
+              switchPending.current = true;
+              setSwitching(true);
+              setSelectionError(undefined);
+              try {
+                await api(`/workspaces/${id}/select`, "POST", {});
+                setSelected(id);
+                setBusinessLocation(undefined);
+                updateUser(await api<User>("/auth/me"));
+              } catch (error) {
+                setSelectionError(error);
+                workspaces.reload();
+              } finally {
+                switchPending.current = false;
+                setSwitching(false);
+              }
+            }}
+          />
           <span className="topbar-note">
             {workspace?.timezone ?? "Workspace"}
           </span>

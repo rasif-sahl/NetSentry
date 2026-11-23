@@ -455,15 +455,6 @@
   gap: 1rem;
   padding: 0.65rem 2rem;
 }
-.workspace-app .workspace-select {
-  max-width: 380px;
-  min-width: 0;
-}
-.workspace-app .workspace-select select {
-  border-color: transparent;
-  font-weight: 650;
-  font-size: 0.9rem;
-}
 .workspace-app .topbar-note {
   margin-left: auto;
   font-size: 0.75rem;
@@ -962,9 +953,6 @@
   }
   .workspace-app .topbar-note {
     display: none;
-  }
-  .workspace-app .workspace-select {
-    flex: 1;
   }
   .workspace-app .details-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

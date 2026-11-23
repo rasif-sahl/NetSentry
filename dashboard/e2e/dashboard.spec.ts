@@ -15,15 +15,19 @@ async function login(page: Page, account = "owner") {
   await expect(
     page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("Active workspace")).not.toHaveValue("");
-  await page.getByLabel("Active workspace").selectOption(data.workspaceId);
-  await expect(page.getByLabel("Active workspace")).toHaveValue(
-    data.workspaceId,
-  );
+  await selectWorkspace(page, data.workspaceId);
   await expect(
     page.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
   return data;
+}
+async function selectWorkspace(page: Page, id: string) {
+  const trigger = page.getByRole("button", { name: /^Active workspace/ });
+  await trigger.click();
+  const choices = page.getByRole("group", { name: "Switch workspace" });
+  await choices.locator(`button[data-workspace-id="${id}"]`).click();
+  await expect(trigger).toHaveAttribute("data-workspace-id", id);
+  await expect(trigger).toHaveAttribute("aria-busy", "false");
 }
 async function openTab(page: Page, name: string) {
   const tab = page
@@ -206,14 +210,14 @@ test("reports show real measured/estimated values, export and isolate workspace 
   expect(await readFile((await downloaded.path())!, "utf8")).toContain(
     '"measured","estimated"',
   );
-  await page.getByLabel("Active workspace").selectOption(data.emptyId);
+  await selectWorkspace(page, data.emptyId);
   await expect(
     page.getByText("No observations in this period", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("10,485,760 bytes", { exact: true })).toHaveCount(
     0,
   );
-  await page.getByLabel("Active workspace").selectOption(data.workspaceId);
+  await selectWorkspace(page, data.workspaceId);
 });
 test("viewers cannot expose another device report or monitoring controls", async ({
   page,
@@ -494,10 +498,7 @@ test("team invitations bind a recipient and management changes take effect", asy
     .getByRole("button", { name: "Accept invitation", exact: true })
     .click();
   await expect(guest.getByText(/Invitation accepted/)).toBeVisible();
-  await guest.getByLabel("Active workspace").selectOption(data.workspaceId);
-  await expect(guest.getByLabel("Active workspace")).toHaveValue(
-    data.workspaceId,
-  );
+  await selectWorkspace(guest, data.workspaceId);
   await expect(
     guest.getByRole("heading", { name: "Invite someone", exact: true }),
   ).toHaveCount(0);
@@ -556,13 +557,48 @@ test("a verified user can create and switch to a new workspace", async ({
     .getByRole("button", { name: "Create workspace", exact: true })
     .click();
   await expect(page.getByText(/Workspace created/)).toBeVisible();
-  await page
-    .getByLabel("Active workspace")
-    .selectOption({ label: "Browser-created workspace · business" });
+  const viewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 320, height: 760 });
+  const trigger = page.getByRole("button", { name: /^Active workspace/ });
+  await trigger.focus();
+  await trigger.press("Enter");
+  const choices = page.getByRole("group", { name: "Switch workspace" });
+  await expect(choices).toBeVisible();
+  await expect(choices.getByRole("button", { pressed: true })).toBeFocused();
+  const menuBounds = (await choices.boundingBox())!;
+  expect(menuBounds.x).toBeGreaterThanOrEqual(0);
+  expect(menuBounds.x + menuBounds.width).toBeLessThanOrEqual(320);
+  await page.keyboard.press("Escape");
+  await expect(choices).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await trigger.press("Enter");
+  const created = choices.getByRole("button", {
+    name: "Browser-created workspace, business",
+    exact: true,
+  });
+  await expect(created).toBeVisible();
+  await page.keyboard.press("End");
+  await expect(created).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveAccessibleName(
+    "Active workspace: Browser-created workspace, business",
+  );
+  await expect(trigger).toHaveAttribute("aria-busy", "false");
+  await expect(choices).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await page.setViewportSize(viewport);
+  await page.reload();
+  await expect(trigger).toHaveAccessibleName(
+    "Active workspace: Browser-created workspace, business",
+  );
+  await trigger.click();
+  await expect(created).toHaveAttribute("aria-pressed", "true");
+  await page.locator(".topbar").click({ position: { x: 1, y: 1 } });
+  await expect(choices).toBeHidden();
   await expect(
     page.getByText("Asia/Colombo", { exact: true }).first(),
   ).toBeVisible();
-  await page.getByLabel("Active workspace").selectOption(data.workspaceId);
+  await selectWorkspace(page, data.workspaceId);
 });
 
 test("profile, appearance, retention, sessions and personal export use the backend", async ({
@@ -1043,9 +1079,7 @@ test("dashboard sections share compact card spacing and action buttons on mobile
   for (const [section, heading, action] of sections) {
     await test.step(section, async () => {
       if (section === "Business") {
-        await page
-          .getByLabel("Active workspace")
-          .selectOption(data.business.workspaceId);
+        await selectWorkspace(page, data.business.workspaceId);
         await expect(page.locator("#dashboard-content .eyebrow")).toContainText(
           "BUSINESS",
         );
@@ -1080,7 +1114,11 @@ test("dashboard sections share compact card spacing and action buttons on mobile
               actionBackground,
             );
           await expect
-            .poll(() => button.evaluate((element) => element.offsetHeight))
+            .poll(() =>
+              button.evaluate(
+                (element) => element.getBoundingClientRect().height,
+              ),
+            )
             .toBeGreaterThanOrEqual(44);
           if (hasRefreshHeader) {
             await expect
@@ -1510,9 +1548,7 @@ test("Business roles review organization structure and employees explicitly acce
   browser,
 }) => {
   const data = await login(page);
-  await page
-    .getByLabel("Active workspace")
-    .selectOption(data.business.workspaceId);
+  await selectWorkspace(page, data.business.workspaceId);
   await page.getByRole("link", { name: "Business", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Business organization", exact: true }),
@@ -1567,9 +1603,7 @@ test("Business roles review organization structure and employees explicitly acce
   await employee.getByLabel("Email address").fill(data.accounts.employee.email);
   await employee.getByLabel("Password", { exact: true }).fill(data.password);
   await employee.getByRole("button", { name: "Sign in", exact: true }).click();
-  await employee
-    .getByLabel("Active workspace")
-    .selectOption(data.business.workspaceId);
+  await selectWorkspace(employee, data.business.workspaceId);
   await employee.getByRole("link", { name: "Business", exact: true }).click();
   await expect(
     employee.getByRole("button", { name: "Add location", exact: true }),
@@ -1605,9 +1639,7 @@ test("Business roles review organization structure and employees explicitly acce
     .fill(data.accounts.businessAnalyst.email);
   await analyst.getByLabel("Password", { exact: true }).fill(data.password);
   await analyst.getByRole("button", { name: "Sign in", exact: true }).click();
-  await analyst
-    .getByLabel("Active workspace")
-    .selectOption(data.business.workspaceId);
+  await selectWorkspace(analyst, data.business.workspaceId);
   await analyst.getByRole("link", { name: "Business", exact: true }).click();
   await openTab(analyst, "Reports");
   await expect(
