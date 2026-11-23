@@ -49,15 +49,23 @@ if (
         .screenshot({ path: path.join(output, platform + "-home.png") });
     }
     const phone = page.locator("#preview .phone");
-    for (const [platform, destination, filename, filters] of [
-      ["android", "Usage reports", "android-usage", "Filters"],
-      ["android", "Application usage", "android-application-usage", "Report filters"],
-      ["ios", "Usage reports", "ios-usage-summary"],
-    ]) {
-      const hash = new URLSearchParams({ platform, tab: "Usage", destination });
+    const screens = [
+      ["android", "Usage", "Usage reports", "android-usage", "Filters"],
+      ["android", "Usage", "Application usage", "android-application-usage", "Report filters"],
+      ["ios", "Usage", "Usage reports", "ios-usage-summary"],
+      ...["android", "ios"].flatMap((platform) => [
+        [platform, "Family", "Child profiles", platform + "-family"],
+        [platform, "Computers", "Paired computers & services", platform + "-computers"],
+        [platform, "More", "Business", platform + "-business"],
+        [platform, "More", "Subscription", platform + "-subscription"],
+        [platform, "More", "Profile & appearance", platform + "-settings"],
+      ]),
+    ];
+    for (const [platform, tab, destination, filename, filters] of screens) {
+      const hash = new URLSearchParams({ platform, tab, destination });
       await page.goto(index + "#" + hash);
       await phone.locator(".brand").getByText(destination, { exact: true }).waitFor();
-      if (platform === "ios") {
+      if (filename === "ios-usage-summary") {
         await phone.locator(".content").evaluate((content) => {
           content.scrollTop = content.scrollHeight;
         });

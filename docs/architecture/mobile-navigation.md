@@ -20,6 +20,7 @@ Android adds **Application usage, Categories & corrections, Timeline & evidence*
 - Existing authorization, consent, confirmation, disclosure and data-quality boundaries remain in place. Busy state gates mutations. Empty inventories and missing reports stay explicit.
 - Family reads and visible Computers polling retain the existing repository/session boundaries. No command is queued by navigation. Manual refresh controls remain available for alerts, reports and inventories.
 - Sensitive details, permission instructions and conditional reports remain inside their corresponding destination; selected child profiles can be changed from Family sections. Device management, alert creation, export and destructive confirmations are subordinate flows, not additional main tabs.
+- Android screens share Material button spacing and distinguish filled primary actions, outlined secondary actions and error-colored destructive controls. iOS forms share native blue action rows with a minimum target height, semibold primary actions and system red for destructive actions.
 
 ## Designs
 

@@ -153,7 +153,7 @@ nav.controls .active {
 .panel {
   border-radius: 13px;
   background: #f0e9f1;
-  padding: 15px;
+  padding: 16px;
 }
 .item {
   font-size: 13px;
@@ -174,18 +174,23 @@ nav.controls .active {
 .f {
   border: 1px solid #8e8097;
   padding: 13px 11px;
-  border-radius: 5px;
+  border-radius: 12px;
   color: #74667e;
   background: #fffbfe;
 }
 .b,
 .o,
 .d {
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  max-width: 100%;
+  font-size: 13px;
   line-height: 18px;
-  padding: 10px 14px;
+  padding: 10px 16px;
   border-radius: 23px;
   width: fit-content;
+  overflow-wrap: anywhere;
 }
 .b {
   background: #675080;
@@ -359,6 +364,9 @@ nav.controls .active {
   background: white;
   color: #007aff;
   font-size: 13px;
+}
+.ios .b {
+  font-weight: 600;
 }
 .ios .d {
   color: #ff3b30;
@@ -616,11 +624,12 @@ nav.controls .active {
 }
 .report-actions > * {
   flex: 1;
+  justify-content: center;
   text-align: center;
 }
 .report-actions button,
 .filter-sheet button {
-  min-height: 44px;
+  min-height: 48px;
   background: transparent;
 }
 .filter-sheet button.b {
@@ -684,7 +693,7 @@ nav.controls .active {
 .filter-options span {
   display: grid;
   align-items: center;
-  min-height: 44px;
+  min-height: 48px;
   padding: 6px 12px;
   border: 1px solid #a594ae;
   border-radius: 22px;

@@ -49,7 +49,7 @@
       "items": [
         ["h", "Workspace"],
         ["o", "\u2713 Design preview \u00b7 OWNER"],
-        ["b", "Refresh account and workspace"],
+        ["o", "Refresh account and workspace"],
         [
           "p",
           "Illustrative workspace. Other workspaces appear here when returned by the API."
@@ -253,7 +253,7 @@
           "p",
           "Use a Family workspace. Owners/admins create profiles and invite guardians from the web dashboard."
         ],
-        ["b", "Refresh family"],
+        ["o", "Refresh family"],
         ["p", "Authorized child profiles appear here."],
         [
           "p",
@@ -280,7 +280,7 @@
           "I accept family-sharing-v1 for this phone and this child profile"
         ],
         ["b", "Share this phone with this child profile"],
-        ["o", "Withdraw family sharing"],
+        ["d", "Withdraw family sharing"],
         ["p", "Collection permissions remain separate."]
       ]
     },
@@ -308,7 +308,7 @@
           "p",
           "Use a Business workspace. Manage locations, departments, employees and reporting policies on the web."
         ],
-        ["b", "Refresh organization"],
+        ["o", "Refresh organization"],
         [
           "p",
           "Your assignment, custody, reporting checks and disclosure appear here."
@@ -318,7 +318,7 @@
           "I accept business-sharing-v1 for this device generation and assignment"
         ],
         ["b", "Accept organization sharing"],
-        ["o", "Withdraw organization sharing"]
+        ["d", "Withdraw organization sharing"]
       ]
     },
     {
@@ -330,7 +330,7 @@
           "p",
           "Subscription details are read-only. Purchases are currently unavailable."
         ],
-        ["b", "Refresh subscription"],
+        ["o", "Refresh subscription"],
         ["p", "Edition, status and mode appear from the API."],
         [
           "p",
@@ -485,9 +485,9 @@
       "items": [
         ["h", "Recover or verify"],
         ["f", "Verification or reset token"],
-        ["b", "Request password reset"],
-        ["b", "Reset password using token"],
-        ["b", "Verify email using token"],
+        ["o", "Request password reset"],
+        ["o", "Reset password using token"],
+        ["o", "Verify email using token"],
         ["d", "Clear local credentials"]
       ]
     },
@@ -497,7 +497,7 @@
       "items": [
         ["h", "Workspace"],
         ["p", "Design Preview"],
-        ["b", "Design preview \u00b7 PERSONAL \u2713"],
+        ["o", "Design preview \u00b7 PERSONAL \u2713"],
         ["p", "Available workspaces appear as selectable rows."],
         ["h", "This installation"],
         ["p", "Pairing and device metadata are managed below."]
@@ -524,7 +524,7 @@
       "items": [
         ["h", "This installation"],
         ["p", "Paired \u00b7 illustrative installation"],
-        ["b", "Send metadata heartbeat"],
+        ["o", "Send metadata heartbeat"],
         [
           "p",
           "Metadata only. No usage collection or monitoring consent is enabled by this action."
@@ -575,9 +575,9 @@
       "items": [
         ["h", "Alerts"],
         ["r", "Create an alert rule"],
-        ["b", "Load rules, alerts and notifications"],
+        ["o", "Load rules, alerts and notifications"],
         ["r", "Alert details \u00b7 when available"],
-        ["b", "Acknowledge alert"],
+        ["o", "Acknowledge alert"],
         ["r", "Rule \u00b7 when available"],
         ["d", "Remove rule"],
         ["r", "Notifications"]
@@ -624,14 +624,14 @@
           "p",
           "Refresh and confirm the exact project and PID. Requests are never queued offline."
         ],
-        ["b", "Refresh computers and command history"],
+        ["o", "Refresh computers and command history"],
         ["h", "Computer inventory"],
         ["p", "No paired computers shown in this demo."],
         [
           "p",
           "Authorized services show project, runtime, PID, ports, observation time and children."
         ],
-        ["b", "Review graceful stop \u00b7 when authorized"],
+        ["o", "Review graceful stop \u00b7 when authorized"],
         ["d", "Review force stop \u00b7 when authorized"]
       ]
     },
@@ -647,7 +647,7 @@
         ],
         ["t", "Include observed children"],
         ["d", "Confirm graceful / force stop"],
-        ["b", "Cancel"],
+        ["o", "Cancel"],
         [
           "p",
           "Force stop can lose unsaved work. Observations older than 10 seconds require refresh."
@@ -663,11 +663,11 @@
           "p",
           "Check history first. A lost response does not mean the server rejected the stop."
         ],
-        ["b", "Retry exact confirmed request"],
-        ["b", "Dismiss local intent"],
+        ["o", "Retry exact confirmed request"],
+        ["o", "Dismiss local intent"],
         ["p", "Dismissing does not cancel a command on the server."],
         ["r", "Command state and outcome"],
-        ["b", "Cancel pending command \u00b7 when allowed"]
+        ["o", "Cancel pending command \u00b7 when allowed"]
       ]
     },
     {
@@ -675,7 +675,7 @@
       "section": "Family \u00b7 section",
       "items": [
         ["h", "Family workspace"],
-        ["b", "Refresh family"],
+        ["o", "Refresh family"],
         ["p", "Server roles and profile grants govern these views."],
         ["r", "Family overview and grants"],
         ["r", "Selected profile, reports, policy and suggestions"],
@@ -706,7 +706,7 @@
         ["t", "Guardian direct override"],
         ["b", "Submit request"],
         ["r", "Time request \u00b7 when available"],
-        ["b", "Approved / Rejected / Cancelled"],
+        ["o", "Approved / Rejected / Cancelled"],
         [
           "dialog",
           "Confirm decision?|Approval changes server policy only; it does not prove a restriction changed on iOS.|Confirm|Cancel"
@@ -723,8 +723,8 @@
           "GATED: NETSENTRY_SCREEN_TIME target. Apple authorization and provisioning required."
         ],
         ["t", "Request Apple child authorization"],
-        ["b", "Request authorization from Apple"],
-        ["b", "Choose applications, categories or websites"],
+        ["o", "Request authorization from Apple"],
+        ["o", "Choose applications, categories or websites"],
         [
           "p",
           "Apple\u2019s system authorization sheet and opaque activity picker are external UI."
@@ -764,7 +764,7 @@
           "p",
           "Open NetSentry separately to review or stop your local schedule."
         ],
-        ["b", "Close"],
+        ["o", "Close"],
         [
           "p",
           "Report and shield are separate extension surfaces; combined here for reference."
@@ -776,7 +776,7 @@
       "section": "Business",
       "items": [
         ["h", "Business organization"],
-        ["b", "Refresh organization"],
+        ["o", "Refresh organization"],
         [
           "p",
           "Organization administration is available on the web. Sharing does not enable monitoring or grant Apple permissions."
@@ -799,7 +799,7 @@
           "p",
           "Subscription details are read-only. Purchases are currently unavailable."
         ],
-        ["b", "Refresh subscription"],
+        ["o", "Refresh subscription"],
         ["p", "Edition \u00b7 status \u00b7 mode appear from the API."],
         ["r", "Allocation and retention setting limits"]
       ]
@@ -811,7 +811,7 @@
         ["h", "Profile and appearance"],
         ["f", "Display name \u00b7 Design Preview"],
         ["b", "Save name"],
-        ["b", "Send verification email"],
+        ["o", "Send verification email"],
         ["f", "Theme \u00b7 SYSTEM / LIGHT / DARK"],
         ["t", "Reduce motion"],
         ["b", "Save appearance"]
@@ -840,9 +840,9 @@
       "section": "Settings \u00b7 section",
       "items": [
         ["h", "Sessions"],
-        ["b", "List sessions"],
+        ["o", "List sessions"],
         ["r", "Signed-in sessions"],
-        ["b", "Revoke other sessions"],
+        ["o", "Revoke other sessions"],
         ["d", "Sign out"]
       ]
     },
@@ -854,7 +854,7 @@
         ["f", "Password for export or deletion"],
         ["b", "Prepare personal export"],
         ["b", "Save export JSON \u00b7 when prepared"],
-        ["b", "Discard prepared export"],
+        ["o", "Discard prepared export"],
         [
           "p",
           "Exports contain private data. Save only to a destination you trust."

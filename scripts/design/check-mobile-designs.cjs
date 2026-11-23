@@ -85,6 +85,11 @@ const ios = fs.readFileSync(
       // Signed-out designs must not expose signed-in tabs.
       await page.locator("#mode").click();
       assert.equal(await page.locator("#gallery .entry").count(), 33);
+      const actions = page.locator("#gallery .item:is(.b,.o,.d)");
+      assert.ok(await actions.count());
+      assert.ok(await actions.evaluateAll(items =>
+        items.every(item => item.getBoundingClientRect().height >= 48),
+      ));
       assert.equal(
         await page.locator("#gallery .phone.auth .bottom").count(),
         0,
