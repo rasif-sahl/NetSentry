@@ -97,10 +97,13 @@ export function DeveloperPanel(context: PageContext & { tab: string }) {
         </Card>
       )}
       {tab === "computers" && (
-        <Card title="Paired developer computers">
-          <button className="button" onClick={() => resource.reload()}>
-            Refresh computers
-          </button>
+        <Card>
+          <div className="section-heading card-heading">
+            <h2>Paired developer computers</h2>
+            <button type="button" className="button" onClick={resource.reload}>
+              Refresh computers
+            </button>
+          </div>
           <ErrorNotice error={resource.error} />
           {resource.loading && <Loading />}
           {resource.data?.length === 0 && (

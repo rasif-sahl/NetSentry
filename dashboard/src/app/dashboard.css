@@ -655,6 +655,11 @@
 .workspace-app .section-heading h2 {
   margin: 0;
 }
+.workspace-app .card-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-bottom: 1rem;
+}
 .workspace-app .details-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -1018,11 +1018,16 @@ test("dashboard sections share compact card spacing and action buttons on mobile
         page.getByRole("heading", { name: heading, exact: true }),
       ).toBeVisible();
       const main = page.getByRole("main");
-      await expect(main.locator(".card > h2").first()).toHaveCSS(
+      const cardTitle = main.getByRole("heading", {
+        name: heading,
+        exact: true,
+      });
+      const hasRefreshHeader = section === "Developer Tools";
+      await expect(cardTitle).toHaveCSS(
         "margin-bottom",
-        "12px",
+        hasRefreshHeader ? "0px" : "12px",
       );
-      for (const width of [320, 390]) {
+      for (const width of hasRefreshHeader ? [1280, 320, 390] : [320, 390]) {
         await page.setViewportSize({ width, height: 760 });
         expect(
           await page.evaluate(() => document.documentElement.scrollWidth),
@@ -1031,10 +1036,26 @@ test("dashboard sections share compact card spacing and action buttons on mobile
           const button = main
             .getByRole("button", { name: action, exact: true })
             .first();
-          await expect(button).toHaveCSS("background-color", actionBackground);
-          expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(
-            44,
-          );
+          if (width <= 650)
+            await expect(button).toHaveCSS(
+              "background-color",
+              actionBackground,
+            );
+          const bounds = (await button.boundingBox())!;
+          expect(bounds.height).toBeGreaterThanOrEqual(44);
+          if (hasRefreshHeader) {
+            const title = (await cardTitle.boundingBox())!;
+            const header = (await main.locator(".card-heading").boundingBox())!;
+            expect(bounds.x).toBeGreaterThan(title.x + title.width);
+            expect(bounds.x + bounds.width).toBeCloseTo(
+              header.x + header.width,
+              0,
+            );
+            expect(bounds.y + bounds.height / 2).toBeCloseTo(
+              title.y + title.height / 2,
+              0,
+            );
+          }
         }
       }
     });
