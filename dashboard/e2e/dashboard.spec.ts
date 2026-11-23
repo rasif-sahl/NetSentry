@@ -986,7 +986,7 @@ test("profile, appearance, retention, sessions and personal export use the backe
   await profileDialog
     .getByRole("button", { name: "Update profile", exact: true })
     .click();
-  await expect(page.locator(".sidebar-profile")).toContainText(
+  await expect(page.getByRole("complementary", { name: "Workspace navigation" })).toContainText(
     "Fixture owner updated",
   );
   await expect(profileDialog).toBeHidden();
@@ -1387,18 +1387,23 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page);
+  const primary = page.getByRole("navigation", { name: "Primary navigation" });
+  await expect(primary.getByRole("link")).toHaveCount(4);
+  await expect(
+    page.getByRole("banner").getByRole("link", { name: "NetSentry home" }),
+  ).toBeVisible();
   await page
-    .getByRole("button", { name: "Open navigation", exact: true })
+    .getByRole("button", { name: "More", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Close navigation", exact: true }),
   ).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(
-    page.getByRole("button", { name: "Open navigation", exact: true }),
+    page.getByRole("button", { name: "More", exact: true }),
   ).toBeFocused();
   await page
-    .getByRole("button", { name: "Open navigation", exact: true })
+    .getByRole("button", { name: "More", exact: true })
     .click();
   await page.getByRole("link", { name: "More modules", exact: true }).click();
   await expect(page).toHaveURL(/\/app\/more-modules$/);
@@ -1412,6 +1417,11 @@ test("narrow desktop-browser layouts support keyboard navigation and honest futu
     ),
   ).toBeTruthy();
   await page.screenshot({ path: ".test/narrow-dashboard.png", fullPage: true });
+  await page.getByRole("button", { name: "More", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "More navigation" })).toBeVisible();
+  await page.setViewportSize({ width: 768, height: 900 });
+  await expect(page.getByRole("dialog", { name: "More navigation" })).toBeHidden();
+  await expect(primary.getByRole("link", { name: "Settings & privacy" })).toBeVisible();
   await page.goBack();
   await expect(
     page.getByRole("heading", { name: "Overview", exact: true }),
@@ -1452,9 +1462,9 @@ test("dashboard sections share compact card spacing and action buttons on mobile
           "BUSINESS",
         );
       }
-      await page
-        .getByRole("button", { name: "Open navigation", exact: true })
-        .click();
+      if (!["Devices", "Alerts", "Networks"].includes(section)) {
+        await page.getByRole("button", { name: "More", exact: true }).click();
+      }
       await page.getByRole("link", { name: section, exact: true }).click();
       await page.mouse.move(2, 2);
       await expect(
@@ -1625,7 +1635,7 @@ test("signing out or changing accounts clears other tabs instead of mixing user 
   await other.getByLabel("Email address").fill(data.accounts.viewer.email);
   await other.getByLabel("Password", { exact: true }).fill(data.password);
   await other.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page.locator(".sidebar-profile")).toContainText(
+  await expect(page.getByRole("complementary", { name: "Workspace navigation" })).toContainText(
     data.accounts.viewer.email,
   );
   await page

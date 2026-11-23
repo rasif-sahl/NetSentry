@@ -23,18 +23,8 @@ import {
 import {
   ArrowRight,
   Bell,
-  ChevronRight,
-  Gauge,
-  Home,
-  Laptop,
-  Menu,
-  Network,
   RefreshCw,
-  Settings,
-  ShieldCheck,
   Smartphone,
-  Users,
-  X,
 } from "lucide-react";
 import {
   api,
@@ -48,7 +38,6 @@ import type { Device, Permissions, User, Workspace } from "@/shared/types";
 import type { PageContext } from "./types";
 import { AuthPanel } from "@/features/account/auth-panel";
 import {
-  ActionButton,
   Card,
   Empty,
   ErrorNotice,
@@ -57,6 +46,7 @@ import {
 } from "@/shared/ui/common";
 import { PageLoading } from "@/shared/ui/loading";
 import { EmailVerificationStripe } from "./email-verification-stripe";
+import { DashboardNavigation } from "./dashboard-navigation";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { WorkspaceList } from "@/features/team/workspace-list";
 const BillingPanel = dynamic(
@@ -133,22 +123,6 @@ const ReportsPanel = dynamic(
     ),
   { loading: Loading },
 );
-
-const icons = {
-  "": Home,
-  devices: Smartphone,
-  "usage-reports": Gauge,
-  alerts: Bell,
-  networks: Network,
-  "developer-tools": Laptop,
-  family: Users,
-  business: Users,
-  subscription: Settings,
-  operations: ShieldCheck,
-  team: Users,
-  settings: Settings,
-  "more-modules": Laptop,
-} satisfies Record<WorkspaceSlug, typeof Home>;
 
 const deviceSections: ReadonlySet<WorkspaceSection> = new Set([
   "Overview",
@@ -269,7 +243,6 @@ function WorkspaceShell({
   const [slug = "", activeTab] = segments;
   const isNetworkDetail = !!networkDetailId(segments);
   const section = isWorkspaceSlug(slug) ? workspaceSections[slug] : undefined;
-  const [menu, setMenu] = useState(false);
   const workspace =
     workspaces.data?.find(
       (w) => w.id === (selected ?? user.preferences.activeWorkspaceId),
@@ -332,38 +305,6 @@ function WorkspaceShell({
       delete document.documentElement.dataset.reducedMotion;
     };
   }, [user.preferences.theme, user.preferences.reducedMotion]);
-  const sideRef = useRef<HTMLElement>(null);
-  const openRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!menu) return;
-    const previous = document.body.style.overflow;
-    const trigger = openRef.current;
-    document.body.style.overflow = "hidden";
-    const nodes = sideRef.current?.querySelectorAll<HTMLElement>(
-      "a,button:not([disabled]),select,input",
-    );
-    nodes?.[1]?.focus();
-    const handle = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenu(false);
-      if (event.key === "Tab" && nodes?.length) {
-        const first = nodes[0],
-          last = nodes[nodes.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    document.addEventListener("keydown", handle);
-    return () => {
-      document.body.style.overflow = previous;
-      document.removeEventListener("keydown", handle);
-      trigger?.focus();
-    };
-  }, [menu]);
   const previousPath = useRef(pathname);
   useEffect(() => {
     if (previousPath.current === pathname) return;
@@ -377,82 +318,21 @@ function WorkspaceShell({
     router.push(workspaceHref(slug));
   }
   return (
-    <div className="workspace-layout">
+    <div className="min-h-dvh min-[700px]:grid min-[700px]:grid-cols-[4.5rem_minmax(0,1fr)] min-[1100px]:grid-cols-[15rem_minmax(0,1fr)]">
       <a className="skip-link" href="#dashboard-content">
         Skip to content
       </a>
-      <aside
-        role={menu ? "dialog" : undefined}
-        aria-modal={menu ? true : undefined}
-        ref={sideRef}
-        className={`sidebar ${menu ? "open" : ""}`}
-        aria-label="Workspace navigation"
-      >
-        <div className="sidebar-brand">
-          <Link href="/app" className="brand">
-            <Image
-              src="/brand/netsentry-logo.svg"
-              alt="NetSentry"
-              width={223}
-              height={64}
-            />
-          </Link>
-          <button
-            className="icon-button mobile-only"
-            aria-label="Close navigation"
-            onClick={() => setMenu(false)}
-          >
-            <X />
-          </button>
-        </div>
-        <span className="eyebrow">YOUR WORKSPACE</span>
-        <nav aria-label="Primary navigation">
-          {Object.entries(workspaceSections).map(([slug, label]) => {
-            if (!isWorkspaceSlug(slug)) return null;
-            const Icon = icons[slug];
-            return (
-              <Link
-                key={slug}
-                href={workspaceHref(slug)}
-                onNavigate={() => setMenu(false)}
-                aria-current={section === label ? "page" : undefined}
-              >
-                <Icon size={19} aria-hidden="true" />
-                {label}
-                <ChevronRight size={14} aria-hidden="true" />
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="sidebar-profile">
-          <span className="avatar">
-            {user.displayName.slice(0, 2).toUpperCase()}
-          </span>
-          <div>
-            <strong>{user.displayName}</strong>
-            <small>{user.email}</small>
-          </div>
-        </div>
-        <ActionButton action={onSignOut}>Sign out</ActionButton>
-      </aside>
-      {menu && (
-        <button
-          className="menu-backdrop"
-          aria-label="Dismiss navigation"
-          onClick={() => setMenu(false)}
-        />
-      )}
-      <div className="workspace-main" inert={menu}>
+      <DashboardNavigation
+        active={isWorkspaceSlug(slug) ? slug : undefined}
+        workspaceType={workspace?.type}
+        user={user}
+        onSignOut={onSignOut}
+      />
+      <div className="min-w-0 max-[700px]:pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
         <header className="topbar">
-          <button
-            className="icon-button mobile-only"
-            ref={openRef}
-            aria-label="Open navigation"
-            aria-expanded={menu}
-            onClick={() => setMenu(!menu)}
-          >
-            <Menu />
-          </button>
+          <Link href="/app" className="brand topbar-brand shrink-0" aria-label="NetSentry home">
+            <Image src="/brand/netsentry-logo.svg" alt="NetSentry" width={223} height={64} className="max-w-23 min-[700px]:max-w-32" />
+          </Link>
           <WorkspaceSwitcher
             workspace={workspace}
             workspaces={workspaces.data}
@@ -463,7 +343,7 @@ function WorkspaceShell({
             {workspace?.timezone ?? "Workspace"}
           </span>
           <button
-            className="icon-button"
+            className="icon-button max-[700px]:hidden!"
             aria-label="Open notifications"
             onClick={() => choose("alerts")}
           >
