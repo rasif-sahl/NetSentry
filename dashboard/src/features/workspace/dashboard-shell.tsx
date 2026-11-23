@@ -668,6 +668,7 @@ export function WorkspacePage({
             activeId={workspace?.id}
             switching={switching}
             onSelect={selectWorkspace}
+            onChanged={workspaces.reload}
           />
         )}
       {needsWorkspace && context ? (

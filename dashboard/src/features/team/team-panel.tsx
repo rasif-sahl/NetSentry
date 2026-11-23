@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
-import type { Invitation, Member, Workspace } from "@/shared/types";
+import type { Invitation, Member } from "@/shared/types";
 import type { PageContext } from "@/features/workspace/types";
 import {
   ActionButton,
@@ -270,68 +270,6 @@ export function TeamPanel({
               </ActionForm>
             </Card>
           )}
-        </>
-      )}
-      {tab === "workspaces" && (
-        <>
-          <div className="two-columns">
-            <Card title="Create a workspace">
-              <ActionForm
-                submit="Create workspace"
-                reset
-                action={async (form) => {
-                  await api<Workspace>("/workspaces", "POST", {
-                    name: text(form, "name"),
-                    type: text(form, "type"),
-                    timezone: text(form, "timezone"),
-                  });
-                  workspacesChanged();
-                  return "Workspace created.";
-                }}
-              >
-                <Field label="Workspace name">
-                  <input name="name" required maxLength={100} />
-                </Field>
-                <Field label="Workspace type">
-                  <select name="type">
-                    <option value="FAMILY">Family</option>
-                    <option value="BUSINESS">Business</option>
-                  </select>
-                </Field>
-                <Field label="Workspace timezone">
-                  <input
-                    name="timezone"
-                    required
-                    defaultValue={
-                      Intl.DateTimeFormat().resolvedOptions().timeZone
-                    }
-                  />
-                </Field>
-              </ActionForm>
-            </Card>
-            <Card title="Join a workspace">
-              <ActionForm
-                submit="Accept invitation"
-                reset
-                action={async (form) => {
-                  await api("/workspaces/invitations/accept", "POST", {
-                    token: text(form, "token"),
-                  });
-                  workspacesChanged();
-                  return "Invitation accepted.";
-                }}
-              >
-                <Field label="Invitation token">
-                  <input
-                    name="token"
-                    required
-                    pattern="[A-Za-z0-9_-]{43}"
-                    autoComplete="off"
-                  />
-                </Field>
-              </ActionForm>
-            </Card>
-          </div>
         </>
       )}
     </>

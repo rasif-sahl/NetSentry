@@ -495,11 +495,23 @@ test("team invitations bind a recipient and management changes take effect", asy
   ).toBeVisible();
   await guest.getByRole("link", { name: "Team", exact: true }).click();
   await openTab(guest, "Workspaces");
-  await guest.getByLabel("Invitation token").fill(token);
-  await guest
+  const invitationTrigger = guest.getByRole("button", {
+    name: "Accept invitation",
+    exact: true,
+  });
+  const invitationDialog = guest.getByRole("dialog", {
+    name: "Accept invitation",
+  });
+  await expect(invitationDialog).toBeHidden();
+  await invitationTrigger.click();
+  await expect(invitationDialog.getByLabel("Invitation token")).toBeFocused();
+  await invitationDialog.getByLabel("Invitation token").fill(token);
+  await invitationDialog
     .getByRole("button", { name: "Accept invitation", exact: true })
     .click();
   await expect(guest.getByText(/Invitation accepted/)).toBeVisible();
+  await expect(invitationDialog).toBeHidden();
+  await expect(invitationTrigger).toBeFocused();
   await expect(
     guest
       .getByRole("list", { name: "Your workspaces" })
@@ -560,19 +572,36 @@ test("a verified user can create and switch to a new workspace", async ({
   await expect(
     family.getByRole("button", { name: "Active workspace: Fixture family" }),
   ).toHaveAttribute("aria-current", "true");
-  await page
-    .getByLabel("Workspace name", { exact: true })
-    .fill("Browser-created workspace");
-  await page
+  const createTrigger = page.getByRole("button", {
+    name: "Create workspace",
+    exact: true,
+  });
+  const createDialog = page.getByRole("dialog", { name: "Create workspace" });
+  const workspaceName = createDialog.getByLabel("Workspace name", {
+    exact: true,
+  });
+  await expect(createDialog).toBeHidden();
+  await createTrigger.press("Enter");
+  await expect(workspaceName).toBeFocused();
+  await workspaceName.fill("Discard this draft");
+  await page.keyboard.press("Escape");
+  await expect(createDialog).toBeHidden();
+  await expect(createTrigger).toBeFocused();
+  await createTrigger.click();
+  await expect(workspaceName).toHaveValue("");
+  await workspaceName.fill("Browser-created workspace");
+  await createDialog
     .getByLabel("Workspace type", { exact: true })
     .selectOption("BUSINESS");
-  await page
+  await createDialog
     .getByLabel("Workspace timezone", { exact: true })
     .fill("Asia/Colombo");
-  await page
+  await createDialog
     .getByRole("button", { name: "Create workspace", exact: true })
     .click();
   await expect(page.getByText(/Workspace created/)).toBeVisible();
+  await expect(createDialog).toBeHidden();
+  await expect(createTrigger).toBeFocused();
   await expect(
     list.getByText("Browser-created workspace", { exact: true }),
   ).toBeVisible();
@@ -628,9 +657,13 @@ test("a verified user can create and switch to a new workspace", async ({
   await expect(
     family.getByRole("button", { name: "Active workspace: Fixture family" }),
   ).toBeFocused();
-  await expect(
-    page.getByRole("heading", { name: "Create a workspace" }),
-  ).toBeVisible();
+  await createTrigger.click();
+  await expect(createDialog).toBeVisible();
+  const dialogBounds = (await createDialog.boundingBox())!;
+  expect(dialogBounds.x).toBeGreaterThanOrEqual(0);
+  expect(dialogBounds.x + dialogBounds.width).toBeLessThanOrEqual(320);
+  await createDialog.getByRole("button", { name: "Close dialog" }).click();
+  await expect(createTrigger).toBeFocused();
 });
 
 test("profile, appearance, retention, sessions and personal export use the backend", async ({
