@@ -6,7 +6,6 @@ import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,7 +29,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -236,8 +233,8 @@ private fun PersonalContent(model: PersonalViewModel) {
                 return@key
             }
             Column(
-                screenModifier.verticalScroll(rememberScrollState()).padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                screenModifier.verticalScroll(rememberScrollState()).padding(AppSpacing.screen),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.section),
             ) {
                 header()
                 if (!signedIn) {
@@ -246,6 +243,7 @@ private fun PersonalContent(model: PersonalViewModel) {
                     key(state.profile?.optString("id"), state.workspaceId) {
                         verifyEmail()
                         if (destination == null) {
+                            if (tab == "Home") HomeSummary(state, workspaceName)
                             mobileDestinations.getValue(tab).forEach { label ->
                                 NavigationCard(label, onClick = { destination = label })
                             }
@@ -254,7 +252,7 @@ private fun PersonalContent(model: PersonalViewModel) {
                                 "Workspace selection" ->
                                     Panel("Workspace") {
                                         state.workspaces.forEach { workspace ->
-                                            OutlinedButton(
+                                            SecondaryActionButton(
                                                 onClick = {
                                                     model.run("Workspace selected") {
                                                         selectWorkspace(workspace.getString("id"))
@@ -267,7 +265,13 @@ private fun PersonalContent(model: PersonalViewModel) {
                                                 )
                                             }
                                         }
-                                        Action("Refresh account and workspace", model) { refresh() }
+                                        Action(
+                                            "Refresh account and workspace",
+                                            model,
+                                            secondary = true,
+                                        ) {
+                                            refresh()
+                                        }
                                     }
                                 "This phone",
                                 "Device inventory",
@@ -360,7 +364,7 @@ private fun SignIn(model: PersonalViewModel, currentBase: String) {
             { password = it },
             secret = true,
         )
-        Button(
+        PrimaryActionButton(
             onClick = {
                 val secret = password
                 password = ""
@@ -388,7 +392,7 @@ private fun SignIn(model: PersonalViewModel, currentBase: String) {
             publicAction(base, "/auth/password/forgot", json("email" to email))
         }
         Input("Verification or recovery token from email", token, { token = it }, secret = true)
-        Button(
+        PrimaryActionButton(
             onClick = {
                 val code = token
                 token = ""
@@ -400,7 +404,7 @@ private fun SignIn(model: PersonalViewModel, currentBase: String) {
         ) {
             Text("Verify email token")
         }
-        Button(
+        PrimaryActionButton(
             onClick = {
                 val code = token
                 val secret = password
@@ -436,13 +440,13 @@ private fun Phone(state: Repository.View, model: PersonalViewModel, section: Str
             Text(
                 "Usage access is a separate Android setting, not a runtime permission dialog. It allows aggregate phone data queries; App/screen usage needs the separate app-usage-v1 choice below. No contacts, messages, subscriber identifiers or location are requested."
             )
-            OutlinedButton(onClick = { open(Settings.ACTION_USAGE_ACCESS_SETTINGS) }) {
+            SecondaryActionButton(onClick = { open(Settings.ACTION_USAGE_ACCESS_SETTINGS) }) {
                 Text("Review usage access")
             }
             Text(
                 "Battery optimizations may delay 15-minute work. No continuous collection is promised. Review the system settings yourself; NetSentry does not request an automatic exemption."
             )
-            OutlinedButton(
+            SecondaryActionButton(
                 onClick = { open(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS) }
             ) {
                 Text("Review battery settings")
@@ -450,7 +454,7 @@ private fun Phone(state: Repository.View, model: PersonalViewModel, section: Str
             Text(
                 "Hotspot state/client counts and per-client traffic: unavailable on this public API 35 baseline. Phone totals are not tethered-client measurements."
             )
-            OutlinedButton(onClick = { open(Settings.ACTION_WIRELESS_SETTINGS) }) {
+            SecondaryActionButton(onClick = { open(Settings.ACTION_WIRELESS_SETTINGS) }) {
                 Text("Open wireless settings")
             }
         }
@@ -535,7 +539,11 @@ private fun Phone(state: Repository.View, model: PersonalViewModel, section: Str
                         )
                         .forEach { (action, label) ->
                             var confirm by remember { mutableStateOf(false) }
-                            DangerButton(onClick = { confirm = true }, enabled = !model.busy) {
+                            SecondaryActionButton(
+                                onClick = { confirm = true },
+                                enabled = !model.busy,
+                                destructive = true,
+                            ) {
                                 Text(label)
                             }
                             if (confirm)
@@ -567,23 +575,112 @@ private fun Phone(state: Repository.View, model: PersonalViewModel, section: Str
 }
 
 @Composable
+private fun HomeSummary(state: Repository.View, workspaceName: String?) {
+    val phone = state.ownDevice
+    val inWorkspace = phone != null && phone.optString("workspaceId") == state.workspaceId
+    val permission = if (inWorkspace) phone?.optString("permissionStatus") else null
+    Panel("At a glance") {
+        Text("Workspace: ${workspaceName?.takeIf { it.isNotBlank() } ?: "Not selected"}")
+        Text(
+            "This phone: " +
+                when {
+                    phone == null -> "Setup required"
+                    !inWorkspace -> "Enrolled in another workspace"
+                    else -> phone.optString("name").ifBlank { "Enrolled" }
+                }
+        )
+        Text(
+            "Reported usage access: " +
+                when (permission) {
+                    "granted" -> "Granted"
+                    "denied" -> "Denied"
+                    "revoked" -> "Revoked"
+                    else -> "Unavailable"
+                }
+        )
+        Text(
+            "Workspace monitoring: " +
+                when {
+                    !inWorkspace || phone == null || phone.isNull("monitoringEnabled") ->
+                        "Unavailable"
+                    phone.optBoolean("monitoringEnabled") -> "Enabled"
+                    else -> "Disabled"
+                }
+        )
+    }
+}
+
+@Composable
 private fun Usage(state: Repository.View, model: PersonalViewModel, section: String) {
-    var metric by remember { mutableStateOf("mobile_data_bytes") }
-    var period by remember { mutableStateOf("day") }
+    val loaded = state.report.takeIf { section == "Usage reports" }
+    var metric by rememberSaveable {
+        mutableStateOf(loaded?.optString("metric").orEmpty().ifBlank { "mobile_data_bytes" })
+    }
+    var period by rememberSaveable {
+        mutableStateOf(loaded?.optString("period").orEmpty().ifBlank { "day" })
+    }
     var bytes by remember { mutableStateOf("") }
     var estimated by remember { mutableStateOf(true) }
-    Action("Refresh alerts and notifications", model) { refresh() }
-    if (section == "Usage reports")
+    if (section == "Usage reports") {
+        var filtersOpen by rememberSaveable { mutableStateOf(false) }
+        if (filtersOpen) {
+            var draftMetric by rememberSaveable { mutableStateOf(metric) }
+            var draftPeriod by rememberSaveable { mutableStateOf(period) }
+            ReportFilterSheet(
+                title = "Usage report filters",
+                canApply = !model.busy,
+                onDismiss = { filtersOpen = false },
+                onApply = {
+                    val appliedMetric = draftMetric
+                    val appliedPeriod = draftPeriod
+                    metric = appliedMetric
+                    period = appliedPeriod
+                    filtersOpen = false
+                    model.run("Action confirmed") { loadReport(appliedPeriod, appliedMetric) }
+                },
+            ) {
+                Text("Metric")
+                Choices(
+                    listOf("mobile_data_bytes", "wifi_data_bytes"),
+                    draftMetric,
+                    ::reportMetricLabel,
+                ) {
+                    draftMetric = it
+                }
+                Text("Group by")
+                Choices(listOf("day", "week", "month"), draftPeriod, ::reportPeriodLabel) {
+                    draftPeriod = it
+                }
+            }
+        }
         Panel("Mobile and Wi-Fi usage") {
             Text(
                 "Phone aggregate totals from Android OS accounting. Interval attribution is estimated and must be compared with Settings on a real phone. Missing values are not zero. Reporting uses workspace timezone."
             )
-            Choices(listOf("mobile_data_bytes", "wifi_data_bytes"), metric) { metric = it }
-            Choices(listOf("day", "week", "month"), period) { period = it }
-            Action("Load usage report", model) { loadReport(period, metric) }
+            Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.action)) {
+                SecondaryActionButton(
+                    onClick = { filtersOpen = true },
+                    enabled = !model.busy,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("Filters")
+                }
+                PrimaryActionButton(
+                    onClick = {
+                        val appliedPeriod = period
+                        val appliedMetric = metric
+                        model.run("Action confirmed") { loadReport(appliedPeriod, appliedMetric) }
+                    },
+                    enabled = !model.busy,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("Refresh report")
+                }
+            }
+            if (state.report == null) Text("No usage report loaded.")
             state.report?.let { report ->
                 Text(
-                    "${report.optString("metric")} · ${report.optString("from")} to ${report.optString("to")} · ${report.optString("timezone")}"
+                    "${reportMetricLabel(report.optString("metric"))} · ${report.optString("from")} to ${report.optString("to")} · ${report.optString("timezone")}"
                 )
                 report.array("buckets").forEach { bucket ->
                     Text(
@@ -598,7 +695,8 @@ private fun Usage(state: Repository.View, model: PersonalViewModel, section: Str
                 }
             }
         }
-    if (section != "Usage reports")
+    } else {
+        Action("Refresh alerts and notifications", model, secondary = true) { refresh() }
         Panel(
             if (section == "In-app notifications") "In-app notifications"
             else "Allowances and data alerts"
@@ -607,8 +705,14 @@ private fun Usage(state: Repository.View, model: PersonalViewModel, section: Str
                 Text(
                     "Create a server threshold for this phone and chosen period. Alerts are evaluated by scheduled server maintenance; in-app delivery is available, push delivery is not configured."
                 )
-                Choices(listOf("mobile_data_bytes", "wifi_data_bytes"), metric) { metric = it }
-                Choices(listOf("day", "week", "month"), period) { period = it }
+                Choices(
+                    listOf("mobile_data_bytes", "wifi_data_bytes"),
+                    metric,
+                    ::reportMetricLabel,
+                ) {
+                    metric = it
+                }
+                Choices(listOf("day", "week", "month"), period, ::reportPeriodLabel) { period = it }
                 Input(
                     "Allowance in bytes (maximum 9007199254)",
                     bytes,
@@ -678,6 +782,7 @@ private fun Usage(state: Repository.View, model: PersonalViewModel, section: Str
                 }
             }
         }
+    }
 }
 
 @Composable
@@ -715,6 +820,7 @@ private fun Computers(state: Repository.View, model: PersonalViewModel, historyO
                 )
                 if (!historyOnly)
                     computer.array("services").forEach { service ->
+                        HorizontalDivider()
                         Text(
                             "${service.optString("project")} · ${service.optString("runtime")} · PID ${service.optInt("pid")} · ports ${service.optJSONArray("ports")}"
                         )
@@ -731,7 +837,8 @@ private fun Computers(state: Repository.View, model: PersonalViewModel, historyO
                                 service.optBoolean("canStop") &&
                                 now - observed in 0..10_000
                         listOf("graceful", "force").forEach { mode ->
-                            OutlinedButton(
+                            SecondaryActionButton(
+                                destructive = mode == "force",
                                 onClick = {
                                     selectedDescription =
                                         "${computer.optString("name")} · ${service.optString("project")} · ${service.optString("runtime")} · PID ${service.optInt("pid")} · ports ${service.optJSONArray("ports")} · started ${service.optString("startedAt")}"
@@ -761,6 +868,7 @@ private fun Computers(state: Repository.View, model: PersonalViewModel, historyO
                     Text("No commands yet.")
                 if (historyOnly)
                     state.commands[computer.optString("id")]?.forEach { command ->
+                        HorizontalDivider()
                         val target = command.optJSONObject("target")
                         Text(
                             "${target?.optString("project")} · PID ${target?.optInt("pid")} · ${command.optString("mode")}"
@@ -801,7 +909,7 @@ private fun Computers(state: Repository.View, model: PersonalViewModel, historyO
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.action)) {
                     Text(
                         "This targets the captured process and its listeners. ${if (intent.mode == "force") "SIGKILL may discard unfinished work." else "SIGTERM may be ignored."} A supervisor may replace it."
                     )
@@ -862,9 +970,9 @@ private fun SettingsScreen(state: Repository.View, model: PersonalViewModel, sec
                 )
                 Row(
                     Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.action),
                 ) {
-                    for (theme in listOf("SYSTEM", "LIGHT", "DARK")) OutlinedButton(
+                    for (theme in listOf("SYSTEM", "LIGHT", "DARK")) SecondaryActionButton(
                         onClick = { model.run("Appearance saved") { appearance(theme) } },
                         enabled = !model.busy,
                     ) {
@@ -898,7 +1006,7 @@ private fun SettingsScreen(state: Repository.View, model: PersonalViewModel, sec
             }
             if (section == "Profile & appearance") {
                 Input("Email verification token", token, { token = it }, secret = true)
-                Button(
+                PrimaryActionButton(
                     onClick = {
                         val code = token
                         token = ""
@@ -929,7 +1037,7 @@ private fun SettingsScreen(state: Repository.View, model: PersonalViewModel, sec
                 { password = it },
                 secret = true,
             )
-            Button(
+            PrimaryActionButton(
                 onClick = {
                     val secret = password
                     password = ""
@@ -940,7 +1048,8 @@ private fun SettingsScreen(state: Repository.View, model: PersonalViewModel, sec
                 Text("Prepare personal data export")
             }
             Input("Type DELETE to delete your account", confirmation, { confirmation = it })
-            DangerButton(
+            SecondaryActionButton(
+                destructive = true,
                 onClick = { deleting = true },
                 enabled = !model.busy && password.isNotEmpty() && confirmation == "DELETE",
             ) {
@@ -973,7 +1082,10 @@ internal fun Panel(title: String, content: @Composable () -> Unit) {
         shape = RoundedCornerShape(13.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(
+            Modifier.padding(AppSpacing.card),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.section),
+        ) {
             Text(
                 title,
                 style = MaterialTheme.typography.titleLarge,
@@ -997,7 +1109,7 @@ internal fun Input(
         onValueChange = change,
         label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(5.dp),
+        shape = RoundedCornerShape(AppSpacing.section),
         singleLine = true,
         visualTransformation =
             if (secret) PasswordVisualTransformation() else VisualTransformation.None,
@@ -1037,22 +1149,42 @@ internal fun Action(
     label: String,
     model: PersonalViewModel,
     enabled: Boolean = true,
+    secondary: Boolean = false,
     action: Repository.() -> Unit,
 ) {
-    Button(onClick = { model.run("Action confirmed", action) }, enabled = enabled && !model.busy) {
-        Text(label)
+    val onClick = { model.run("Action confirmed", action) }
+    val available = enabled && !model.busy
+    if (secondary) {
+        SecondaryActionButton(onClick = onClick, enabled = available) { Text(label) }
+    } else {
+        PrimaryActionButton(onClick = onClick, enabled = available) { Text(label) }
     }
 }
 
+private fun reportMetricLabel(metric: String): String =
+    when (metric) {
+        "mobile_data_bytes" -> "Mobile data"
+        "wifi_data_bytes" -> "Wi-Fi data"
+        else -> metric
+    }
+
+internal fun reportPeriodLabel(period: String): String =
+    period.replaceFirstChar { it.uppercaseChar() }
+
 @Composable
-internal fun Choices(values: List<String>, selected: String, choose: (String) -> Unit) {
+internal fun Choices(
+    values: List<String>,
+    selected: String,
+    label: (String) -> String,
+    choose: (String) -> Unit,
+) {
     Row(
         Modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.action),
     ) {
         values.forEach { value ->
-            OutlinedButton(onClick = { choose(value) }) {
-                Text("${if (selected == value) "✓ " else ""}$value")
+            SecondaryActionButton(onClick = { choose(value) }) {
+                Text("${if (selected == value) "✓ " else ""}${label(value)}")
             }
         }
     }
@@ -1080,17 +1212,4 @@ private fun Confirm(
         },
         dismissButton = { TextButton(onClick = onClose) { Text("Cancel") } },
     )
-}
-
-@Composable
-private fun DangerButton(onClick: () -> Unit, enabled: Boolean, content: @Composable () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        enabled = enabled,
-        colors =
-            ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
-    ) {
-        content()
-    }
 }

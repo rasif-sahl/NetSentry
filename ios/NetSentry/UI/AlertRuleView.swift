@@ -26,13 +26,17 @@ struct AlertRuleView: View {
                             "screen_time_seconds", "application_foreground_seconds",
                             "mobile_data_bytes", "wifi_data_bytes",
                         ], id: \.self
-                    ) { Text($0.replacingOccurrences(of: "_", with: " ")) }
+                    ) { metric in
+                        Text(reportMetricName(metric)).tag(metric)
+                    }
                 }
                 Picker("Quality", selection: $quality) {
                     Text("Measured").tag("measured"); Text("Estimated").tag("estimated")
                 }
                 Picker("Period", selection: $period) {
-                    ForEach(["day", "week", "month"], id: \.self) { Text($0) }
+                    ForEach(["day", "week", "month"], id: \.self) { period in
+                        Text(period.capitalized).tag(period)
+                    }
                 }
             }
             if kind != "permission_revoked" {
@@ -44,7 +48,7 @@ struct AlertRuleView: View {
             Text(
                 "In-app delivery only. iOS push is unconfigured. Rules evaluate actual server observations; creating a rule does not enable iOS usage collection or local shielding."
             ).font(.footnote)
-            Button("Create enabled warning rule") {
+            AppAction("Create enabled warning rule", primary: true) {
                 model.run {
                     try await $0.createRule(
                         kind: kind, metric: metric,

@@ -34,9 +34,29 @@ function routeFor(index) {
   }
   return ["More", "Privacy & account"];
 }
-function items(content) {
+function rows(content) {
+  return content.map(([key, value]) => `<div class="key-value"><dt>${esc(key)}</dt><dd>${esc(value)}</dd></div>`).join("");
+}
+function homeSummary() {
+  const content = platform === "android"
+    ? [["Workspace", "My Network"], ["This phone", "My Android phone"], ["Reported usage access", "Granted"], ["Workspace monitoring", "Disabled"]]
+    : [["Workspace", "My Network"], ["This phone", "Paired"], ["Reported permission", "Unavailable"]];
+  return `<section class="home-summary"><h2>At a glance</h2><dl>${rows(content)}</dl></section>`;
+}
+function items(content, interactive) {
   return content
     .map(([type, text]) => {
+      if (type === "filters") {
+        const label = text === "usage" ? "Filters" : "Report filters";
+        const trigger = interactive
+          ? `<button type="button" class="o" data-open-filters aria-haspopup="dialog">${label}</button>`
+          : `<span class="o">${label}</span>`;
+        return `<div class="item report-actions">${trigger}${text === "usage" ? '<span class="b">Refresh report</span>' : ""}</div>`;
+      }
+      if (type === "kv") {
+        const [key, value] = text.split("|");
+        return `<dl class="item summary-value">${rows([[key, value]])}</dl>`;
+      }
       if (type === "dialog") {
         const [title, body, confirm, cancel] = text.split("|");
         return `<section class="dialog"><h3>${esc(title)}</h3><p>${esc(body)}</p><footer><span>${esc(cancel)}</span><strong>${esc(confirm)}</strong></footer></section>`;
@@ -45,6 +65,21 @@ function items(content) {
     })
     .join("");
 }
+function filterSheet(kind) {
+  const title = kind === "usage" ? "Usage report filters" : "Application report filters";
+  function choice(name, label, options) {
+    return `<fieldset><legend>${label}</legend><div class="filter-options">${options.map((option, index) =>
+      `<label><input type="radio" name="${name}" value="${esc(option)}"${index === 0 ? " checked" : ""}><span>${esc(option)}</span></label>`,
+    ).join("")}</div></fieldset>`;
+  }
+  const firstField = kind === "usage"
+    ? choice("metric", "Metric", ["Mobile data", "Wi-Fi data"])
+    : choice("device", "Device", ["My Android phone"]);
+  const extraFields = kind === "application"
+    ? '<label>Optional application ID filter <input type="text" name="application"></label><label>Optional category ID filter <input type="text" name="category"></label>'
+    : "";
+  return `<div class="filter-overlay" hidden><dialog class="filter-sheet" aria-label="${title}"><div class="sheet-handle" aria-hidden="true"></div><form><h2>${title}</h2>${firstField}${choice("period", "Group by", ["Day", "Week", "Month"])}${extraFields}<div class="filter-actions"><button class="o" type="button" data-dismiss-filters>Cancel</button><button class="b" type="submit">Apply filters</button></div></form></dialog></div>`;
+}
 function phone({ main, label, screen, menu = false, interactive = false }) {
   const auth = screen?.section.startsWith("Account");
   const link = (text, index) =>
@@ -52,12 +87,46 @@ function phone({ main, label, screen, menu = false, interactive = false }) {
       ? `<button class="menu-link" data-dest="${index}"><span>${esc(text)}</span><span aria-hidden="true">›</span></button>`
       : `<div class="menu-link"><span>${esc(text)}</span><span>›</span></div>`;
   const body = menu
-    ? Object.keys(navigation[platform][main]).map(link).join("")
-    : `<div class="panel">${items(screen.items)}</div>`;
+    ? (main === "Home" ? homeSummary() : "") +
+      `<div class="menu">${Object.keys(navigation[platform][main]).map(link).join("")}</div>`
+    : `<div class="panel">${items(screen.items, interactive)}</div>`;
+  const filter = interactive && screen?.items.find(([type]) => type === "filters");
   const bottom = auth
     ? ""
     : `<nav class="bottom" aria-label="Main navigation">${mainTabs.map((name, i) => `<button ${interactive ? `data-tab="${i}"` : 'tabindex="-1"'} ${name === main ? 'aria-current="page"' : ""} class="${name === main ? "active" : ""}"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true">${icons[name]}</svg></span>${name}</button>`).join("")}</nav>`;
-  return `<div class="phone ${platform} ${auth ? "auth" : ""}"><div class="status"><span>9:41</span><span>▴ ◔ ▰</span></div><div class="apphead">${!menu && !auth ? (interactive ? `<button class="back" id="back">‹ Back to ${esc(main)}</button>` : `<div class="back">‹ Back to ${esc(main)}</div>`) : ""}<div class="brand">${auth ? "NetSentry" : esc(menu ? main : label)}</div>${auth || menu ? "" : `<div class="caption">${esc(screen.title)}</div>`}</div><div class="content">${body}</div>${bottom}<div class="home"></div></div>`;
+  return `<div class="phone ${platform} ${auth ? "auth" : ""}"><div class="status"><span>9:41</span><span>▴ ◔ ▰</span></div><div class="apphead">${!menu && !auth ? (interactive ? `<button class="back" id="back">‹ Back to ${esc(main)}</button>` : `<div class="back">‹ Back to ${esc(main)}</div>`) : ""}<div class="brand">${auth ? "NetSentry" : esc(menu ? main : label)}</div>${auth || menu ? "" : `<div class="caption">${esc(screen.title)}</div>`}</div><div class="content">${body}</div>${bottom}<div class="home"></div>${filter ? filterSheet(filter[1]) : ""}</div>`;
+}
+function bindFilters(container) {
+  const trigger = container.querySelector("[data-open-filters]");
+  if (!trigger) return;
+  const overlay = container.querySelector(".filter-overlay");
+  const dialog = overlay.querySelector("dialog");
+  const form = dialog.querySelector("form");
+  const background = [...trigger.closest(".phone").children].filter((child) => child !== overlay);
+  let applied = new FormData(form);
+  trigger.addEventListener("click", () => {
+    for (const field of form.elements) {
+      if (field.type === "radio") field.checked = field.value === applied.get(field.name);
+      else if (field.type === "text") field.value = applied.get(field.name);
+    }
+    overlay.hidden = false;
+    for (const child of background) child.inert = true;
+    dialog.show();
+  });
+  dialog.addEventListener("close", () => {
+    overlay.hidden = true;
+    for (const child of background) child.inert = false;
+    trigger.focus();
+  });
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") dialog.close();
+  });
+  dialog.querySelector("[data-dismiss-filters]").onclick = () => dialog.close();
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    applied = new FormData(form);
+    dialog.close();
+  });
 }
 function saveLocation() {
   if (sheet) return;
@@ -157,6 +226,7 @@ function render() {
       }) +
       '<p class="caption">Source-based design approximation. Native UI rendering and device validation are pending. No monitoring or remote action occurs in this preview.</p>';
     bindNavigation(preview);
+    bindFilters(preview);
     preview.querySelector("#variants")?.addEventListener("change", (e) => {
       variant = Number(e.target.value);
       render();

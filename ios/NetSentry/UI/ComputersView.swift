@@ -12,7 +12,7 @@ struct ComputersView: View {
                 Text(
                     "Refresh and confirm the exact project and PID. The computer must be online with current server grants and local control enabled. Requests are never queued offline."
                 ).font(.footnote)
-                Button("Refresh computers and command history") {
+                AppAction("Refresh computers and command history") {
                     model.run { try await $0.desktop() }
                 }
             }
@@ -24,10 +24,10 @@ struct ComputersView: View {
                     Text(
                         "Check history before doing anything else. A lost response does not mean the server rejected the stop. Retry sends the same body and ID only while its original observation is fresh."
                     ).font(.footnote)
-                    Button("Retry exact confirmed request") {
+                    AppAction("Retry exact confirmed request") {
                         model.run { try await $0.submitStop(pending) }
                     }
-                    Button("Dismiss local intent") {
+                    AppAction("Dismiss local intent") {
                         model.run { try await $0.dismissPendingStop() }
                     }
                     Text("Dismissing does not cancel a command on the server.").font(.footnote)
@@ -43,7 +43,7 @@ struct ComputersView: View {
                     ).font(.caption)
                     if !historyOnly {
                         ForEach(computer.services, id: \.serviceId) { service in
-                            VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: AppSpacing.actionGap) {
                                 Text(
                                     service.project.isEmpty
                                         ? "Unidentified project" : service.project
@@ -54,10 +54,10 @@ struct ComputersView: View {
                                 Text(
                                     "Observed \(service.observedAt) · \(service.childCount) children"
                                 ).font(.caption)
-                                Button("Review graceful stop") {
+                                AppAction("Review graceful stop") {
                                     choose(service, computer: computer.id, force: false)
                                 }.disabled(!service.canStop || !computer.canControl)
-                                Button("Review force stop", role: .destructive) {
+                                AppAction("Review force stop", role: .destructive) {
                                     choose(service, computer: computer.id, force: true)
                                 }.disabled(!service.canStop || !computer.canControl)
                             }
@@ -73,7 +73,7 @@ struct ComputersView: View {
                                 title: "\(command["state"].text) · \(command["mode"].text)",
                                 value: command)
                             if ["pending", "accepted"].contains(command["state"].text) {
-                                Button("Cancel pending command") {
+                                AppAction("Cancel pending command") {
                                     model.run {
                                         try await $0.cancelCommand(
                                             agentID: computer.id, commandID: command["id"].text)
@@ -105,7 +105,7 @@ struct ComputersView: View {
                     }
                     Toggle("Include observed children", isOn: $children).disabled(
                         item.service.childCount > 16)
-                    Button("Confirm \(mode) stop", role: .destructive) {
+                    AppAction("Confirm \(mode) stop", role: .destructive, primary: true) {
                         let service = item.service, id = computerID, chosenMode = mode,
                             include = children
                         selected = nil
@@ -116,7 +116,7 @@ struct ComputersView: View {
                             try await repo.submitStop(intent)
                         }
                     }
-                    Button("Cancel") { selected = nil }
+                    AppAction("Cancel") { selected = nil }
                     Text(
                         "If the observation is older than 10 seconds, cancel and refresh. No server command or arbitrary PID can be entered here."
                     ).font(.footnote)

@@ -10,14 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -38,64 +37,99 @@ internal fun ApplicationScreen(
     modifier: Modifier,
     header: @Composable () -> Unit,
 ) {
-    var period by remember { mutableStateOf("day") }
-    var application by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
-    var device by remember { mutableStateOf(state.ownDevice?.optString("id") ?: "") }
+    val report = state.applicationReport
+    var period by rememberSaveable {
+        mutableStateOf(report?.optString("period").orEmpty().ifBlank { "day" })
+    }
+    var application by rememberSaveable { mutableStateOf("") }
+    var category by rememberSaveable { mutableStateOf("") }
+    var device by rememberSaveable {
+        mutableStateOf(
+            report?.optString("deviceId").orEmpty().ifBlank {
+                state.ownDevice?.optString("id").orEmpty()
+            }
+        )
+    }
     var categoryName by remember { mutableStateOf("") }
     var correction by remember { mutableStateOf("unknown") }
     var seconds by remember { mutableStateOf("3600") }
-    val report = state.applicationReport
+    var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    if (filtersOpen) {
+        var draftDevice by rememberSaveable { mutableStateOf(device) }
+        var draftPeriod by rememberSaveable { mutableStateOf(period) }
+        var draftApplication by rememberSaveable { mutableStateOf(application) }
+        var draftCategory by rememberSaveable { mutableStateOf(category) }
+        ReportFilterSheet(
+            title = "Application report filters",
+            canApply = !model.busy && draftDevice.isNotBlank(),
+            onDismiss = { filtersOpen = false },
+            onApply = {
+                val appliedDevice = draftDevice
+                val appliedPeriod = draftPeriod
+                val appliedApplication = draftApplication
+                val appliedCategory = draftCategory
+                device = appliedDevice
+                period = appliedPeriod
+                application = appliedApplication
+                category = appliedCategory
+                filtersOpen = false
+                model.run("Action confirmed") {
+                    loadApplications(
+                        appliedPeriod,
+                        appliedApplication,
+                        appliedCategory,
+                        appliedDevice,
+                    )
+                }
+            },
+        ) {
+            Text("Device")
+            if (state.devices.isEmpty()) Text("No devices available.")
+            state.devices.forEach { phone ->
+                SecondaryActionButton(
+                    onClick = { draftDevice = phone.getString("id") },
+                    enabled = !model.busy,
+                ) {
+                    Text(
+                        "${if (draftDevice == phone.optString("id")) "✓ " else ""}${phone.optString("name")}"
+                    )
+                }
+            }
+            Text("Group by")
+            Choices(listOf("day", "week", "month"), draftPeriod, ::reportPeriodLabel) {
+                draftPeriod = it
+            }
+            if (section == "Application usage") {
+                Input("Optional application ID filter", draftApplication, { draftApplication = it })
+                Input(
+                    "Optional category ID filter (name/UUID from below)",
+                    draftCategory,
+                    { draftCategory = it },
+                )
+            }
+        }
+    }
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(AppSpacing.screen),
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.section),
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.section)) {
                 header()
                 if (section != "Application usage") {
                     Text(
                         "Choose a device and load its application report for categories or timeline evidence."
                     )
-                    state.devices.forEach { phone ->
-                        OutlinedButton(
-                            onClick = { device = phone.getString("id") },
-                            enabled = !model.busy,
-                        ) {
-                            Text(phone.optString("name"))
-                        }
-                    }
-                    Choices(listOf("day", "week", "month"), period) { period = it }
-                    Action("Load application report", model, device.isNotBlank()) {
-                        loadApplications(period, application, category, device)
-                    }
+                }
+                SecondaryActionButton(onClick = { filtersOpen = true }, enabled = !model.busy) {
+                    Text("Report filters")
                 }
                 if (section == "Application usage")
                     Panel("Screen time and application usage") {
                         Text(
-                            "Enable app-usage-v1 on the Phone tab first. Foreground-entry counts describe the accepted event stream, not cold starts. Unknown counts stay unknown; OS event gaps and multi-window behavior require device testing."
+                            "Enable app-usage-v1 under Home → This phone first. Foreground-entry counts describe the accepted event stream, not cold starts. Unknown counts stay unknown; OS event gaps and multi-window behavior require device testing."
                         )
-                        state.devices.forEach { phone ->
-                            OutlinedButton(
-                                onClick = { device = phone.getString("id") },
-                                enabled = !model.busy,
-                            ) {
-                                Text(
-                                    "${if (device == phone.optString("id")) "✓ " else ""}${phone.optString("name")}"
-                                )
-                            }
-                        }
-                        Choices(listOf("day", "week", "month"), period) { period = it }
-                        Input("Optional application ID filter", application, { application = it })
-                        Input(
-                            "Optional category ID filter (name/UUID from below)",
-                            category,
-                            { category = it },
-                        )
-                        Action("Load application report", model, device.isNotBlank()) {
-                            loadApplications(period, application, category, device)
-                        }
                         if (report == null)
                             Text("No application report loaded. Missing data is not zero.")
                         report?.let {
@@ -117,7 +151,7 @@ internal fun ApplicationScreen(
                                     "${insight.optString("code")}: ${insight.optString("applicationId")} · ${insight.optDouble("seconds")}s. ${insight.optString("evidence")}"
                                 )
                             }
-                            Button(
+                            PrimaryActionButton(
                                 onClick = { model.exportApplications() },
                                 enabled = !model.busy,
                             ) {
@@ -187,7 +221,7 @@ internal fun ApplicationScreen(
             }
         if (section != "Application usage")
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.section)) {
                     if (section == "Categories & corrections")
                         Panel("Categories and custom corrections") {
                             Text(

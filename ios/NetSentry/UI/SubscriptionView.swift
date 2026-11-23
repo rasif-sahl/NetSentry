@@ -8,7 +8,9 @@ struct SubscriptionView: View {
                 Text(
                     "Subscription details are read-only. Purchases are currently unavailable. Your existing device permissions and monitoring settings apply."
                 ).font(.footnote)
-                Button("Refresh subscription") { model.run { try await $0.refreshSubscription() } }
+                AppAction("Refresh subscription") {
+                    model.run { try await $0.refreshSubscription() }
+                }
                 if model.snapshot?.subscription.isNull ?? true {
                     Text(
                         "No subscription details loaded. Refresh to view your workspace edition and limits."

@@ -37,6 +37,9 @@ const ios = fs.readFileSync(
     for (const platform of ["android", "ios"]) {
       await page.locator(`[data-platform="${platform}"]`).click();
       assert.equal(await page.locator("#preview .bottom button").count(), 5);
+      assert.ok(
+        await page.locator("#preview .home-summary").getByText("At a glance").isVisible(),
+      );
       for (const [tab, children] of Object.entries(routes[platform])) {
         await page
           .locator("#preview .bottom button")
@@ -82,6 +85,11 @@ const ios = fs.readFileSync(
       // Signed-out designs must not expose signed-in tabs.
       await page.locator("#mode").click();
       assert.equal(await page.locator("#gallery .entry").count(), 33);
+      const actions = page.locator("#gallery .item:is(.b,.o,.d)");
+      assert.ok(await actions.count());
+      assert.ok(await actions.evaluateAll(items =>
+        items.every(item => item.getBoundingClientRect().height >= 48),
+      ));
       assert.equal(
         await page.locator("#gallery .phone.auth .bottom").count(),
         0,
@@ -107,9 +115,37 @@ const ios = fs.readFileSync(
       ),
       true,
     );
+    await page.locator('[data-platform="android"]').click();
+    await page.locator("#preview .bottom").getByRole("button", { name: "Usage" }).click();
+    await page.locator("#preview").getByRole("button", { name: "Usage reports", exact: false }).click();
+    const filterButton = page.locator("#preview").getByRole("button", { name: "Filters", exact: true });
+    await filterButton.click();
+    const usageFilters = page.getByRole("dialog", { name: "Usage report filters" });
+    await usageFilters.getByText("Wi-Fi data", { exact: true }).click();
+    await usageFilters.getByText("Week", { exact: true }).click();
+    await usageFilters.getByRole("button", { name: "Apply filters" }).click();
+    await usageFilters.waitFor({ state: "hidden" });
+    await filterButton.click();
+    assert.ok(await usageFilters.getByRole("radio", { name: "Wi-Fi data" }).isChecked());
+    assert.ok(await usageFilters.getByRole("radio", { name: "Week" }).isChecked());
+    await page.keyboard.press("Escape");
+    await usageFilters.waitFor({ state: "hidden" });
+    await page.locator("#preview #back").click();
+    await page.locator("#preview .menu-link").filter({ hasText: "Application usage" }).click();
+    await page.locator("#preview").getByRole("button", { name: "Report filters" }).click();
+    const appFilters = page.getByRole("dialog", { name: "Application report filters" });
+    assert.ok(await appFilters.getByLabel("Optional application ID filter").isVisible());
+    await appFilters.getByRole("button", { name: "Cancel" }).click();
+    await appFilters.waitFor({ state: "hidden" });
+    await page.locator('[data-platform="ios"]').click();
+    await page.locator("#preview .bottom").getByRole("button", { name: "Usage" }).click();
+    await page.locator("#preview .menu-link").filter({ hasText: "Usage reports" }).click();
+    for (const label of ["Usage summary", "Measured total", "Estimated total", "Measured coverage"]) {
+      assert.ok(await page.locator("#preview").getByText(label, { exact: true }).isVisible());
+    }
     assert.deepEqual(errors, []);
     console.log(
-      `PASS ${checked} submenu destinations, all tab/back links, variants, search, signed-out tabs, browser Back and narrow layout. Native UI execution is not verified.`,
+      `PASS ${checked} submenu destinations, Home summaries, Android filter sheets, iOS usage summary, browser Back and narrow layout. Native UI execution is not verified.`,
     );
   } finally {
     await browser.close();

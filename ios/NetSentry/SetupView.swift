@@ -122,6 +122,38 @@ private struct SignedInNavigation: View {
     }
 }
 
+private struct HomeSummary: View {
+    let snapshot: ClientSnapshot
+
+    var body: some View {
+        let workspace = snapshot.workspaces.first { $0["id"].text == snapshot.workspaceID }
+        let phone = snapshot.device
+        let inWorkspace = phone?.workspaceID == snapshot.workspaceID && phone != nil
+        let record = inWorkspace ? snapshot.devices.first { $0["id"].text == phone?.id } : nil
+        Section("At a glance") {
+            LabeledContent("Workspace", value: workspace?["name"].text ?? "Not selected")
+            LabeledContent("This phone", value: phoneSetup(inWorkspace: inWorkspace))
+            LabeledContent(
+                "Reported permission", value: permissionLabel(record?["permissionStatus"].text))
+        }
+        .listRowBackground(AppAppearance.card)
+    }
+
+    private func phoneSetup(inWorkspace: Bool) -> String {
+        guard snapshot.device != nil else { return "Setup required" }
+        return inWorkspace ? "Paired" : "Paired in another workspace"
+    }
+
+    private func permissionLabel(_ status: String?) -> String {
+        switch status {
+        case "granted": "Granted"
+        case "denied": "Denied"
+        case "revoked": "Revoked"
+        default: "Unavailable"
+        }
+    }
+}
+
 private struct MobileMenu: View {
     @EnvironmentObject private var model: AppModel
     let tab: MobileTab
@@ -130,6 +162,9 @@ private struct MobileMenu: View {
             VStack(spacing: 0) {
                 NavigationStatus()
                 List {
+                    if tab == .home, let snapshot = model.snapshot {
+                        HomeSummary(snapshot: snapshot)
+                    }
                     Section {
                         ForEach(tab.destinations, id: \.self) { destination in
                             AppMenuRow(title: destination)
@@ -137,7 +172,7 @@ private struct MobileMenu: View {
                     }
                 }
                 .listStyle(.insetGrouped)
-                .environment(\.defaultMinListRowHeight, 48)
+                .environment(\.defaultMinListRowHeight, AppSpacing.rowHeight)
                 .scrollContentBackground(.hidden)
                 .background(AppAppearance.background)
             }
@@ -189,7 +224,7 @@ struct SignInView: View {
                     register ? .newPassword : .password)
                 Toggle("Create an account", isOn: $register)
                 if register { TextField("Display name", text: $name) }
-                Button(register ? "Create account" : "Sign in") {
+                AppAction(register ? "Create account" : "Sign in", primary: true) {
                     let secret = password; password = "";
                     model.run {
                         try await $0.authenticate(
@@ -201,17 +236,17 @@ struct SignInView: View {
                 TextField("Verification or reset token", text: $token).textInputAutocapitalization(
                     .never
                 ).autocorrectionDisabled().privacySensitive()
-                Button("Request password reset") {
+                AppAction("Request password reset") {
                     model.run { try await $0.recovery(base: base, action: "forgot", email: email) }
                 }
-                Button("Reset password using token") {
+                AppAction("Reset password using token") {
                     let secret = password, code = token; password = ""; token = "";
                     model.run {
                         try await $0.recovery(
                             base: base, action: "reset", token: code, password: secret)
                     }
                 }
-                Button("Verify email using token") {
+                AppAction("Verify email using token") {
                     let code = token; token = "";
                     model.run { try await $0.recovery(base: base, action: "verify", token: code) }
                 }
@@ -221,7 +256,7 @@ struct SignInView: View {
                     "Pairing is separate from monitoring consent. iOS device-wide mobile/Wi-Fi usage is unavailable. Screen Time requires separate Apple provisioning and authorization."
                 ).font(.footnote)
             }
-            Button("Clear local credentials", role: .destructive) { model.recoverLocal() }
+            AppAction("Clear local credentials", role: .destructive) { model.recoverLocal() }
         }
     }
 }

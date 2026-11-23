@@ -1,7 +1,6 @@
 package com.netsentry.app.ui
 
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,7 +20,7 @@ private fun BusinessContent(state: Repository.View, model: PersonalViewModel) {
     Text(
         "Use a Business workspace. Manage locations, departments, employees and reporting policies in the web dashboard. Organization sharing does not enable monitoring or grant OS permissions."
     )
-    Button(
+    SecondaryActionButton(
         onClick = { model.run("Business assignments refreshed") { refreshBusiness() } },
         enabled = !model.busy,
     ) {
@@ -50,6 +49,7 @@ private fun BusinessContent(state: Repository.View, model: PersonalViewModel) {
                 it.getString("deviceId") == device.getString("id")
             } ?: return@forEach
         if (assignment.getString("employeeId") !in ownProfiles) return@forEach
+        HorizontalDivider()
         Text(
             "${device.getString("name")} · ${device.getString("platform")} · custody ${device.getString("ownership")}"
         )
@@ -76,7 +76,7 @@ private fun BusinessContent(state: Repository.View, model: PersonalViewModel) {
             { accepted = it },
             enabled = !model.busy,
         )
-        Button(
+        PrimaryActionButton(
             onClick = {
                 model.run("Organization sharing accepted; collection stays separately controlled") {
                     acceptBusinessSharing(
@@ -91,7 +91,8 @@ private fun BusinessContent(state: Repository.View, model: PersonalViewModel) {
         ) {
             Text("Accept organization sharing")
         }
-        OutlinedButton(
+        SecondaryActionButton(
+            destructive = true,
             onClick = {
                 model.run("Organization sharing withdrawn; personal data retained") {
                     withdrawBusinessSharing(device.getString("id"))

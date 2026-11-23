@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Unavailable } from "./Navigation";
+import { NavigationIcon, Unavailable } from "./Navigation";
 import type {
   Action,
   Inventory,
@@ -50,21 +50,18 @@ export function Services({
   enabled,
   installationId,
   view = "inventory",
+  review = false,
 }: {
   enabled: boolean;
   installationId: string;
   view?: "inventory" | "projects" | "control" | "history";
+  review?: boolean;
 }) {
   const [detailId, setDetailId] = useState<string>();
-  const detailHeading = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    if (detailId) detailHeading.current?.focus();
-  }, [detailId]);
   const [inventory, setInventory] = useState<Inventory>();
   const [history, setHistory] = useState<Action[]>([]);
   const [historyOffset, setHistoryOffset] = useState(0);
   const [historyLoaded, setHistoryLoaded] = useState(false);
-  const [query, setQuery] = useState("");
   const [activeQuery, setActiveQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [busy, setBusy] = useState(false);
@@ -77,6 +74,7 @@ export function Services({
   const deadline = inventory?.expiresAt;
   const [expiredDeadline, setExpiredDeadline] = useState<string>();
   const dialog = useRef<HTMLDialogElement>(null);
+  const filterDrawer = useRef<HTMLDialogElement>(null);
   const generation = useRef(0);
   useEffect(() => {
     if (!deadline) return;
@@ -105,9 +103,10 @@ export function Services({
     };
   }, [enabled, installationId]);
   useEffect(() => {
-    if (selected) dialog.current?.showModal();
+    if (selected && review) dialog.current?.showModal();
     else dialog.current?.close();
-  }, [selected]);
+    if (!review) setSelected(undefined);
+  }, [selected, review]);
   async function refresh(offset = 0, search = activeQuery) {
     const epoch = generation.current;
     setBusy(true);
@@ -207,6 +206,7 @@ export function Services({
   }
   async function stop() {
     if (
+      !review ||
       !selected ||
       !inventory ||
       expired ||
@@ -278,8 +278,15 @@ export function Services({
       .join(", ");
   return (
     <section aria-labelledby="services-heading" className="desktop-card">
-      <h2 id="services-heading">
-        {view === "history"
+      {review && (
+        <a className="desktop-button secondary mb-3" href="#services">
+          Back to inventory
+        </a>
+      )}
+      <h2 id="services-heading" className="break-words">
+        {review
+          ? detail?.project.name ?? "Service observation"
+          : view === "history"
           ? "Local action history"
           : view === "control"
             ? "Local shutdown permissions"
@@ -294,11 +301,13 @@ export function Services({
         </Unavailable>
       ) : (
         <>
-          <p>
-            Local TCP listeners owned by your user. Full paths and command
-            arguments stay on this computer. Remote service access requires
-            separate consent in Sharing.
-          </p>
+          {!review && (
+            <p>
+              Local TCP listeners owned by your user. Full paths and command
+              arguments stay on this computer. Remote service access requires
+              separate consent in Sharing.
+            </p>
+          )}
           {view === "history" ? (
             <button disabled={busy} onClick={() => void loadHistory()}>
               Load action history
@@ -307,35 +316,26 @@ export function Services({
             <button disabled={busy} onClick={() => void refresh()}>
               Refresh control status
             </button>
-          ) : (
-            <form
-              className="desktop-search"
-              onSubmit={(event) => {
-                event.preventDefault();
-                setActiveQuery(query);
-                void refresh(0, query);
-              }}
-            >
-              <label>
-                Search projects, runtimes, PIDs or ports
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  maxLength={100}
-                />
-              </label>
-              <button disabled={busy}>Refresh services</button>
-              <label className="desktop-filter">
-                Filter this page
-                <select
-                  value={filter}
-                  onChange={(event) => setFilter(event.target.value)}
-                >
-                  <option value="all">All listeners</option>
-                  <option value="controllable">Controllable services</option>
-                </select>
-              </label>
-            </form>
+          ) : !review && (
+            <div className="desktop-service-toolbar">
+              <button
+                className="secondary"
+                type="button"
+                aria-haspopup="dialog"
+                disabled={busy}
+                onClick={() => {
+                  filterDrawer.current?.querySelector("form")?.reset();
+                  filterDrawer.current?.showModal();
+                }}
+              >
+                <NavigationIcon name="filters" />
+                Filters
+              </button>
+              <button type="button" disabled={busy} onClick={() => void refresh()}>
+                <NavigationIcon name="refresh" />
+                Refresh services
+              </button>
+            </div>
           )}
           {message && (
             <p role="status" aria-live="polite" className="desktop-notice">
@@ -381,7 +381,15 @@ export function Services({
           )}
           {(view === "inventory" || view === "projects") && (
             <>
-              {!inventory && (
+              {review && !detail && (
+                <>
+                  <p className="desktop-empty">
+                    This observation is unavailable. Return to inventory and refresh to review a service.
+                  </p>
+                  <a className="desktop-button secondary" href="#history">Review action history</a>
+                </>
+              )}
+              {!review && !inventory && (
                 <p className="desktop-empty">
                   No service inventory loaded. Refresh services to inspect
                   current observations.
@@ -417,106 +425,67 @@ export function Services({
                   )}
                   {inventory.platformSupported && (
                     <>
-                      {!visible.length && (
+                      {!review && !visible.length && (
                         <p className="desktop-empty">
                           No matching services on this page. Try another search
                           or page.
                         </p>
                       )}
-                      {view === "inventory" &&
-                        !detail &&
-                        visible.length > 0 && (
-                          <div
-                            className="desktop-table-scroll"
-                            role="region"
-                            aria-label="Service inventory"
-                            tabIndex={0}
-                          >
-                            <table className="desktop-service-table">
-                              <thead>
-                                <tr>
-                                  <th>Project / runtime</th>
-                                  <th>Process</th>
-                                  <th>Listening on</th>
-                                  <th>Observation</th>
-                                  <th>Details</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {visible.map((service) => (
-                                  <tr key={service.id}>
-                                    <td>
-                                      <strong>{service.project.name}</strong>
-                                      <span>
-                                        {service.runtime === "unknown"
-                                          ? service.executable
-                                          : service.runtime}{" "}
-                                        ·{" "}
-                                        {service.project.confidence.replaceAll(
-                                          "_",
-                                          " ",
-                                        )}
-                                      </span>
-                                    </td>
-                                    <td>PID {service.pid}</td>
-                                    <td>
-                                      <code>{endpoints(service)}</code>
-                                      {service.additionalEndpoints > 0 && (
-                                        <span>
-                                          + {service.additionalEndpoints} more
-                                          listeners
-                                        </span>
-                                      )}
-                                    </td>
-                                    <td>
-                                      <span className="desktop-state">
-                                        {expired ? "Expired" : "Fresh"}
-                                      </span>
-                                    </td>
-                                    <td>
-                                      <button
-                                        className="secondary"
-                                        disabled={busy}
-                                        onClick={() => setDetailId(service.id)}
-                                      >
-                                        Review service
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      {view === "inventory" && detail && (
+                      {view === "inventory" && !review && visible.length > 0 && (
+                        <ul className="desktop-service-list" aria-label="Reported services">
+                          {visible.map((service) => (
+                            <li key={service.id}>
+                              <div>
+                                <strong>{service.project.name}</strong>
+                                <small>
+                                  {service.runtime === "unknown" ? service.executable : service.runtime}
+                                  {" · PID "}{service.pid}{" · "}
+                                  {service.project.confidence.replaceAll("_", " ")}
+                                </small>
+                                <small>
+                                  <code>{endpoints(service)}</code>
+                                  {service.additionalEndpoints > 0 && ` · +${service.additionalEndpoints} more listeners`}
+                                </small>
+                              </div>
+                              <span className="desktop-state">{expired ? "Expired" : "Fresh"}</span>
+                              <button
+                                className="secondary"
+                                disabled={busy}
+                                onClick={() => {
+                                  setDetailId(service.id);
+                                  location.hash = "service-review";
+                                }}
+                              >
+                                Review service
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {view === "inventory" && review && detail && (
                         <article className="desktop-service-detail">
-                          <button
-                            className="secondary"
-                            onClick={() => setDetailId(undefined)}
-                          >
-                            Back to inventory
-                          </button>
-                          <h3 ref={detailHeading} tabIndex={-1}>
-                            {detail.project.name} · PID {detail.pid}
-                          </h3>
-                          <p>
-                            {detail.runtime === "unknown"
-                              ? detail.executable
-                              : detail.runtime}{" "}
-                            · Parent PID {detail.parentPid} · Started{" "}
-                            {detail.startedAt} · Running{" "}
-                            {Math.floor(detail.uptimeSeconds / 60)} min ·{" "}
-                            {detail.childCount} child processes
-                          </p>
-                          <p>
-                            <code>{endpoints(detail)}</code>
-                            {detail.additionalEndpoints > 0 &&
-                              ` and ${detail.additionalEndpoints} more listeners`}
-                          </p>
-                          <p>
-                            {detail.project.evidence} ·{" "}
-                            {detail.project.confidence.replaceAll("_", " ")}
-                          </p>
+                          <dl className="desktop-review-values">
+                            <div>
+                              <dt>Runtime</dt>
+                              <dd>{detail.runtime === "unknown" ? detail.executable : detail.runtime}</dd>
+                            </div>
+                            <div>
+                              <dt>Process ID</dt>
+                              <dd>{detail.pid} · Parent {detail.parentPid} · {detail.childCount} children</dd>
+                            </div>
+                            <div>
+                              <dt>Listening on</dt>
+                              <dd>
+                                <code>{endpoints(detail)}</code>
+                                {detail.additionalEndpoints > 0 && ` and ${detail.additionalEndpoints} more listeners`}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Started</dt>
+                              <dd>{detail.startedAt} · Running {Math.floor(detail.uptimeSeconds / 60)} min</dd>
+                            </div>
+                          </dl>
+                          <p>{detail.project.evidence} · {detail.project.confidence.replaceAll("_", " ")}</p>
                           {!detail.canStop && (
                             <p>
                               {detail.blockReason
@@ -616,7 +585,7 @@ export function Services({
                             ))}
                           </article>
                         ))}
-                      {!detail && (
+                      {!review && (
                         <div className="desktop-actions">
                           <button
                             className="secondary"
@@ -701,6 +670,50 @@ export function Services({
           )}
         </>
       )}
+      {enabled && !review && (view === "inventory" || view === "projects") && (
+        <dialog
+          className="desktop-filter-drawer"
+          aria-labelledby="service-filter-title"
+          ref={filterDrawer}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              event.currentTarget.close();
+            }
+          }}
+        >
+          <header>
+            <h2 id="service-filter-title">Service filters</h2>
+            <button type="button" className="secondary" onClick={() => filterDrawer.current?.close()}>
+              Close
+            </button>
+          </header>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              const fields = new FormData(event.currentTarget);
+              const search = String(fields.get("query") ?? "").trim();
+              setActiveQuery(search);
+              setFilter(String(fields.get("filter") ?? "all"));
+              filterDrawer.current?.close();
+              if (!inventory || search !== activeQuery) void refresh(0, search);
+            }}
+          >
+            <label>
+              Search projects, runtimes, PIDs or ports
+              <input name="query" type="search" defaultValue={activeQuery} maxLength={100} autoFocus />
+            </label>
+            <label>
+              Filter this page
+              <select name="filter" defaultValue={filter}>
+                <option value="all">All listeners</option>
+                <option value="controllable">Controllable services</option>
+              </select>
+            </label>
+            <button type="submit" className="justify-self-end">Apply filters</button>
+          </form>
+        </dialog>
+      )}
       <dialog
         className="m-auto max-h-[calc(100dvh_-_40px)] max-w-[min(600px,calc(100vw_-_40px))] overflow-y-auto break-words rounded-[14px] border border-line bg-surface p-7 text-foreground backdrop:bg-[#20152a99]"
         ref={dialog}
@@ -710,7 +723,7 @@ export function Services({
           else setSelected(undefined);
         }}
       >
-        {selected && (
+        {selected && review && (
           <>
             <h2 id="stop-title">
               {selected.mode === "force" ? "Force stop" : "Stop gracefully"} ·

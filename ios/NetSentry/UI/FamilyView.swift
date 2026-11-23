@@ -10,7 +10,7 @@ struct FamilyView: View {
         AppForm {
             if section != "Local Apple Screen Time controls" {
                 Section("Family workspace") {
-                    Button("Refresh family") { model.run { try await $0.familyOverview() } }
+                    AppAction("Refresh family") { model.run { try await $0.familyOverview() } }
                     Text(
                         "Server roles and profile grants govern these views. Server policies and Android identifiers never authorize Apple controls or select Apple applications."
                     ).font(.footnote)
@@ -20,7 +20,7 @@ struct FamilyView: View {
                         ).foregroundStyle(.secondary)
                     }
                     ForEach(model.snapshot?.family["profiles"].values ?? [], id: \.self) { p in
-                        Button(p["name"].text) {
+                        AppAction(p["name"].text) {
                             model.run { try await $0.familyOverview(profileID: p["id"].text) }
                         }
                     }
@@ -36,12 +36,15 @@ struct FamilyView: View {
                         if section.isEmpty || section == "Sharing & consent" {
                             Toggle(
                                 "I accept family-sharing-v1 for my paired device", isOn: $accepted)
-                            Button("Share this paired device with selected profile") {
+                            AppAction(
+                                "Share this paired device with selected profile", primary: true
+                            ) {
                                 model.run { try await $0.shareWithChild(accepted: accepted) }
                             }.disabled(!accepted || s.device == nil)
                             if let d = s.device {
-                                Button("Withdraw this device's family sharing", role: .destructive)
-                                {
+                                AppAction(
+                                    "Withdraw this device's family sharing", role: .destructive
+                                ) {
                                     model.privacyAction {
                                         try await $0.withdrawFamily(deviceID: d.id)
                                     }
@@ -56,7 +59,7 @@ struct FamilyView: View {
                     Stepper("\(minutes) minutes", value: $minutes, in: 1...120)
                     TextField("Reason", text: $reason)
                     Toggle("Guardian direct override", isOn: $direct)
-                    Button("Submit request") {
+                    AppAction("Submit request", primary: true) {
                         let id = UUID().uuidString.lowercased();
                         model.run {
                             try await $0.familyTime(
@@ -69,7 +72,7 @@ struct FamilyView: View {
                     ForEach(model.snapshot?.child["requests"].values ?? [], id: \.self) { request in
                         ServerDetails(title: "Time request", value: request)
                         ForEach(["approved", "rejected", "cancelled"], id: \.self) { verb in
-                            Button(verb.capitalized) {
+                            AppAction(verb.capitalized) {
                                 decisionID = request["id"].text; decision = verb
                             }
                         }

@@ -23,15 +23,17 @@ struct AccountSettingsView: View {
             if section.isEmpty || section == "Profile & appearance" {
                 Section("Profile and appearance") {
                     TextField("Display name", text: $name)
-                    Button("Save name") { model.run { try await $0.updateProfile(name) } }
-                    Button("Send verification email") {
+                    AppAction("Save name", primary: true) {
+                        model.run { try await $0.updateProfile(name) }
+                    }
+                    AppAction("Send verification email") {
                         model.run { try await $0.verificationEmail() }
                     }
                     Picker("Theme", selection: $theme) {
                         ForEach(["SYSTEM", "LIGHT", "DARK"], id: \.self) { Text($0) }
                     }
                     Toggle("Reduce motion", isOn: $reducedMotion)
-                    Button("Save appearance") {
+                    AppAction("Save appearance", primary: true) {
                         model.run {
                             try await $0.appearance(theme: theme, reducedMotion: reducedMotion)
                         }
@@ -44,7 +46,7 @@ struct AccountSettingsView: View {
                     Toggle("Opt in to email alerts", isOn: $emailAlerts)
                     Text("Email alert delivery is disabled. Saving this preference sends no email.")
                         .font(.footnote)
-                    Button("Save notification preference") {
+                    AppAction("Save notification preference", primary: true) {
                         model.run {
                             try await $0.notificationPreference(inApp: inApp, email: emailAlerts)
                         }
@@ -56,17 +58,17 @@ struct AccountSettingsView: View {
             }
             if section.isEmpty || section == "Sessions" {
                 Section("Sessions") {
-                    Button("List sessions") {
+                    AppAction("List sessions") {
                         model.run { model.sessions = try await $0.sessions() }
                     }
                     ServerDetails(title: "Signed-in sessions", value: model.sessions)
-                    Button("Revoke other sessions") {
+                    AppAction("Revoke other sessions") {
                         model.run {
                             try await $0.revokeOtherSessions();
                             model.sessions = try await $0.sessions()
                         }
                     }
-                    Button("Sign out", role: .destructive) {
+                    AppAction("Sign out", role: .destructive) {
                         model.privacyAction { try await $0.signOut() }
                     }
                 }
@@ -75,21 +77,21 @@ struct AccountSettingsView: View {
                 Section("Personal data") {
                     SecureField("Password for export or deletion", text: $password).textContentType(
                         .password)
-                    Button("Prepare personal export") {
+                    AppAction("Prepare personal export", primary: true) {
                         let secret = password; password = "";
                         model.run {
                             model.exportText = try await $0.exportPersonal(password: secret).pretty
                         }
                     }
                     if !model.exportText.isEmpty {
-                        Button("Save export JSON") { exporting = true };
-                        Button("Discard prepared export") { model.exportText = "" }
+                        AppAction("Save export JSON", primary: true) { exporting = true };
+                        AppAction("Discard prepared export") { model.exportText = "" }
                     }
-                    Button("Delete account", role: .destructive) { deleting = true }
+                    AppAction("Delete account", role: .destructive) { deleting = true }
                     Text(
                         "Exports contain private data. Save only to a destination you trust. Local Apple selections are erased before sign-out or privacy actions, even if the server is unreachable."
                     ).font(.footnote)
-                    Button("Stop local controls and clear credentials", role: .destructive) {
+                    AppAction("Stop local controls and clear credentials", role: .destructive) {
                         model.recoverLocal()
                     }
                 }

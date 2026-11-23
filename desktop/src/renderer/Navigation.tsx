@@ -5,6 +5,11 @@ const brandLogo = new URL(
   import.meta.url,
 ).href;
 
+const brandMark = new URL(
+  "../../../assets/brand/netsentry-mark.svg",
+  import.meta.url,
+).href;
+
 export const navigation = [
   {
     label: "Overview",
@@ -120,9 +125,15 @@ export const navigation = [
     ],
   },
 ] as const;
-export type PageId = (typeof navigation)[number]["pages"][number]["id"];
+export type SectionPage = (typeof navigation)[number]["pages"][number]["id"];
+export type PageId = SectionPage | "service-review";
+
+export function sectionPage(page: PageId): SectionPage {
+  return page === "service-review" ? "services" : page;
+}
 export function currentPage(): PageId {
   const value = location.hash.slice(1);
+  if (value === "service-review") return value;
   return navigation.some((group) =>
     group.pages.some((page) => page.id === value),
   )
@@ -131,6 +142,9 @@ export function currentPage(): PageId {
 }
 export function NavigationIcon({ name }: { name: string }) {
   const paths: Record<string, ReactNode> = {
+    refresh: <path d="M20 7v5h-5m-11 5v-5h5M5.5 9a7 7 0 0 1 11.7-3L20 12M4 12l2.8 6a7 7 0 0 0 11.7-3" />,
+    filters: <path d="M4 6h16M4 12h16M4 18h16M9 4v4m6 2v4m-5 2v4" />,
+    pairing: <path d="M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2m2 6a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2" />,
     overview: <path d="m3 10 9-7 9 7v10H5V10m4 10v-7h6v7" />,
     developer: (
       <>
@@ -168,63 +182,48 @@ export function NavigationIcon({ name }: { name: string }) {
     </svg>
   );
 }
-export function Sidebar({
-  page,
-  connected,
-}: {
-  page: PageId;
-  connected: boolean;
-}) {
+export function Sidebar({ page }: { page: SectionPage }) {
   return (
     <aside className="desktop-sidebar">
-      <a className="desktop-brand" href="#status">
-        <img src={brandLogo} alt="NetSentry" width={223} height={64} />
+      <a className="desktop-brand" href="#status" aria-label="NetSentry home">
+        <img src={brandLogo} alt="" width={223} height={64} />
+        <img src={brandMark} alt="" width={44} height={44} />
       </a>
-      <p className="desktop-eyebrow">DESKTOP WORKSPACE</p>
-      <nav aria-label="Desktop navigation">
+      <nav aria-label="Desktop navigation" className="grid gap-1.5">
         {navigation.map((group) => {
           const active = group.pages.some((child) => child.id === page);
           return (
-            <div className="desktop-nav-group" key={group.label}>
-              <a
-                className={`desktop-main-link ${active ? "selected" : ""}`}
-                href={`#${group.pages[0].id}`}
-                aria-expanded={active}
-              >
-                <NavigationIcon name={group.icon} />
-                <span>{group.label}</span>
-                <span className="desktop-nav-arrow" aria-hidden="true">
-                  {active ? "⌃" : "⌄"}
-                </span>
-              </a>
-              {active && (
-                <div className="desktop-sub-links">
-                  {group.pages.map((child) => (
-                    <a
-                      key={child.id}
-                      href={`#${child.id}`}
-                      aria-current={child.id === page ? "page" : undefined}
-                    >
-                      {child.label}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
+            <a
+              key={group.label}
+              className="desktop-main-link"
+              href={`#${group.pages[0].id}`}
+              aria-current={active ? "true" : undefined}
+              title={group.label}
+            >
+              <NavigationIcon name={group.icon} />
+              <span>{group.label}</span>
+            </a>
           );
         })}
       </nav>
-      <div className="desktop-sidebar-footer">
-        <strong>
-          <span aria-hidden="true">●</span>{" "}
-          {connected ? "Local agent connected" : "Agent unavailable"}
-        </strong>
-        <span>Desktop workspace</span>
-        <span>Monitoring and control require consent.</span>
-      </div>
     </aside>
   );
 }
+
+export function SectionLinks({ page }: { page: SectionPage }) {
+  const group = navigation.find(({ pages }) => pages.some((item) => item.id === page));
+  if (!group) return null;
+  return (
+    <nav className="desktop-section-links" aria-label={`${group.label} sections`}>
+      {group.pages.map((item) => (
+        <a key={item.id} href={`#${item.id}`} aria-current={item.id === page ? "page" : undefined}>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
 export function PageCard({
   title,
   children,
