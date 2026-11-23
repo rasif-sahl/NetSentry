@@ -68,9 +68,11 @@ export function NetworkDetail({
         : latest,
     null,
   );
-  const collectorStatus = !v?.collectors.some((collector) => collector.enabled)
+  const enabledCollectors =
+    v?.collectors.filter((collector) => collector.enabled) ?? [];
+  const collectorStatus = !enabledCollectors.length
     ? "Awaiting collector"
-    : lastCapture
+    : enabledCollectors.some((collector) => collector.observedAt)
       ? "Collector assigned"
       : "Awaiting first report";
   const eligible =
@@ -80,7 +82,7 @@ export function NetworkDetail({
       <div>
         <Link
           href={listHref}
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary-hover underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary-hover! underline-offset-4 hover:underline"
         >
           <ArrowLeft size={16} aria-hidden="true" />
           Back to monitored networks
@@ -91,7 +93,7 @@ export function NetworkDetail({
       {resource.loading && <Loading />}
       {v && (
         <>
-          <header className="flex items-center justify-between gap-3">
+          <header className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h1 className="[overflow-wrap:anywhere]">{v.name}</h1>
               <span className="badge mt-2">{collectorStatus}</span>
@@ -106,20 +108,12 @@ export function NetworkDetail({
               <span className="hidden min-[651px]:inline">Refresh network</span>
             </button>
           </header>
-          <Card>
-            <dl className="grid gap-4 text-sm min-[800px]:grid-cols-[1fr_1.65fr_1fr] [&_dt]:mb-1 [&_dt]:text-xs [&_dt]:font-semibold [&_dt]:text-text-secondary">
+          <Card className="@container">
+            <dl className="grid gap-4 text-sm @min-[26rem]:grid-cols-2 @min-[38rem]:grid-cols-[1fr_1fr_1.65fr] [&_dt]:mb-1 [&_dt]:text-xs [&_dt]:font-semibold [&_dt]:text-text-secondary">
               <div className="min-w-0">
                 <dt>Private IPv4 subnets</dt>
                 <dd className="[overflow-wrap:anywhere]">
                   {v.cidrs.join(", ")}
-                </dd>
-              </div>
-              <div className="min-w-0">
-                <dt>Network ID</dt>
-                <dd>
-                  <code className="[overflow-wrap:anywhere]">
-                    {v.networkId}
-                  </code>
                 </dd>
               </div>
               <div className="min-w-0">
@@ -128,6 +122,14 @@ export function NetworkDetail({
                   {lastCapture
                     ? formatTime(lastCapture)
                     : "Awaiting first report"}
+                </dd>
+              </div>
+              <div className="min-w-0 @min-[26rem]:@max-[38rem]:col-span-2">
+                <dt>Network ID</dt>
+                <dd>
+                  <code className="[overflow-wrap:anywhere]">
+                    {v.networkId}
+                  </code>
                 </dd>
               </div>
             </dl>

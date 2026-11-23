@@ -1,4 +1,5 @@
 "use client";
+import { ResponsiveSearch } from "@/shared/ui/responsive-filters";
 import { usePage } from "@/shared/use-page";
 import { PageControls } from "@/shared/ui/page-controls";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
@@ -189,14 +190,12 @@ export function BusinessStructure({
             not measure per-device traffic.
           </p>
           <div className="mt-3">
-            <Field label="Find an observed device">
-              <input
-                type="search"
-                value={search}
-                maxLength={200}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </Field>
+            <ResponsiveSearch
+              title="Observed device filters"
+              label="Find an observed device"
+              value={search}
+              onChange={setSearch}
+            />
           </div>
           <ErrorNotice error={endpoints.error} />
           {endpoints.loading && <Loading />}

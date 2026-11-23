@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
@@ -23,18 +22,7 @@ import {
 import {
   ArrowRight,
   Bell,
-  ChevronRight,
-  Gauge,
-  Home,
-  Laptop,
-  Menu,
-  Network,
-  RefreshCw,
-  Settings,
-  ShieldCheck,
   Smartphone,
-  Users,
-  X,
 } from "lucide-react";
 import {
   api,
@@ -48,7 +36,6 @@ import type { Device, Permissions, User, Workspace } from "@/shared/types";
 import type { PageContext } from "./types";
 import { AuthPanel } from "@/features/account/auth-panel";
 import {
-  ActionButton,
   Card,
   Empty,
   ErrorNotice,
@@ -57,6 +44,8 @@ import {
 } from "@/shared/ui/common";
 import { PageLoading } from "@/shared/ui/loading";
 import { EmailVerificationStripe } from "./email-verification-stripe";
+import { WorkspaceRefreshButton } from "./workspace-refresh-button";
+import { DashboardBrand, DashboardNavigation } from "./dashboard-navigation";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { WorkspaceList } from "@/features/team/workspace-list";
 const BillingPanel = dynamic(
@@ -133,22 +122,6 @@ const ReportsPanel = dynamic(
     ),
   { loading: Loading },
 );
-
-const icons = {
-  "": Home,
-  devices: Smartphone,
-  "usage-reports": Gauge,
-  alerts: Bell,
-  networks: Network,
-  "developer-tools": Laptop,
-  family: Users,
-  business: Users,
-  subscription: Settings,
-  operations: ShieldCheck,
-  team: Users,
-  settings: Settings,
-  "more-modules": Laptop,
-} satisfies Record<WorkspaceSlug, typeof Home>;
 
 const deviceSections: ReadonlySet<WorkspaceSection> = new Set([
   "Overview",
@@ -269,7 +242,6 @@ function WorkspaceShell({
   const [slug = "", activeTab] = segments;
   const isNetworkDetail = !!networkDetailId(segments);
   const section = isWorkspaceSlug(slug) ? workspaceSections[slug] : undefined;
-  const [menu, setMenu] = useState(false);
   const workspace =
     workspaces.data?.find(
       (w) => w.id === (selected ?? user.preferences.activeWorkspaceId),
@@ -311,6 +283,10 @@ function WorkspaceShell({
           reloadDevices: devices.reload,
         }
       : undefined;
+  const hasMobileFilterToolbar =
+    !!context &&
+    (slug === "usage-reports" || slug === "devices" ||
+      (slug === "networks" && activeTab === "monitoring"));
   const contentRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -332,38 +308,6 @@ function WorkspaceShell({
       delete document.documentElement.dataset.reducedMotion;
     };
   }, [user.preferences.theme, user.preferences.reducedMotion]);
-  const sideRef = useRef<HTMLElement>(null);
-  const openRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!menu) return;
-    const previous = document.body.style.overflow;
-    const trigger = openRef.current;
-    document.body.style.overflow = "hidden";
-    const nodes = sideRef.current?.querySelectorAll<HTMLElement>(
-      "a,button:not([disabled]),select,input",
-    );
-    nodes?.[1]?.focus();
-    const handle = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenu(false);
-      if (event.key === "Tab" && nodes?.length) {
-        const first = nodes[0],
-          last = nodes[nodes.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    document.addEventListener("keydown", handle);
-    return () => {
-      document.body.style.overflow = previous;
-      document.removeEventListener("keydown", handle);
-      trigger?.focus();
-    };
-  }, [menu]);
   const previousPath = useRef(pathname);
   useEffect(() => {
     if (previousPath.current === pathname) return;
@@ -377,82 +321,19 @@ function WorkspaceShell({
     router.push(workspaceHref(slug));
   }
   return (
-    <div className="workspace-layout">
+    <div className="min-h-dvh min-[700px]:grid min-[700px]:grid-cols-[4.5rem_minmax(0,1fr)] min-[1100px]:grid-cols-[15rem_minmax(0,1fr)]">
       <a className="skip-link" href="#dashboard-content">
         Skip to content
       </a>
-      <aside
-        role={menu ? "dialog" : undefined}
-        aria-modal={menu ? true : undefined}
-        ref={sideRef}
-        className={`sidebar ${menu ? "open" : ""}`}
-        aria-label="Workspace navigation"
-      >
-        <div className="sidebar-brand">
-          <Link href="/app" className="brand">
-            <Image
-              src="/brand/netsentry-logo.svg"
-              alt="NetSentry"
-              width={223}
-              height={64}
-            />
-          </Link>
-          <button
-            className="icon-button mobile-only"
-            aria-label="Close navigation"
-            onClick={() => setMenu(false)}
-          >
-            <X />
-          </button>
-        </div>
-        <span className="eyebrow">YOUR WORKSPACE</span>
-        <nav aria-label="Primary navigation">
-          {Object.entries(workspaceSections).map(([slug, label]) => {
-            if (!isWorkspaceSlug(slug)) return null;
-            const Icon = icons[slug];
-            return (
-              <Link
-                key={slug}
-                href={workspaceHref(slug)}
-                onNavigate={() => setMenu(false)}
-                aria-current={section === label ? "page" : undefined}
-              >
-                <Icon size={19} aria-hidden="true" />
-                {label}
-                <ChevronRight size={14} aria-hidden="true" />
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="sidebar-profile">
-          <span className="avatar">
-            {user.displayName.slice(0, 2).toUpperCase()}
-          </span>
-          <div>
-            <strong>{user.displayName}</strong>
-            <small>{user.email}</small>
-          </div>
-        </div>
-        <ActionButton action={onSignOut}>Sign out</ActionButton>
-      </aside>
-      {menu && (
-        <button
-          className="menu-backdrop"
-          aria-label="Dismiss navigation"
-          onClick={() => setMenu(false)}
-        />
-      )}
-      <div className="workspace-main" inert={menu}>
+      <DashboardNavigation
+        active={isWorkspaceSlug(slug) ? slug : undefined}
+        workspaceType={workspace?.type}
+        user={user}
+        onSignOut={onSignOut}
+      />
+      <div className="min-w-0 max-[700px]:pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
         <header className="topbar">
-          <button
-            className="icon-button mobile-only"
-            ref={openRef}
-            aria-label="Open navigation"
-            aria-expanded={menu}
-            onClick={() => setMenu(!menu)}
-          >
-            <Menu />
-          </button>
+          <DashboardBrand placement="topbar" />
           <WorkspaceSwitcher
             workspace={workspace}
             workspaces={workspaces.data}
@@ -463,7 +344,7 @@ function WorkspaceShell({
             {workspace?.timezone ?? "Workspace"}
           </span>
           <button
-            className="icon-button"
+            className="icon-button max-[700px]:hidden!"
             aria-label="Open notifications"
             onClick={() => choose("alerts")}
           >
@@ -486,28 +367,14 @@ function WorkspaceShell({
           className="page-content"
         >
           {!isNetworkDetail && (
-            <div className="page-heading">
+            <div className={`page-heading ${hasMobileFilterToolbar ? "max-[700px]:mb-3!" : ""}`}>
               <p className="eyebrow">
                 {workspace
                   ? `${workspace.type} / ${permission.data?.role ?? workspace.role}`
                   : "NETSENTRY"}
               </p>
               <h1>{section ?? "Workspace"}</h1>
-              <button
-                type="button"
-                className="button"
-                aria-label="Refresh workspace"
-                onClick={() => {
-                  window.dispatchEvent(new Event("netsentry:refresh"));
-                }}
-              >
-                <span className="refresh-label">Refresh workspace</span>
-                <RefreshCw
-                  className="refresh-icon"
-                  size={18}
-                  aria-hidden="true"
-                />
-              </button>
+              <WorkspaceRefreshButton className={hasMobileFilterToolbar ? "max-[700px]:hidden!" : ""} />
               {section === "Overview" && (
                 <p className="page-description">
                   Your devices and the information they report, in one place.
@@ -573,23 +440,36 @@ type WorkspaceContextValue = {
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
 function WorkspaceTabs({ slug, tab }: { slug: WorkspaceSlug; tab?: string }) {
+  const router = useRouter();
   const tabs = workspaceTabs(slug);
   const selected = tab ?? tabs[0]?.id;
   if (!tabs.length) return null;
+
+  const sectionLabel = `${workspaceSections[slug]} sections`;
   return (
-    <nav
-      className="workspace-tabs"
-      aria-label={`${workspaceSections[slug]} sections`}
-    >
-      {tabs.map(({ id, label }) => (
-        <Link
-          key={id}
-          href={workspaceHref(slug, id)}
-          aria-current={selected === id ? "page" : undefined}
+    <nav aria-label={sectionLabel} className="mb-4">
+      <label className="field min-[620px]:hidden">
+        Section
+        <select
+          aria-label={sectionLabel}
+          value={selected}
+          onChange={(event) => router.push(workspaceHref(slug, event.target.value))}
         >
-          {label}
-        </Link>
-      ))}
+          {tabs.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
+        </select>
+      </label>
+      <div className="hidden flex-wrap items-end gap-x-1 border-b border-border min-[620px]:flex">
+        {tabs.map(({ id, label }) => (
+          <Link
+            key={id}
+            href={workspaceHref(slug, id)}
+            aria-current={selected === id ? "page" : undefined}
+            className="inline-flex min-h-11 items-center border-b-3 border-transparent px-3 text-sm whitespace-nowrap text-text-secondary! hover:bg-surface-lavender focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary aria-[current=page]:border-primary aria-[current=page]:font-bold aria-[current=page]:text-text!"
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
     </nav>
   );
 }
@@ -674,7 +554,7 @@ export function WorkspacePage({
         <div key={context.workspace.id} className="page-stack">
           {section === "Overview" && (
             <>
-              <div className="metric-grid overview-metrics">
+              <div className="overview-metrics grid grid-cols-2 gap-3 min-[700px]:grid-cols-3 min-[700px]:gap-4">
                 <Card>
                   <span className="metric-label">Registered devices</span>
                   <strong className="metric-value">
@@ -689,7 +569,7 @@ export function WorkspacePage({
                   </strong>
                   <p>Collection still requires supported permissions</p>
                 </Card>
-                <Card>
+                <Card className="min-w-0 max-[700px]:col-span-2">
                   <span className="metric-label">Last inventory refresh</span>
                   <strong className="metric-time">
                     {formatTime(devices.updatedAt)}

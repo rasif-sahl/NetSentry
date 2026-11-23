@@ -1,9 +1,11 @@
 "use client";
+import { WorkspaceRefreshButton } from "@/features/workspace/workspace-refresh-button";
+import { ResponsiveSearch } from "@/shared/ui/responsive-filters";
 import { usePage } from "@/shared/use-page";
 import { PageControls } from "@/shared/ui/page-controls";
 import { useDeferredValue, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Plus } from "lucide-react";
+import { ChevronRight, Network, Plus } from "lucide-react";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { api } from "@/shared/api";
 import type { PageContext } from "@/features/workspace/types";
@@ -37,6 +39,7 @@ export function NetworkMonitoring({ workspace, permissions }: PageContext) {
         manage && (
           <ActionFormDialog
             submit="Add network"
+            primary
             icon={<Plus size={16} aria-hidden="true" />}
             action={async (form) => {
               setCreated(false);
@@ -73,14 +76,14 @@ export function NetworkMonitoring({ workspace, permissions }: PageContext) {
         </div>
       )}
       <div className="mb-4">
-        <Field label="Find a monitored network">
-          <input
-            type="search"
-            maxLength={200}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </Field>
+        <ResponsiveSearch
+          title="Network filters"
+          beside={<WorkspaceRefreshButton iconOnly />}
+          label="Find a monitored network"
+          value={search}
+          onChange={setSearch}
+          placeholder="Search by network name"
+        />
       </div>
       <ErrorNotice error={sites.error} />
       {sites.loading && <Loading />}
@@ -90,7 +93,7 @@ export function NetworkMonitoring({ workspace, permissions }: PageContext) {
             <thead>
               <tr>
                 <th scope="col">Network</th>
-                <th scope="col">Private IPv4 subnets</th>
+                <th scope="col" className="hidden sm:table-cell">Private IPv4 subnets</th>
               </tr>
             </thead>
             <tbody>
@@ -99,20 +102,30 @@ export function NetworkMonitoring({ workspace, permissions }: PageContext) {
                   key={site.networkId}
                   className="relative hover:bg-surface-lavender focus-within:bg-surface-lavender"
                 >
-                  <th scope="row">
-                    <Link
-                      href={networkDetailHref(site.networkId)}
-                      className="inline-flex min-h-8 items-center gap-2 font-semibold text-text underline-offset-4 [overflow-wrap:anywhere] hover:underline after:absolute after:inset-0 after:content-['']"
-                    >
-                      {site.name}
-                      <ArrowRight
-                        className="shrink-0 text-primary-hover"
-                        size={15}
-                        aria-hidden="true"
-                      />
-                    </Link>
+                  <th scope="row" className="w-full sm:w-1/2">
+                    <div className="flex min-w-0 items-center gap-3 pe-6">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-surface-lavender text-primary-hover">
+                        <Network size={17} aria-hidden="true" />
+                      </span>
+                      <div className="min-w-0">
+                        <Link
+                          href={networkDetailHref(site.networkId)}
+                          className="inline-flex min-h-7 items-center font-semibold underline-offset-4 [overflow-wrap:anywhere] hover:underline after:absolute after:inset-0 after:content-['']"
+                        >
+                          {site.name}
+                          <ChevronRight
+                            className="pointer-events-none absolute end-2 top-1/2 -translate-y-1/2 text-primary-hover"
+                            size={17}
+                            aria-hidden="true"
+                          />
+                        </Link>
+                        <span className="mb-1 block text-xs font-normal text-text-secondary [overflow-wrap:anywhere] sm:hidden">
+                          {site.cidrs.join(", ")}
+                        </span>
+                      </div>
+                    </div>
                   </th>
-                  <td className="[overflow-wrap:anywhere]">
+                  <td className="hidden pe-8! [overflow-wrap:anywhere] sm:table-cell">
                     {site.cidrs.join(", ")}
                   </td>
                 </tr>

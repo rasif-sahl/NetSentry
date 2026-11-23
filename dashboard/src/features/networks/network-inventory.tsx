@@ -1,4 +1,5 @@
 "use client";
+import { ResponsiveFilters } from "@/shared/ui/responsive-filters";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { usePage } from "@/shared/use-page";
 import { PageControls } from "@/shared/ui/page-controls";
@@ -58,22 +59,43 @@ export function NetworkInventory({
       icon={<MonitorSmartphone size={19} />}
       className="[overflow-wrap:anywhere]"
     >
-      <Field label="Search inventory">
-        <input
-          type="search"
-          maxLength={200}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </Field>
-      <label className="check mt-3">
-        <input
-          type="checkbox"
-          checked={archived}
-          onChange={(e) => setArchived(e.target.checked)}
-        />
-        Include archived devices
-      </label>
+      <div className="mb-3">
+        <ResponsiveFilters
+          label="Inventory filters"
+          action={async (form) => {
+            setSearch(text(form, "search"));
+            setArchived(form.has("archived"));
+          }}
+          inline={
+            <>
+              <Field label="Search inventory">
+                <input
+                  type="search"
+                  maxLength={200}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </Field>
+              <label className="check mt-3">
+                <input
+                  type="checkbox"
+                  checked={archived}
+                  onChange={(e) => setArchived(e.target.checked)}
+                />
+                Include archived devices
+              </label>
+            </>
+          }
+        >
+          <Field label="Search inventory">
+            <input type="search" name="search" maxLength={200} defaultValue={search} />
+          </Field>
+          <label className="check">
+            <input type="checkbox" name="archived" defaultChecked={archived} />
+            Include archived devices
+          </label>
+        </ResponsiveFilters>
+      </div>
       <p>
         Hostname and manufacturer are unknown. MAC and IP observations do not
         establish identity, ownership or connectivity. Trust and blocked labels

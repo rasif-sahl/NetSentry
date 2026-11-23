@@ -1,9 +1,9 @@
 "use client";
+import { ResponsiveFilters } from "@/shared/ui/responsive-filters";
 import { api, download } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import {
   ActionButton,
-  ActionForm,
   Card,
   Empty,
   ErrorNotice,
@@ -37,7 +37,8 @@ export function OrganizationReport({
   const report = reportResource.data;
   return (
     <Card title="Organization usage reports">
-      <ActionForm
+      <ResponsiveFilters
+        label="Organization report filters"
         submit="Load organization report"
         action={async (f) => {
           const q = query(f, location);
@@ -45,9 +46,9 @@ export function OrganizationReport({
           reportResource.reload();
         }}
       >
-        <DateFields />
-        <DepartmentField departments={departments} />
-      </ActionForm>
+        <DateFields search={search} />
+        <DepartmentField departments={departments} value={new URLSearchParams(search).get("departmentId") ?? ""} />
+      </ResponsiveFilters>
       <ErrorNotice error={reportResource.error} />
       {reportResource.loading && <Loading />}
       {report && (
@@ -121,15 +122,16 @@ export function OrganizationAudit({
   const audit = auditResource.data;
   return (
     <Card title="Organization audit">
-      <ActionForm
+      <ResponsiveFilters
+        label="Organization audit filters"
         submit="Load organization audit"
         action={async (f) => {
           setSearch(query(f, ""));
           auditResource.reload();
         }}
       >
-        <DateFields />
-      </ActionForm>
+        <DateFields search={search} />
+      </ResponsiveFilters>
       <ErrorNotice error={auditResource.error} />
       {auditResource.loading && <Loading />}
       {audit && (
@@ -147,7 +149,8 @@ export function OrganizationAudit({
             </p>
           ))}
           {canExport && (
-            <ActionForm
+            <ResponsiveFilters
+              label="Export audit"
               submit="Export organization audit"
               action={async (f) => {
                 downloadJson(
@@ -157,7 +160,7 @@ export function OrganizationAudit({
               }}
             >
               <DateFields />
-            </ActionForm>
+            </ResponsiveFilters>
           )}
         </>
       )}
@@ -169,17 +172,18 @@ function downloadJson(value: unknown, name: string) {
   download(JSON.stringify(value, null, 2), name, "application/json");
 }
 
-function DateFields() {
+function DateFields({ search = "" }: { search?: string }) {
+  const applied = new URLSearchParams(search);
   const now = new Date(),
     to = new Date(now.getTime() + 86400000).toISOString().slice(0, 10),
     from = now.toISOString().slice(0, 8) + "01";
   return (
     <>
       <Field label="From date">
-        <input name="from" type="date" required defaultValue={from} />
+        <input name="from" type="date" required defaultValue={applied.get("from") ?? from} />
       </Field>
       <Field label="To date (exclusive)">
-        <input name="to" type="date" required defaultValue={to} />
+        <input name="to" type="date" required defaultValue={applied.get("to") ?? to} />
       </Field>
     </>
   );

@@ -1,3 +1,8 @@
+@keyframes workspace-drawer-enter {
+  from {
+    transform: translateX(100%);
+  }
+}
 .workspace-app {
   --on-primary: white;
   --button-accent-border: color-mix(in srgb, var(--primary) 55%, var(--border));
@@ -358,89 +363,6 @@
   justify-content: space-between;
   margin-top: 1.4rem;
 }
-.workspace-app .sidebar {
-  position: fixed;
-  inset: 0 auto 0 0;
-  z-index: 50;
-  width: 244px;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  padding: 1.7rem 1rem;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-.workspace-app .sidebar-brand {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0.5rem;
-  margin-bottom: 2.5rem;
-}
-.workspace-app .sidebar > .eyebrow {
-  padding: 0 0.8rem;
-  margin-bottom: 0.7rem;
-}
-.workspace-app .sidebar nav {
-  display: grid;
-  gap: 0.3rem;
-}
-.workspace-app .sidebar nav a {
-  min-height: 44px;
-  border: 0;
-  text-align: left;
-  background: transparent;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.65rem 0.8rem;
-  border-radius: 10px;
-  font-size: 0.83rem;
-  font-weight: 600;
-}
-.workspace-app .sidebar nav a svg:last-child {
-  margin-left: auto;
-  opacity: 0;
-}
-.workspace-app .sidebar nav a:hover,
-.workspace-app .sidebar nav a[aria-current="page"] {
-  background: var(--surface-lavender);
-  color: var(--primary-hover);
-}
-.workspace-app .sidebar nav a[aria-current="page"] svg:last-child {
-  opacity: 1;
-}
-.workspace-app .sidebar-profile {
-  margin-top: auto;
-  padding: 2rem 0.2rem 1rem;
-  display: flex;
-  gap: 0.7rem;
-  align-items: center;
-  overflow-wrap: anywhere;
-}
-.workspace-app .sidebar-profile > div {
-  min-width: 0;
-}
-.workspace-app .sidebar-profile strong {
-  font-size: 0.8rem;
-}
-.workspace-app .avatar {
-  background: var(--surface-lavender);
-  color: var(--primary);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  width: 37px;
-  height: 37px;
-  flex-shrink: 0;
-  font-size: 0.8rem;
-  font-weight: bold;
-}
-.workspace-app .workspace-main {
-  padding-left: 244px;
-  min-height: 100dvh;
-}
 .workspace-app .topbar {
   min-height: 74px;
   background: var(--surface);
@@ -538,35 +460,6 @@
 .workspace-app .page-stack {
   display: grid;
   gap: 1.2rem;
-}
-.workspace-app .workspace-tabs {
-  display: flex;
-  max-width: 100%;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
-}
-.workspace-app .workspace-tabs a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0.5rem 0.85rem;
-  border-bottom: 3px solid transparent;
-  color: var(--text-secondary);
-  font-size: 0.86rem;
-  white-space: nowrap;
-  text-decoration: none;
-}
-.workspace-app .workspace-tabs a:hover {
-  background: var(--surface-lavender);
-}
-.workspace-app .workspace-tabs a[aria-current="page"] {
-  border-bottom-color: var(--primary);
-  color: var(--text);
-  font-weight: 700;
-}
-.workspace-app .workspace-tabs a:focus-visible {
-  outline-offset: -3px;
 }
 .workspace-app .workflow-actions {
   margin-top: 0;
@@ -715,9 +608,6 @@
   font-family: monospace;
   font-size: 0.75rem;
 }
-.workspace-app .mobile-only {
-  display: none;
-}
 .workspace-app .skip-link {
   position: fixed;
   z-index: 100;
@@ -731,27 +621,7 @@
 .workspace-app .skip-link:focus {
   top: 1rem;
 }
-.workspace-app .menu-backdrop {
-  position: fixed;
-  z-index: 40;
-  inset: 0;
-  border: 0;
-  background: #24203377;
-}
 @media (max-width: 1000px) {
-  .workspace-app .mobile-only {
-    display: inline-grid;
-  }
-  .workspace-app .sidebar {
-    display: none;
-  }
-  .workspace-app .sidebar.open {
-    display: flex;
-    width: min(320px, 88vw);
-  }
-  .workspace-app .workspace-main {
-    padding-left: 0;
-  }
   .workspace-app .page-content {
     padding: 1.3rem;
   }
@@ -786,10 +656,6 @@
   .workspace-app .module-grid,
   .workspace-app .two-columns {
     grid-template-columns: 1fr;
-  }
-  .workspace-app .metric-grid.overview-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
   }
   .workspace-app .overview-metrics .card {
     padding: 0.85rem;
@@ -864,10 +730,6 @@
   }
   .workspace-app .page-content .workflow-actions {
     margin-top: 0;
-  }
-  .workspace-app .workspace-tabs a {
-    padding-inline: 0.45rem;
-    font-size: 0.8rem;
   }
   .workspace-app .page-content .card > .button {
     display: flex;

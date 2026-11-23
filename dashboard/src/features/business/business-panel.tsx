@@ -1,6 +1,8 @@
 "use client";
+import { ResponsiveFilters } from "@/shared/ui/responsive-filters";
 import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { api } from "@/shared/api";
 import { useResource } from "@/shared/use-resource";
 import type { Member } from "@/shared/types";
@@ -84,6 +86,27 @@ function Organization({
   if (view.loading) return <Loading />;
   if (view.error || !view.data) return <ErrorNotice error={view.error} />;
   const data = view.data;
+  const locations = (
+    <>
+      <option value="">All locations</option>
+      {options?.locations.map((l) => (
+        <option key={l.id} value={l.id}>{l.name}</option>
+      ))}
+    </>
+  );
+  const refreshOrganization = (
+    <ActionButton
+      className="button max-[700px]:size-11 max-[700px]:px-0!"
+      action={async () => {
+        view.reload();
+        all.reload();
+        alerts.reload();
+      }}
+    >
+      <RefreshCw size={18} aria-hidden="true" className="min-[700px]:hidden" />
+      <span className="max-[700px]:sr-only">Refresh organization</span>
+    </ActionButton>
+  );
   return (
     <div className="stack">
       <Card title="Business organization">
@@ -91,28 +114,25 @@ function Organization({
           {data.organization.name} · {data.organization.timezone}
         </p>
         <Notice>{data.qualityNote}</Notice>
-        <Field label="Business location">
-          <select
-            value={location}
-            onChange={(event) => changeLocation(event.target.value)}
-          >
-            <option value="">All locations</option>
-            {options?.locations.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <ActionButton
-          action={async () => {
-            view.reload();
-            all.reload();
-            alerts.reload();
-          }}
+        <ResponsiveFilters
+          label="Location filters"
+          action={async (form) => changeLocation(text(form, "location"))}
+          beside={refreshOrganization}
+          inline={
+            <>
+              <Field label="Business location">
+                <select value={location} onChange={(event) => changeLocation(event.target.value)}>
+                  {locations}
+                </select>
+              </Field>
+              {refreshOrganization}
+            </>
+          }
         >
-          Refresh organization
-        </ActionButton>
+          <Field label="Business location">
+            <select name="location" defaultValue={location}>{locations}</select>
+          </Field>
+        </ResponsiveFilters>
       </Card>
       {tab === "organization" && (
         <>

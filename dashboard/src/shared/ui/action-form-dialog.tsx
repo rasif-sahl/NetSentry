@@ -7,6 +7,7 @@ export function ActionFormDialog({
   submit,
   label = submit,
   primary = false,
+  mobileDrawer = false,
   icon,
   action,
   onOpen,
@@ -16,6 +17,7 @@ export function ActionFormDialog({
   submit: string;
   label?: string;
   primary?: boolean;
+  mobileDrawer?: boolean;
   icon?: ReactNode;
   action: (form: FormData) => Promise<string | void>;
   onOpen?: () => void;
@@ -34,10 +36,28 @@ export function ActionFormDialog({
     dialog.current?.showModal();
     dialog.current
       ?.querySelector<HTMLElement>(
-        'form :is(input, select, textarea):not(:disabled, [type="hidden"])',
+        mobileDrawer
+          ? 'button[aria-label="Close dialog"]'
+          : 'form :is(input, select, textarea):not(:disabled, [type="hidden"])',
       )
       ?.focus();
-  }, [open]);
+  }, [open, mobileDrawer]);
+
+  useEffect(() => {
+    if (!open || !mobileDrawer) return;
+    const previousOverflow = document.body.style.overflow;
+    const wideScreen = window.matchMedia("(min-width: 700px)");
+    const closeOnResize = () => {
+      if (wideScreen.matches) dialog.current?.close();
+    };
+    document.body.style.overflow = "hidden";
+    wideScreen.addEventListener("change", closeOnResize);
+    closeOnResize();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      wideScreen.removeEventListener("change", closeOnResize);
+    };
+  }, [open, mobileDrawer]);
 
   return (
     <>
@@ -65,7 +85,11 @@ export function ActionFormDialog({
           onClose?.();
           trigger.current?.focus();
         }}
-        className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-md overflow-auto rounded-2xl border border-border bg-surface p-4 text-text shadow-xl backdrop:bg-black/45 sm:p-6"
+        className={`fixed overflow-auto border border-border bg-surface p-4 text-text shadow-xl backdrop:bg-black/45 sm:p-6 ${
+          mobileDrawer
+            ? "inset-y-0 start-auto end-0 m-0 h-dvh max-h-none w-[calc(100%_-_1rem)] max-w-sm overscroll-contain rounded-s-2xl pb-[max(1rem,env(safe-area-inset-bottom))] motion-safe:animate-[workspace-drawer-enter_220ms_ease-out]"
+            : "inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-md rounded-2xl"
+        }`}
       >
         {open && (
           <>
