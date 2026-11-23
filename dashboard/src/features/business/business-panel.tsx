@@ -82,6 +82,10 @@ function Organization({
   if (view.loading) return <Loading />;
   if (view.error || !view.data) return <ErrorNotice error={view.error} />;
   const data = view.data;
+  const ReportingPolicyForm = data.policy ? ActionForm : ActionFormDialog;
+  const reportingPolicyDialog = data.policy
+    ? {}
+    : { label: "Create reporting policy", primary: true };
   return (
     <div className="stack">
       <Card title="Business organization">
@@ -159,7 +163,8 @@ function Organization({
                 These checks review reported metadata. They do not verify
                 patching, encryption, legal compliance or security protection.
               </p>
-              <ActionForm
+              <ReportingPolicyForm
+                {...reportingPolicyDialog}
                 key={data.policy?.revision ?? 0}
                 submit="Save reporting checks"
                 action={async (f) => {
@@ -197,7 +202,7 @@ function Organization({
                   />{" "}
                   Require a reported granted permission
                 </label>
-              </ActionForm>
+              </ReportingPolicyForm>
             </Card>
           )}
           {can("alerts:handle") && (

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { ActionFormDialog } from "@/shared/ui/action-form-dialog";
 import { ActionForm, Field } from "@/shared/ui/common";
 import { FamilyConsent } from "./family-consent";
 import { readPolicyForm } from "./policy-input";
@@ -31,8 +32,17 @@ export function PolicyForm({
   const [schedules, setSchedules] = useState(initial?.schedules ?? []);
   const [openedAt] = useState(() => Date.now());
   const r = initial ?? emptyRules();
+  const Form = initial ? ActionForm : ActionFormDialog;
+  const dialog = initial
+    ? {}
+    : {
+        label: "Create family policy",
+        primary: true,
+        onClose: () => setSchedules([]),
+      };
   return (
-    <ActionForm
+    <Form
+      {...dialog}
       submit="Save requested policy"
       action={async (f) => {
         await save(readPolicyForm(f, schedules));
@@ -238,6 +248,6 @@ export function PolicyForm({
         Request network pause (unsupported by current router adapter)
       </label>
       <FamilyConsent />
-    </ActionForm>
+    </Form>
   );
 }

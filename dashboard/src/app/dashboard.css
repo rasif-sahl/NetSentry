@@ -162,7 +162,10 @@
   color: var(--danger);
   border-color: var(--danger);
 }
-.workspace-app .auth-links button {
+.workspace-app .auth-links :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--primary-hover);
   font-size: 0.82rem;
   font-weight: 650;

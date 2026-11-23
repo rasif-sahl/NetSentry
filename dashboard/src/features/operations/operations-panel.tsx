@@ -160,9 +160,10 @@ export function OperationsPanel({ tab }: { tab: string }) {
                 cannot grant roles, consent, paid entitlements or OS
                 authorization.
               </p>
-              <ActionForm
+              <ActionFormDialog
+                label="Configure feature"
                 submit="Save feature setting"
-                reset
+                primary
                 action={async (f) => {
                   const wid = text(f, "workspace"),
                     key = text(f, "key"),
@@ -180,6 +181,7 @@ export function OperationsPanel({ tab }: { tab: string }) {
                     expectedRevision: old?.revision ?? 0,
                     password: String(f.get("password") ?? ""),
                   });
+                  return "Feature setting saved.";
                 }}
               >
                 <Field label="Feature scope">
@@ -217,7 +219,7 @@ export function OperationsPanel({ tab }: { tab: string }) {
                   other gates
                 </label>
                 <Password />
-              </ActionForm>
+              </ActionFormDialog>
               <ul>
                 {data.flags.map((f) => (
                   <li key={f.scope + f.key}>

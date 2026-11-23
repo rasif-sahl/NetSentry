@@ -736,6 +736,23 @@ test("a verified user can create and switch to a new workspace", async ({
   await expect(
     page.getByText("Asia/Colombo", { exact: true }).first(),
   ).toBeVisible();
+  await page.getByRole("link", { name: "Business", exact: true }).click();
+  await openTab(page, "Activity");
+  const reportingPolicy = page.getByRole("dialog", {
+    name: "Create reporting policy",
+  });
+  await expect(reportingPolicy).toBeHidden();
+  await page.getByRole("button", { name: "Create reporting policy" }).click();
+  await reportingPolicy.getByLabel("Metadata stale after minutes").fill("720");
+  await reportingPolicy
+    .getByRole("button", { name: "Save reporting checks" })
+    .click();
+  await expect(reportingPolicy).toBeHidden();
+  await expect(page.getByLabel("Metadata stale after minutes")).toHaveValue(
+    "720",
+  );
+  await page.getByRole("link", { name: "Team", exact: true }).click();
+  await openTab(page, "Workspaces");
   await page.setViewportSize({ width: 320, height: 760 });
   const switchToFamily = family.getByRole("button", {
     name: "Switch to Fixture family",
@@ -973,13 +990,21 @@ test("registration and password-confirmed account deletion clear the browser ses
 }) => {
   await page.goto("/app");
   await page
-    .getByRole("button", { name: "Create an account", exact: true })
+    .getByRole("link", { name: "Create an account", exact: true })
     .click();
-  await page.getByLabel("Your name").fill("Disposable browser fixture");
-  await page
+  await expect(page).toHaveURL("/register");
+  const registration = page.getByRole("main");
+  await expect(
+    registration.getByRole("heading", { name: "Create your account" }),
+  ).toBeVisible();
+  await expect(
+    registration.getByRole("link", { name: "Back to sign in" }),
+  ).toHaveAttribute("href", "/app");
+  await registration.getByLabel("Your name").fill("Disposable browser fixture");
+  await registration
     .getByLabel("Email address")
     .fill("disposable@dashboard.example.invalid");
-  const password = page.getByLabel("Password", { exact: true });
+  const password = registration.getByLabel("Password", { exact: true });
   const showPassword = page.getByRole("button", {
     name: "Show password",
     exact: true,
@@ -997,9 +1022,10 @@ test("registration and password-confirmed account deletion clear the browser ses
   await hidePassword.press("Enter");
   await expect(password).toHaveAttribute("type", "password");
   await expect(password).toHaveValue("disposable-fixture-password-123");
-  await page
+  await registration
     .getByRole("button", { name: "Create account", exact: true })
     .click();
+  await expect(page).toHaveURL("/app");
   await expect(
     page.getByRole("heading", { name: "Your devices", exact: true }),
   ).toBeVisible();
@@ -1852,6 +1878,45 @@ test("family viewers cannot see child profiles and policy edits require explicit
     .getByRole("button", { name: "Save requested policy", exact: true })
     .click();
   await expect(page.getByText(/Revision 2 · timezone/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Create child profile" }).click();
+  const profileDialog = page.getByRole("dialog", {
+    name: "Create child profile",
+  });
+  await profileDialog
+    .getByLabel("Child display name")
+    .fill("New policy profile");
+  const consent =
+    "I accept the family-sharing disclosure and have authority for this change.";
+  await profileDialog.getByRole("checkbox", { name: consent }).check();
+  await profileDialog
+    .getByRole("button", { name: "Create child profile" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "New policy profile · family overview" }),
+  ).toBeVisible();
+
+  const firstPolicy = page.getByRole("dialog", {
+    name: "Create family policy",
+  });
+  const createPolicy = page.getByRole("button", {
+    name: "Create family policy",
+  });
+  await createPolicy.click();
+  await firstPolicy.getByRole("button", { name: "Add schedule" }).click();
+  await page.keyboard.press("Escape");
+  await expect(createPolicy).toBeFocused();
+  await createPolicy.click();
+  await expect(firstPolicy.getByLabel("Schedule 1 type")).toHaveCount(0);
+  await firstPolicy
+    .getByLabel("Daily observed screen-time allowance (minutes)")
+    .fill("60");
+  await firstPolicy.getByRole("checkbox", { name: consent }).check();
+  await firstPolicy
+    .getByRole("button", { name: "Save requested policy" })
+    .click();
+  await expect(firstPolicy).toBeHidden();
+  await expect(page.getByText(/Revision 1 · timezone/)).toBeVisible();
 });
 
 test("Business roles review organization structure and employees explicitly accept sharing", async ({
@@ -2033,16 +2098,19 @@ test("sandbox billing is owner-only and operator flags require separate authorit
     page.getByRole("heading", { name: "Platform operations", exact: true }),
   ).toBeVisible();
   await openTab(page, "Administration");
-  await page
+  const featureDialog = page.getByRole("dialog", { name: "Configure feature" });
+  await expect(featureDialog).toBeHidden();
+  await page.getByRole("button", { name: "Configure feature" }).click();
+  await featureDialog
     .getByLabel("Feature key", { exact: true })
     .selectOption("developer");
-  await page
+  await featureDialog
     .getByLabel("Confirm operator password", { exact: true })
-    .first()
     .fill(data.password);
-  await page
+  await featureDialog
     .getByRole("button", { name: "Save feature setting", exact: true })
     .click();
+  await expect(featureDialog).toBeHidden();
   await expect(
     page.getByText(/developer · Disabled · revision 1/),
   ).toBeVisible();

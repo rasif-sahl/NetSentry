@@ -183,14 +183,13 @@ export function AuthPanel({
           )}
         </ActionForm>
         <nav className="auth-links" aria-label="Account options">
-          {mode !== "login" && (
+          {mode === "register" && <Link href="/app">Back to sign in</Link>}
+          {mode !== "login" && mode !== "register" && (
             <button onClick={() => setMode("login")}>Back to sign in</button>
           )}
           {mode === "login" && (
             <>
-              <button onClick={() => setMode("register")}>
-                Create an account
-              </button>
+              <Link href="/register">Create an account</Link>
               <button onClick={() => setMode("forgot")}>
                 Forgot password?
               </button>

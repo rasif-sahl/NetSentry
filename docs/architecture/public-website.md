@@ -11,7 +11,8 @@ The approved storytelling homepage is implemented in the existing Next.js dashbo
 - `/contact` provides the approved enquiry form preview, contact guidance, documentation links and FAQs. Message delivery is not configured.
 - `/privacy` is the draft Privacy Policy, with ten sections and responsive contents navigation. It is not an effective policy.
 - `/terms` presents twelve draft Terms and Conditions sections with responsive contents navigation. No acceptance is recorded.
-- `/app` contains the existing workspace and its sign-in/register/recovery flows. The homepage's sign-in and workspace actions point here.
+- `/app` contains the workspace and its sign-in and recovery screens. The homepage's sign-in and workspace actions point here.
+- `/register` contains the account registration form. Successful registration opens the workspace at `/app`.
 - `/verify-email` and `/reset-password` retain their existing URLs and fragment-token handling. Successful sign-in from these flows returns to `/app`.
 - Workspace sections use their own routes under `/app`, such as `/app/alerts`. Older `/?view=…` and `/app?view=…` links redirect to the corresponding section and preserve other query parameters.
 - The workspace layout keeps navigation, the workspace selector, and the section header shared. Sections with separate workflows use the same tab row, with links such as `/app/alerts/rules` and `/app/settings/sessions`. The section URL opens its default tab, and other tabs support direct links and browser history.
