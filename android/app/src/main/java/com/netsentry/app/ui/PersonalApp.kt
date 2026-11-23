@@ -246,6 +246,7 @@ private fun PersonalContent(model: PersonalViewModel) {
                     key(state.profile?.optString("id"), state.workspaceId) {
                         verifyEmail()
                         if (destination == null) {
+                            if (tab == "Home") HomeSummary(state, workspaceName)
                             mobileDestinations.getValue(tab).forEach { label ->
                                 NavigationCard(label, onClick = { destination = label })
                             }
@@ -567,23 +568,112 @@ private fun Phone(state: Repository.View, model: PersonalViewModel, section: Str
 }
 
 @Composable
+private fun HomeSummary(state: Repository.View, workspaceName: String?) {
+    val phone = state.ownDevice
+    val inWorkspace = phone != null && phone.optString("workspaceId") == state.workspaceId
+    val permission = if (inWorkspace) phone?.optString("permissionStatus") else null
+    Panel("At a glance") {
+        Text("Workspace: ${workspaceName?.takeIf { it.isNotBlank() } ?: "Not selected"}")
+        Text(
+            "This phone: " +
+                when {
+                    phone == null -> "Setup required"
+                    !inWorkspace -> "Enrolled in another workspace"
+                    else -> phone.optString("name").ifBlank { "Enrolled" }
+                }
+        )
+        Text(
+            "Reported usage access: " +
+                when (permission) {
+                    "granted" -> "Granted"
+                    "denied" -> "Denied"
+                    "revoked" -> "Revoked"
+                    else -> "Unavailable"
+                }
+        )
+        Text(
+            "Workspace monitoring: " +
+                when {
+                    !inWorkspace || phone == null || phone.isNull("monitoringEnabled") ->
+                        "Unavailable"
+                    phone.optBoolean("monitoringEnabled") -> "Enabled"
+                    else -> "Disabled"
+                }
+        )
+    }
+}
+
+@Composable
 private fun Usage(state: Repository.View, model: PersonalViewModel, section: String) {
-    var metric by remember { mutableStateOf("mobile_data_bytes") }
-    var period by remember { mutableStateOf("day") }
+    val loaded = state.report.takeIf { section == "Usage reports" }
+    var metric by rememberSaveable {
+        mutableStateOf(loaded?.optString("metric").orEmpty().ifBlank { "mobile_data_bytes" })
+    }
+    var period by rememberSaveable {
+        mutableStateOf(loaded?.optString("period").orEmpty().ifBlank { "day" })
+    }
     var bytes by remember { mutableStateOf("") }
     var estimated by remember { mutableStateOf(true) }
-    Action("Refresh alerts and notifications", model) { refresh() }
-    if (section == "Usage reports")
+    if (section == "Usage reports") {
+        var filtersOpen by rememberSaveable { mutableStateOf(false) }
+        if (filtersOpen) {
+            var draftMetric by rememberSaveable { mutableStateOf(metric) }
+            var draftPeriod by rememberSaveable { mutableStateOf(period) }
+            ReportFilterSheet(
+                title = "Usage report filters",
+                canApply = !model.busy,
+                onDismiss = { filtersOpen = false },
+                onApply = {
+                    val appliedMetric = draftMetric
+                    val appliedPeriod = draftPeriod
+                    metric = appliedMetric
+                    period = appliedPeriod
+                    filtersOpen = false
+                    model.run("Action confirmed") { loadReport(appliedPeriod, appliedMetric) }
+                },
+            ) {
+                Text("Metric")
+                Choices(
+                    listOf("mobile_data_bytes", "wifi_data_bytes"),
+                    draftMetric,
+                    ::reportMetricLabel,
+                ) {
+                    draftMetric = it
+                }
+                Text("Group by")
+                Choices(listOf("day", "week", "month"), draftPeriod, ::reportPeriodLabel) {
+                    draftPeriod = it
+                }
+            }
+        }
         Panel("Mobile and Wi-Fi usage") {
             Text(
                 "Phone aggregate totals from Android OS accounting. Interval attribution is estimated and must be compared with Settings on a real phone. Missing values are not zero. Reporting uses workspace timezone."
             )
-            Choices(listOf("mobile_data_bytes", "wifi_data_bytes"), metric) { metric = it }
-            Choices(listOf("day", "week", "month"), period) { period = it }
-            Action("Load usage report", model) { loadReport(period, metric) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = { filtersOpen = true },
+                    enabled = !model.busy,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("Filters")
+                }
+                Button(
+                    onClick = {
+                        val appliedPeriod = period
+                        val appliedMetric = metric
+                        model.run("Action confirmed") { loadReport(appliedPeriod, appliedMetric) }
+                    },
+                    enabled = !model.busy,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("Refresh report")
+                }
+            }
+            if (state.report == null) Text("No usage report loaded.")
             state.report?.let { report ->
                 Text(
-                    "${report.optString("metric")} · ${report.optString("from")} to ${report.optString("to")} · ${report.optString("timezone")}"
+                    "${reportMetricLabel(report.optString("metric"))} · ${report.optString("from")} to ${report.optString("to")} · ${report.optString("timezone")}"
                 )
                 report.array("buckets").forEach { bucket ->
                     Text(
@@ -598,7 +688,8 @@ private fun Usage(state: Repository.View, model: PersonalViewModel, section: Str
                 }
             }
         }
-    if (section != "Usage reports")
+    } else {
+        Action("Refresh alerts and notifications", model) { refresh() }
         Panel(
             if (section == "In-app notifications") "In-app notifications"
             else "Allowances and data alerts"
@@ -607,8 +698,14 @@ private fun Usage(state: Repository.View, model: PersonalViewModel, section: Str
                 Text(
                     "Create a server threshold for this phone and chosen period. Alerts are evaluated by scheduled server maintenance; in-app delivery is available, push delivery is not configured."
                 )
-                Choices(listOf("mobile_data_bytes", "wifi_data_bytes"), metric) { metric = it }
-                Choices(listOf("day", "week", "month"), period) { period = it }
+                Choices(
+                    listOf("mobile_data_bytes", "wifi_data_bytes"),
+                    metric,
+                    ::reportMetricLabel,
+                ) {
+                    metric = it
+                }
+                Choices(listOf("day", "week", "month"), period, ::reportPeriodLabel) { period = it }
                 Input(
                     "Allowance in bytes (maximum 9007199254)",
                     bytes,
@@ -678,6 +775,7 @@ private fun Usage(state: Repository.View, model: PersonalViewModel, section: Str
                 }
             }
         }
+    }
 }
 
 @Composable
@@ -1044,15 +1142,30 @@ internal fun Action(
     }
 }
 
+private fun reportMetricLabel(metric: String): String =
+    when (metric) {
+        "mobile_data_bytes" -> "Mobile data"
+        "wifi_data_bytes" -> "Wi-Fi data"
+        else -> metric
+    }
+
+internal fun reportPeriodLabel(period: String): String =
+    period.replaceFirstChar { it.uppercaseChar() }
+
 @Composable
-internal fun Choices(values: List<String>, selected: String, choose: (String) -> Unit) {
+internal fun Choices(
+    values: List<String>,
+    selected: String,
+    label: (String) -> String,
+    choose: (String) -> Unit,
+) {
     Row(
         Modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         values.forEach { value ->
             OutlinedButton(onClick = { choose(value) }) {
-                Text("${if (selected == value) "✓ " else ""}$value")
+                Text("${if (selected == value) "✓ " else ""}${label(value)}")
             }
         }
     }
